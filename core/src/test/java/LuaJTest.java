@@ -1,5 +1,6 @@
 import org.junit.Before;
 import org.junit.Test;
+import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -12,35 +13,26 @@ public class LuaJTest {
 
     public class LuaTestClass extends ZeroArgFunction {
         int number;
-        public void setNumber() {
-            number = 100;
-        }
 
         @Override
         public LuaValue call() {
-            setNumber();
+            number = 100;
             return null;
         }
     }
 
     @Before
     public void setup() {
-        _G = JsePlatform.standardGlobals();
         testClass = new LuaTestClass();
     }
 
     @Test
     public void testLuaJ() {
-        /*
-        testClass.number = 0;
+        Globals globals = JsePlatform.standardGlobals();
         LuaValue test = CoerceJavaToLua.coerce(testClass);
-        _G.set("setNumber", testClass);
-        LuaValue chunk = _G.load("setNumber()");
+        globals.set("setNum", test);
+        LuaValue chunk = globals.load("setNum()");
         chunk.call();
-        System.out.print(testClass.number);
-        org.junit.Assert.assertTrue(
-                "Expected call to obj:setNumber to set number to 100",
-                testClass.number == 100);
-                */
+        org.junit.Assert.assertTrue("", testClass.number == 100);
     }
 }
