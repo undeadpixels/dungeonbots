@@ -12,7 +12,7 @@ public class SimpleTest {
 	@Test
 	public void test() {
 		System.out.println("A test was run.");
-		org.junit.Assert.assertTrue(true);
+		org.junit.Assert.assertTrue(false);
 	}
 
 }
