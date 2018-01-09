@@ -34,6 +34,17 @@ allprojects {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.sonatype.org/content/repositories/releases/" }
     }
+
+    apply plugin: "java"
+    test {
+        testLogging {
+            exceptionFormat "full"
+            events "started", "skipped", "failed", "passed"
+            outputs.upToDateWhen {false}
+            showStandardStreams = true
+        }
+    }
+
 }
 
 project(":desktop") {
@@ -64,6 +75,9 @@ project(":core") {
         compile "org.luaj:luaj-jse:$luajVersion"
     }
 }
+
+
+
 
 tasks.eclipse.doLast {
     delete ".project"
