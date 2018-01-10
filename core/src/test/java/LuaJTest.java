@@ -39,8 +39,12 @@ public class LuaJTest {
         globals.set("setNum", test);
         LuaValue chunk = globals.load("return setNum();");
         Varargs ans = chunk.invoke();
-        org.junit.Assert.assertTrue("", testClass.number == 100);
-        org.junit.Assert.assertTrue("", ans.toint(1) == 100);
+        org.junit.Assert.assertTrue(
+                "Calling setNum does not set the value of the Java object to the correct value",
+                testClass.number == 100);
+        org.junit.Assert.assertTrue(
+                "Calling setNum does not return the correct value in Lua",
+                ans.toint(1) == 100);
     }
 
     @Test
@@ -48,12 +52,18 @@ public class LuaJTest {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("x = 1 + 2;");
         Optional<Varargs> results = script.start().join().get().getResults();
-        Assert.assertTrue("", results.isPresent() && results.get().narg() == 0);
+        Assert.assertTrue(
+                "'x = 1 + 2;' does not return the expected result.",
+                results.isPresent() && results.get().narg() == 0);
 
         script = scriptEnv.scriptFromString("return x;");
         results = script.start().join().get().getResults();
-        Assert.assertTrue("", results.isPresent() && results.get().narg() == 1);
-        Assert.assertTrue("", results.get().toint(1) == 3);
+        Assert.assertTrue(
+                "'return x;' does not return the expected number of results",
+                results.isPresent() && results.get().narg() == 1);
+        Assert.assertTrue(
+                "'x = 1 + 2;' does not return '3'",
+                results.get().toint(1) == 3);
     }
 
     @Test
@@ -61,7 +71,9 @@ public class LuaJTest {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
         Optional<LuaScript> results = script.start().join(1000);
-        Assert.assertTrue("", !results.isPresent());
+        Assert.assertTrue(
+                "The executed LuaScript should not return a result!",
+                !results.isPresent());
     }
 
 }
