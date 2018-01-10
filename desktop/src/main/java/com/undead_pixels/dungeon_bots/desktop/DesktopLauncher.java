@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
+		// TODO - construct JFrame
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		new LwjglApplication(new DungeonBotsMain(), config);
 	}
