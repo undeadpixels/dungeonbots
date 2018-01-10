@@ -44,16 +44,24 @@ public class LuaJTest {
     }
 
     @Test
-    public void testLuaExecutor() {
+    public void testLuaScriptResult() {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
-        LuaScript scr = scriptEnv.scriptFromString("x = 1 + 2;");
-        Optional<Varargs> results = scr.start().join().get().getResults();
+        LuaScript script = scriptEnv.scriptFromString("x = 1 + 2;");
+        Optional<Varargs> results = script.start().join().get().getResults();
         Assert.assertTrue("", results.isPresent() && results.get().narg() == 0);
 
-        scr = scriptEnv.scriptFromString("return x;");
-        results = scr.start().join().get().getResults();
+        script = scriptEnv.scriptFromString("return x;");
+        results = script.start().join().get().getResults();
         Assert.assertTrue("", results.isPresent() && results.get().narg() == 1);
         Assert.assertTrue("", results.get().toint(1) == 3);
+    }
+
+    @Test
+    public void testLuaScriptTimeout() {
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
+        Optional<LuaScript> results = script.start().join(1000);
+        Assert.assertTrue("", !results.isPresent());
     }
 
 }

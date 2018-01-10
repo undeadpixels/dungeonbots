@@ -46,9 +46,14 @@ public class LuaScript {
     }
 
     public synchronized Optional<LuaScript> join() {
+        return join(0);
+    }
+
+    public synchronized Optional<LuaScript> join(long wait) {
         try {
-            thread.join();
-            return Optional.of(this);
+            thread.getState();
+            thread.join(wait);
+            return thread.isAlive() ? Optional.empty() : Optional.of(this);
         }
         catch (Exception e) {
             return Optional.empty();
