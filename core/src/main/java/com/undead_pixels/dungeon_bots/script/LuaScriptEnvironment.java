@@ -2,7 +2,6 @@ package com.undead_pixels.dungeon_bots.script;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.JsePlatform;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.util.stream.Stream;
@@ -21,10 +20,10 @@ public class LuaScriptEnvironment {
     }
 
     public LuaScript fromFile(File file) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not Implemented");
     }
 
     public LuaScript fromString(String script) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not Implemented");
     }
 }
