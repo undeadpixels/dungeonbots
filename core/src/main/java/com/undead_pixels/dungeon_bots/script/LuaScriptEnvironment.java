@@ -19,11 +19,23 @@ public class LuaScriptEnvironment {
         Stream.of(args).forEach(val -> globals.load(val));
     }
 
-    public LuaScript fromFile(File file) {
+    public LuaScriptEnvironment(Globals globals) {
+        this.globals = globals;
+    }
+
+    public LuaScript scriptFromFile(File file) {
         throw new RuntimeException("Not Implemented");
     }
 
-    public LuaScript fromString(String script) {
-        throw new RuntimeException("Not Implemented");
+    public LuaScript scriptFromString(String script) {
+        return new LuaScript(this, script);
+    }
+
+    public Globals getGlobals() {
+        return globals;
+    }
+
+    public void setGlobals(Globals globals) {
+        this.globals = globals;
     }
 }

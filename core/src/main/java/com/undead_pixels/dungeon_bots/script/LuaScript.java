@@ -1,41 +1,61 @@
 package com.undead_pixels.dungeon_bots.script;
+import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
 import java.io.File;
+import java.util.Optional;
 
 public class LuaScript {
-    private LuaScriptEnvironment environment;
-    
-    
+    private Thread thread;
+    private final LuaScriptEnvironment environment;
+    private final String script;
+    private volatile Varargs varargs;
+
+    public LuaScript(LuaScriptEnvironment env, String script) {
+        this.environment = env;
+        this.script = script;
+    }
+
     public LuaScript toFile(File f) {
         throw new RuntimeException("Not Implemented");
     }
+
+    public synchronized LuaScript start() {
+        thread = new Thread(() -> {
+            LuaValue chunk = environment.getGlobals().load(this.script);
+            varargs = chunk.invoke();
+        });
+        thread.start();
+        return this;
+    }
     
-    public LuaScript start() {
-        throw new RuntimeException("Not Implemented");
-    }
-    
-    public LuaScript stop() {
+    public synchronized LuaScript stop() {
         throw new RuntimeException("Not Implemented");
     }
 
-    public ScriptStatus getStatus() {
+    public synchronized ScriptStatus getStatus() {
         throw new RuntimeException("Not Implemented");
     }
 
-    public LuaScript resume() {
+    public synchronized LuaScript resume() {
         throw new RuntimeException("Not Implemented");
     }
 
-    public LuaScript pause() {
+    public synchronized LuaScript pause() {
         throw new RuntimeException("Not Implemented");
     }
 
-    public LuaScript join() {
-        throw new RuntimeException("Not Implemented");
+    public synchronized Optional<LuaScript> join() {
+        try {
+            thread.join();
+            return Optional.of(this);
+        }
+        catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
-    public Varargs getResults() {
-        throw new RuntimeException("Not Implemented");
+    public synchronized Optional<Varargs> getResults() {
+        return Optional.ofNullable(varargs);
     }
 }
