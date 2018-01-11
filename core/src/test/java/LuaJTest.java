@@ -98,7 +98,7 @@ public class LuaJTest {
         script.start().join(1000);
         Assert.assertTrue(
                 "The executed LuaScript should throw an Error after the timeout.",
-                script.getStatus() == ScriptStatus.ERROR);
+                script.getStatus() == ScriptStatus.TIMEOUT);
     }
 
     @Test

@@ -71,7 +71,7 @@ public class LuaScript {
         try {
             thread.join(wait);
             if(thread.isAlive())
-                scriptStatus = ScriptStatus.ERROR;
+                scriptStatus = ScriptStatus.TIMEOUT;
             return this;
         }
         catch (Exception e) {

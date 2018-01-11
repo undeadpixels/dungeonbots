@@ -6,6 +6,7 @@ public enum ScriptStatus {
     STOPPED,
     LUA_ERROR,
     ERROR,
+    TIMEOUT,
     PAUSED,
     COMPLETE
 }
