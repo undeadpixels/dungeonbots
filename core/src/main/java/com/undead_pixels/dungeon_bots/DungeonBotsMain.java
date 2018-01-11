@@ -18,6 +18,8 @@ public class DungeonBotsMain extends ApplicationAdapter {
 
 	@Override
 	public void render () {
+		// TODO - we should tell one of the AbstractScreen's to render itself.
+		
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
