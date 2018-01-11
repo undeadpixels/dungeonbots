@@ -1,4 +1,5 @@
 import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,13 +53,19 @@ public class LuaJTest {
     public void testLuaScriptResult() {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("x = 1 + 2;");
-        Optional<Varargs> results = script.start().join().get().getResults();
+        Optional<Varargs> results = script.start().join().getResults();
+        Assert.assertTrue(
+                "ScriptStatus is not marked COMPLETE",
+                script.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue(
                 "'x = 1 + 2;' does not return the expected result.",
                 results.isPresent() && results.get().narg() == 0);
 
         script = scriptEnv.scriptFromString("return x;");
-        results = script.start().join().get().getResults();
+        results = script.start().join().getResults();
+        Assert.assertTrue(
+                "ScriptStatus is not marked COMPLETE",
+                script.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue(
                 "'return x;' does not return the expected number of results",
                 results.isPresent() && results.get().narg() == 1);
@@ -71,10 +78,10 @@ public class LuaJTest {
     public void testLuaScriptTimeout() {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
-        Optional<LuaScript> results = script.start().join(1000);
+        script.start().join(1000);
         Assert.assertTrue(
-                "The executed LuaScript should not return a result!",
-                !results.isPresent());
+                "The executed LuaScript should throw an Error after the timeout.",
+                script.getStatus() == ScriptStatus.ERROR);
     }
 
 }

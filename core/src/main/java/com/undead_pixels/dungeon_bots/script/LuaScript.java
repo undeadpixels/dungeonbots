@@ -10,11 +10,13 @@ public class LuaScript {
     private final LuaScriptEnvironment environment;
     private final String script;
     private volatile Varargs varargs;
+    private volatile ScriptStatus scriptStatus;
     private Thread thread;
 
     public LuaScript(LuaScriptEnvironment env, String script) {
         this.environment = env;
         this.script = script;
+        this.scriptStatus = ScriptStatus.READY;
     }
 
     public LuaScript toFile(File f) {
@@ -23,6 +25,7 @@ public class LuaScript {
 
     public synchronized LuaScript start() {
         thread = new Thread(() -> {
+            scriptStatus = ScriptStatus.RUNNING;
             LuaValue chunk = environment.getGlobals().load(this.script);
             varargs = chunk.invoke();
         });
@@ -35,7 +38,7 @@ public class LuaScript {
     }
 
     public synchronized ScriptStatus getStatus() {
-        throw new RuntimeException("Not Implemented");
+        return scriptStatus;
     }
 
     public synchronized LuaScript resume() {
@@ -46,18 +49,23 @@ public class LuaScript {
         throw new RuntimeException("Not Implemented");
     }
 
-    public synchronized Optional<LuaScript> join() {
+    public synchronized LuaScript join() {
         return join(0);
     }
 
-    public synchronized Optional<LuaScript> join(long wait) {
+    public synchronized LuaScript join(long wait) {
         try {
             thread.getState();
             thread.join(wait);
-            return thread.isAlive() ? Optional.empty() : Optional.of(this);
+            if(thread.isAlive())
+                scriptStatus = ScriptStatus.ERROR;
+            else
+                scriptStatus = ScriptStatus.COMPLETE;
+            return this;
         }
         catch (Exception e) {
-            return Optional.empty();
+            scriptStatus = ScriptStatus.ERROR;
+            return this;
         }
     }
 
