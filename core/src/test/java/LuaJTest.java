@@ -85,6 +85,13 @@ public class LuaJTest {
     }
 
     @Test
+    public void testNoResults() {
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScript script = scriptEnv.scriptFromString("x = 1 + 2;");
+        Assert.assertFalse("Script results should not be present", script.getResults().isPresent());
+    }
+
+    @Test
     public void testLuaScriptTimeout() {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
@@ -113,11 +120,31 @@ public class LuaJTest {
             LuaScript script = scripts.get(i).join();
             Assert.assertTrue(
                     "ScriptStatus is not marked COMPLETE",
-                    script.join().getStatus() == ScriptStatus.COMPLETE);
+                    script.getStatus() == ScriptStatus.COMPLETE);
             Assert.assertTrue(
                     "Script did not return the expected result.",
                     script.getResults().isPresent() && script.getResults().get().toint(1) == i);
         }
+    }
+
+    @Test
+    public void testStopScript() {
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
+        script.start().stop();
+        Assert.assertTrue(
+                "The executed LuaScript should be stopped.",
+                script.getStatus() == ScriptStatus.STOPPED);
+    }
+
+    @Test
+    public void testLuaError() {
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScript script = scriptEnv.scriptFromString("if = 2");
+        script.start().join();
+        Assert.assertTrue(
+                "ScriptStatus should report a Lua Error",
+                script.getStatus() == ScriptStatus.LUA_ERROR);
     }
 
 }

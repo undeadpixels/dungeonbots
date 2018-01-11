@@ -4,6 +4,7 @@ public enum ScriptStatus {
     READY,
     RUNNING,
     STOPPED,
+    LUA_ERROR,
     ERROR,
     PAUSED,
     COMPLETE

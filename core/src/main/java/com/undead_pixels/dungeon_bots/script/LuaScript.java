@@ -1,4 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -24,17 +26,29 @@ public class LuaScript {
     }
 
     public synchronized LuaScript start() {
-        thread = new Thread(() -> {
-            scriptStatus = ScriptStatus.RUNNING;
-            LuaValue chunk = environment.getGlobals().load(this.script);
-            varargs = chunk.invoke();
+        thread = ThreadWrapper.create(() -> {
+            try {
+                scriptStatus = ScriptStatus.RUNNING;
+                LuaValue chunk = environment.getGlobals().load(this.script);
+                varargs = chunk.invoke();
+                scriptStatus = ScriptStatus.COMPLETE;
+            } catch (LuaError le) {
+                scriptStatus = ScriptStatus.LUA_ERROR;
+            }
         });
         thread.start();
         return this;
     }
     
     public synchronized LuaScript stop() {
-        throw new RuntimeException("Not Implemented");
+        thread.interrupt();
+        try {
+            thread.join();
+        }
+        catch (InterruptedException ie) {
+        }
+        scriptStatus = ScriptStatus.STOPPED;
+        return this;
     }
 
     public synchronized ScriptStatus getStatus() {
@@ -55,12 +69,9 @@ public class LuaScript {
 
     public synchronized LuaScript join(long wait) {
         try {
-            thread.getState();
             thread.join(wait);
             if(thread.isAlive())
                 scriptStatus = ScriptStatus.ERROR;
-            else
-                scriptStatus = ScriptStatus.COMPLETE;
             return this;
         }
         catch (Exception e) {
