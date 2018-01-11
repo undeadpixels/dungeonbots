@@ -6,10 +6,11 @@ import java.io.File;
 import java.util.Optional;
 
 public class LuaScript {
-    private Thread thread;
+
     private final LuaScriptEnvironment environment;
     private final String script;
     private volatile Varargs varargs;
+    private Thread thread;
 
     public LuaScript(LuaScriptEnvironment env, String script) {
         this.environment = env;

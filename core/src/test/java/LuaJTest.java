@@ -17,7 +17,7 @@ import java.util.Optional;
 public class LuaJTest {
     private LuaTestClass testClass;
 
-    public class LuaTestClass extends ZeroArgFunction {
+    class LuaTestClass extends ZeroArgFunction {
         int number;
 
         @Override
@@ -34,6 +34,7 @@ public class LuaJTest {
 
     @Test
     public void testLuaJ() {
+        testClass.number = 0;
         Globals globals = JsePlatform.standardGlobals();
         LuaValue test = CoerceJavaToLua.coerce(testClass);
         globals.set("setNum", test);
