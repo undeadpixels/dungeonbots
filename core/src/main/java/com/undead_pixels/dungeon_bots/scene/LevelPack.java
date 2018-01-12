@@ -5,7 +5,22 @@ import java.util.HashMap;
 
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 
+/**
+ * A collection of levels, potentially loaded from a file and sharable with others.
+ */
 public class LevelPack {
-	LuaScript[] levels;
-	HashMap<String, ByteBuffer> assets;
+	/**
+	 * Array of LuaScripts, with each LuaScript being the init/run script of each level
+	 */
+	private LuaScript[] levels;
+
+	/**
+	 * A script that is applicable to the levelpack as a whole
+	 */
+	private LuaScript packScript;
+	
+	/**
+	 * A collection of assets. Might be unused.
+	 */
+	private HashMap<String, ByteBuffer> assets;
 }

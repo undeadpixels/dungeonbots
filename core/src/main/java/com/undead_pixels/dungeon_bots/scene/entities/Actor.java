@@ -8,24 +8,49 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor.Direction;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 
+/**
+ * An actor is a general entity that is solid and capable of doing stuff.
+ * Examples include players, bots, and enemies.
+ */
 public class Actor extends SpriteEntity {
 
+	/**
+	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
+	 */
 	public enum Direction {
 		UP, DOWN, LEFT, RIGHT
 	}
 
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param tex		A texture for this Actor
+	 */
 	public Actor(World world, TextureRegion tex) {
 		super(world, tex);
 		// TODO Auto-generated constructor stub
 	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user script that is run on this object
+	 * @param tex		A texture for this Actor
+	 */
 	public Actor(World world, LuaScript script, TextureRegion tex) {
 		super(world, script, tex);
 		// TODO Auto-generated constructor stub
 	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param sprite		A texture for this Actor
+	 */
 	public Actor(World world, Sprite sprite) {
 		super(world, sprite);
 		// TODO Auto-generated constructor stub
 	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user script that is run on this object 
+	 * @param sprite		A texture for this Actor
+	 */
 	public Actor(World world, LuaScript script, Sprite sprite) {
 		super(world, script, sprite);
 		// TODO Auto-generated constructor stub
@@ -39,12 +64,15 @@ public class Actor extends SpriteEntity {
 
 	@Override
 	public boolean isSolid() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 	
+	/**
+	 * TODO - DELETEME
+	 * @param dir
+	 * @param dist
+	 */
 	public void moveInstantly(Direction dir, int dist) {
-		// TODO - DELETEME
 		if(dir == Direction.UP) {
 			sprite.setY(sprite.getY() - dist);
 		} else if(dir == Direction.DOWN) {
