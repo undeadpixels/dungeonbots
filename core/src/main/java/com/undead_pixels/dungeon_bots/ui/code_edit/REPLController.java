@@ -2,6 +2,9 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import javax.swing.JComponent;
 
+/**
+ * A REPL, and not a standard text editor
+ */
 public class REPLController extends AbstractCodeEditorController {
 
 	@Override

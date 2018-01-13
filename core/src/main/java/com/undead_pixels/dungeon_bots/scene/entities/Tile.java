@@ -1,13 +1,50 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaScript;
 
-public class Tile extends Entity {
+/**
+ * A tile in the terrain
+ */
+public class Tile extends SpriteEntity {
 
-	public Tile(World world) {
-		super(world);
+
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param tex		A texture for this Actor
+	 */
+	public Tile(World world, TextureRegion tex) {
+		super(world, tex);
+		// TODO Auto-generated constructor stub
+	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user script that is run on this object
+	 * @param tex		A texture for this Actor
+	 */
+	public Tile(World world, LuaScript script, TextureRegion tex) {
+		super(world, script, tex);
+		// TODO Auto-generated constructor stub
+	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param sprite		A texture for this Actor
+	 */
+	public Tile(World world, Sprite sprite) {
+		super(world, sprite);
+		// TODO Auto-generated constructor stub
+	}
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user script that is run on this object 
+	 * @param sprite		A texture for this Actor
+	 */
+	public Tile(World world, LuaScript script, Sprite sprite) {
+		super(world, script, sprite);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -7,10 +7,20 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+/**
+ * The main class. Basically, all it does is point to the screen that we are actually trying to render.
+ *
+ */
 public class DungeonBotsMain extends Game {
 	
+	/**
+	 * Singleton instance
+	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
 	
+	/**
+	 * private constructor for singleton
+	 */
 	private DungeonBotsMain() {
 		
 	}
@@ -31,6 +41,9 @@ public class DungeonBotsMain extends Game {
 	
 	
 	
+	/**
+	 * This will be deleted eventually, but it at least allows us to have a fake screen
+	 */
 	public static class NullScreen extends ScreenAdapter {
 
 		SpriteBatch batch = new SpriteBatch();

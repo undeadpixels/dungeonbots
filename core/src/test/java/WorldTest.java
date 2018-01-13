@@ -11,7 +11,6 @@ public class WorldTest {
 	public void simpleTest() {
 		World w = new World();
 		Actor p = new Actor(w, null);
-		w.addEntity(p); // TODO - should this in the constructor instead?
 
 		Assert.assertEquals("Actor x at beginning", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at beginning", 0.0f, p.getPosition().y, .0001);
