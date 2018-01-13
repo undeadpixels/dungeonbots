@@ -26,6 +26,7 @@ allprojects {
         ashleyVersion = '1.7.0'
         aiVersion = '1.8.0'
         luajVersion = '3.0.1'
+        classPathScanVersion = '2.9.3'
     }
 
     repositories {
@@ -73,6 +74,7 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         compile "org.luaj:luaj-jse:$luajVersion"
+        compile "io.github.lukehutch:fast-classpath-scanner:$classPathScanVersion"
     }
 }
 

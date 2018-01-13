@@ -1,46 +1,13 @@
-import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
-import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import org.junit.Assert;
-import org.junit.Test;
-import org.luaj.vm2.Globals;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
-import org.luaj.vm2.lib.OneArgFunction;
-import org.luaj.vm2.lib.ZeroArgFunction;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
-import org.luaj.vm2.lib.jse.JsePlatform;
+package com.undead_pixels.dungeon_bots;
 
-import com.undead_pixels.dungeon_bots.script.LuaScript;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.lua.*;
+import org.junit.*;
+import org.luaj.vm2.*;
+import org.luaj.vm2.lib.jse.*;
+import java.util.*;
 
 public class LuaJTest {
-
-    /**
-     * Java class that represents a 0 argument Lua Function
-     */
-    class LuaTestClass extends ZeroArgFunction {
-        int number;
-
-        @Override
-        public LuaValue call() {
-            number = 100;
-            return CoerceJavaToLua.coerce(number);
-        }
-    }
-
-    /**
-     * Java Class that represents a single argument Lua Function
-     */
-    class LuaTestMethod extends OneArgFunction {
-        @Override
-        public LuaValue call(LuaValue arg) {
-            return CoerceJavaToLua.coerce(arg.toint() - 1);
-        }
-    }
 
     @Test
     public void testLuaJ() {
@@ -104,9 +71,9 @@ public class LuaJTest {
     @Test
     public void testCustomGlobals() {
         Globals globals = JsePlatform.standardGlobals();
-        LuaValue test = CoerceJavaToLua.coerce(new LuaTestMethod());
-        globals.set("addNum", test);
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(globals);
+        LuaTestMethod testMethod = new LuaTestMethod();
+        scriptEnv.add(new LuaBinding("addNum", CoerceJavaToLua.coerce(testMethod)));
         List<LuaScript> scripts = new ArrayList<>();
         for(int i = 0; i < 100; i++)
             scripts.add(scriptEnv.scriptFromString(String.format("return addNum(%d);", i + 1)));

@@ -39,7 +39,11 @@ public class LuaScript {
         thread.start();
         return this;
     }
-    
+
+    /**
+     * TODO: Actually stop the thread
+     * @return
+     */
     public synchronized LuaScript stop() {
         thread.interrupt();
         try {
