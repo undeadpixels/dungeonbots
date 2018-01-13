@@ -1,17 +1,10 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-public class GameView extends AbstractScreen {
+import com.badlogic.gdx.ScreenAdapter;
 
-	@Override
-	public void render() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void update(double dt) {
-		// TODO Auto-generated method stub
-		
-	}
+/**
+ * The screen for the regular game
+ */
+public class GameView extends ScreenAdapter {
 
 }
