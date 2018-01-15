@@ -1,5 +1,10 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-public class LevelSelectMenuScreen extends MenuScreen {
+import com.badlogic.gdx.ScreenAdapter;
+
+/**
+ * The screen where a user selects what level/pack they want to play
+ */
+public class LevelSelectMenuScreen extends ScreenAdapter {
 
 }

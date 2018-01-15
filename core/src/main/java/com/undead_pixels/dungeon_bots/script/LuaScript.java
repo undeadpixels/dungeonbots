@@ -1,4 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
+
+import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -6,14 +8,17 @@ import java.io.File;
 import java.util.Optional;
 
 public class LuaScript {
-    private Thread thread;
+
     private final LuaScriptEnvironment environment;
     private final String script;
     private volatile Varargs varargs;
+    private volatile ScriptStatus scriptStatus;
+    private Thread thread;
 
     public LuaScript(LuaScriptEnvironment env, String script) {
         this.environment = env;
         this.script = script;
+        this.scriptStatus = ScriptStatus.READY;
     }
 
     public LuaScript toFile(File f) {
@@ -21,20 +26,33 @@ public class LuaScript {
     }
 
     public synchronized LuaScript start() {
-        thread = new Thread(() -> {
-            LuaValue chunk = environment.getGlobals().load(this.script);
-            varargs = chunk.invoke();
+        thread = ThreadWrapper.create(() -> {
+            try {
+                scriptStatus = ScriptStatus.RUNNING;
+                LuaValue chunk = environment.getGlobals().load(this.script);
+                varargs = chunk.invoke();
+                scriptStatus = ScriptStatus.COMPLETE;
+            } catch (LuaError le) {
+                scriptStatus = ScriptStatus.LUA_ERROR;
+            }
         });
         thread.start();
         return this;
     }
     
     public synchronized LuaScript stop() {
-        throw new RuntimeException("Not Implemented");
+        thread.interrupt();
+        try {
+            thread.join();
+        }
+        catch (InterruptedException ie) {
+        }
+        scriptStatus = ScriptStatus.STOPPED;
+        return this;
     }
 
     public synchronized ScriptStatus getStatus() {
-        throw new RuntimeException("Not Implemented");
+        return scriptStatus;
     }
 
     public synchronized LuaScript resume() {
@@ -45,18 +63,20 @@ public class LuaScript {
         throw new RuntimeException("Not Implemented");
     }
 
-    public synchronized Optional<LuaScript> join() {
+    public synchronized LuaScript join() {
         return join(0);
     }
 
-    public synchronized Optional<LuaScript> join(long wait) {
+    public synchronized LuaScript join(long wait) {
         try {
-            thread.getState();
             thread.join(wait);
-            return thread.isAlive() ? Optional.empty() : Optional.of(this);
+            if(thread.isAlive())
+                scriptStatus = ScriptStatus.TIMEOUT;
+            return this;
         }
         catch (Exception e) {
-            return Optional.empty();
+            scriptStatus = ScriptStatus.ERROR;
+            return this;
         }
     }
 
