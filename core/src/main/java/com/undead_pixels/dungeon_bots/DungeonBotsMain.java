@@ -16,7 +16,13 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane.ScrollPaneStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox.SelectBoxStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.Pool;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
@@ -43,24 +49,38 @@ public class DungeonBotsMain extends Game {
 	}
 
 	/**
-	 * A Menu participates in layout. Being a Table, it can contain other
-	 * actors.
+	 * A Menu participates in layout.
 	 * 
 	 * @author Wesley Oates
 	 */
-	public class Menu extends Table {
+	public class Menu extends Widget {
 
-		/*** Menu tree structure. */
-		MenuNode _Root = new MenuNode(null);
+		
+		private float _ColumnWidth;
+		private float _PrefWidth, _PrefHeight;
+		private ClickListener _ClickListener;
+		
+		
+		/** Menu tree structure. */
+		private MenuNode _RootNode;
 
 		/** A Menu has its own stage so it can prioritize input handling. */
-		private Stage _Stage = new Stage();
+		// private Stage _Stage = new Stage();
 		private Skin _Skin;
 
-		private class MenuNode {
+		public Menu() {
+			this(null);			
+		}
+		public Menu(Skin skin){
+			_RootNode = new MenuNode(null);
+			_RootNode.open();			
+		}
+
+		/// MENU CONTENT CONTROLS
+		protected class MenuNode {
 
 			/** True if the MenuNode is open, false if not. */
-			public boolean IsOpen = false;
+			private boolean _IsOpen = false;
 			private Object _Contents;
 			private Hashtable<Object, MenuNode> _SubNodes = null;
 			private Function<Object, Boolean> _EnabledTester;
@@ -201,36 +221,66 @@ public class DungeonBotsMain extends Game {
 			 * Activates the defined executor established when this node was
 			 * created.
 			 */
-			public void activate() {
+			public void execute() {
 				if (_EnabledTester.apply(_Contents))
 					_Executor.accept(_Contents);
 			}
+
+			/**Marks as closed this node and all children of this node.*/
+			public void close() {
+				this._IsOpen = false;
+				this.closeChildren();
+			}
+
+			/**Marks as closed all children of this node.*/
+			public void closeChildren() {
+				for (MenuNode child : _SubNodes.values()) {
+					child.close();
+				}
+			}
+
+			/**Returns whether the given node is a child of this node.*/
+			public boolean contains(MenuNode node) {
+				return _SubNodes.containsValue(node);
+			}
+
+			/**Returns whether the given object is contained as the contents of a child of this node.*/
+			public boolean contains(Object obj) {
+				return (obj.equals(this._Contents)) || _SubNodes.containsKey(obj);				
+			}
+			
+			public void open(){
+				_IsOpen = true;
+			}
 		}
 
-		public Menu() {
-			this(new Skin(Gdx.files.internal("uiskin.json")));
-		}
-
-		public Menu(Skin skin) {
-
-			_Skin = skin;
-			setFillParent(true);
-			setDebug(true);
-
-			Pixmap whitePixmap = new Pixmap(1, 1, Format.RGBA8888);
-			whitePixmap.setColor(Color.WHITE);
-			whitePixmap.fill();
-			_Skin.add("white", new Texture(whitePixmap));
-
-			_Skin.add("defaultFont", new BitmapFont());
-		}
-
-		public boolean addItem(String path, Object newContents, Function<Object, Boolean> enabledTester, Consumer<Object> executor) {
-			MenuNode node = _Root.addNode(path, newContents, enabledTester, executor);
+		
+		public boolean addItem(String path, Object newContents, Function<Object, Boolean> enabledTester,
+				Consumer<Object> executor) {
+			MenuNode node = _RootNode.addNode(path, newContents, enabledTester, executor);
 			return node != null;
 		}
+		
+		
+		
 
 	}
+	
+	/**The style for a menu*/
+	static public class MenuStyle extends SelectBoxStyle{
+		public int ColumnWidth;
+		
+		public MenuStyle(int columnWidth, BitmapFont font, Color fontColor, Drawable background, ScrollPaneStyle scrollStyle, ListStyle listStyle){
+			super(font, fontColor, background, scrollStyle, listStyle);
+			ColumnWidth = columnWidth;
+		}
+		
+		public MenuStyle(MenuStyle originalStyle){
+			super(originalStyle);
+			this.ColumnWidth = originalStyle.ColumnWidth;
+		}
+	}
+	
 
 	/**
 	 * This will be deleted eventually, but it at least allows us to have a fake
