@@ -39,8 +39,6 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void create() {
-		Menu menu = new Menu();
-
 		setScreen(new NullScreen());
 	}
 
@@ -52,11 +50,17 @@ public class DungeonBotsMain extends Game {
 	 */
 	public class Menu extends Table {
 
-		/* Menu tree structure. */
+		/*** Menu tree structure. */
 		MenuNode _Root = new MenuNode(null);
+
+		/** A Menu has its own stage so it can prioritize input handling. */
+		private Stage _Stage = new Stage();
+		private Skin _Skin;
 
 		private class MenuNode {
 
+			/** True if the MenuNode is open, false if not. */
+			public boolean IsOpen = false;
 			private Object _Contents;
 			private Hashtable<Object, MenuNode> _SubNodes = null;
 			private Function<Object, Boolean> _EnabledTester;
@@ -98,7 +102,7 @@ public class DungeonBotsMain extends Game {
 			 * Returns the MenuNode at the end of the specified route. If the
 			 * route does not lead to a valid node, returns null.
 			 */
-			public MenuNode GetNode(java.util.List<Object> route) {
+			public MenuNode getNode(java.util.List<Object> route) {
 				if (route == null)
 					throw new IllegalArgumentException("Route cannot be a null list of objects.");
 				if (route.isEmpty())
@@ -106,7 +110,7 @@ public class DungeonBotsMain extends Game {
 				if (_SubNodes == null)
 					return null;
 				final MenuNode subMenu = _SubNodes.get(route.get(0));
-				return subMenu == null ? null : subMenu.GetNode(route.subList(1, route.size()));
+				return subMenu == null ? null : subMenu.getNode(route.subList(1, route.size()));
 			}
 
 			/**
@@ -114,30 +118,30 @@ public class DungeonBotsMain extends Game {
 			 * whose levels are delimited by '/' characters. If the route does
 			 * not lead to a valid node, returns null.
 			 */
-			public MenuNode GetNode(String route) {
+			public MenuNode getNode(String route) {
 				ArrayList<Object> listRoute = new ArrayList<Object>();
 				for (String str : route.split("/"))
 					listRoute.add(str);
-				return GetNode(listRoute);
+				return getNode(listRoute);
 			}
 
 			/**
 			 * Ensures that nodes along the '/'-delimited given route exist, and
 			 * returns the very last node in the route.
 			 */
-			public MenuNode AddNode(String route) {
+			public MenuNode addNode(String route) {
 
 				ArrayList<Object> listRoute = new ArrayList<Object>();
 				for (String str : route.split("/"))
 					listRoute.add(str);
-				return AddNode(listRoute);
+				return addNode(listRoute);
 			}
 
 			/**
 			 * Ensures that the specified node tree route exists, and returns
 			 * the very last node in the route.
 			 */
-			public MenuNode AddNode(java.util.List<Object> route) {
+			public MenuNode addNode(java.util.List<Object> route) {
 
 				// Corner case - bad input.
 				if (route == null)
@@ -160,7 +164,7 @@ public class DungeonBotsMain extends Game {
 				}
 
 				// Return the result of the next item in the tree.
-				return subMenu.AddNode(route.subList(1, route.size()));
+				return subMenu.addNode(route.subList(1, route.size()));
 			}
 
 			/**
@@ -170,9 +174,9 @@ public class DungeonBotsMain extends Game {
 			 * determining whether the node is enabled or not, and for execution
 			 * when the node is clicked.
 			 */
-			public MenuNode AddNode(java.util.List<Object> route, Object newContents,
+			public MenuNode addNode(java.util.List<Object> route, Object newContents,
 					Function<Object, Boolean> enabledTester, Consumer<Object> executor) {
-				MenuNode node = AddNode(route);
+				MenuNode node = addNode(route);
 				MenuNode child = node._SubNodes.get(newContents);
 				if (child != null)
 					return child;
@@ -182,13 +186,48 @@ public class DungeonBotsMain extends Game {
 			}
 
 			/**
+			 * Ensures that the specified node tree route exists, and returns
+			 * the very last node in the route.
+			 */
+			public MenuNode addNode(String route, Object newContents, Function<Object, Boolean> enabledTester,
+					Consumer<Object> executor) {
+				ArrayList<Object> listRoute = new ArrayList<Object>();
+				for (String str : route.split("/"))
+					listRoute.add(str);
+				return addNode(listRoute, newContents, enabledTester, executor);
+			}
+
+			/**
 			 * Activates the defined executor established when this node was
 			 * created.
 			 */
-			public void Activate() {
+			public void activate() {
 				if (_EnabledTester.apply(_Contents))
 					_Executor.accept(_Contents);
 			}
+		}
+
+		public Menu() {
+			this(new Skin(Gdx.files.internal("uiskin.json")));
+		}
+
+		public Menu(Skin skin) {
+
+			_Skin = skin;
+			setFillParent(true);
+			setDebug(true);
+
+			Pixmap whitePixmap = new Pixmap(1, 1, Format.RGBA8888);
+			whitePixmap.setColor(Color.WHITE);
+			whitePixmap.fill();
+			_Skin.add("white", new Texture(whitePixmap));
+
+			_Skin.add("defaultFont", new BitmapFont());
+		}
+
+		public boolean addItem(String path, Object newContents, Function<Object, Boolean> enabledTester, Consumer<Object> executor) {
+			MenuNode node = _Root.addNode(path, newContents, enabledTester, executor);
+			return node != null;
 		}
 
 	}
