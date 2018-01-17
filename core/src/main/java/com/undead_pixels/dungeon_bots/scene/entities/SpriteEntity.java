@@ -19,55 +19,37 @@ public abstract class SpriteEntity extends Entity {
 
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param sprite		A texture for this Actor
+	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, Sprite sprite) {
-		super(world);
-		if(sprite == null)
-			sprite = new Sprite();
-		this.sprite = sprite;
-		// TODO Auto-generated constructor stub
+	public SpriteEntity(World world, String name, TextureRegion tex) {
+		this(world, name, null, tex);
 	}
 
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object 
-	 * @param sprite		A texture for this Actor
+	 * @param script		A user script that is run on this object. May be null.
+	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, LuaScript script, Sprite sprite) {
-		super(world, script);
-		if(sprite == null)
+	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex) {
+		super(world, name, script);
+		if(tex == null) {
 			sprite = new Sprite();
-		this.sprite = sprite;
-		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param tex		A texture for this Actor
-	 */
-	public SpriteEntity(World world, TextureRegion tex) {
-		this(world, new Sprite(tex));
-	}
-
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object
-	 * @param tex		A texture for this Actor
-	 */
-	public SpriteEntity(World world, LuaScript script, TextureRegion tex) {
-		this(world, script, new Sprite(tex));
+		} else {
+			sprite = new Sprite(tex);
+		}
 	}
 
 	@Override
-	public void update(double dt) {
+	public void update(float dt) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void render(SpriteBatch batch) {
-		if(sprite != null)
+		if(sprite != null && sprite.getTexture() != null) {
 			sprite.draw(batch);
+		}
 	}
 
 	@Override

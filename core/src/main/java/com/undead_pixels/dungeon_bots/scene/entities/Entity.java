@@ -19,22 +19,34 @@ public abstract class Entity implements BatchRenderable {
 	 * The world of which this Entity is a part
 	 */
 	protected final World world;
+	
+	/**
+	 * Some simple int that can uniquely identify this entity
+	 */
+	protected final int id;
+	
+	/**
+	 * A name for this entity that can potentially be user-facing
+	 */
+	protected final String name;
 
 	/**
 	 * @param world		The world to contain this Actor
 	 */
-	public Entity(World world) {
-		this(world, null);
+	public Entity(World world, String name) {
+		this(world, name, null);
 		world.addEntity(this);
 	}
 	/**
 	 * @param world		The world to contain this Actor
 	 * @param script		A user script that is run on this object
 	 */
-	public Entity(World world, LuaScript script) {
+	public Entity(World world, String name, LuaScript script) {
 		super();
 		this.world = world;
 		this.script = script;
+		this.name = name;
+		this.id = world.makeID();
 	}
 	
 	/**
@@ -52,7 +64,7 @@ public abstract class Entity implements BatchRenderable {
 	}
 	
 	/**
-	 * @return		This Entity's position in screen space
+	 * @return		This Entity's position in tile space
 	 */
 	public abstract Vector2 getPosition();
 	

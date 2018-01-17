@@ -25,8 +25,8 @@ public class Actor extends SpriteEntity {
 	 * @param world		The world to contain this Actor
 	 * @param tex		A texture for this Actor
 	 */
-	public Actor(World world, TextureRegion tex) {
-		super(world, tex);
+	public Actor(World world, String name, TextureRegion tex) {
+		super(world, name, tex);
 		// TODO Auto-generated constructor stub
 	}
 	/**
@@ -34,25 +34,8 @@ public class Actor extends SpriteEntity {
 	 * @param script		A user script that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
-	public Actor(World world, LuaScript script, TextureRegion tex) {
-		super(world, script, tex);
-		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param sprite		A texture for this Actor
-	 */
-	public Actor(World world, Sprite sprite) {
-		super(world, sprite);
-		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object 
-	 * @param sprite		A texture for this Actor
-	 */
-	public Actor(World world, LuaScript script, Sprite sprite) {
-		super(world, script, sprite);
+	public Actor(World world, String name, LuaScript script, TextureRegion tex) {
+		super(world, name, script, tex);
 		// TODO Auto-generated constructor stub
 	}
 
