@@ -22,6 +22,8 @@ public class World implements Renderable {
     
     private float scale;
     private Vector2 offset = new Vector2();
+    
+    private int idCounter = 0;
 
     public World() {
    	 	backgroundImage = null;
@@ -127,7 +129,6 @@ public class World implements Renderable {
 	}
 
 	public int makeID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idCounter++;
 	}
 }
