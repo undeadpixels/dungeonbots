@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Widget;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
@@ -93,15 +94,17 @@ public class Menu extends Widget {
 		//_Table.setWidth(50);
 		_Table.add(button1);
 		
-		
+		Stage spStage = new Stage();
 		Table spTable = new Table(skin);
+		spTable.setBounds(0, 0, 300, 300);
 		spTable.setFillParent(true);
-		Label temp = new Label("A label", skin);
+		Label temp = new Label("A label right here now", skin);
 		temp.setAlignment(Align.left, Align.center);
 		spTable.addActor(temp);
 		ScrollPane pane = new ScrollPane(spTable, skin);
 		pane.setFillParent(true);
-		//_Table.add(pane);
+		//spStage.addActor(spTable);
+		_Table.add(pane);
 		
 
 	}

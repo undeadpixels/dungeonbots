@@ -1,8 +1,14 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.function.*;
+
+import javax.swing.*;
+import javax.swing.text.rtf.RTFEditorKit;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -24,6 +30,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pool;
+import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
+import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
+import com.undead_pixels.dungeon_bots.ui.code_edit.JLuaEditor;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
@@ -61,7 +70,7 @@ public class DungeonBotsMain extends Game {
 
 		private Stage stage = new Stage();
 		private Table table = new Table();
-		private Skin skin = new Skin();
+		private Skin skin ;
 
 		public NullScreen() {
 			create();
@@ -70,7 +79,14 @@ public class DungeonBotsMain extends Game {
 		public void create() {
 			Gdx.input.setInputProcessor(stage);
 
-			
+			//Set up the skin.
+			skin = new Skin(Gdx.files.internal("uiskin.json"));
+			Pixmap whitePM = new Pixmap(1, 1, Format.RGBA8888);
+			whitePM.setColor(Color.WHITE);
+			whitePM.fill();
+			Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
+			skin.add("white", new Texture(whitePM));
+			skin.add("defaultFont", new BitmapFont()); // Use the default font
 			
 
 			// Not sure what a table does vis-a-vis a stage...
@@ -78,18 +94,60 @@ public class DungeonBotsMain extends Game {
 			stage.addActor(table);
 			table.setDebug(true);
 
-
-			//Create and add a menu.			
-			MenuStyle menuStyle = new MenuStyle();
-			menuStyle.columnWidth=20;
-			Menu menu = new Menu(menuStyle);
-			table.add(menu);
 			
-			menu.addItem("", "File", null, null);
-			menu.addItem("File",  "Open", null, null);
-			menu.addItem("Path",  "Save",  null, null);
+			JMenuBar menuBar;
+			JMenu menu, submenu;
+			JMenuItem menuItem;
+			JRadioButtonMenuItem rbMenuItem;
+			JCheckBoxMenuItem cbMenuItem;
+			
+			menuBar = new JMenuBar();
+			menu = new JMenu("AMenu");
+			menu.setMnemonic(KeyEvent.VK_A);
+			menu.getAccessibleContext().setAccessibleDescription("Accessible description.");
+			menuBar.add(menu);
+			
+			JFrame frame = new JFrame();
+			frame.setJMenuBar(menuBar);
+			frame.setSize(800, 640);
+			frame.setVisible(true);
+			
+			
+			String initialURL = "http://www.java.com/";
+			final JEditorPane ed;
+			
+
+			JLabel lblURL = new JLabel("URL");
+			final JTextField txtURL = new JTextField(initialURL, 30);
+			JButton btnBrowse = new JButton("Browse");
+
+			JPanel panel = new JPanel();			
+			panel.setLayout(new FlowLayout());
+			panel.add(lblURL);
+			panel.add(txtURL);
+			panel.add(btnBrowse);
+
+			ed = new JEditorPane();
+			ed.setEditorKit(new RTFEditorKit());
+			ed.setEditable(true);
+			ed.setText(" \b1 Starting out text. \b0 \n Yeah right");
+
+			JScrollPane sp = new JScrollPane(ed);
+			frame.setLayout(new BorderLayout());
+			//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			frame.getContentPane().add(sp, BorderLayout.CENTER);
+
+			frame.setSize(500, 350);
+			frame.setVisible(true);
+		
+			
+			
+			
 
 		}
+		
+		
 
 		@Override
 		public void render(float delta) {
