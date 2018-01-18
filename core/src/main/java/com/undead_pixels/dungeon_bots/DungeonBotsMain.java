@@ -1,11 +1,23 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.function.*;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -29,12 +41,63 @@ public class DungeonBotsMain extends Game {
 	 * Singleton instance
 	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
+	
+	private JFrame frame = null;
+	
+	private HashMap<String, JComponent> sidePanes = new HashMap<>();
 
 	/**
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
 
+	}
+
+	@Override
+	public void setScreen(Screen screen) {
+		for(JComponent c : sidePanes.values()) {
+			if(frame != null) {
+				frame.remove(c);
+			}
+		}
+		sidePanes.clear();
+		super.setScreen(screen);
+	}
+
+	public void setFrame(JFrame frame) {
+		if(frame != null) {
+			this.frame = frame;
+		}
+	}
+	
+	/**
+	 * @param pane	A JComponent containing the UI for the given side
+	 * @param side	A side, as given by BorderLayout.[EAST][WEST][...]
+	 */
+	public void addPane(JComponent pane, String side) {
+		if(frame != null) {
+			JComponent old = sidePanes.get(side);
+			if(old != null) {
+				frame.remove(old);
+			}
+			frame.add(pane, side);
+			
+			frame.revalidate();
+		}
+	}
+
+	public void removePane(JComponent pane) {
+		if(frame != null) {
+			frame.remove(pane);
+			frame.revalidate();
+		}
+	}
+	public void removePane(String side) {
+		JComponent pane = sidePanes.get(side);
+		if(pane != null && frame != null) {
+			frame.remove(pane);
+			frame.revalidate();
+		}
 	}
 
 	@Override
@@ -211,6 +274,23 @@ public class DungeonBotsMain extends Game {
 		}
 
 		public void create() {
+			Box b = new Box(BoxLayout.Y_AXIS);
+			b.add(new JLabel("Hi, I'm Swing"));
+			JButton btn = new JButton("HI");
+			b.add(btn);
+			btn.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					DungeonBotsMain.instance.removePane(b);
+				}
+				
+			});
+			b.add(new JLabel("Click the button to make this side thing disappear!"));
+			
+			DungeonBotsMain.instance.addPane(b, BorderLayout.EAST);
+			
+			
 			Gdx.input.setInputProcessor(stage);
 
 			// Relying on tutorials at
@@ -241,6 +321,12 @@ public class DungeonBotsMain extends Game {
 			TextButton button1 = new TextButton("Here!", style);
 			table.add(button1);
 
+		}
+		
+		public void resize(int w, int h) {
+			// TODO - we need this soemhow
+			stage.getViewport().update(w, h);
+			stage.getCamera().update();
 		}
 
 		@Override
