@@ -52,17 +52,16 @@ public class GDXandSwingScreen implements Screen {
 
 	
 	private JFrame frame;
-	private JComponent rootPanel;
 	
 	private JMenuBar menuBar;
 	private HashMap<String, JComponent> sidePanes = new HashMap<>();
 	private HashMap<JComponent, String> otherWindowComponents = new HashMap<>();
 	
-	public final void attachToFrame(JFrame frame, JComponent rootPanel) {
+	public final void attachToFrame(JFrame frame) {
 		
 		if(frame == null) {
 			for(String s : sidePanes.keySet()) {
-				this.rootPanel.remove(sidePanes.get(s));
+				this.frame.remove(sidePanes.get(s));
 			}
 			
 			for(JComponent c : otherWindowComponents.keySet()) {
@@ -77,7 +76,7 @@ public class GDXandSwingScreen implements Screen {
 			this.frame.revalidate();
 		} else {
 			for(String s : sidePanes.keySet()) {
-				rootPanel.add(sidePanes.get(s), s);
+				frame.add(sidePanes.get(s), s);
 			}
 
 			for(JComponent c : otherWindowComponents.keySet()) {
@@ -99,12 +98,12 @@ public class GDXandSwingScreen implements Screen {
 	 * @param side	A side, as given by BorderLayout.[EAST][WEST][...]
 	 */
 	public void addPane(JComponent pane, String side) {
-		if(rootPanel != null) {
+		if(frame != null) {
 			JComponent old = sidePanes.get(side);
 			if(old != null) {
-				rootPanel.remove(old);
+				frame.remove(old);
 			}
-			rootPanel.add(pane, side);
+			frame.add(pane, side);
 			
 			frame.revalidate();
 		}
@@ -131,10 +130,10 @@ public class GDXandSwingScreen implements Screen {
 
 	public void removePane(JComponent pane) {
 		if(frame != null) {
-			for(Component c : rootPanel.getComponents()) {
+			for(Component c : frame.getComponents()) {
 				System.out.println(c);
 			}
-			rootPanel.remove(pane);
+			frame.remove(pane);
 			frame.revalidate();
 		}
 		sidePanes.values().remove(pane);
@@ -144,7 +143,7 @@ public class GDXandSwingScreen implements Screen {
 		
 		if(pane != null) {
 			if(frame != null) {
-				rootPanel.remove(pane);
+				frame.remove(pane);
 				frame.revalidate();
 			}
 		}

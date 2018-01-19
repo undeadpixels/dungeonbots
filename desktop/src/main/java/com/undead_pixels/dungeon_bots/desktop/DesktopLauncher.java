@@ -54,56 +54,24 @@ public class DesktopLauncher {
 			}
 		}
 		
-		/*
-		java.util.Timer t = new Timer();
-		t.schedule(new TimerTask() {
-
-			@Override
-			public void run() {
-				DungeonBotsMain.instance.printMenu();
-			}
-			
-		}, 1000, 1000);
-		*/
-		
 
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		
 		
 		JFrame frame = new JFrame("DungeonBots");
 		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
-		JPanel rootPanel = new JPanel();
-		rootPanel.setLayout(new BorderLayout(0, 0));
-		//frame.setLayout(new BorderLayout(0, 0));
+		frame.setLayout(new BorderLayout(0, 0));
 		
-		DungeonBotsMain.instance.setFrameAndCanvas(frame, rootPanel);
+		DungeonBotsMain.instance.setFrame(frame);
 		
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme and replace with some kind of listener for saving
 		
-		rootPanel.add(canvas.getCanvas(), BorderLayout.CENTER);
-		//rootPanel.add(new JButton("hi"), BorderLayout.EAST);
-		//frame.getLayeredPane().add(rootPanel, new Integer(100));
-		//JButton b;
-		//frame.getLayeredPane().add(b=new JButton("asdf"), new Integer(500));
-		//frame.add(new JLabel("Foo"));
+		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 		
 		frame.setSize(1024, 768);
 		frame.revalidate();
-		//frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-		frame.add(rootPanel);
-		//p.add(canvas.getCanvas());
-		//canvas.getCanvas().setSize(800, 600);
 		frame.setVisible(true);
-
-		//b.revalidate();
-		//System.out.println(b.getLocation() + ", "+b.getSize());
-		
-		
-		
-		
-		//LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		//new LwjglApplication(DungeonBotsMain.instance, config);
 	}
 }
  

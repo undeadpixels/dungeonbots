@@ -30,7 +30,6 @@ public class DungeonBotsMain extends Game {
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
 	
 	private JFrame frame = null;
-	private JComponent rootPanel = null;
 
 	/**
 	 * private constructor for singleton
@@ -42,13 +41,13 @@ public class DungeonBotsMain extends Game {
 	@Override
 	public void setScreen(Screen screen) {
 		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachToFrame(null, null); // clear the current screen's frame
+			((GDXandSwingScreen) this.screen).attachToFrame(null); // clear the current screen's frame
 		}
 		
 		super.setScreen(screen);
 
 		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachToFrame(frame, rootPanel); // set the frame for the new screen
+			((GDXandSwingScreen) this.screen).attachToFrame(frame); // set the frame for the new screen
 		}
 	}
 
@@ -57,12 +56,9 @@ public class DungeonBotsMain extends Game {
 	 * 
 	 * @param frame
 	 */
-	public void setFrameAndCanvas(JFrame frame, JComponent rootPanel) {
+	public void setFrame(JFrame frame) {
 		if(frame != null) {
 			this.frame = frame;
-		}
-		if(rootPanel != null) {
-			this.rootPanel = rootPanel;
 		}
 	}
 	
