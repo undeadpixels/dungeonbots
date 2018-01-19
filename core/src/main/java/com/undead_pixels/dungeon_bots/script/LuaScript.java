@@ -1,3 +1,8 @@
+/*
+ * Written by UNDEAD PIXELS
+ * */
+
+
 package com.undead_pixels.dungeon_bots.script;
 
 import org.luaj.vm2.LuaError;
