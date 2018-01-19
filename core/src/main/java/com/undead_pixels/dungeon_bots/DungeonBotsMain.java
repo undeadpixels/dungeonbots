@@ -136,8 +136,8 @@ public class DungeonBotsMain extends Game {
 
 			
 			JEditorPane jep = new JEditorPane();
-			LuaSyntaxKit lsk = new LuaSyntaxKit();
-			jep.setEditorKit(lsk);
+			//LuaSyntaxKit lsk = new LuaSyntaxKit();
+			//jep.setEditorKit(lsk);
 			
 			panel.add(jep);
 
