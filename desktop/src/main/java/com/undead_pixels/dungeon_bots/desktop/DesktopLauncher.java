@@ -10,6 +10,7 @@ import java.util.TimerTask;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -71,20 +72,32 @@ public class DesktopLauncher {
 		
 		JFrame frame = new JFrame("DungeonBots");
 		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
+		JPanel rootPanel = new JPanel();
+		rootPanel.setLayout(new BorderLayout(0, 0));
+		//frame.setLayout(new BorderLayout(0, 0));
 		
-		DungeonBotsMain.instance.setFrameAndCanvas(frame, canvas.getCanvas());
+		DungeonBotsMain.instance.setFrameAndCanvas(frame, rootPanel);
 		
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme and replace with some kind of listener for saving
 		
-		frame.setLayout(new BorderLayout(0, 0));
-		
-		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		rootPanel.add(canvas.getCanvas(), BorderLayout.CENTER);
+		//rootPanel.add(new JButton("hi"), BorderLayout.EAST);
+		//frame.getLayeredPane().add(rootPanel, new Integer(100));
+		//JButton b;
+		//frame.getLayeredPane().add(b=new JButton("asdf"), new Integer(500));
+		//frame.add(new JLabel("Foo"));
 		
 		frame.setSize(1024, 768);
+		frame.revalidate();
+		//frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		frame.add(rootPanel);
 		//p.add(canvas.getCanvas());
 		//canvas.getCanvas().setSize(800, 600);
 		frame.setVisible(true);
+
+		//b.revalidate();
+		//System.out.println(b.getLocation() + ", "+b.getSize());
 		
 		
 		

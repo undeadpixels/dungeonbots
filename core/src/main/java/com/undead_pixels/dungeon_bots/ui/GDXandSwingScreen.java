@@ -49,15 +49,17 @@ public class GDXandSwingScreen implements Screen {
 
 	
 	private JFrame frame;
+	private JComponent rootPanel;
+	
 	private JMenuBar menuBar;
 	private HashMap<String, JComponent> sidePanes = new HashMap<>();
 	private HashSet<JInternalFrame> internalFrames = new HashSet<>();
 	
-	public final void attachToFrame(JFrame frame) {
+	public final void attachToFrame(JFrame frame, JComponent rootPanel) {
 		
 		if(frame == null) {
 			for(String s : sidePanes.keySet()) {
-				this.frame.remove(sidePanes.get(s));
+				this.rootPanel.remove(sidePanes.get(s));
 			}
 			
 			for(JInternalFrame f : internalFrames) {
@@ -69,7 +71,7 @@ public class GDXandSwingScreen implements Screen {
 			this.frame.revalidate();
 		} else {
 			for(String s : sidePanes.keySet()) {
-				frame.add(sidePanes.get(s), s);
+				rootPanel.add(sidePanes.get(s), s);
 			}
 
 			for(JInternalFrame f : internalFrames) {
@@ -89,12 +91,12 @@ public class GDXandSwingScreen implements Screen {
 	 * @param side	A side, as given by BorderLayout.[EAST][WEST][...]
 	 */
 	public void addPane(JComponent pane, String side) {
-		if(frame != null) {
+		if(rootPanel != null) {
 			JComponent old = sidePanes.get(side);
 			if(old != null) {
-				frame.remove(old);
+				rootPanel.remove(old);
 			}
-			frame.add(pane, side);
+			rootPanel.add(pane, side);
 			
 			frame.revalidate();
 		}
@@ -112,12 +114,16 @@ public class GDXandSwingScreen implements Screen {
 			frame.setJMenuBar(menuBar);
 			frame.revalidate();
 		}
+		for(int i = 0; i < menuBar.getMenuCount(); i++) {
+			// forces the menu to work correctly on top of the LWGJL view
+			menuBar.getMenu(i).getPopupMenu().setLightWeightPopupEnabled(false);
+		}
 		this.menuBar = menuBar;
 	}
 
 	public void removePane(JComponent pane) {
 		if(frame != null) {
-			frame.remove(pane);
+			rootPanel.remove(pane);
 			frame.revalidate();
 		}
 		sidePanes.values().remove(pane);
@@ -127,7 +133,7 @@ public class GDXandSwingScreen implements Screen {
 		
 		if(pane != null) {
 			if(frame != null) {
-				frame.remove(pane);
+				rootPanel.remove(pane);
 				frame.revalidate();
 			}
 		}
@@ -137,9 +143,10 @@ public class GDXandSwingScreen implements Screen {
 		internalFrames.add(f);
 		
 		if(frame != null) {
-			frame.getLayeredPane().add(f, new Integer(10));
+			frame.getLayeredPane().add(f, new Integer(100000));
 			f.setVisible(true);
-			frame.revalidate();
+			frame.validate();
 		}
+		f.validate();
 	}
 }

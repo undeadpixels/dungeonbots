@@ -73,6 +73,7 @@ public class NullScreen extends GDXandSwingScreen {
 		b.add(new JLabel("Hi, I'm Swing"));
 		b.add(btn);
 		b.add(btn2);
+		b.add(new java.awt.Button("Heavy"));
 		
 		addPane(b, BorderLayout.EAST);
 	}
@@ -103,6 +104,8 @@ public class NullScreen extends GDXandSwingScreen {
 		JMenuBar mb = new JMenuBar();
 		JMenu file = new JMenu("File");
 		file.add(new JMenuItem("Foo"));
+		file.add(new JMenuItem("Bar"));
+		file.add(new JMenuItem("Baz"));
 		mb.add(file);
 		
 		
