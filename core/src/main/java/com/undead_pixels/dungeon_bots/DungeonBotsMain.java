@@ -34,10 +34,12 @@ import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JLuaEditor;
 
+/*
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
 import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.*;
 import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
+*/
 
 
 
