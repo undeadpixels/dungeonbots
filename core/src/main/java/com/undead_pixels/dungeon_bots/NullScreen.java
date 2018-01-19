@@ -46,23 +46,24 @@ public class NullScreen extends GDXandSwingScreen {
 		create();
 	}
 
-	public void create() {
-		System.out.println("Creating NullScreen...");
+	private int numInternalFrames = 0;
+	public void makeGuiRight() {
 		Box b = new Box(BoxLayout.Y_AXIS);
-		JButton btn = new JButton("Bye?");
+		JButton btn = new JButton("Bye!");
 		btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				removePane(b);
+				makeGuiBottom();
 			}
 		});
 
 		JButton btn2 = new JButton("Window!");
 		b.add(btn);
-		btn.addActionListener(new ActionListener() {
+		btn2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JInternalFrame if1 = new JInternalFrame("Internal frame!", true, true, true, true );
+				JInternalFrame if1 = new JInternalFrame("Internal frame "+(++numInternalFrames), true, true, true, true );
 				if1.setSize(200,200);
 				if1.setLocation(1024-200, 50);
 				addInternalFrame(if1);
@@ -74,7 +75,28 @@ public class NullScreen extends GDXandSwingScreen {
 		b.add(btn2);
 		
 		addPane(b, BorderLayout.EAST);
+	}
+	
+	public void makeGuiBottom() {
+		Box b = new Box(BoxLayout.X_AXIS);
 
+		JButton btn = new JButton("Come Back!!");
+		btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removePane(b);
+				makeGuiRight();
+			}
+		});
+		b.add(btn);
+
+		addPane(b, BorderLayout.SOUTH);
+	}
+	
+	public void create() {
+		System.out.println("Creating NullScreen...");
+		
+		makeGuiRight();
 		
 
 		
