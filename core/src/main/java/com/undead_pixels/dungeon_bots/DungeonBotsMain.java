@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -34,6 +35,9 @@ import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JLuaEditor;
 
+import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.syntaxkits.LuaSyntaxKit;
+
 /*
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
@@ -59,7 +63,6 @@ public class DungeonBotsMain extends Game {
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
-
 	}
 
 	@Override
@@ -118,8 +121,6 @@ public class DungeonBotsMain extends Game {
 			
 			JFrame frame = new JFrame();
 			frame.setJMenuBar(menuBar);
-			frame.setSize(800, 640);
-			frame.setVisible(true);
 			
 			
 			String initialURL = "http://www.java.com/";
@@ -129,25 +130,38 @@ public class DungeonBotsMain extends Game {
 			JLabel lblURL = new JLabel("URL");
 			final JTextField txtURL = new JTextField(initialURL, 30);
 			JButton btnBrowse = new JButton("Browse");
+		
 
-			JPanel panel = new JPanel();			
-			panel.setLayout(new FlowLayout());
-			panel.add(lblURL);
-			panel.add(txtURL);
-			panel.add(btnBrowse);
-
+			Box panel = new Box(BoxLayout.Y_AXIS);
+			Box topPanel = new Box(BoxLayout.X_AXIS);
+			topPanel.add(lblURL);
+			topPanel.add(txtURL);
+			topPanel.add(btnBrowse);
 			
+			//topPanel.setPreferredSize(new Dimension(400, (int) (txtURL.getPreferredSize().getHeight())));
+			
+			panel.add(topPanel);
+			
+	        DefaultSyntaxKit.initKit();
 			JEditorPane jep = new JEditorPane();
+			JScrollPane scl = new JScrollPane(jep);
+			jep.setContentType("text/lua");
+			jep.setText("-- this is a test\n\nfunction f()\n    foo()\nend\n");
+			
+			scl.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+			
 			//LuaSyntaxKit lsk = new LuaSyntaxKit();
 			//jep.setEditorKit(lsk);
 			
-			panel.add(jep);
+			panel.add(scl);
 
 			//com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit kit;
 			
 			//jep.setEditorKit(new com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit());
 		
-			
+			frame.add(panel);
+			frame.setSize(800, 640);
+			frame.setVisible(true);
 			
 			
 
