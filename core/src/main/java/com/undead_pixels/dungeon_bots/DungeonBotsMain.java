@@ -1,34 +1,21 @@
 package com.undead_pixels.dungeon_bots;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.function.*;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JMenuBar;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
+import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
@@ -43,8 +30,7 @@ public class DungeonBotsMain extends Game {
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
 	
 	private JFrame frame = null;
-	
-	private HashMap<String, JComponent> sidePanes = new HashMap<>();
+	private Component gdxCanvas = null;
 
 	/**
 	 * private constructor for singleton
@@ -55,50 +41,31 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void setScreen(Screen screen) {
-		for(JComponent c : sidePanes.values()) {
-			if(frame != null) {
-				frame.remove(c);
-			}
+		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachToFrame(null); // clear the current screen's frame
 		}
-		sidePanes.clear();
+		
 		super.setScreen(screen);
+
+		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachToFrame(frame); // set the frame for the new screen
+		}
 	}
 
-	public void setFrame(JFrame frame) {
+	/**
+	 * Used to tell this to work with a specific JFrame (which likely contains the GDX canvas)
+	 * 
+	 * @param frame
+	 */
+	public void setFrameAndCanvas(JFrame frame, Component gdxCanvas) {
 		if(frame != null) {
 			this.frame = frame;
 		}
+		if(gdxCanvas != null) {
+			this.gdxCanvas = gdxCanvas;
+		}
 	}
 	
-	/**
-	 * @param pane	A JComponent containing the UI for the given side
-	 * @param side	A side, as given by BorderLayout.[EAST][WEST][...]
-	 */
-	public void addPane(JComponent pane, String side) {
-		if(frame != null) {
-			JComponent old = sidePanes.get(side);
-			if(old != null) {
-				frame.remove(old);
-			}
-			frame.add(pane, side);
-			
-			frame.revalidate();
-		}
-	}
-
-	public void removePane(JComponent pane) {
-		if(frame != null) {
-			frame.remove(pane);
-			frame.revalidate();
-		}
-	}
-	public void removePane(String side) {
-		JComponent pane = sidePanes.get(side);
-		if(pane != null && frame != null) {
-			frame.remove(pane);
-			frame.revalidate();
-		}
-	}
 
 	@Override
 	public void create() {
@@ -256,96 +223,4 @@ public class DungeonBotsMain extends Game {
 
 	}
 
-	/**
-	 * This will be deleted eventually, but it at least allows us to have a fake
-	 * screen
-	 */
-	public static class NullScreen extends ScreenAdapter {
-
-		SpriteBatch batch = new SpriteBatch();
-		Texture img = new Texture("badlogic.jpg");
-
-		private Stage stage = new Stage();
-		private Table table = new Table();
-		private Skin skin = new Skin();
-
-		public NullScreen() {
-			create();
-		}
-
-		public void create() {
-			Box b = new Box(BoxLayout.Y_AXIS);
-			b.add(new JLabel("Hi, I'm Swing"));
-			JButton btn = new JButton("HI");
-			b.add(btn);
-			btn.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					DungeonBotsMain.instance.removePane(b);
-				}
-				
-			});
-			b.add(new JLabel("Click the button to make this side thing disappear!"));
-			
-			DungeonBotsMain.instance.addPane(b, BorderLayout.EAST);
-			
-			
-			Gdx.input.setInputProcessor(stage);
-
-			// Relying on tutorials at
-			// https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java#L37
-
-			Pixmap whitePM = new Pixmap(1, 1, Format.RGBA8888);
-			whitePM.setColor(Color.WHITE);
-			whitePM.fill();
-			skin.add("white", new Texture(whitePM));
-
-			// Not sure what a table does vis-a-vis a stage...
-			table.setFillParent(true);
-			stage.addActor(table);
-			table.setDebug(true);
-
-			skin.add("defaultFont", new BitmapFont()); // Use the default font
-														// for now.
-
-			// Set up the standard textbutton style.
-			TextButtonStyle style = new TextButtonStyle();
-			style.up = skin.newDrawable("white", Color.DARK_GRAY);
-			style.down = skin.newDrawable("white", Color.DARK_GRAY);
-			style.checked = skin.newDrawable("white", Color.GREEN);
-			style.over = skin.newDrawable("white", Color.LIGHT_GRAY);
-			style.font = skin.getFont("defaultFont");
-			skin.add("default", style);
-
-			TextButton button1 = new TextButton("Here!", style);
-			table.add(button1);
-
-		}
-		
-		public void resize(int w, int h) {
-			// TODO - we need this soemhow
-			stage.getViewport().update(w, h);
-			stage.getCamera().update();
-		}
-
-		@Override
-		public void render(float delta) {
-			Gdx.gl.glClearColor(1, 0, 0, 1);
-			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-			batch.begin();
-			batch.draw(img, 0, 0);
-			batch.end();
-
-			stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-			stage.draw();
-		}
-
-		@Override
-		public void dispose() {
-			batch.dispose();
-			img.dispose();
-		}
-
-	}
 }
