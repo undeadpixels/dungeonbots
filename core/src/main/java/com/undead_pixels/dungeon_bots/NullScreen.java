@@ -63,10 +63,8 @@ public class NullScreen extends GDXandSwingScreen {
 		btn2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JInternalFrame if1 = new JInternalFrame("Internal frame "+(++numInternalFrames), true, true, true, true );
-				if1.setSize(200,200);
-				if1.setLocation(1024-200, 50);
-				addInternalFrame(if1);
+				JButton btn = new JButton("Button "+(++numInternalFrames));
+				addWindowFor(btn, "Window # "+(numInternalFrames));
 			}
 		});
 

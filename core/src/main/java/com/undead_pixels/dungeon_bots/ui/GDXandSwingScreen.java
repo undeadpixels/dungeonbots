@@ -1,9 +1,12 @@
 package com.undead_pixels.dungeon_bots.ui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
@@ -53,7 +56,7 @@ public class GDXandSwingScreen implements Screen {
 	
 	private JMenuBar menuBar;
 	private HashMap<String, JComponent> sidePanes = new HashMap<>();
-	private HashSet<JInternalFrame> internalFrames = new HashSet<>();
+	private HashMap<JComponent, String> otherWindowComponents = new HashMap<>();
 	
 	public final void attachToFrame(JFrame frame, JComponent rootPanel) {
 		
@@ -62,9 +65,12 @@ public class GDXandSwingScreen implements Screen {
 				this.rootPanel.remove(sidePanes.get(s));
 			}
 			
-			for(JInternalFrame f : internalFrames) {
-				this.frame.getLayeredPane().remove(f);
-				f.setVisible(false);
+			for(JComponent c : otherWindowComponents.keySet()) {
+				Container p = c.getParent();
+				if(p != null) {
+					p.setVisible(false);
+					p.remove(c);
+				}
 			}
 			
 			this.frame.setJMenuBar(null);
@@ -74,9 +80,11 @@ public class GDXandSwingScreen implements Screen {
 				rootPanel.add(sidePanes.get(s), s);
 			}
 
-			for(JInternalFrame f : internalFrames) {
-				this.frame.getLayeredPane().add(f, new Integer(10));
-				f.setVisible(true);
+			for(JComponent c : otherWindowComponents.keySet()) {
+				JDialog d = new JDialog(frame);
+				d.add(c);
+				d.pack();
+				d.setVisible(true);
 			}
 			
 			frame.setJMenuBar(menuBar);
@@ -123,6 +131,9 @@ public class GDXandSwingScreen implements Screen {
 
 	public void removePane(JComponent pane) {
 		if(frame != null) {
+			for(Component c : rootPanel.getComponents()) {
+				System.out.println(c);
+			}
 			rootPanel.remove(pane);
 			frame.revalidate();
 		}
@@ -139,14 +150,15 @@ public class GDXandSwingScreen implements Screen {
 		}
 	}
 	
-	public void addInternalFrame(JInternalFrame f) {
-		internalFrames.add(f);
+	public void addWindowFor(JComponent c, String title) {
+		otherWindowComponents.put(c, title);
 		
 		if(frame != null) {
-			frame.getLayeredPane().add(f, new Integer(100000));
-			f.setVisible(true);
-			frame.validate();
+			JDialog d = new JDialog(frame, title);
+			d.add(c);
+			d.pack();
+			d.setLocation(frame.getLocationOnScreen().x + frame.getWidth()/2, frame.getLocationOnScreen(). y + frame.getHeight()/2);
+			d.setVisible(true);
 		}
-		f.validate();
 	}
 }
