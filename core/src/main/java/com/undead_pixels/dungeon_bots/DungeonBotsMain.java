@@ -34,6 +34,13 @@ import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JLuaEditor;
 
+import jsyntaxpane.syntaxkits.LuaSyntaxKit;
+
+import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.*;
+import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
+
+
+
 /**
  * The main class. Basically, all it does is point to the screen that we are
  * actually trying to render.
@@ -127,19 +134,16 @@ public class DungeonBotsMain extends Game {
 			panel.add(txtURL);
 			panel.add(btnBrowse);
 
-			ed = new JEditorPane();
-			ed.setEditorKit(new RTFEditorKit());
-			ed.setEditable(true);
-			ed.setText(" \b1 Starting out text. \b0 \n Yeah right");
+			
+			JEditorPane jep = new JEditorPane();
+			LuaSyntaxKit lsk = new LuaSyntaxKit();
+			jep.setEditorKit(lsk);
+			
+			panel.add(jep);
 
-			JScrollPane sp = new JScrollPane(ed);
-			frame.setLayout(new BorderLayout());
-			//frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.getContentPane().add(panel, BorderLayout.NORTH);
-			frame.getContentPane().add(sp, BorderLayout.CENTER);
-
-			frame.setSize(500, 350);
-			frame.setVisible(true);
+			//com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit kit;
+			
+			//jep.setEditorKit(new com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit());
 		
 			
 			
