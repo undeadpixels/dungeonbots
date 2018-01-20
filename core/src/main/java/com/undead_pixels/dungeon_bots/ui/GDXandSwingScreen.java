@@ -56,8 +56,9 @@ public class GDXandSwingScreen implements Screen {
 	private JMenuBar menuBar;
 	private HashMap<String, JComponent> sidePanes = new HashMap<>();
 	private HashMap<JComponent, String> otherWindowComponents = new HashMap<>();
+	private HashMap<JComponent, JMenuBar> otherWindowMenus = new HashMap<>();
 	
-	public final void attachToFrame(JFrame frame) {
+	public final void attachScreenToFrame(JFrame frame) {
 		
 		if(frame == null) {
 			for(String s : sidePanes.keySet()) {
@@ -80,9 +81,15 @@ public class GDXandSwingScreen implements Screen {
 			}
 
 			for(JComponent c : otherWindowComponents.keySet()) {
-				JDialog d = new JDialog(frame);
+				String title = otherWindowComponents.get(c);
+				JMenuBar menu = otherWindowMenus.get(c);
+				JDialog d = new JDialog(frame, title);
 				d.add(c);
+				d.setJMenuBar(menu);
 				d.pack();
+				int locX = frame.getLocationOnScreen().x + frame.getWidth()/2 - d.getWidth()/2;
+				int locY = frame.getLocationOnScreen(). y + frame.getHeight()/2 - d.getHeight()/2;
+				d.setLocation(locX, locY);
 				d.setVisible(true);
 			}
 			
@@ -116,7 +123,7 @@ public class GDXandSwingScreen implements Screen {
 	 * 
 	 * @param menuBar
 	 */
-	public void setJMenuBar(JMenuBar menuBar) {
+	public void setMainJMenuBar(JMenuBar menuBar) {
 		if(frame != null) {
 			frame.setJMenuBar(menuBar);
 			frame.revalidate();
@@ -148,16 +155,28 @@ public class GDXandSwingScreen implements Screen {
 			}
 		}
 	}
-	
+
 	public void addWindowFor(JComponent c, String title) {
+		addWindowFor(c, title, null);
+	}
+	public void addWindowFor(JComponent c, String title, JMenuBar menu) {
 		otherWindowComponents.put(c, title);
+		otherWindowMenus.put(c, menu);
 		
 		if(frame != null) {
 			JDialog d = new JDialog(frame, title);
 			d.add(c);
+			d.setJMenuBar(menu);
 			d.pack();
-			d.setLocation(frame.getLocationOnScreen().x + frame.getWidth()/2, frame.getLocationOnScreen(). y + frame.getHeight()/2);
+			int locX = frame.getLocationOnScreen().x + frame.getWidth()/2 - d.getWidth()/2;
+			int locY = frame.getLocationOnScreen(). y + frame.getHeight()/2 - d.getHeight()/2;
+			d.setLocation(locX, locY);
 			d.setVisible(true);
 		}
+	}
+	
+
+	public void setWindowJMenuBar(JComponent c, JMenuBar menu) {
+		
 	}
 }
