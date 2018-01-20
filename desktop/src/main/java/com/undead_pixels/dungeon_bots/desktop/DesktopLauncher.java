@@ -24,11 +24,16 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 
+import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.syntaxkits.LuaSyntaxKit;
+
 public class DesktopLauncher {
 	
 	private static final boolean forceNimbus = true;
 	
 	public static void main (String[] arg) {
+		DefaultSyntaxKit.initKit();
+		
 		if(forceNimbus) {
 			try {
 				//if(true) throw new Exception();
@@ -48,6 +53,24 @@ public class DesktopLauncher {
 				UIManager.put( "nimbusSelectionBackground", new Color( 104, 93, 156) );
 				UIManager.put( "text", new Color( 230, 230, 230) );
 				UIManager.setLookAndFeel(new javax.swing.plaf.nimbus.NimbusLookAndFeel());
+				
+
+				// Style is one of: 0 = plain, 1=bold, 2=italic, 3=bold/italic
+				jsyntaxpane.util.Configuration cfg = DefaultSyntaxKit.getConfig(LuaSyntaxKit.class);
+				cfg.put("LineNumbers.Background", "0x203040");
+				cfg.put("LineNumbers.Foreground", "0xccccee");
+				cfg.put("LineNumbers.CurrentBack", "0x304050");
+
+				cfg.put("CaretColor", "0xffffff");
+				cfg.put("TokenMarker.Color", "0x403020");
+				cfg.put("PairMarker.Color", "0x665544");
+				
+				cfg.put("Style.COMMENT", "0x00ffaa, 0");
+				cfg.put("Style.OPERATOR", "0xe6e6e6, 2");
+				cfg.put("Style.KEYWORD", "0x9999ff, 1");
+				cfg.put("Style.STRING", "0xff7777, 1");
+				cfg.put("Style.NUMBER", "0xefefef, 1");
+				cfg.put("Style.IDENTIFIER", "0xffffff, 0");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

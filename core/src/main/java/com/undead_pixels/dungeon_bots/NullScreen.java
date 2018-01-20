@@ -38,6 +38,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
 
 import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.SyntaxStyle;
+import jsyntaxpane.SyntaxStyles;
+import jsyntaxpane.TokenType;
+import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
 /**
  * This will be deleted eventually, but it at least allows us to have a fake
@@ -87,12 +91,22 @@ public class NullScreen extends GDXandSwingScreen {
 		//topPanel.setPreferredSize(new Dimension(400, (int) (txtURL.getPreferredSize().getHeight())));
 
 		panel.add(topPanel);
-
-		DefaultSyntaxKit.initKit();
+		
+		SyntaxStyles.getInstance().put(TokenType.COMMENT, new SyntaxStyle(java.awt.Color.cyan, true, true));
+		
 		JEditorPane jep = new JEditorPane();
 		JScrollPane scl = new JScrollPane(jep);
 		jep.setContentType("text/lua");
-		jep.setText("-- this is a test\n\nfunction f()\n    foo()\nend\n");
+		jep.setText("-- this is a test\n\n"
+				+ "function f()\n"
+				+ "    foo()\n"
+				+ "    bar = baz * 16\n"
+				+ "    s = \"str\" .. 1\n"
+				+ "    if true then\n"
+				+ "        print(\"something was true\")\n"
+				+ "    end\n"
+				+ "end\n");
+		
 		
 		//jep.setBackground(java.awt.Color.WHITE);
 
