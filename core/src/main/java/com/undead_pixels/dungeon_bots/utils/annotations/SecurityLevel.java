@@ -7,7 +7,7 @@ public enum SecurityLevel {
     DEBUG(4),
     AUTHOR(3),
     ADVANCED(2),
-    SIMPLE(1);
+    BASIC(1);
     public final int level;
 
     SecurityLevel(int level) {

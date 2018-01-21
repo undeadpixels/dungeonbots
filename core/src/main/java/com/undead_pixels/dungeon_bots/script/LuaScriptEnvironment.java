@@ -1,12 +1,9 @@
 package com.undead_pixels.dungeon_bots.script;
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaCode;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.JsePlatform;
-
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,7 +21,8 @@ public class LuaScriptEnvironment {
     }
 
     public LuaScriptEnvironment add(Collection<LuaBinding> bindings) {
-        bindings.forEach(binding -> globals.set(binding.bindTo, binding.luaValue));
+        for(LuaBinding binding : bindings)
+            globals.set(binding.bindTo, binding.luaValue);
         return this;
     }
 

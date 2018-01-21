@@ -8,7 +8,6 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 /**
  * Java Class that represents a single argument Lua Function
  */
-@ScriptAPI("addNum")
 public class LuaTestMethod extends OneArgFunction {
     @Override
     public LuaValue call(LuaValue arg) {

@@ -8,7 +8,6 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 /**
  * Java class that represents a 0 argument Lua Function
  */
-@ScriptAPI("setNum")
 public class LuaTestClass extends ZeroArgFunction {
     public int number;
 

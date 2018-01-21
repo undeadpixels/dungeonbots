@@ -5,9 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation Class intended to be appended to Zero Argument methods on any datatype
+ * that returns a LuaBinding to an instance.
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
+@Target({ ElementType.METHOD })
 public @interface ScriptAPI {
-    String value();
-    SecurityLevel security() default SecurityLevel.DEBUG;
+    SecurityLevel value() default SecurityLevel.DEBUG;
 }
