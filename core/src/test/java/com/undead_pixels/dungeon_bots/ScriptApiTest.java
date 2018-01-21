@@ -26,4 +26,33 @@ public class ScriptApiTest {
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue(Math.abs(player.getPosition().y + 1.0) < 0.01);
     }
+
+    @Test public void testActorMovement() {
+        Actor player = new Actor(new World(), "player", null);
+        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+
+        LuaScript luaScript = se.scriptFromString("player.up();");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        Assert.assertTrue("Player Y Position not moved 'UP'",
+                Math.abs(player.getPosition().y + 1.0) < 0.01);
+
+        luaScript = se.scriptFromString("player.down();");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        Assert.assertTrue("Player Y Position not moved 'DOWN'",
+                Math.abs(player.getPosition().y) < 0.01);
+
+        luaScript = se.scriptFromString("player.left();");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        Assert.assertTrue("Player X Position not moved 'LEFT'",
+                Math.abs(player.getPosition().x + 1.0) < 0.01);
+
+        luaScript = se.scriptFromString("player.right();");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        Assert.assertTrue("Player X Position not moved 'RIGHT'",
+                Math.abs(player.getPosition().x) < 0.01);
+    }
 }

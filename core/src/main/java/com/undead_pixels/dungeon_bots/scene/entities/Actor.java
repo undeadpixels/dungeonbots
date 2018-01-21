@@ -81,7 +81,6 @@ public class Actor extends SpriteEntity {
 		return genZeroArg("up", () -> moveInstantly(Direction.UP, 1));
 	}
 
-	/*
 	@ScriptAPI(SecurityLevel.BASIC)
 	public LuaBinding actorDown() {
 		return genZeroArg("down", () -> moveInstantly(Direction.DOWN, 1));
@@ -96,5 +95,4 @@ public class Actor extends SpriteEntity {
 	public LuaBinding actorRight() {
 		return genZeroArg("right", () -> moveInstantly(Direction.RIGHT, 1));
 	}
-	*/
 }
