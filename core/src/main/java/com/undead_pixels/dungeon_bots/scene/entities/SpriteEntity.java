@@ -48,6 +48,7 @@ public abstract class SpriteEntity extends Entity {
 	@Override
 	public void render(SpriteBatch batch) {
 		if(sprite != null && sprite.getTexture() != null) {
+			System.out.println("Rendering sprite");
 			sprite.draw(batch);
 		}
 	}

@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
@@ -16,12 +19,13 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
 public class World implements Renderable {
     private LuaScript levelScript;
 
-	private Texture backgroundImage;
+	private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Tile[][] tiles;
     private ArrayList<Entity> entities = new ArrayList<>();
     
     private float scale;
     private Vector2 offset = new Vector2();
+	SpriteBatch batch = new SpriteBatch();
     
     private int idCounter = 0;
 
@@ -29,7 +33,7 @@ public class World implements Renderable {
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
    	 	
-   	 	scale = 16.0f;
+   	 	scale = 160.0f;
     }
     // TODO - another constructor for specific resource paths
     
@@ -51,19 +55,58 @@ public class World implements Renderable {
 	
 	@Override
 	public void render(float x0, float y0, float width, float height) {
-		SpriteBatch batch = new SpriteBatch();
-		if(backgroundImage != null) {
-			float w = width;
-			float h = height;
-			batch.draw(backgroundImage, x0, y0, w, h);
-		}
+		System.out.println("Rendering world");
 		Matrix4 matrix = new Matrix4();
 		matrix.translate(x0, y0, 0.0f);
 		matrix.scale(scale, scale, 1.0f);
 		matrix.translate(offset.x, offset.y, 0.0f);
 		batch.setTransformMatrix(matrix);
+		
+		OrthographicCamera cam = new OrthographicCamera(width, height);
+		batch.setProjectionMatrix(cam.projection);
+		
+		System.out.println(matrix);
+		System.out.println(batch.getProjectionMatrix());
+		
+		/*
+		 *
+[1.0|0.0|0.0|0.0]
+[0.0|1.0|0.0|0.0]
+[0.0|0.0|1.0|0.0]
+[0.0|0.0|0.0|1.0]
+
+[0.001953125|0.0|0.0|-0.0]
+[0.0|0.0026809652|0.0|-0.0]
+[0.0|0.0|-0.02|-1.0]
+[0.0|0.0|0.0|1.0]
+
+[160.0|0.0|0.0|0.0]
+[0.0|160.0|0.0|0.0]
+[0.0|0.0|1.0|0.0]
+[0.0|0.0|0.0|1.0]
+
+[0.001953125|0.0|0.0|-1.0]
+[0.0|0.0026809652|0.0|-1.0]
+[0.0|0.0|-2.0|-1.0]
+[0.0|0.0|0.0|1.0]
+
+
+
+[0.001953125|0.0|0.0|-0.0]
+[0.0|0.0026809652|0.0|-0.0]
+[0.0|0.0|-0.02|-1.0]
+[0.0|0.0|0.0|1.0]
+		 */
+		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		batch.begin();
+		if(backgroundImage != null) {
+			float w = width;
+			float h = height;
+			batch.draw(backgroundImage, 0, 0);
+		}
+
 		for(Layer layer : toLayers()) {
 			for(Entity e : layer.entities) {
 				e.render(batch);
