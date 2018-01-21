@@ -5,13 +5,14 @@ A sample level to test our parsing and stuff
 --[[
 stuff that's passed in:
 
-playStyle
- - codeMode     "repl", "editor", "none"
- - playMode     "rts", "teamTurns", "turns"
-
-allowedCode
- - whitelist    function/class/whatever name
- - blacklist    function name
+settings
+ - playStyle
+   - codeMode     "repl", "editor", "none"
+   - playMode     "rts", "teamTurns", "turns"
+   - autoStart    true / false
+ - allowedCode
+   - whitelist    function/class/whatever name
+   - blacklist    function name
 
 world
  - tiles        custom class
@@ -49,10 +50,10 @@ function init()
     world.player = Player.Player(2, 2)
     world.player:setCode("autobind()")
 
-    allowedCode.whitelist("autobind")
+    settings.allowedCode.whitelist("autobind")
 
-    playStyle.codeMode = "none"
-    playStyle.playMode = "rts"
+    settings.playStyle.codeMode = "none"
+    settings.playStyle.playMode = "rts"
 end
 
 function update(dt)
