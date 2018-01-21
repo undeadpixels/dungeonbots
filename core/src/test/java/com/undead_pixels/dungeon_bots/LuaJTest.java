@@ -106,12 +106,39 @@ public class LuaJTest {
 
     @Test
     public void testLuaError() {
+    	
+    	//This script is being made of bad Lua.  It should generate an error.
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("if = 2");
         script.start().join();
         Assert.assertTrue(
                 "ScriptStatus should report a Lua Error",
                 script.getStatus() == ScriptStatus.LUA_ERROR);
+        Assert.assertNotNull(script.getError());
+    }
+    
+    @Test
+    public void testScriptJavaCall(){
+    	
+    	//A Lua script should be able to call one of our functions, if our
+    	//function is exposed to it.
+    	
+    	LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+    	ScratchPad pad = new ScratchPad(10);
+    	Assert.assertEquals(10,  pad.getValue());
+    	
+    	LuaScript script = scriptEnv.scriptFromString("setValue(5)");
+    	Assert.assertEquals(script.getStatus(), ScriptStatus.COMPLETE);
+    	script.start();
+    	
+    	Assert.assertEquals(pad.getValue(), 5);
+    }
+    
+    class ScratchPad{
+    	int value = 0;
+    	public ScratchPad(int value) {this.value = value;}
+    	public void setValue(int newValue) {this.value = newValue;}
+    	public int getValue() {return value;}
     }
 
 }

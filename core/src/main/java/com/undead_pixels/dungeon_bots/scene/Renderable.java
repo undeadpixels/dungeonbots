@@ -9,11 +9,11 @@ public interface Renderable {
      * Updates this Renderable
      * @param dt		delta time
      */
-    public void update(double dt);
+    public void update(float dt);
     
     /**
      * Renders this Renderable
      */
-    public void render();
+    public void render(float x0, float y0, float width, float height);
     
 }
