@@ -12,6 +12,10 @@ import org.luaj.vm2.Varargs;
 import java.io.File;
 import java.util.Optional;
 
+/**
+ * A LuaScript is an asynchronous wrapper around an execution context for a script that is invoked using a
+ * LuaScriptEnvironment as the Sandbox.
+ */
 public class LuaScript {
 
 	private final LuaScriptEnvironment environment;
@@ -21,7 +25,12 @@ public class LuaScript {
 	private volatile LuaError _LuaError;
 	private Thread thread;
 
-	public LuaScript(LuaScriptEnvironment env, String script) {
+	/**
+	 * Initializes a LuaScript with the provided LuaScriptEnvironment and source string
+	 * @param env
+	 * @param script
+	 */
+	LuaScript(LuaScriptEnvironment env, String script) {
 		this.environment = env;
 		this.script = script;
 		this.scriptStatus = ScriptStatus.READY;
@@ -32,7 +41,7 @@ public class LuaScript {
 	}
 
 	
-	/** Starts execution of the script on another thread. */
+	/** Starts execution of the script on a separate thread. */
 	public synchronized LuaScript start() {
 
 		// TODO: creating threads is expensive. Make a pool of threads?
