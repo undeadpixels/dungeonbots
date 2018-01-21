@@ -79,11 +79,11 @@ public abstract class Entity implements BatchRenderable {
 	 */
 	public abstract boolean isSolid();
 
-	public LuaBinding getBindings(SecurityLevel securityLevel) {
+	private LuaBinding getBindings(SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
 		for(Method method : this.getClass().getDeclaredMethods()) {
-			Optional.ofNullable(method.getDeclaredAnnotation(ScriptAPI.class)).ifPresent(anno -> {
-			    if(anno.value().level <= securityLevel.level) {
+			Optional.ofNullable(method.getDeclaredAnnotation(ScriptAPI.class)).ifPresent(annotation -> {
+			    if(annotation.value().level <= securityLevel.level) {
                     try {
                         // Attempt to call zero argument method
                         Object o = method.invoke(this);
@@ -92,14 +92,18 @@ public abstract class Entity implements BatchRenderable {
                             t.set(lb.bindTo, lb.luaValue);
                         }
                     }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    catch (Exception e) { e.printStackTrace(); }
                 }
 			});
 		}
-		return new LuaBinding("entity", t);
+		return new LuaBinding(this.name, t);
 	}
+
+	public LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
+	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment();
+	    scriptEnvironment.add(getBindings(securityLevel));
+	    return scriptEnvironment;
+    }
 
 	protected LuaBinding genZeroArg(final String bindTo, final Runnable r) {
 		class ZeroArg extends ZeroArgFunction {
@@ -109,6 +113,6 @@ public abstract class Entity implements BatchRenderable {
 				return null;
 			}
 		}
-		return new LuaBinding(bindTo, CoerceJavaToLua.coerce(r));
+		return new LuaBinding(bindTo, CoerceJavaToLua.coerce(new ZeroArg()));
 	}
 }

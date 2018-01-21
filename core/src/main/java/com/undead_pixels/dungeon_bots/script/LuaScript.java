@@ -18,8 +18,8 @@ public class LuaScript {
 	private String script;
 	private volatile Varargs varargs;
 	private volatile ScriptStatus scriptStatus;
+	private volatile LuaError _LuaError;
 	private Thread thread;
-	private LuaError _LuaError;
 
 	public LuaScript(LuaScriptEnvironment env, String script) {
 		this.environment = env;
