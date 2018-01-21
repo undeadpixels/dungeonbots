@@ -6,10 +6,12 @@ import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
@@ -83,20 +85,47 @@ public abstract class Entity implements BatchRenderable {
 		LuaTable t = new LuaTable();
 		for(Method method : this.getClass().getDeclaredMethods()) {
 			Optional.ofNullable(method.getDeclaredAnnotation(ScriptAPI.class)).ifPresent(annotation -> {
-			    if(annotation.value().level <= securityLevel.level) {
-                    try {
-                        // Attempt to call zero argument method
-                        Object o = method.invoke(this);
-                        if(LuaBinding.class.equals(o.getClass())) {
-                            LuaBinding lb = LuaBinding.class.cast(o);
-                            t.set(lb.bindTo, lb.luaValue);
-                        }
-                    }
-                    catch (Exception e) { e.printStackTrace(); }
-                }
+			    if(annotation.value().level <= securityLevel.level)
+			    	t.set(method.getName(), evalMethod(this, method, annotation));
 			});
 		}
 		return new LuaBinding(this.name, t);
+	}
+
+	private LuaValue evalMethod(Object caller, Method m, ScriptAPI scriptAPI) {
+		Class<?>[] paramTypes = m.getParameterTypes();
+		Class<?> returnType = m.getReturnType();
+		switch(paramTypes.length) {
+			case 0:
+				class ZeroArg extends ZeroArgFunction {
+					@Override
+					public LuaValue call() {
+						try {
+							return CoerceJavaToLua.coerce(m.invoke(caller));
+						}
+						catch (Exception e) { return null; }
+					}
+				}
+				return CoerceJavaToLua.coerce(new ZeroArg());
+			case 1:
+				class SingleArg extends OneArgFunction {
+					@Override
+					public LuaValue call(LuaValue arg) {
+						try {
+							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+							return CoerceJavaToLua.coerce(m.invoke(caller, arg));
+						}
+						catch (Exception e) { return null; }
+					}
+				}
+				return CoerceJavaToLua.coerce(new SingleArg());
+			case 2:
+				break;
+			case 3:
+				break;
+			default:
+		}
+		return LuaValue.NIL;
 	}
 
 	public LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
