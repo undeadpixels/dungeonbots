@@ -1,4 +1,5 @@
 package com.undead_pixels.dungeon_bots.script;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.JsePlatform;
@@ -18,34 +19,20 @@ public class LuaScriptEnvironment {
 
     private Globals globals;
 
-    /**
-     * An enumeration of different default Lua Globals that may be useful in different circumstances.
-     */
-    public enum Sandbox {
-        Debug(JsePlatform.debugGlobals()),
-        Default(JsePlatform.standardGlobals()),
-        Limited(new Globals());
-
-        public final Globals globals;
-
-        Sandbox(Globals globals) {
-            this.globals = globals;
-        }
-    }
 
     /**
      * Initializes a LuaScriptEnvironment using JsePlatform.standardGloabls() as the Globals
      */
     public LuaScriptEnvironment() {
-        globals = Sandbox.Default.globals;
+        globals = SecurityLevel.AUTHOR.globals;
     }
 
     /**
      * Creates a new LuaScriptEnvironment using different enumerated default Global environments specified by the Sandbox parameter
-     * @param sandbox An enumeration of different default Global environment types to use for the Script environment
+     * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
      */
-    public LuaScriptEnvironment(Sandbox sandbox) {
-        globals = sandbox.globals;
+    public LuaScriptEnvironment(SecurityLevel securityLevel) {
+        globals = securityLevel.globals;
     }
 
     /**

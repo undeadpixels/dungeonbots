@@ -8,6 +8,7 @@ import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.junit.Assert;
 import org.junit.Test;
+import org.luaj.vm2.Varargs;
 
 public class ScriptApiTest {
 
@@ -19,6 +20,26 @@ public class ScriptApiTest {
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue(Math.abs(player.getPosition().y + 1.0) < 0.01);
+    }
+
+    @Test
+    public void testScriptApiSingleArgumentFunction() {
+        Actor player = new Actor(new World(), "player", null);
+        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+        LuaScript luaScript = se.script("return player.greet('Hello');");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        Varargs ans = luaScript.getResults().get();
+        Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
+    }
+
+    @Test
+    public void testScriptApiSecurityLevel() {
+        Actor player = new Actor(new World(), "player", null);
+        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.AUTHOR);
+        LuaScript luaScript = se.script("return player.greet('Hello');");
+        luaScript.start().join();
+        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
     }
 
     @Test public void testActorMovement() {

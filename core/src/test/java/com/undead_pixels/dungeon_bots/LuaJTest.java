@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots;
 
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.lua.*;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.junit.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.*;
@@ -28,7 +29,7 @@ public class LuaJTest {
 
     @Test
     public void testLuaScriptResult() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("x = 1 + 2;");
         Optional<Varargs> results = script.start().join().getResults();
         Assert.assertTrue(
@@ -53,14 +54,14 @@ public class LuaJTest {
 
     @Test
     public void testNoResults() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("x = 1 + 2;");
         Assert.assertFalse("Script results should not be present", script.getResults().isPresent());
     }
 
     @Test
     public void testLuaScriptTimeout() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("while true do\nend\n");
         script.start().join(1000);
         Assert.assertTrue(
@@ -96,7 +97,7 @@ public class LuaJTest {
 
     @Test
     public void testStopScript() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("while true do\nend\n");
         script.start().stop();
         Assert.assertTrue(
@@ -107,7 +108,7 @@ public class LuaJTest {
     @Test
     public void testLuaError() {
     	//This script is being made of bad Lua.  It should generate an error.
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
+        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("if = 2");
         script.start().join();
         Assert.assertTrue(

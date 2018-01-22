@@ -1,15 +1,12 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 /**
@@ -76,23 +73,34 @@ public class Actor extends SpriteEntity {
 		}
 	}
 
-	@ScriptAPI(SecurityLevel.BASIC)
+	@ScriptAPI(SecurityLevel.DEBUG)
+	public void print() {
+		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
+	}
+
+	@ScriptAPI
 	public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
 
-	@ScriptAPI(SecurityLevel.BASIC)
+	@ScriptAPI
 	public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
 
-	@ScriptAPI(SecurityLevel.BASIC)
+	@ScriptAPI
 	public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
 
-	@ScriptAPI(SecurityLevel.BASIC)
+	@ScriptAPI
 	public void right() {
 		moveInstantly(Direction.RIGHT, 1);
+	}
+
+	@ScriptAPI(SecurityLevel.DEBUG) @BindTo("greet")
+	public LuaValue debugName(LuaValue luaValue) {
+		String greet = luaValue.checkjstring();
+		return CoerceJavaToLua.coerce(greet + " " + this.name);
 	}
 }
