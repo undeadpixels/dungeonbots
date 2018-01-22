@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -14,18 +15,20 @@ import static java.lang.String.*;
 
 public class ScriptApiTest {
 
+	private final double EPSILON = 0.00001;
+
 	private static boolean cmp(double a, double b, double epsilon) {
 		return Math.abs(a - b) < epsilon;
 	}
 
     @Test
     public void testGetBindings() {
-        Actor player = new Actor(new World(), "player", null);
+        Actor player = new ActorBuilder().setName("player").createActor();
         LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
         LuaScript luaScript = se.script("player.up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue(cmp(player.getPosition().y, -1.0, 0.01));
+        Assert.assertTrue(cmp(player.getPosition().y, -1.0, EPSILON));
     }
 
     @Test
@@ -61,18 +64,19 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@ScriptAPI(SecurityLevel.AUTHOR) @BindTo("greet")
-			public LuaValue debugName(LuaValue luaValue) {
+			@ScriptAPI(SecurityLevel.AUTHOR)
+			public LuaValue greet(LuaValue luaValue) {
 				String greet = luaValue.checkjstring();
 				return CoerceJavaToLua.coerce(greet + " " + this.name);
 			}
 		}
 
 		OneArg player = new OneArg( "player");
-		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.AUTHOR);
+		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
 		LuaScript luaScript = se.script("return player.greet('Hello');");
 		luaScript.start().join();
-		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
+				&& luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
 		Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
     }
@@ -126,32 +130,32 @@ public class ScriptApiTest {
     }
 
     @Test public void testActorMovement() {
-        Actor player = new Actor(new World(), "player", null);
+        Actor player = new ActorBuilder().setName("player").createActor();
         LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
 
         LuaScript luaScript = se.init("player.up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player Y Position not moved 'UP'",
-                cmp(player.getPosition().y, -1.0, 0.01));
+                cmp(player.getPosition().y, -1.0, EPSILON));
 
         luaScript = se.init("player.down();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player Y Position not moved 'DOWN'",
-                cmp(player.getPosition().y, 0.0, 0.01));
+                cmp(player.getPosition().y, 0.0, EPSILON));
 
         luaScript = se.init("player.left();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player X Position not moved 'LEFT'",
-                cmp(player.getPosition().x, -1.0, 0.01));
+                cmp(player.getPosition().x, -1.0, EPSILON));
 
         luaScript = se.init("player.right();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player X Position not moved 'RIGHT'",
-                cmp(player.getPosition().x, 0.0, 0.01));
+                cmp(player.getPosition().x, 0.0, EPSILON));
     }
 
 	@Test public void testActorPosition() {
-		Actor player = new Actor(new World(), "player", null);
+		Actor player = new ActorBuilder().setName("player").createActor();
 		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
 
 		LuaScript luaScript = se.script("return player.position();");
@@ -159,7 +163,7 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertTrue(cmp(ans.tofloat(1), ans.tofloat(2), 0.01f));
+		Assert.assertTrue(cmp(ans.tofloat(1), ans.tofloat(2), EPSILON));
 	}
 
     @Test
@@ -385,7 +389,7 @@ public class ScriptApiTest {
 		class RpgActor extends Entity {
 
 			@BindField
-			public LuaTable stats;
+			public final LuaTable stats;
 
 			public RpgActor(String name, int str, int dex ,int intel) {
 				super(new World(), name);
@@ -421,24 +425,24 @@ public class ScriptApiTest {
 			}
 		}
 
-		RpgActor rpg = new RpgActor("rpg",4 , 5, 6);
-		LuaScriptEnvironment se = rpg.getScriptEnvironment(SecurityLevel.DEBUG);
+		RpgActor rpgEntity = new RpgActor("rpg",4 , 5, 6);
+		LuaScriptEnvironment se = rpgEntity.getScriptEnvironment(SecurityLevel.DEBUG);
 		LuaScript luaScript = se.init("return rpg.stats.strength, rpg.stats.dexterity, rpg.stats.intelligence;").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		Varargs v = luaScript.getResults().get();
 		Assert.assertTrue(v.toint(1) == 4 && v.toint(2) == 5 && v.toint(3) == 6);
 
-		Assert.assertTrue(rpg.stats.get("strength").toint() == 4);
-		Assert.assertTrue(rpg.stats.get("dexterity").toint() == 5);
-		Assert.assertTrue(rpg.stats.get("intelligence").toint() == 6);
+		Assert.assertTrue(rpgEntity.stats.get("strength").toint() == 4);
+		Assert.assertTrue(rpgEntity.stats.get("dexterity").toint() == 5);
+		Assert.assertTrue(rpgEntity.stats.get("intelligence").toint() == 6);
 
 		se.init("rpg.stats.strength = 3").join();
 		se.init("rpg.stats.dexterity = 4").join();
 		se.init("rpg.stats.intelligence = 5").join();
 
-		Assert.assertTrue(rpg.stats.get("strength").toint() == 3);
-		Assert.assertTrue(rpg.stats.get("dexterity").toint() == 4);
-		Assert.assertTrue(rpg.stats.get("intelligence").toint() == 5);
+		Assert.assertTrue(rpgEntity.stats.get("strength").toint() == 3);
+		Assert.assertTrue(rpgEntity.stats.get("dexterity").toint() == 4);
+		Assert.assertTrue(rpgEntity.stats.get("intelligence").toint() == 5);
 	}
 
 }
