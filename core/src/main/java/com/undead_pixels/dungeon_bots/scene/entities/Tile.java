@@ -17,8 +17,8 @@ public class Tile extends SpriteEntity {
 	 * @param world		The world to contain this Actor
 	 * @param tex		A texture for this Actor
 	 */
-	public Tile(World world, TextureRegion tex) {
-		super(world, tex);
+	public Tile(World world, String name, TextureRegion tex) {
+		super(world, name, tex);
 		// TODO Auto-generated constructor stub
 	}
 	/**
@@ -26,44 +26,9 @@ public class Tile extends SpriteEntity {
 	 * @param script		A user script that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
-	public Tile(World world, LuaScript script, TextureRegion tex) {
-		super(world, script, tex);
+	public Tile(World world, String name, LuaScript script, TextureRegion tex) {
+		super(world, name, script, tex);
 		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param sprite		A texture for this Actor
-	 */
-	public Tile(World world, Sprite sprite) {
-		super(world, sprite);
-		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object 
-	 * @param sprite		A texture for this Actor
-	 */
-	public Tile(World world, LuaScript script, Sprite sprite) {
-		super(world, script, sprite);
-		// TODO Auto-generated constructor stub
-	}
-
-	@Override
-	public Vector2 getPosition() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void update(double dt) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void render(SpriteBatch batch) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

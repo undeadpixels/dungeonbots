@@ -12,10 +12,12 @@ public interface BatchRenderable {
      * Updates this Renderable. Called at some point before render().
      * @param dt		delta time
      */
-    public void update(double dt);
+    public void update(float dt);
     
     /**
-     * Renders this Renderable
+     * Renders this Renderable.
+     * All rendering should be performed in tile-space, and a camera transform will automagically turn things into screen-space
+     * 
      * @param batch		The batch to insert this renderable into
      */
     public void render(SpriteBatch batch);

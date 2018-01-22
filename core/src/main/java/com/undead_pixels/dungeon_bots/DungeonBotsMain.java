@@ -1,12 +1,25 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.Component;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.function.*;
 
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JMenuBar;
+
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
 import javax.swing.*;
 import javax.swing.text.rtf.RTFEditorKit;
 
@@ -34,13 +47,15 @@ import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JLuaEditor;
 
+import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.syntaxkits.LuaSyntaxKit;
+
 /*
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
 import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.*;
 import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
 */
-
 
 
 /**
@@ -54,124 +69,43 @@ public class DungeonBotsMain extends Game {
 	 * Singleton instance
 	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
+	
+	private JFrame frame = null;
 
 	/**
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
-
 	}
+
+	@Override
+	public void setScreen(Screen screen) {
+		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); // clear the current screen's frame
+		}
+		
+		super.setScreen(screen);
+
+		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); // set the frame for the new screen
+		}
+	}
+
+	/**
+	 * Used to tell this to work with a specific JFrame (which likely contains the GDX canvas)
+	 * 
+	 * @param frame
+	 */
+	public void setFrame(JFrame frame) {
+		if(frame != null) {
+			this.frame = frame;
+		}
+	}
+	
 
 	@Override
 	public void create() {
 		setScreen(new NullScreen());
 	}
 
-	
-	/**
-	 * This will be deleted eventually, but it at least allows us to have a fake
-	 * screen
-	 */
-	public static class NullScreen extends ScreenAdapter {
-
-		SpriteBatch batch = new SpriteBatch();
-		Texture img = new Texture("badlogic.jpg");
-
-		private Stage stage = new Stage();
-		private Table table = new Table();
-		private Skin skin ;
-
-		public NullScreen() {
-			create();
-		}
-
-		public void create() {
-			Gdx.input.setInputProcessor(stage);
-
-			//Set up the skin.
-			skin = new Skin(Gdx.files.internal("uiskin.json"));
-			Pixmap whitePM = new Pixmap(1, 1, Format.RGBA8888);
-			whitePM.setColor(Color.WHITE);
-			whitePM.fill();
-			Skin skin = new Skin(Gdx.files.internal("uiskin.json"));
-			skin.add("white", new Texture(whitePM));
-			skin.add("defaultFont", new BitmapFont()); // Use the default font
-			
-
-			// Not sure what a table does vis-a-vis a stage...
-			table.setFillParent(true);
-			stage.addActor(table);
-			table.setDebug(true);
-
-			
-			JMenuBar menuBar;
-			JMenu menu, submenu;
-			JMenuItem menuItem;
-			JRadioButtonMenuItem rbMenuItem;
-			JCheckBoxMenuItem cbMenuItem;
-			
-			menuBar = new JMenuBar();
-			menu = new JMenu("AMenu");
-			menu.setMnemonic(KeyEvent.VK_A);
-			menu.getAccessibleContext().setAccessibleDescription("Accessible description.");
-			menuBar.add(menu);
-			
-			JFrame frame = new JFrame();
-			frame.setJMenuBar(menuBar);
-			frame.setSize(800, 640);
-			frame.setVisible(true);
-			
-			
-			String initialURL = "http://www.java.com/";
-			final JEditorPane ed;
-			
-
-			JLabel lblURL = new JLabel("URL");
-			final JTextField txtURL = new JTextField(initialURL, 30);
-			JButton btnBrowse = new JButton("Browse");
-
-			JPanel panel = new JPanel();			
-			panel.setLayout(new FlowLayout());
-			panel.add(lblURL);
-			panel.add(txtURL);
-			panel.add(btnBrowse);
-
-			
-			JEditorPane jep = new JEditorPane();
-			//LuaSyntaxKit lsk = new LuaSyntaxKit();
-			//jep.setEditorKit(lsk);
-			
-			panel.add(jep);
-
-			//com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit kit;
-			
-			//jep.setEditorKit(new com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.JavaSyntaxKit());
-		
-			
-			
-			
-
-		}
-		
-		
-
-		@Override
-		public void render(float delta) {
-			Gdx.gl.glClearColor(1, 0, 0, 1);
-			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-			batch.begin();
-			batch.draw(img, 0, 0);
-			batch.end();
-
-			stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-			stage.draw();
-		}
-
-		@Override
-		public void dispose() {
-			batch.dispose();
-			img.dispose();
-		}
-
-	}
 }
