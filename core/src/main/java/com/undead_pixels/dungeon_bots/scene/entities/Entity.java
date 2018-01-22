@@ -3,9 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -95,10 +93,13 @@ public abstract class Entity implements BatchRenderable {
 	}
 
 	private LuaValue evalMethod(Object caller, Method m, ScriptAPI scriptAPI) {
+		m.setAccessible(true);
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
-		m.setAccessible(true);
-		if(returnType.equals(Varargs.class) || (paramTypes.length > 0 && paramTypes[0].equals(Varargs.class))) {
+
+		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
+		// like its of type VarArgFunction
+		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
 			class Vararg extends VarArgFunction {
 
 				@Override
@@ -112,6 +113,7 @@ public abstract class Entity implements BatchRenderable {
 			}
 			return CoerceJavaToLua.coerce(new Vararg());
 		}
+		// Otherwise expect 1, 2 or 3 parameters for the method
 		switch(paramTypes.length) {
 			case 0:
 				class ZeroArg extends ZeroArgFunction {

@@ -3,23 +3,16 @@ package com.undead_pixels.dungeon_bots;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
-import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
-import org.junit.Assert;
-import org.junit.Test;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
+import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import org.junit.*;
+import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class ScriptApiTest {
 
-	private boolean cmp(double a, double b, double epsilon) {
+	private static boolean cmp(double a, double b, double epsilon) {
 		return Math.abs(a - b) < epsilon;
 	}
 
@@ -30,25 +23,102 @@ public class ScriptApiTest {
         LuaScript luaScript = se.script("player.up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue(Math.abs(player.getPosition().y + 1.0) < 0.01);
+        Assert.assertTrue(cmp(player.getPosition().y, -1.0, 0.01));
     }
 
     @Test
     public void testScriptApiSingleArgumentFunction() {
-        Actor player = new Actor(new World(), "player", null);
-        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
-        LuaScript luaScript = se.script("return player.greet('Hello');");
-        luaScript.start().join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Varargs ans = luaScript.getResults().get();
-        Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
+		class OneArg extends Entity {
+
+			OneArg(String name) {
+				super(new World(), name);
+			}
+
+			@Override
+			public Vector2 getPosition() {
+				return null;
+			}
+
+			@Override
+			public boolean isSolid() {
+				return false;
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+
+			@Override
+			public void render(SpriteBatch batch) {
+
+			}
+
+			@Override
+			public float getZ() {
+				return 0;
+			}
+
+			@ScriptAPI(SecurityLevel.AUTHOR) @BindTo("greet")
+			public LuaValue debugName(LuaValue luaValue) {
+				String greet = luaValue.checkjstring();
+				return CoerceJavaToLua.coerce(greet + " " + this.name);
+			}
+		}
+
+		OneArg player = new OneArg( "player");
+		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.AUTHOR);
+		LuaScript luaScript = se.script("return player.greet('Hello');");
+		luaScript.start().join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Varargs ans = luaScript.getResults().get();
+		Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
     }
 
     @Test
-    public void testScriptApiSecurityLevel() {
-        Actor player = new Actor(new World(), "player", null);
+    public void testSecurityLevel() {
+		class DebugError extends Entity {
+
+			DebugError(String name) {
+				super(new World(), name);
+			}
+
+			@Override
+			public Vector2 getPosition() {
+				return null;
+			}
+
+			@Override
+			public boolean isSolid() {
+				return false;
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+
+			@Override
+			public void render(SpriteBatch batch) {
+
+			}
+
+			@Override
+			public float getZ() {
+				return 0;
+			}
+
+			// Tag the error function with a 'high' security level
+			@ScriptAPI(SecurityLevel.DEBUG)
+			public LuaValue error() {
+				return LuaValue.NIL;
+			}
+		}
+
+        DebugError player = new DebugError( "player");
+		// Create a LuaScriptEnvironment with a SecurityLevel less than what the error function is tagged with
         LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.AUTHOR);
-        LuaScript luaScript = se.script("return player.greet('Hello');");
+        LuaScript luaScript = se.script("return player.error();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
     }
@@ -61,25 +131,25 @@ public class ScriptApiTest {
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player Y Position not moved 'UP'",
-                Math.abs(player.getPosition().y + 1.0) < 0.01);
+                cmp(player.getPosition().y, -1.0, 0.01));
 
         luaScript = se.script("player.down();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player Y Position not moved 'DOWN'",
-                Math.abs(player.getPosition().y) < 0.01);
+                cmp(player.getPosition().y, 0.0, 0.01));
 
         luaScript = se.script("player.left();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player X Position not moved 'LEFT'",
-                Math.abs(player.getPosition().x + 1.0) < 0.01);
+                cmp(player.getPosition().x, -1.0, 0.01));
 
         luaScript = se.script("player.right();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player X Position not moved 'RIGHT'",
-                Math.abs(player.getPosition().x) < 0.01);
+                cmp(player.getPosition().x, 0.0, 0.01));
     }
 
 	@Test public void testActorPosition() {
@@ -134,6 +204,7 @@ public class ScriptApiTest {
     			number = a.checkint() + b.checkint();
     			return CoerceJavaToLua.coerce(number);
 			}
+
 		}
 
 		TestEntity testEntity = new TestEntity("test");

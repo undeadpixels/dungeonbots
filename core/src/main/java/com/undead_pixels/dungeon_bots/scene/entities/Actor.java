@@ -4,11 +4,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
+import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 /**
@@ -75,39 +72,59 @@ public class Actor extends SpriteEntity {
 		}
 	}
 
-	@ScriptAPI(SecurityLevel.DEBUG)
+	// Lua ScriptApi methods that are collected and bound to a LuaScriptEnvironment using runtime reflection
+
+	/**
+	 * Prints debug info pertaining to the player to the console
+	 */
+	@ScriptAPI(SecurityLevel.DEBUG) @BindTo("debug")
 	public void print() {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	/**
+	 * Moves the player UP
+	 */
 	@ScriptAPI
 	public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
 
+	/**
+	 * Moves the player DOWN
+	 */
 	@ScriptAPI
 	public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
 
+	/**
+	 * Moves the player LEFT
+	 */
 	@ScriptAPI
 	public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
 
+	/**
+	 * Moves the player RIGHT
+	 */
 	@ScriptAPI
 	public void right() {
 		moveInstantly(Direction.RIGHT, 1);
 	}
 
-	@ScriptAPI(SecurityLevel.DEBUG) @BindTo("greet")
-	public LuaValue debugName(LuaValue luaValue) {
-		String greet = luaValue.checkjstring();
-		return CoerceJavaToLua.coerce(greet + " " + this.name);
-	}
-
+	/**
+	 * Returns a Varargs of the players position
+	 * <code>
+	 *     x, y = actor.position()
+	 * </code>
+	 * @param v An empty Varargs of the players position. <br> Will throw a runtime error if the Varargs parameter arg count is > 0
+	 * @return A Varargs of the players position
+	 */
 	@ScriptAPI(SecurityLevel.DEFAULT)
 	public Varargs position(Varargs v) {
+		assert v.narg() == 0;
 		Vector2 pos = getPosition();
 		return LuaValue.varargsOf(new LuaValue[] { CoerceJavaToLua.coerce(pos.x), CoerceJavaToLua.coerce(pos.y)} );
 	}
