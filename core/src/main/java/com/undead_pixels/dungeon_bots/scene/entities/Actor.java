@@ -57,9 +57,9 @@ public class Actor extends SpriteEntity {
 	 */
 	public void moveInstantly(Direction dir, int dist) {
 		if(dir == Direction.UP) {
-			sprite.setY(sprite.getY() - dist);
-		} else if(dir == Direction.DOWN) {
 			sprite.setY(sprite.getY() + dist);
+		} else if(dir == Direction.DOWN) {
+			sprite.setY(sprite.getY() - dist);
 		} else if(dir == Direction.LEFT) {
 			sprite.setX(sprite.getX() - dist);
 		} else if(dir == Direction.RIGHT) {
