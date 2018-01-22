@@ -5,10 +5,7 @@
 
 package com.undead_pixels.dungeon_bots.script;
 
-import org.luaj.vm2.LuaError;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
-
+import org.luaj.vm2.*;
 import java.io.File;
 import java.util.Optional;
 
@@ -59,6 +56,9 @@ public class LuaScript {
 				} catch (LuaError le) {
 					scriptStatus = ScriptStatus.LUA_ERROR;
 					_LuaError = le;
+				}
+				catch (Exception e) {
+					scriptStatus = ScriptStatus.ERROR;
 				}
 			});
 		}

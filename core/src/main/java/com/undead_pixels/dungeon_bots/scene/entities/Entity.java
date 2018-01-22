@@ -3,12 +3,11 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -81,36 +80,63 @@ public abstract class Entity implements BatchRenderable {
 	 */
 	public abstract boolean isSolid();
 
-	private LuaBinding getBindings(SecurityLevel securityLevel) {
+	private LuaBinding getBindings(final SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
-		for(Method method : this.getClass().getDeclaredMethods())
-			Optional.ofNullable(method.getDeclaredAnnotation(ScriptAPI.class)).ifPresent(annotation -> {
-			    if(annotation.value().level <= securityLevel.level)
-			    	t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
-									.map(a -> a.value())
-									.orElse(method.getName()),
-							evalMethod(this, method, annotation));
-			});
+
+		/* Use reflection to find and bind any methods annotated using @ScriptAPI
+		*  that have the appropriate security level */
+		Stream.of(this.getClass().getDeclaredMethods())
+				.filter(method -> {
+					ScriptAPI annotation = method.getDeclaredAnnotation(ScriptAPI.class);
+					return annotation != null && annotation.value().level <= securityLevel.level;
+				})
+				.forEach(method ->
+						t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
+										.map(BindTo::value)
+										.orElse(method.getName()),
+								evalMethod(this, method)));
+
+		/* Use reflection to find and bind any fields annotated using @BindField
+		*  that have the appropriate security level */
+		Stream.of(this.getClass().getDeclaredFields())
+				.filter(field -> {
+					BindField annotation = field.getDeclaredAnnotation(BindField.class);
+					return annotation != null && annotation.value().level <= securityLevel.level;
+				})
+				.forEach(field -> {
+					try {
+						field.setAccessible(true);
+						t.set(Optional.ofNullable(field.getDeclaredAnnotation(BindTo.class))
+										.map(BindTo::value)
+										.orElse(field.getName()),
+								CoerceJavaToLua.coerce(field.get(this)));
+					}
+					catch (Exception e) { }
+				});
 		return new LuaBinding(this.name, t);
 	}
 
-	private LuaValue evalMethod(Object caller, Method m, ScriptAPI scriptAPI) {
+	private LuaValue evalMethod(final Object caller, final Method m) {
+		m.setAccessible(true);
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
-		m.setAccessible(true);
+
+		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
+		// like it is of type VarargFunction
 		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
 			class Vararg extends VarArgFunction {
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
-						assert Stream.of(paramTypes).allMatch(Varargs.class::equals);
 						return CoerceJavaToLua.coerce(m.invoke(caller, args));
 					}
-					catch (Exception e) { return null; }
+					catch (Exception e) { return LuaValue.NIL; }
 				}
 			}
 			return CoerceJavaToLua.coerce(new Vararg());
 		}
+
+		// Otherwise expect 0, 1, 2 or 3 parameters for the method
 		switch(paramTypes.length) {
 			case 0:
 				class ZeroArg extends ZeroArgFunction {
@@ -119,7 +145,7 @@ public abstract class Entity implements BatchRenderable {
 						try {
 							return CoerceJavaToLua.coerce(m.invoke(caller));
 						}
-						catch (Exception e) { return null; }
+						catch (Exception e) { return LuaValue.NIL; }
 					}
 				}
 				return CoerceJavaToLua.coerce(new ZeroArg());
@@ -131,7 +157,7 @@ public abstract class Entity implements BatchRenderable {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
 							return CoerceJavaToLua.coerce(m.invoke(caller, arg));
 						}
-						catch (Exception e) { return null; }
+						catch (Exception e) { return LuaValue.NIL; }
 					}
 				}
 				return CoerceJavaToLua.coerce(new OneArg());
@@ -143,9 +169,7 @@ public abstract class Entity implements BatchRenderable {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
 							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2));
 						}
-						catch (Exception e) {
-							e.printStackTrace();
-							return null; }
+						catch (Exception e) { return LuaValue.NIL; }
 					}
 				}
 				return CoerceJavaToLua.coerce(new TwoArg());
@@ -157,13 +181,13 @@ public abstract class Entity implements BatchRenderable {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
 							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2, arg3));
 						}
-						catch (Exception e) { return null; }
+						catch (Exception e) { return LuaValue.NIL; }
 					}
 				}
 				return CoerceJavaToLua.coerce(new ThreeArg());
 			default:
+				return LuaValue.NIL;
 		}
-		return LuaValue.NIL;
 	}
 
 	/**
@@ -171,7 +195,7 @@ public abstract class Entity implements BatchRenderable {
 	 * @param securityLevel The Security level of the requested LuaScriptEnvironment
 	 * @return
 	 */
-	public LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
+	public final LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
 	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment(securityLevel);
 	    scriptEnvironment.add(getBindings(securityLevel));
 	    return scriptEnvironment;
@@ -181,7 +205,7 @@ public abstract class Entity implements BatchRenderable {
 	 * Generates a LuaScriptEnvironment for the given entity
 	 * @return
 	 */
-	public LuaScriptEnvironment getScriptEnvironment() {
+	public final LuaScriptEnvironment getScriptEnvironment() {
 		return getScriptEnvironment(SecurityLevel.AUTHOR);
 	}
 }
