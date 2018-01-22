@@ -3,13 +3,15 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.*;
-import org.luaj.vm2.lib.ZeroArgFunction;
+import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
@@ -81,38 +83,96 @@ public abstract class Entity implements BatchRenderable {
 
 	private LuaBinding getBindings(SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
-		for(Method method : this.getClass().getDeclaredMethods()) {
+		for(Method method : this.getClass().getDeclaredMethods())
 			Optional.ofNullable(method.getDeclaredAnnotation(ScriptAPI.class)).ifPresent(annotation -> {
-			    if(annotation.value().level <= securityLevel.level) {
-                    try {
-                        // Attempt to call zero argument method
-                        Object o = method.invoke(this);
-                        if(LuaBinding.class.equals(o.getClass())) {
-                            LuaBinding lb = LuaBinding.class.cast(o);
-                            t.set(lb.bindTo, lb.luaValue);
-                        }
-                    }
-                    catch (Exception e) { e.printStackTrace(); }
-                }
+			    if(annotation.value().level <= securityLevel.level)
+			    	t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
+									.map(a -> a.value())
+									.orElse(method.getName()),
+							evalMethod(this, method, annotation));
 			});
-		}
 		return new LuaBinding(this.name, t);
 	}
 
+	private LuaValue evalMethod(Object caller, Method m, ScriptAPI scriptAPI) {
+		Class<?>[] paramTypes = m.getParameterTypes();
+		Class<?> returnType = m.getReturnType();
+		switch(paramTypes.length) {
+			case 0:
+				class ZeroArg extends ZeroArgFunction {
+					@Override
+					public LuaValue call() {
+						try {
+							return CoerceJavaToLua.coerce(m.invoke(caller));
+						}
+						catch (Exception e) { return null; }
+					}
+				}
+				return CoerceJavaToLua.coerce(new ZeroArg());
+			case 1:
+				if(paramTypes[0].equals(LuaValue.class)) {
+					class OneArg extends OneArgFunction {
+						@Override
+						public LuaValue call(LuaValue arg) {
+							try {
+								assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+								return CoerceJavaToLua.coerce(m.invoke(caller, arg));
+							}
+							catch (Exception e) { return null; }
+						}
+					}
+					return CoerceJavaToLua.coerce(new OneArg());
+				}
+				else {
+					class Vararg extends VarArgFunction {
+						@Override
+						public Varargs invoke(Varargs args) {
+							try {
+								assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+								return CoerceJavaToLua.coerce(m.invoke(caller, args));
+							}
+							catch (Exception e) { return null; }
+						}
+					}
+					return CoerceJavaToLua.coerce(new Vararg());
+				}
+			case 2:
+				class TwoArg extends TwoArgFunction {
+					@Override
+					public LuaValue call(LuaValue arg1, LuaValue arg2) {
+						try {
+							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2));
+						}
+						catch (Exception e) { return null; }
+					}
+				}
+				return CoerceJavaToLua.coerce(new TwoArg());
+			case 3:
+				class ThreeArg extends ThreeArgFunction {
+					@Override
+					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
+						try {
+							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2, arg3));
+						}
+						catch (Exception e) { return null; }
+					}
+				}
+				return CoerceJavaToLua.coerce(new ThreeArg());
+			default:
+		}
+		return LuaValue.NIL;
+	}
+
+	/**
+	 * Generates a LuaScriptEnvironment for the given entity
+	 * @param securityLevel The Security level of the requested LuaScriptEnvironment
+	 * @return
+	 */
 	public LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
-	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment();
+	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment(securityLevel);
 	    scriptEnvironment.add(getBindings(securityLevel));
 	    return scriptEnvironment;
     }
-
-	protected LuaBinding genZeroArg(final String bindTo, final Runnable r) {
-		class ZeroArg extends ZeroArgFunction {
-			@Override
-			public LuaValue call() {
-				r.run();
-				return null;
-			}
-		}
-		return new LuaBinding(bindTo, CoerceJavaToLua.coerce(new ZeroArg()));
-	}
 }
