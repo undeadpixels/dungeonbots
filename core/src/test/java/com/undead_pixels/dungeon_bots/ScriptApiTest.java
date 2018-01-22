@@ -19,6 +19,10 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class ScriptApiTest {
 
+	private boolean cmp(double a, double b, double epsilon) {
+		return Math.abs(a - b) < epsilon;
+	}
+
     @Test
     public void testGetBindings() {
         Actor player = new Actor(new World(), "player", null);
@@ -77,6 +81,18 @@ public class ScriptApiTest {
         Assert.assertTrue("Player X Position not moved 'RIGHT'",
                 Math.abs(player.getPosition().x) < 0.01);
     }
+
+	@Test public void testActorPosition() {
+		Actor player = new Actor(new World(), "player", null);
+		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+
+		LuaScript luaScript = se.script("return player.position();");
+		luaScript.start().join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Assert.assertTrue(luaScript.getResults().isPresent());
+		Varargs ans = luaScript.getResults().get();
+		Assert.assertTrue(cmp(ans.tofloat(1), ans.tofloat(2), 0.01f));
+	}
 
     @Test
 	public void testTwoArgFunction() {

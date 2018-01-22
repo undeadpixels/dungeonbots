@@ -1,12 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 /**
@@ -102,5 +104,11 @@ public class Actor extends SpriteEntity {
 	public LuaValue debugName(LuaValue luaValue) {
 		String greet = luaValue.checkjstring();
 		return CoerceJavaToLua.coerce(greet + " " + this.name);
+	}
+
+	@ScriptAPI(SecurityLevel.DEFAULT)
+	public Varargs position(Varargs v) {
+		Vector2 pos = getPosition();
+		return LuaValue.varargsOf(new LuaValue[] { CoerceJavaToLua.coerce(pos.x), CoerceJavaToLua.coerce(pos.y)} );
 	}
 }

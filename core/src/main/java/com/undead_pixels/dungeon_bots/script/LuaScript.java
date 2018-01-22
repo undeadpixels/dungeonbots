@@ -60,6 +60,9 @@ public class LuaScript {
 					scriptStatus = ScriptStatus.LUA_ERROR;
 					_LuaError = le;
 				}
+				catch (Exception e) {
+					scriptStatus = ScriptStatus.ERROR;
+				}
 			});
 		}
 		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)

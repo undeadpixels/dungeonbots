@@ -98,8 +98,9 @@ public abstract class Entity implements BatchRenderable {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
 		m.setAccessible(true);
-		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
+		if(returnType.equals(Varargs.class) || (paramTypes.length > 0 && paramTypes[0].equals(Varargs.class))) {
 			class Vararg extends VarArgFunction {
+
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
