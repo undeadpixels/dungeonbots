@@ -7,6 +7,8 @@ import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -89,6 +91,19 @@ public abstract class Entity implements BatchRenderable {
 									.orElse(method.getName()),
 							evalMethod(this, method, annotation));
 			});
+		for(Field f : this.getClass().getDeclaredFields()) {
+			f.setAccessible(true);
+			Optional.ofNullable(f.getDeclaredAnnotation(BindField.class)).ifPresent(anno -> {
+				if(anno.value().level <= securityLevel.level) {
+					try {
+						t.set(Optional.ofNullable(f.getDeclaredAnnotation(BindTo.class))
+										.map(a -> a.value())
+										.orElse(f.getName()),
+								CoerceJavaToLua.coerce(f.get(this)));
+					}catch (Exception e) { }
+				}
+			});
+		}
 		return new LuaBinding(this.name, t);
 	}
 
