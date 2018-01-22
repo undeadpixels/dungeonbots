@@ -57,10 +57,7 @@ public class World implements Renderable {
 	
 	@Override
 	public void render(float x0, float y0, float width, float height) {
-		System.out.println("Rendering world");
-
-		cam.viewportWidth = width;
-		cam.viewportHeight = height;
+		//System.out.println("Rendering world");
 		if(!didInitCam) {
 			batch = new SpriteBatch();
 			cam = new OrthographicCamera(width, height);
@@ -76,6 +73,9 @@ public class World implements Renderable {
     			cam.position.y = tiles[0].length - .5f;
     			didInitCam = true;
 		}
+
+		cam.viewportWidth = width;
+		cam.viewportHeight = height;
 		
 		//cam.translate(w/2, h/2);
 		cam.update();
