@@ -1,14 +1,21 @@
 package com.undead_pixels.dungeon_bots;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.junit.Assert;
 import org.junit.Test;
+import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 public class ScriptApiTest {
 
@@ -70,4 +77,162 @@ public class ScriptApiTest {
         Assert.assertTrue("Player X Position not moved 'RIGHT'",
                 Math.abs(player.getPosition().x) < 0.01);
     }
+
+    @Test
+	public void testTwoArgFunction() {
+    	class TestEntity extends Entity {
+
+    		public int number = 0;
+
+    		TestEntity(String name) {
+				super(new World(), name);
+			}
+
+			@Override
+			public Vector2 getPosition() {
+				return null;
+			}
+
+			@Override
+			public boolean isSolid() {
+				return false;
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+
+			@Override
+			public void render(SpriteBatch batch) {
+
+			}
+
+			@Override
+			public float getZ() {
+				return 0;
+			}
+
+			@ScriptAPI @BindTo("add")
+			public LuaValue setValues(LuaValue a, LuaValue b) {
+    			number = a.checkint() + b.checkint();
+    			return CoerceJavaToLua.coerce(number);
+			}
+		}
+
+		TestEntity testEntity = new TestEntity("test");
+    	LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+    	LuaScript luaScript = scriptEnvironment.init("return test.add(15,23);").join();
+    	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+    	int ans = luaScript.getResults().get().toint(1);
+    	Assert.assertTrue(ans == 38);
+    	Assert.assertTrue(testEntity.number == 38);
+	}
+
+	@Test
+	public void testThreeArgFunction() {
+		class TestEntity extends Entity {
+
+			public int number = 0;
+
+			TestEntity(String name) {
+				super(new World(), name);
+			}
+
+			@Override
+			public Vector2 getPosition() {
+				return null;
+			}
+
+			@Override
+			public boolean isSolid() {
+				return false;
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+
+			@Override
+			public void render(SpriteBatch batch) {
+
+			}
+
+			@Override
+			public float getZ() {
+				return 0;
+			}
+
+			@ScriptAPI @BindTo("add")
+			public LuaValue setValues(LuaValue a, LuaValue b, LuaValue c) {
+				number = a.checkint() + b.checkint() + c.checkint();
+				return CoerceJavaToLua.coerce(number);
+			}
+		}
+
+		TestEntity testEntity = new TestEntity("test");
+		LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+		LuaScript luaScript = scriptEnvironment.init("return test.add(7, 23, 45);").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		int ans = luaScript.getResults().get().toint(1);
+		Assert.assertTrue(ans == 75);
+		Assert.assertTrue(testEntity.number == 75);
+	}
+
+	@Test
+	public void testVarArgsFunction() {
+		class TestEntity extends Entity {
+
+			public int number = 0;
+
+			TestEntity(String name) {
+				super(new World(), name);
+			}
+
+			@Override
+			public Vector2 getPosition() {
+				return null;
+			}
+
+			@Override
+			public boolean isSolid() {
+				return false;
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+
+			@Override
+			public void render(SpriteBatch batch) {
+
+			}
+
+			@Override
+			public float getZ() {
+				return 0;
+			}
+
+			@ScriptAPI @BindTo("add")
+			public Varargs addValues(Varargs v) {
+				int num = v.narg();
+				int ans = 0;
+				for(int i = 0; i < num; i++) {
+					ans += v.toint(i + 1);
+				}
+				number = ans;
+				return CoerceJavaToLua.coerce(ans);
+			}
+		}
+
+		TestEntity testEntity = new TestEntity("test");
+		LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+		LuaScript luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		int ans = luaScript.getResults().get().toint(1);
+		Assert.assertTrue(ans == 36);
+		Assert.assertTrue(testEntity.number == 36);
+	}
 }

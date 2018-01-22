@@ -97,6 +97,20 @@ public abstract class Entity implements BatchRenderable {
 	private LuaValue evalMethod(Object caller, Method m, ScriptAPI scriptAPI) {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
+		m.setAccessible(true);
+		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
+			class Vararg extends VarArgFunction {
+				@Override
+				public Varargs invoke(Varargs args) {
+					try {
+						assert Stream.of(paramTypes).allMatch(Varargs.class::equals);
+						return CoerceJavaToLua.coerce(m.invoke(caller, args));
+					}
+					catch (Exception e) { return null; }
+				}
+			}
+			return CoerceJavaToLua.coerce(new Vararg());
+		}
 		switch(paramTypes.length) {
 			case 0:
 				class ZeroArg extends ZeroArgFunction {
@@ -110,32 +124,17 @@ public abstract class Entity implements BatchRenderable {
 				}
 				return CoerceJavaToLua.coerce(new ZeroArg());
 			case 1:
-				if(paramTypes[0].equals(LuaValue.class)) {
-					class OneArg extends OneArgFunction {
-						@Override
-						public LuaValue call(LuaValue arg) {
-							try {
-								assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-								return CoerceJavaToLua.coerce(m.invoke(caller, arg));
-							}
-							catch (Exception e) { return null; }
+				class OneArg extends OneArgFunction {
+					@Override
+					public LuaValue call(LuaValue arg) {
+						try {
+							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
+							return CoerceJavaToLua.coerce(m.invoke(caller, arg));
 						}
+						catch (Exception e) { return null; }
 					}
-					return CoerceJavaToLua.coerce(new OneArg());
 				}
-				else {
-					class Vararg extends VarArgFunction {
-						@Override
-						public Varargs invoke(Varargs args) {
-							try {
-								assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-								return CoerceJavaToLua.coerce(m.invoke(caller, args));
-							}
-							catch (Exception e) { return null; }
-						}
-					}
-					return CoerceJavaToLua.coerce(new Vararg());
-				}
+				return CoerceJavaToLua.coerce(new OneArg());
 			case 2:
 				class TwoArg extends TwoArgFunction {
 					@Override
@@ -144,7 +143,9 @@ public abstract class Entity implements BatchRenderable {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
 							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2));
 						}
-						catch (Exception e) { return null; }
+						catch (Exception e) {
+							e.printStackTrace();
+							return null; }
 					}
 				}
 				return CoerceJavaToLua.coerce(new TwoArg());
@@ -175,4 +176,12 @@ public abstract class Entity implements BatchRenderable {
 	    scriptEnvironment.add(getBindings(securityLevel));
 	    return scriptEnvironment;
     }
+
+	/**
+	 * Generates a LuaScriptEnvironment for the given entity
+	 * @return
+	 */
+	public LuaScriptEnvironment getScriptEnvironment() {
+		return getScriptEnvironment(SecurityLevel.AUTHOR);
+	}
 }
