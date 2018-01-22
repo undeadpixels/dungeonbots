@@ -84,8 +84,10 @@ public class LuaJTest {
                 results.get().toint(1) == 3);
     }
 
+    
     @Test
     public void testNoResults() {
+    	//Some scripts should not return anything.
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("x = 1 + 2;");
         Assert.assertFalse("Script results should not be present", script.getResults().isPresent());
@@ -93,6 +95,9 @@ public class LuaJTest {
 
     @Test
     public void testLuaScriptTimeout() {
+    	
+    	//Ensure that a script which is in an endless loop will eventually 
+    	//return.
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment();
         LuaScript script = scriptEnv.scriptFromString("while true do\nend\n");
         script.start().join(1000);
