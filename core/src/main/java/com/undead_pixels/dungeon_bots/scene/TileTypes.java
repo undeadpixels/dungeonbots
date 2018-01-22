@@ -13,6 +13,7 @@ public class TileTypes {
 		public TileType(TextureRegion textureRegion) {
 			super();
 			this.textureRegion = textureRegion;
+			// TODO - make the textureRegion dependent on surrounding tiles (so walls will flow nicely together and such)
 		}
 	}
 	

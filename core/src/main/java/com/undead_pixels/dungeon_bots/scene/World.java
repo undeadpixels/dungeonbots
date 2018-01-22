@@ -177,4 +177,12 @@ public class World implements Renderable {
 	public int makeID() {
 		return idCounter++;
 	}
+	
+	public boolean canMoveToNewTile(Entity e, int x, int y) {
+		// TODO
+		return false;
+	}
+	public void didLeaveTile(Entity e, int x, int y) {
+		
+	}
 }

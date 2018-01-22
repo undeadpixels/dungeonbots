@@ -27,6 +27,7 @@ public class GameView extends GDXandSwingScreen {
 	public GameView() {
 		world = new World();
 		
+		// XXX - testing code; remove and replace with lua
 		world.setSize(16, 16);
 
 		
