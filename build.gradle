@@ -43,7 +43,6 @@ allprojects {
             outputs.upToDateWhen {false}
             showStandardStreams = true
         }
-        workingDir = 'assets'
     }
 
 }
@@ -75,6 +74,10 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         compile "org.luaj:luaj-jse:$luajVersion"
         compile "de.sciss:jsyntaxpane:1.0.0"
+    }
+    
+    test {
+        workingDir = 'assets'
     }
 }
 
