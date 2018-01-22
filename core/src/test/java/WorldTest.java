@@ -17,13 +17,13 @@ public class WorldTest {
 		p.moveInstantly(Actor.Direction.RIGHT, 5);
 		Assert.assertEquals("Actor x at middle", 5.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at middle", 0.0f, p.getPosition().y, .0001);
-		p.moveInstantly(Actor.Direction.DOWN, 5);
+		p.moveInstantly(Actor.Direction.UP, 5);
 		Assert.assertEquals("Actor x at middle", 5.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at middle", 5.0f, p.getPosition().y, .0001);
 		p.moveInstantly(Actor.Direction.LEFT, 5);
 		Assert.assertEquals("Actor x at middle", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at middle", 5.0f, p.getPosition().y, .0001);
-		p.moveInstantly(Actor.Direction.UP, 5);
+		p.moveInstantly(Actor.Direction.DOWN, 5);
 		Assert.assertEquals("Actor x at end", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at end", 0.0f, p.getPosition().y, .0001);
 		

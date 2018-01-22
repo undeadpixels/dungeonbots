@@ -26,9 +26,9 @@ public class World implements Renderable {
     private ArrayList<Entity> entities = new ArrayList<>();
     
     private Vector2 offset = new Vector2();
-	SpriteBatch batch = new SpriteBatch();
+	SpriteBatch batch;
 	
-	OrthographicCamera cam = new OrthographicCamera(1024, 768);
+	OrthographicCamera cam;
 	private boolean didInitCam = false;
     
     private int idCounter = 0;
@@ -62,6 +62,9 @@ public class World implements Renderable {
 		cam.viewportWidth = width;
 		cam.viewportHeight = height;
 		if(!didInitCam) {
+			batch = new SpriteBatch();
+			cam = new OrthographicCamera(width, height);
+			
 			float ratioW = width / tiles.length;
 			float ratioH = height / tiles[0].length;
 			if(ratioW < ratioH) {

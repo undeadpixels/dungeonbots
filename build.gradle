@@ -43,6 +43,7 @@ allprojects {
             outputs.upToDateWhen {false}
             showStandardStreams = true
         }
+        workingDir = 'assets'
     }
 
 }
