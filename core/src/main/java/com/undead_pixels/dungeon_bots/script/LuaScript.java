@@ -118,8 +118,8 @@ public class LuaScript {
 	}
 
 	
-	/**Returns the Varargs result, if there is one, or null if execution hasn't 
-	 * completed yet.*/
+	/**Returns the Varargs result, if there is one, or 'False' if execution hasn't 
+	 * completed yet or there are no results from the execution.*/
 	public synchronized Optional<Varargs> getResults() {
 		return Optional.ofNullable(varargs);
 	}
