@@ -3,6 +3,21 @@ package com.undead_pixels.dungeon_bots;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+
+import java.io.File;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
@@ -14,6 +29,10 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import static java.lang.String.*;
 
 public class ScriptApiTest {
+	
+	public ScriptApiTest() {
+		System.out.println(new File(".").getAbsolutePath());
+	}
 
 	private final double EPSILON = 0.00001;
 
@@ -28,7 +47,7 @@ public class ScriptApiTest {
         LuaScript luaScript = se.script("player.up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue(cmp(player.getPosition().y, -1.0, EPSILON));
+        Assert.assertTrue(cmp(player.getPosition().y, 1.0, EPSILON));
     }
 
     @Test
@@ -136,7 +155,7 @@ public class ScriptApiTest {
         LuaScript luaScript = se.init("player.up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertTrue("Player Y Position not moved 'UP'",
-                cmp(player.getPosition().y, -1.0, EPSILON));
+                cmp(player.getPosition().y, 1.0, EPSILON));
 
         luaScript = se.init("player.down();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);

@@ -20,6 +20,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
+import com.undead_pixels.dungeon_bots.ui.GameView;
+
 import javax.swing.*;
 import javax.swing.text.rtf.RTFEditorKit;
 
@@ -105,7 +107,8 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void create() {
-		setScreen(new NullScreen());
+		//setScreen(new NullScreen());
+		setScreen(new GameView());
 	}
 
 }

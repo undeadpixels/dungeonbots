@@ -221,11 +221,14 @@ public class NullScreen extends GDXandSwingScreen {
 		stage.getViewport().update(w, h, true);
 		stage.getCamera().update();
 		batch.setProjectionMatrix(stage.getCamera().projection);
+		batch.setTransformMatrix(stage.getCamera().view);
 		System.out.println("Resize: "+w+", "+h);
 	}
 
 	@Override
 	public void render(float delta) {
+		System.out.println(batch.getTransformMatrix());
+		System.out.println(batch.getProjectionMatrix());
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
