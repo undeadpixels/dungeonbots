@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -37,6 +38,11 @@ public class Actor extends SpriteEntity {
 	public Actor(World world, String name, LuaScript script, TextureRegion tex) {
 		super(world, name, script, tex);
 		// TODO Auto-generated constructor stub
+	}
+
+	public Actor(World world, String name, LuaScript luaScript, TextureRegion textureRegion, Whitelist whitelist) {
+		super(world, name, luaScript, textureRegion);
+		if(whitelist != null) setWhitelist(whitelist);
 	}
 
 	@Override

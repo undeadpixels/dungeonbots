@@ -436,9 +436,9 @@ public class ScriptApiTest {
 		Assert.assertTrue(rpgEntity.stats.get("dexterity").toint() == 5);
 		Assert.assertTrue(rpgEntity.stats.get("intelligence").toint() == 6);
 
-		se.init("rpg.stats.strength = 3").join();
-		se.init("rpg.stats.dexterity = 4").join();
-		se.init("rpg.stats.intelligence = 5").join();
+		se.init("rpg.stats.strength = rpg.stats.strength - 1").join();
+		se.init("rpg.stats.dexterity = rpg.stats.dexterity - 1").join();
+		se.init("rpg.stats.intelligence = rpg.stats.intelligence - 1").join();
 
 		Assert.assertTrue(rpgEntity.stats.get("strength").toint() == 3);
 		Assert.assertTrue(rpgEntity.stats.get("dexterity").toint() == 4);

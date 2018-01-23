@@ -4,12 +4,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.Whitelist;
 
 public class ActorBuilder {
 	private World world = new World();
 	private String name = "actor";
 	private TextureRegion tex = null;
 	private LuaScript script = null;
+	private Whitelist whitelist = null;
 
 	public ActorBuilder setWorld(World world) {
 		this.world = world;
@@ -31,7 +33,12 @@ public class ActorBuilder {
 		return this;
 	}
 
+	public ActorBuilder setWhitelist(Whitelist whitelist) {
+		this.whitelist = whitelist;
+		return this;
+	}
+
 	public Actor createActor() {
-		return new Actor(world, name, script, tex);
+		return new Actor(world, name, script, tex, whitelist);
 	}
 }

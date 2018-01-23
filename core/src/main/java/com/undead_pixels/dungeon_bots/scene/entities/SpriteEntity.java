@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.Whitelist;
 
 /**
  * A regular Entity that is based upon a Sprite, not some other form of graphic
@@ -32,6 +33,20 @@ public abstract class SpriteEntity extends Entity {
 	 */
 	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex) {
 		super(world, name, script);
+		if(tex == null) {
+			sprite = new Sprite();
+		} else {
+			sprite = new Sprite(tex);
+		}
+	}
+
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user script that is run on this object. May be null.
+	 * @param tex		A texture for this Actor. May be null.
+	 */
+	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex, Whitelist whitelist) {
+		super(world, name, script, whitelist);
 		if(tex == null) {
 			sprite = new Sprite();
 		} else {
