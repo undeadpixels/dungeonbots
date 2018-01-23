@@ -19,8 +19,11 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 public class GameView extends GDXandSwingScreen {
 	private Stage stage = new Stage(); // deleting this somehow makes it not work...?
 
-	SpriteBatch batch = new SpriteBatch();
 	Texture img = new Texture("badlogic.jpg");
+	SpriteBatch batch;
+	
+	OrthographicCamera cam;
+	private boolean didInitCam = false;
 	
 	private World world;
 	
@@ -70,12 +73,35 @@ public class GameView extends GDXandSwingScreen {
 		
 	
 	public void render(float dt) {
+		float w = Gdx.graphics.getWidth();
+		float h = Gdx.graphics.getHeight();
+		
+		if(!didInitCam) {
+			batch = new SpriteBatch();
+			cam = new OrthographicCamera(w, h);
+			
+			float ratioW = w / world.getSize().x;
+			float ratioH = h / world.getSize().y;
+			if(ratioW < ratioH) {
+				cam.zoom = 1.0f / ratioW;
+			} else {
+				cam.zoom = 1.0f / ratioH;
+			}
+    			cam.position.x = world.getSize().x - .5f;
+    			cam.position.y = world.getSize().y - .5f;
+    			didInitCam = true;
+		}
+
+		cam.viewportWidth = w;
+		cam.viewportHeight = h;
+		
+		cam.update();
+		batch.setProjectionMatrix(cam.projection);
+		batch.setTransformMatrix(cam.view);
+		
 		if(world != null) {
 			//world.update(dt);
-
-			float w = Gdx.graphics.getWidth();
-			float h = Gdx.graphics.getHeight();
-			world.render(0.0f, 0.0f, w, h);
+			world.render(batch);
 		}
 
 		//Gdx.gl.glClearColor(1, 0, 0, 1);

@@ -25,7 +25,7 @@ world
  - win          function(info)
  - listenFor    function(eventName, funcPtr)
 
-tiles
+tileTypes
  - floor
  - wall
  - goal
@@ -39,9 +39,9 @@ function init()
     for i in 1,16 do
         for j in 1,16 do
             if i == 1 or i == 16 or j == 1 or j == 16 then
-                world.tiles.setTile(j, i, tiles.wall)
+                world.tiles.setTile(j, i, tileTypes.wall)
             else
-                world.tiles.setTile(j, i, tiles.floor)
+                world.tiles.setTile(j, i, tileTypes.floor)
             end
         end
     end

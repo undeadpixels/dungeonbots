@@ -8,6 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -17,7 +18,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 
-public class World implements Renderable {
+public class World {
     private LuaScript levelScript;
 
 	//private Texture backgroundImage = new Texture("badlogic.jpg");
@@ -26,10 +27,6 @@ public class World implements Renderable {
     private ArrayList<Entity> entities = new ArrayList<>();
     
     private Vector2 offset = new Vector2();
-	SpriteBatch batch;
-	
-	OrthographicCamera cam;
-	private boolean didInitCam = false;
     
     private int idCounter = 0;
 
@@ -40,7 +37,6 @@ public class World implements Renderable {
     // TODO - another constructor for specific resource paths
     
     
-	@Override
 	public void update(float dt) {
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
@@ -55,40 +51,16 @@ public class World implements Renderable {
 		// TODO - tell the levelScript that a new frame happened
 	}
 	
-	@Override
-	public void render(float x0, float y0, float width, float height) {
+	public void render(SpriteBatch batch) {
 		//System.out.println("Rendering world");
-		if(!didInitCam) {
-			batch = new SpriteBatch();
-			cam = new OrthographicCamera(width, height);
-			
-			float ratioW = width / tiles.length;
-			float ratioH = height / tiles[0].length;
-			if(ratioW < ratioH) {
-				cam.zoom = 1.0f / ratioW;
-			} else {
-				cam.zoom = 1.0f / ratioH;
-			}
-    			cam.position.x = tiles.length - .5f;
-    			cam.position.y = tiles[0].length - .5f;
-    			didInitCam = true;
-		}
-
-		cam.viewportWidth = width;
-		cam.viewportHeight = height;
 		
 		//cam.translate(w/2, h/2);
-		cam.update();
-		batch.setProjectionMatrix(cam.projection);
-		batch.setTransformMatrix(cam.view);
 		
 		Gdx.gl.glClearColor(.65f, .2f, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		batch.begin();
 		if(backgroundImage != null) {
-			float w = width;
-			float h = height;
 			batch.draw(backgroundImage, 0, 0);
 		}
 
@@ -109,10 +81,14 @@ public class World implements Renderable {
 	public void addEntity(Entity e) {
 		entities.add(e);
 	}
-    
+
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
+	}
+	public Vector2 getSize() {
+		// TODO - copy old tiles?
+		return new Vector2(tiles.length, tiles[0].length);
 	}
 	
 	public void setTile(int x, int y, TileType tileType) {
