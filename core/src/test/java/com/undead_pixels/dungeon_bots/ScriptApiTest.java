@@ -11,15 +11,12 @@ import org.junit.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
+import static com.undead_pixels.dungeon_bots.TestUtils.cmp;
 import static java.lang.String.*;
 
 public class ScriptApiTest {
 
 	private final double EPSILON = 0.00001;
-
-	private static boolean cmp(double a, double b, double epsilon) {
-		return Math.abs(a - b) < epsilon;
-	}
 
     @Test
     public void testGetBindings() {

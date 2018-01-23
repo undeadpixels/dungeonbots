@@ -1,10 +1,12 @@
 package com.undead_pixels.dungeon_bots;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.script.Whitelist;
+import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
+
+import static com.undead_pixels.dungeon_bots.TestUtils.cmp;
 
 public class TestWhitelist {
 
@@ -26,5 +28,38 @@ public class TestWhitelist {
 		Assert.assertFalse(w.onWhitelist("down"));
 		Assert.assertFalse(w.onWhitelist("left"));
 		Assert.assertFalse(w.onWhitelist("right"));
+	}
+
+	@Test
+	public void testRemoveFromWhiteList() {
+		Actor a = new ActorBuilder().setName("test").createActor();
+		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
+		Whitelist w = a.getWhitelist();
+		Assert.assertTrue(w.onWhitelist("up"));
+
+		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Assert.assertTrue(cmp(a.getPosition().y, -1.0, 0.001));
+
+		w.removeFrom("up");
+		luaScript = scriptEnvironment.init("test.up()").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
+		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
+	}
+
+	@Test
+	public void testAddToWhiteList() {
+		Actor a = new ActorBuilder().setName("test").setWhitelist(new Whitelist()).createActor();
+		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
+		Whitelist w = a.getWhitelist();
+
+		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
+		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
+
+		w.addTo("up");
+		luaScript = scriptEnvironment.init("test.up()").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Assert.assertTrue(cmp(a.getPosition().y, -1.0, 0.001));
 	}
 }
