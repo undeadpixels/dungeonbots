@@ -61,7 +61,7 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@ScriptAPI(SecurityLevel.AUTHOR)
+			@ScriptAPI(SecurityLevel.AUTHOR) @BindTo("greeting")
 			public LuaValue greet(LuaValue luaValue) {
 				String greet = luaValue.checkjstring();
 				return CoerceJavaToLua.coerce(greet + " " + this.name);
@@ -70,7 +70,7 @@ public class ScriptApiTest {
 
 		OneArg player = new OneArg( "player");
 		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
-		LuaScript luaScript = se.script("return player.greet('Hello');");
+		LuaScript luaScript = se.script("return player.greeting('Hello');");
 		luaScript.start().join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
 				&& luaScript.getResults().isPresent());
@@ -209,7 +209,7 @@ public class ScriptApiTest {
 		TestEntity testEntity = new TestEntity("test");
     	LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
     	LuaScript luaScript = scriptEnvironment.init("return test.add(15,23);").join();
-    	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+    	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
     	int ans = luaScript.getResults().get().toint(1);
     	Assert.assertTrue(ans == 38);
     	Assert.assertTrue(testEntity.number == 38);
@@ -263,7 +263,7 @@ public class ScriptApiTest {
 				testEntity.number == 0);
 		LuaScript luaScript = scriptEnvironment.init("return test.add(7, 23, 45);").join();
 		Assert.assertTrue("Expected ScriptStatus of COMPLETE",
-				luaScript.getStatus() == ScriptStatus.COMPLETE);
+				luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
 		Assert.assertTrue(format("Actual return value '%d' does not match expected '75'", ans),
 				ans == 75);
@@ -321,7 +321,7 @@ public class ScriptApiTest {
 		TestEntity testEntity = new TestEntity("test");
 		LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
 		LuaScript luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
-		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
 		Assert.assertTrue(format("Expected result of script: '36' does not equal actual: '%d'", ans),
 				ans == 36);

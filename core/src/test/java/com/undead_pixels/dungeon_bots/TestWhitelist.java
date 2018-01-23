@@ -31,7 +31,7 @@ public class TestWhitelist {
 	}
 
 	@Test
-	public void testRemoveFromWhiteList() {
+	public void testRemoveFromWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
 		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
 		Whitelist w = a.getWhitelist();
@@ -48,7 +48,7 @@ public class TestWhitelist {
 	}
 
 	@Test
-	public void testAddToWhiteList() {
+	public void testAddToWhitelist() {
 		Actor a = new ActorBuilder().setName("test").setWhitelist(new Whitelist()).createActor();
 		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
 		Whitelist w = a.getWhitelist();

@@ -146,10 +146,11 @@ public class LuaScript {
 		return this.script;
 	}
 
-	
 
-	/**Returns the error generated within the Lua script on execution.  If no 
-	 * error is generated, this value will be null.*/
+	/**
+	 *
+	 * @return LuaError
+	 */
 	public LuaError getError() {
 		return _LuaError;
 	}
