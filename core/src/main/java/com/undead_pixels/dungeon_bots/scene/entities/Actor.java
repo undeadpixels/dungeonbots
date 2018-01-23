@@ -64,10 +64,10 @@ public class Actor extends SpriteEntity {
 	public void moveInstantly(Direction dir, int dist) {
 		switch (dir) {
 			case UP:
-				sprite.setY(sprite.getY() - dist);
+				sprite.setY(sprite.getY() + dist);
 				break;
 			case DOWN:
-				sprite.setY(sprite.getY() + dist);
+				sprite.setY(sprite.getY() - dist);
 				break;
 			case LEFT:
 				sprite.setX(sprite.getX() - dist);

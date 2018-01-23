@@ -32,12 +32,18 @@ public abstract class SpriteEntity extends Entity {
 	 * @param tex		A texture for this Actor. May be null.
 	 */
 	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex) {
+		this(world, name, script, tex, 0, 0);
+	}
+
+	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex, float x, float y) {
 		super(world, name, script);
 		if(tex == null) {
 			sprite = new Sprite();
 		} else {
 			sprite = new Sprite(tex);
+			sprite.setScale(1.0f/tex.getRegionWidth());
 		}
+		sprite.setPosition(x, y);
 	}
 
 	/**
@@ -63,6 +69,7 @@ public abstract class SpriteEntity extends Entity {
 	@Override
 	public void render(SpriteBatch batch) {
 		if(sprite != null && sprite.getTexture() != null) {
+			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX());
 			sprite.draw(batch);
 		}
 	}
