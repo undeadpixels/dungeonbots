@@ -52,6 +52,7 @@ public class LuaJTest {
                 results.get().toint(1) == 3);
     }
 
+    
     @Test
     public void testNoResults() {
         LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
