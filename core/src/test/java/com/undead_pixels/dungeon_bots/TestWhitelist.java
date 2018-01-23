@@ -6,8 +6,6 @@ import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.*;
 
-import static com.undead_pixels.dungeon_bots.TestUtils.cmp;
-
 public class TestWhitelist {
 
 	@Test
@@ -39,7 +37,7 @@ public class TestWhitelist {
 
 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-		Assert.assertTrue(cmp(a.getPosition().y, -1.0, 0.001));
+		Assert.assertEquals( 1.0, a.getPosition().y, 0.001);
 
 		w.removeFrom("up");
 		luaScript = scriptEnvironment.init("test.up()").join();
@@ -60,6 +58,6 @@ public class TestWhitelist {
 		w.addTo("up");
 		luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-		Assert.assertTrue(cmp(a.getPosition().y, -1.0, 0.001));
+		Assert.assertEquals(a.getPosition().y, 1.0, 0.001);
 	}
 }

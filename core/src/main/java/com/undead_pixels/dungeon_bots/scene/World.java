@@ -16,10 +16,15 @@ import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.script.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
+import com.undead_pixels.dungeon_bots.script.Scriptable;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
-public class World {
+public class World extends Scriptable {
     private LuaScript levelScript;
+    private final String name = "world";
 
 	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
@@ -160,5 +165,9 @@ public class World {
 	}
 	public void didLeaveTile(Entity e, int x, int y) {
 		
+	}
+
+	public LuaBinding getLuaBindings(SecurityLevel securityLevel) {
+    	return this.getBindings(this.name, securityLevel);
 	}
 }
