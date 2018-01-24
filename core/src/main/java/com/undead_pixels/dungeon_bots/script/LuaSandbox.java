@@ -1,5 +1,5 @@
 package com.undead_pixels.dungeon_bots.script;
-import com.undead_pixels.dungeon_bots.script.interfaces.SecurityReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.*;
@@ -57,13 +57,13 @@ public class LuaSandbox {
 
 	/**
 	 * Creates a LuaValue proxy for each object and binds to the LuaValue to the Sandbox Environment.
-	 * Defaults to an empty whitelist.
+	 * Does not populate Whitelist.
 	 * @param toAdd A List of Objects implementing the Scriptable interface.
 	 * @param <T> A generic type implementing Scriptable
 	 * @return Returns the LuaSandbox
 	 */
     @SafeVarargs
-	public final <T extends Scriptable> LuaSandbox restrictiveAdd(T... toAdd) {
+	public final <T extends Scriptable & LuaReflection> LuaSandbox restrictiveAdd(T... toAdd) {
 		add(Stream.of(toAdd)
 				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))
 				.collect(Collectors.toList()));
@@ -77,7 +77,7 @@ public class LuaSandbox {
 	 * @return Returns the LuaSandbox
 	 */
 	@SafeVarargs
-    public final <T extends SecurityReflection & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
+    public final <T extends LuaReflection & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
 		whitelist.add(toAdd);
 		add(Stream.of(toAdd)
 				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))

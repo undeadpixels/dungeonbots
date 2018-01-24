@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 
+import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
@@ -21,16 +22,12 @@ public abstract class LuaProxyFactory {
 	 * @param securityLevel
 	 * @return
 	 */
-	public static <T extends Scriptable> LuaBinding getBindings(T src, Whitelist whitelist, final SecurityLevel securityLevel) {
+	public static <T extends Scriptable & LuaReflection> LuaBinding getBindings(T src, Whitelist whitelist, final SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
 
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
-		Stream.of(src.getClass().getDeclaredMethods())
-				.filter(method -> {
-					BindMethod annotation = method.getDeclaredAnnotation(BindMethod.class);
-					return annotation != null && annotation.value().level <= securityLevel.level;
-				})
+		src.getBindableMethods(securityLevel)
 				.forEach(method ->
 						t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
 										.map(BindTo::value)
@@ -39,11 +36,7 @@ public abstract class LuaProxyFactory {
 
 		/* Use reflection to find and bind any fields annotated using @BindField
 		 *  that have the appropriate security level */
-		Stream.of(src.getClass().getDeclaredFields())
-				.filter(field -> {
-					BindField annotation = field.getDeclaredAnnotation(BindField.class);
-					return annotation != null && annotation.value().level <= securityLevel.level;
-				})
+		src.getBindableFields(securityLevel)
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);

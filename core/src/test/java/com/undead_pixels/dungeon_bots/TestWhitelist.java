@@ -11,7 +11,7 @@ public class TestWhitelist {
 	@Test
 	public void testGetWhitelist() {
 		Actor a = new ActorBuilder().createActor();
-		Whitelist w = a.generateWhitelist();
+		Whitelist w = a.permissiveWhitelist();
 		Assert.assertTrue(w.onWhitelist("up"));
 		Assert.assertTrue(w.onWhitelist("down"));
 		Assert.assertTrue(w.onWhitelist("left"));

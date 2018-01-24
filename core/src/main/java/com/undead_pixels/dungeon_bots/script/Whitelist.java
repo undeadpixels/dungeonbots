@@ -1,6 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 
-import com.undead_pixels.dungeon_bots.script.interfaces.SecurityReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,8 +35,8 @@ public class Whitelist {
 		return this;
 	}
 
-	public <T extends SecurityReflection> Whitelist add(T... args) {
-		return add(Stream.of(args).map(SecurityReflection::generateWhitelist).collect(Collectors.toList()));
+	public <T extends LuaReflection> Whitelist add(T... args) {
+		return add(Stream.of(args).map(LuaReflection::permissiveWhitelist).collect(Collectors.toList()));
 	}
 
 	public boolean onWhitelist(String id) {
