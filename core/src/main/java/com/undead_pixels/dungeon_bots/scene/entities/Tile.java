@@ -1,11 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 
 /**
  * A tile in the terrain
@@ -21,7 +18,7 @@ public class Tile extends SpriteEntity {
 	 * @param x
 	 * @param y
 	 */
-	public Tile(World world, String name, LuaScript script, TextureRegion tex, float x, float y) {
+	public Tile(World world, String name, LuaSandbox script, TextureRegion tex, float x, float y) {
 		super(world, name, script, tex, x, y);
 		// TODO Auto-generated constructor stub
 	}
@@ -38,4 +35,13 @@ public class Tile extends SpriteEntity {
 		return false;
 	}
 
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
 }

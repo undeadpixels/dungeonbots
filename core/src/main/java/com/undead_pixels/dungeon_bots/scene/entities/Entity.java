@@ -3,23 +3,18 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.utils.annotations.*;
-import org.luaj.vm2.*;
-import org.luaj.vm2.lib.*;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
-
-import java.lang.reflect.Method;
-import java.util.Optional;
-import java.util.stream.Stream;
+import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable {
+public abstract class Entity implements BatchRenderable, Scriptable, LuaReflection {
+
 	/**
-	 * A user script that is run on this object
+	 * A user scriptEnv that is run on this object
 	 */
-	protected LuaScript script;
+	protected LuaSandbox scriptEnv;
 	
 	/**
 	 * The world of which this Entity is a part
@@ -45,28 +40,32 @@ public abstract class Entity implements BatchRenderable {
 	}
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object
+	 * @param scriptEnv		A user scriptEnv that is run on this object
 	 */
-	public Entity(World world, String name, LuaScript script) {
+	public Entity(World world, String name, LuaSandbox scriptEnv) {
 		super();
 		this.world = world;
-		this.script = script;
+		this.scriptEnv = scriptEnv;
 		this.name = name;
 		this.id = world.makeID();
 	}
 
+	public Entity(World world, String name, LuaSandbox luaSandbox, Whitelist whitelist) {
+		this(world,name, luaSandbox);
+	}
+
 	/**
-	 * @return		The user script
+	 * @return		The user scriptEnv
 	 */
-	public LuaScript getScript() {
-		return script;
+	public LuaSandbox getScriptEnv() {
+		return scriptEnv;
 	}
 	
 	/**
-	 * @param script		The user script to set
+	 * @param scriptEnv		The user scriptEnv to set
 	 */
-	public void setScript(LuaScript script) {
-		this.script = script;
+	public void setScriptEnv(LuaSandbox scriptEnv) {
+		this.scriptEnv = scriptEnv;
 	}
 	
 	/**
@@ -80,132 +79,4 @@ public abstract class Entity implements BatchRenderable {
 	 */
 	public abstract boolean isSolid();
 
-	private LuaBinding getBindings(final SecurityLevel securityLevel) {
-		LuaTable t = new LuaTable();
-
-		/* Use reflection to find and bind any methods annotated using @ScriptAPI
-		*  that have the appropriate security level */
-		Stream.of(this.getClass().getDeclaredMethods())
-				.filter(method -> {
-					ScriptAPI annotation = method.getDeclaredAnnotation(ScriptAPI.class);
-					return annotation != null && annotation.value().level <= securityLevel.level;
-				})
-				.forEach(method ->
-						t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
-										.map(BindTo::value)
-										.orElse(method.getName()),
-								evalMethod(this, method)));
-
-		/* Use reflection to find and bind any fields annotated using @BindField
-		*  that have the appropriate security level */
-		Stream.of(this.getClass().getDeclaredFields())
-				.filter(field -> {
-					BindField annotation = field.getDeclaredAnnotation(BindField.class);
-					return annotation != null && annotation.value().level <= securityLevel.level;
-				})
-				.forEach(field -> {
-					try {
-						field.setAccessible(true);
-						t.set(Optional.ofNullable(field.getDeclaredAnnotation(BindTo.class))
-										.map(BindTo::value)
-										.orElse(field.getName()),
-								CoerceJavaToLua.coerce(field.get(this)));
-					}
-					catch (Exception e) { }
-				});
-		return new LuaBinding(this.name, t);
-	}
-
-	private LuaValue evalMethod(final Object caller, final Method m) {
-		m.setAccessible(true);
-		Class<?>[] paramTypes = m.getParameterTypes();
-		Class<?> returnType = m.getReturnType();
-
-		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
-		// like it is of type VarargFunction
-		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
-			class Vararg extends VarArgFunction {
-				@Override
-				public Varargs invoke(Varargs args) {
-					try {
-						return CoerceJavaToLua.coerce(m.invoke(caller, args));
-					}
-					catch (Exception e) { return LuaValue.NIL; }
-				}
-			}
-			return CoerceJavaToLua.coerce(new Vararg());
-		}
-
-		// Otherwise expect 0, 1, 2 or 3 parameters for the method
-		switch(paramTypes.length) {
-			case 0:
-				class ZeroArg extends ZeroArgFunction {
-					@Override
-					public LuaValue call() {
-						try {
-							return CoerceJavaToLua.coerce(m.invoke(caller));
-						}
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new ZeroArg());
-			case 1:
-				class OneArg extends OneArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return CoerceJavaToLua.coerce(m.invoke(caller, arg));
-						}
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new OneArg());
-			case 2:
-				class TwoArg extends TwoArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg1, LuaValue arg2) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2));
-						}
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new TwoArg());
-			case 3:
-				class ThreeArg extends ThreeArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return CoerceJavaToLua.coerce(m.invoke(caller, arg1, arg2, arg3));
-						}
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new ThreeArg());
-			default:
-				return LuaValue.NIL;
-		}
-	}
-
-	/**
-	 * Generates a LuaScriptEnvironment for the given entity
-	 * @param securityLevel The Security level of the requested LuaScriptEnvironment
-	 * @return
-	 */
-	public final LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
-	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment(securityLevel);
-	    scriptEnvironment.add(getBindings(securityLevel));
-	    return scriptEnvironment;
-    }
-
-	/**
-	 * Generates a LuaScriptEnvironment for the given entity
-	 * @return
-	 */
-	public final LuaScriptEnvironment getScriptEnvironment() {
-		return getScriptEnvironment(SecurityLevel.AUTHOR);
-	}
 }

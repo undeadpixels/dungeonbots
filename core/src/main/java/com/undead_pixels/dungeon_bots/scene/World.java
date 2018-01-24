@@ -6,20 +6,19 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
 
-public class World {
+public class World implements Scriptable, LuaReflection {
     private LuaScript levelScript;
+    private final String name = "world";
 
 	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
@@ -119,7 +118,17 @@ public class World {
 		
 		return ret;
 	}
-	
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public int getId() {
+		return this.hashCode();
+	}
+
 	private static class Layer implements Comparable<Layer> {
 		private final float z;
 		public Layer(float z) {
