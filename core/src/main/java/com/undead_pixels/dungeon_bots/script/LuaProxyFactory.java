@@ -44,15 +44,10 @@ public abstract class LuaProxyFactory {
 		return new LuaBinding(src.getName(), t);
 	}
 
-	@FunctionalInterface
-	private interface LuaValueSupplier<T> {
-		T get() throws InvocationTargetException, MethodNotOnWhitelistException, IllegalAccessException;
-	}
-
-	private static LuaValue filterWhitelist(Method m, Whitelist whitelist, LuaValueSupplier<Object> fn)
+	private static LuaValue filterWhitelist(Method m, Whitelist whitelist, Object caller, Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(m.getName())) {
-			return CoerceJavaToLua.coerce(fn.get());
+			return CoerceJavaToLua.coerce(m.invoke(caller, args));
 		}
 		else
 			throw new MethodNotOnWhitelistException(m);
@@ -70,7 +65,7 @@ public abstract class LuaProxyFactory {
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
-						return filterWhitelist(m, whitelist, () -> m.invoke(caller, args));
+						return filterWhitelist(m, whitelist, caller, args);
 					}
 					catch (MethodNotOnWhitelistException me) {
 						return LuaValue.error(me.getMessage());
@@ -88,7 +83,7 @@ public abstract class LuaProxyFactory {
 					@Override
 					public LuaValue call() {
 						try {
-							return filterWhitelist(m, whitelist,  () -> m.invoke(caller));
+							return filterWhitelist(m, whitelist, caller);
 						}
 						catch (MethodNotOnWhitelistException me) {
 							return LuaValue.error(me.getMessage());
@@ -103,7 +98,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg));
+							return filterWhitelist(m, whitelist, caller, arg);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -116,7 +111,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg1, LuaValue arg2) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg1, arg2));
+							return filterWhitelist(m, whitelist, caller, arg1, arg2);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -129,7 +124,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg1, arg2, arg3));
+							return filterWhitelist(m, whitelist, caller, arg1, arg2, arg3);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
