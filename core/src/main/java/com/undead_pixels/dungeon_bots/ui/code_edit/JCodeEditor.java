@@ -28,7 +28,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 
 	private Mode _Mode;
 	private LuaScript _Script;
-	final private int _MessageMax = 1000;
+	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 
@@ -75,7 +75,10 @@ public class JCodeEditor extends JPanel implements ActionListener {
 
 			setPreferredSize(new Dimension(300, 500));
 			add(makeREPLToolBar(), BorderLayout.PAGE_START);
-			add(_MessagePane = new JTextPane(), BorderLayout.CENTER);
+			
+			_MessagePane = new JTextPane();
+			JScrollPane messageScroller = new JScrollPane(_MessagePane);
+			add(messageScroller, BorderLayout.CENTER);
 			_MessagePane.setFocusable(false);
 			_MessagePane.setText("");
 
