@@ -12,12 +12,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.script.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.LuaDecorator;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.script.interfaces.SecurityReflection;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
 public class World implements Scriptable, SecurityReflection {
     private LuaScript levelScript;

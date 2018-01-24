@@ -55,19 +55,32 @@ public class LuaSandbox {
         return this;
     }
 
+	/**
+	 * Creates a LuaValue proxy for each object and binds to the LuaValue to the Sandbox Environment.
+	 * Defaults to an empty whitelist.
+	 * @param toAdd A List of Objects implementing the Scriptable interface.
+	 * @param <T> A generic type implementing Scriptable
+	 * @return Returns the LuaSandbox
+	 */
     @SafeVarargs
 	public final <T extends Scriptable> LuaSandbox restrictiveAdd(T... toAdd) {
 		add(Stream.of(toAdd)
-				.map(src -> LuaDecorator.getBindings(src, whitelist, securityLevel))
+				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))
 				.collect(Collectors.toList()));
 		return this;
 	}
 
+	/**Creates a LuaValue proxy for each object and binds to the LuaValue to the Sandbox Environment.
+	 * Uses reflection to populate an initial whitelist that contains all of the available methods of the argument objects.
+	 * @param toAdd A List of Objects implementing the Scriptable interface.
+	 * @param <T> A generic type implementing Scriptable
+	 * @return Returns the LuaSandbox
+	 */
 	@SafeVarargs
     public final <T extends SecurityReflection & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
 		whitelist.add(toAdd);
 		add(Stream.of(toAdd)
-				.map(src -> LuaDecorator.getBindings(src, whitelist, securityLevel))
+				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))
 				.collect(Collectors.toList()));
 		return this;
 	}

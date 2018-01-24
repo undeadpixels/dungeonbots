@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public abstract class LuaDecorator {
+public abstract class LuaProxyFactory {
 
 
 	/**
