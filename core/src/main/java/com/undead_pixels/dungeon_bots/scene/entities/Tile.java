@@ -15,19 +15,14 @@ public class Tile extends SpriteEntity {
 
 	/**
 	 * @param world		The world to contain this Actor
+	 * @param name
+	 * @param script
 	 * @param tex		A texture for this Actor
+	 * @param x
+	 * @param y
 	 */
-	public Tile(World world, String name, TextureRegion tex) {
-		super(world, name, tex);
-		// TODO Auto-generated constructor stub
-	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object
-	 * @param tex		A texture for this Actor
-	 */
-	public Tile(World world, String name, LuaScript script, TextureRegion tex) {
-		super(world, name, script, tex);
+	public Tile(World world, String name, LuaScript script, TextureRegion tex, float x, float y) {
+		super(world, name, script, tex, x, y);
 		// TODO Auto-generated constructor stub
 	}
 

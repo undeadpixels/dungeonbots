@@ -35,6 +35,7 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		DefaultSyntaxKit.initKit();
 		
+		// UI theming
 		if(forceNimbus) {
 			try {
 				//if(true) throw new Exception();
@@ -82,6 +83,8 @@ public class DesktopLauncher {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		
 		
+		
+		// create the GL canvas
 		JFrame frame = new JFrame("DungeonBots");
 		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
 		frame.setLayout(new BorderLayout(0, 0));

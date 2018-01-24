@@ -4,23 +4,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 
-public class World implements Renderable {
+public class World {
     private LuaScript levelScript;
 
+	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
 	private Tile[][] tiles;
     private ArrayList<Entity> entities = new ArrayList<>();
     
-    private float scale;
     private Vector2 offset = new Vector2();
     
     private int idCounter = 0;
@@ -28,13 +33,10 @@ public class World implements Renderable {
     public World() {
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
-   	 	
-   	 	scale = 16.0f;
     }
     // TODO - another constructor for specific resource paths
     
     
-	@Override
 	public void update(float dt) {
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
@@ -49,21 +51,25 @@ public class World implements Renderable {
 		// TODO - tell the levelScript that a new frame happened
 	}
 	
-	@Override
-	public void render(float x0, float y0, float width, float height) {
-		SpriteBatch batch = new SpriteBatch();
-		if(backgroundImage != null) {
-			float w = width;
-			float h = height;
-			batch.draw(backgroundImage, x0, y0, w, h);
-		}
-		Matrix4 matrix = new Matrix4();
-		matrix.translate(x0, y0, 0.0f);
-		matrix.scale(scale, scale, 1.0f);
-		matrix.translate(offset.x, offset.y, 0.0f);
-		batch.setTransformMatrix(matrix);
+	public void render(SpriteBatch batch) {
+		//System.out.println("Rendering world");
+		
+		//cam.translate(w/2, h/2);
+		
+		Gdx.gl.glClearColor(.65f, .2f, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		batch.begin();
+		if(backgroundImage != null) {
+			batch.draw(backgroundImage, 0, 0);
+		}
+
+		for(Tile[] ts : tiles) {
+			for(Tile t : ts) {
+				t.render(batch);
+			}
+		}
+
 		for(Layer layer : toLayers()) {
 			for(Entity e : layer.entities) {
 				e.render(batch);
@@ -75,7 +81,23 @@ public class World implements Renderable {
 	public void addEntity(Entity e) {
 		entities.add(e);
 	}
-    
+
+	public void setSize(int w, int h) {
+		// TODO - copy old tiles?
+		tiles = new Tile[w][h];
+	}
+	public Vector2 getSize() {
+		// TODO - copy old tiles?
+		return new Vector2(tiles.length, tiles[0].length);
+	}
+	
+	public void setTile(int x, int y, TileType tileType) {
+		// TODO - bounds checking
+		// TODO - more stuff here
+		Tile t = new Tile(this, "tile", null, tileType.textureRegion, (float)x, (float)y);
+		
+		tiles[x][y] = t;
+	}
 	
 	private ArrayList<Layer> toLayers() {
 		HashMap<Float, Layer> layers = new HashMap<>();
@@ -130,5 +152,13 @@ public class World implements Renderable {
 
 	public int makeID() {
 		return idCounter++;
+	}
+	
+	public boolean canMoveToNewTile(Entity e, int x, int y) {
+		// TODO
+		return false;
+	}
+	public void didLeaveTile(Entity e, int x, int y) {
+		
 	}
 }

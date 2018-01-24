@@ -75,6 +75,10 @@ project(":core") {
         compile "org.luaj:luaj-jse:$luajVersion"
         compile "de.sciss:jsyntaxpane:1.0.0"
     }
+    
+    test {
+        workingDir = 'assets'
+    }
 }
 
 
