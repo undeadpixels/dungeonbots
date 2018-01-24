@@ -3,7 +3,6 @@ package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
-import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
@@ -11,14 +10,13 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class LuaProxyFactory {
 
 
 	/**
-	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or BindField
+	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or @BindField
 	 * @param securityLevel
 	 * @return
 	 */
@@ -44,16 +42,16 @@ public abstract class LuaProxyFactory {
 		return new LuaBinding(src.getName(), t);
 	}
 
-	private static LuaValue filterWhitelist(Method m, Whitelist whitelist, Object caller, Object... args)
+	private static <T extends Scriptable & LuaReflection> LuaValue invokeWhitelist(Method m, Whitelist whitelist, T caller, Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
-		if(whitelist.onWhitelist(m.getName())) {
+		if(whitelist.onWhitelist(caller, m)) {
 			return CoerceJavaToLua.coerce(m.invoke(caller, args));
 		}
 		else
 			throw new MethodNotOnWhitelistException(m);
 	}
 
-	private static LuaValue evalMethod(final Object caller, final Method m, Whitelist whitelist) {
+	private static <T extends Scriptable & LuaReflection> LuaValue evalMethod(final T caller, final Method m, Whitelist whitelist) {
 		m.setAccessible(true);
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
@@ -65,7 +63,7 @@ public abstract class LuaProxyFactory {
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
-						return filterWhitelist(m, whitelist, caller, args);
+						return invokeWhitelist(m, whitelist, caller, args);
 					}
 					catch (MethodNotOnWhitelistException me) {
 						return LuaValue.error(me.getMessage());
@@ -83,7 +81,7 @@ public abstract class LuaProxyFactory {
 					@Override
 					public LuaValue call() {
 						try {
-							return filterWhitelist(m, whitelist, caller);
+							return invokeWhitelist(m, whitelist, caller);
 						}
 						catch (MethodNotOnWhitelistException me) {
 							return LuaValue.error(me.getMessage());
@@ -98,7 +96,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, caller, arg);
+							return invokeWhitelist(m, whitelist, caller, arg);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -111,7 +109,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg1, LuaValue arg2) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, caller, arg1, arg2);
+							return invokeWhitelist(m, whitelist, caller, arg1, arg2);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -124,7 +122,7 @@ public abstract class LuaProxyFactory {
 					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, whitelist, caller, arg1, arg2, arg3);
+							return invokeWhitelist(m, whitelist, caller, arg1, arg2, arg3);
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
