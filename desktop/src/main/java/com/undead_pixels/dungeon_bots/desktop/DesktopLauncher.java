@@ -94,9 +94,15 @@ public class DesktopLauncher {
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme and replace with some kind of listener for saving
 		
+		// =====================================================
+		// THE FOLLOWING DEMONSTRATES HOW TO USE THE NEW JCodeEditor!!!!
+		// =====================================================
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-		frame.add(new JLabel("LABELLL!!!!!"), BorderLayout.EAST);
-		frame.add(new JCodeEditor(), BorderLayout.WEST);
+		JCodeEditor editor = new JCodeEditor();
+		frame.add(editor, BorderLayout.WEST);
+		editor.message("This message is sent from some old object", canvas);
+		editor.message("This message will be in the form of an internal echo from the editor itself", editor);
+		
 		
 		frame.setSize(1024, 768);
 		frame.revalidate();
