@@ -3,7 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import org.luaj.vm2.*;
@@ -32,17 +32,12 @@ public class Actor extends SpriteEntity {
 	}
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object
+	 * @param script		A user scriptEnv that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
-	public Actor(World world, String name, LuaScript script, TextureRegion tex) {
+	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
 		super(world, name, script, tex);
 		// TODO Auto-generated constructor stub
-	}
-
-	public Actor(World world, String name, LuaScript luaScript, TextureRegion textureRegion, Whitelist whitelist) {
-		super(world, name, luaScript, textureRegion);
-		if(whitelist != null) setWhitelist(whitelist);
 	}
 
 	@Override
@@ -78,12 +73,22 @@ public class Actor extends SpriteEntity {
 		}
 	}
 
-	// Lua ScriptApi methods that are collected and bound to a LuaScriptEnvironment using runtime reflection
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public int getId() {
+		return this.id;
+	}
+
+	// Lua ScriptApi methods that are collected and bound to a LuaSandbox using runtime reflection
 
 	/**
 	 * Prints debug info pertaining to the player to the console
 	 */
-	@ScriptAPI(SecurityLevel.DEBUG) @BindTo("debug")
+	@BindMethod(SecurityLevel.DEBUG) @BindTo("debug")
 	public void print() {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
@@ -91,7 +96,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player UP
 	 */
-	@ScriptAPI
+	@BindMethod
 	public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
@@ -99,7 +104,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player DOWN
 	 */
-	@ScriptAPI
+	@BindMethod
 	public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
@@ -107,7 +112,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player LEFT
 	 */
-	@ScriptAPI
+	@BindMethod
 	public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
@@ -115,7 +120,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player RIGHT
 	 */
-	@ScriptAPI
+	@BindMethod
 	public void right() {
 		moveInstantly(Direction.RIGHT, 1);
 	}
@@ -128,7 +133,7 @@ public class Actor extends SpriteEntity {
 	 * @param v An empty Varargs of the players position. <br> Will throw a runtime error if the Varargs parameter arg count is > 0
 	 * @return A Varargs of the players position
 	 */
-	@ScriptAPI(SecurityLevel.DEFAULT)
+	@BindMethod(SecurityLevel.DEFAULT)
 	public Varargs position(Varargs v) {
 		assert v.narg() == 0;
 		Vector2 pos = getPosition();

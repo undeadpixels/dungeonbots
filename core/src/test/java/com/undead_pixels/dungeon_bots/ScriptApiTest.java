@@ -5,11 +5,11 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindMethod;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
 import java.io.File;
@@ -18,11 +18,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
-import com.undead_pixels.dungeon_bots.scene.entities.*;
-import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
-import org.junit.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
@@ -40,7 +37,8 @@ public class ScriptApiTest {
     @Test
     public void testGetBindings() {
         Actor player = new ActorBuilder().setName("player").createActor();
-        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
+        se.permissiveAdd(player);
         LuaScript luaScript = se.script("player.up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
@@ -76,11 +74,21 @@ public class ScriptApiTest {
 			}
 
 			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
+
+			@Override
 			public float getZ() {
 				return 0;
 			}
 
-			@ScriptAPI(SecurityLevel.AUTHOR) @BindTo("greeting")
+			@BindMethod(SecurityLevel.AUTHOR) @BindTo("greeting")
 			public LuaValue greet(LuaValue luaValue) {
 				String greet = luaValue.checkjstring();
 				return CoerceJavaToLua.coerce(greet + " " + this.name);
@@ -88,7 +96,7 @@ public class ScriptApiTest {
 		}
 
 		OneArg player = new OneArg( "player");
-		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(player);
 		LuaScript luaScript = se.script("return player.greeting('Hello');");
 		luaScript.start().join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
@@ -131,15 +139,25 @@ public class ScriptApiTest {
 			}
 
 			// Tag the error function with a 'high' security level
-			@ScriptAPI(SecurityLevel.DEBUG)
+			@BindMethod(SecurityLevel.DEBUG)
 			public LuaValue error() {
 				return LuaValue.NIL;
+			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
 			}
 		}
 
         DebugError player = new DebugError( "player");
-		// Create a LuaScriptEnvironment with a SecurityLevel less than what the error function is tagged with
-        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.AUTHOR);
+		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
+        LuaSandbox se = new LuaSandbox(SecurityLevel.AUTHOR).permissiveAdd(player);
         LuaScript luaScript = se.script("return player.error();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
@@ -147,7 +165,7 @@ public class ScriptApiTest {
 
     @Test public void testActorMovement() {
         Actor player = new ActorBuilder().setName("player").createActor();
-        LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(player);
 
         LuaScript luaScript = se.init("player.up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
@@ -172,7 +190,7 @@ public class ScriptApiTest {
 
 	@Test public void testActorPosition() {
 		Actor player = new ActorBuilder().setName("player").createActor();
-		LuaScriptEnvironment se = player.getScriptEnvironment(SecurityLevel.DEBUG);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(player);
 
 		LuaScript luaScript = se.script("return player.position();");
 		luaScript.start().join();
@@ -217,16 +235,26 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@ScriptAPI @BindTo("add")
+			@BindMethod
+			@BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b) {
     			number = a.checkint() + b.checkint();
     			return CoerceJavaToLua.coerce(number);
 			}
 
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-    	LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+    	LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(testEntity);
     	LuaScript luaScript = scriptEnvironment.init("return test.add(15,23);").join();
     	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
     	int ans = luaScript.getResults().get().toint(1);
@@ -269,15 +297,26 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@ScriptAPI @BindTo("add")
+			@BindMethod
+			@BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b, LuaValue c) {
 				number = a.checkint() + b.checkint() + c.checkint();
 				return CoerceJavaToLua.coerce(number);
 			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-		LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(testEntity);
 		Assert.assertTrue("Initial value of Entity number is not expected value",
 				testEntity.number == 0);
 		LuaScript luaScript = scriptEnvironment.init("return test.add(7, 23, 45);").join();
@@ -325,7 +364,8 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@ScriptAPI @BindTo("add")
+			@BindMethod
+			@BindTo("add")
 			public Varargs addValues(Varargs v) {
 				int num = v.narg();
 				int ans = 0;
@@ -335,14 +375,24 @@ public class ScriptApiTest {
 				number = ans;
 				return CoerceJavaToLua.coerce(ans);
 			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-		LuaScriptEnvironment scriptEnvironment = testEntity.getScriptEnvironment();
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(testEntity);
 		LuaScript luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
-		Assert.assertTrue(format("Expected result of script: '36' does not equal actual: '%d'", ans),
+		Assert.assertTrue(format("Expected result of scriptEnv: '36' does not equal actual: '%d'", ans),
 				ans == 36);
 		Assert.assertTrue(format("Expected entity field value: '36' does not match actual: '%d'", testEntity.number),
 				testEntity.number == 36);
@@ -391,10 +441,20 @@ public class ScriptApiTest {
 			public float getZ() {
 				return 0;
 			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
 		}
 
 		RpgActor rpg = new RpgActor("rpg",4 , 5, 6);
-		LuaScriptEnvironment se = rpg.getScriptEnvironment(SecurityLevel.DEBUG);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(rpg);
 		LuaScript luaScript = se.init("return rpg.strength, rpg.dexterity, rpg.intelligence;").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		Varargs v = luaScript.getResults().get();
@@ -439,10 +499,20 @@ public class ScriptApiTest {
 			public float getZ() {
 				return 0;
 			}
+
+			@Override
+			public String getName() {
+				return name;
+			}
+
+			@Override
+			public int getId() {
+				return 0;
+			}
 		}
 
 		RpgActor rpgEntity = new RpgActor("rpg",4 , 5, 6);
-		LuaScriptEnvironment se = rpgEntity.getScriptEnvironment(SecurityLevel.DEBUG);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(rpgEntity);
 		LuaScript luaScript = se.init("return rpg.stats.strength, rpg.stats.dexterity, rpg.stats.intelligence;").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		Varargs v = luaScript.getResults().get();

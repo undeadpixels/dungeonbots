@@ -11,7 +11,7 @@ public class TestWhitelist {
 	@Test
 	public void testGetWhitelist() {
 		Actor a = new ActorBuilder().createActor();
-		Whitelist w = a.getWhitelist();
+		Whitelist w = a.generateWhitelist();
 		Assert.assertTrue(w.onWhitelist("up"));
 		Assert.assertTrue(w.onWhitelist("down"));
 		Assert.assertTrue(w.onWhitelist("left"));
@@ -20,8 +20,10 @@ public class TestWhitelist {
 
 	@Test
 	public void testMethodNotOnWhitelist() {
-		Actor a = new ActorBuilder().setWhitelist(new Whitelist().addTo("up")).createActor();
-		Whitelist w = a.getWhitelist();
+		Actor a = new ActorBuilder().createActor();
+		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG).restrictiveAdd(a);
+		Whitelist w = sandbox.getWhitelist();
+		w.addTo("up");
 		Assert.assertTrue(w.onWhitelist("up"));
 		Assert.assertFalse(w.onWhitelist("down"));
 		Assert.assertFalse(w.onWhitelist("left"));
@@ -31,8 +33,8 @@ public class TestWhitelist {
 	@Test
 	public void testRemoveFromWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
-		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
-		Whitelist w = a.getWhitelist();
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(a);
+		Whitelist w = scriptEnvironment.getWhitelist();
 		Assert.assertTrue(w.onWhitelist("up"));
 
 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
@@ -47,9 +49,9 @@ public class TestWhitelist {
 
 	@Test
 	public void testAddToWhitelist() {
-		Actor a = new ActorBuilder().setName("test").setWhitelist(new Whitelist()).createActor();
-		LuaScriptEnvironment scriptEnvironment = a.getScriptEnvironment(SecurityLevel.DEBUG);
-		Whitelist w = a.getWhitelist();
+		Actor a = new ActorBuilder().setName("test").createActor();
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).restrictiveAdd(a);
+		Whitelist w = scriptEnvironment.getWhitelist();
 
 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);

@@ -6,23 +6,20 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
-import com.undead_pixels.dungeon_bots.script.Scriptable;
+import com.undead_pixels.dungeon_bots.script.LuaDecorator;
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.SecurityReflection;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
-public class World extends Scriptable {
+public class World implements Scriptable, SecurityReflection {
     private LuaScript levelScript;
     private final String name = "world";
 
@@ -124,7 +121,17 @@ public class World extends Scriptable {
 		
 		return ret;
 	}
-	
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public int getId() {
+		return this.hashCode();
+	}
+
 	private static class Layer implements Comparable<Layer> {
 		private final float z;
 		public Layer(float z) {
@@ -165,9 +172,5 @@ public class World extends Scriptable {
 	}
 	public void didLeaveTile(Entity e, int x, int y) {
 		
-	}
-
-	public LuaBinding getLuaBindings(SecurityLevel securityLevel) {
-    	return this.getBindings(this.name, securityLevel);
 	}
 }

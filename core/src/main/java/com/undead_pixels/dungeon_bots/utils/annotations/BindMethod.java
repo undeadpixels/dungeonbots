@@ -8,6 +8,6 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
-public @interface ScriptAPI {
+public @interface BindMethod {
     SecurityLevel value() default SecurityLevel.DEFAULT;
 }

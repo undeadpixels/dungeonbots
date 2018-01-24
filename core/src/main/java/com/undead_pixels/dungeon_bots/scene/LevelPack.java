@@ -10,12 +10,12 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
  */
 public class LevelPack {
 	/**
-	 * Array of LuaScripts, with each LuaScript being the init/run script of each level
+	 * Array of LuaScripts, with each LuaScript being the init/run scriptEnv of each level
 	 */
 	private LuaScript[] levels;
 
 	/**
-	 * A script that is applicable to the levelpack as a whole
+	 * A scriptEnv that is applicable to the levelpack as a whole
 	 */
 	private LuaScript packScript;
 	

@@ -3,17 +3,18 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import com.undead_pixels.dungeon_bots.script.interfaces.SecurityReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity extends Scriptable implements BatchRenderable {
+public abstract class Entity implements BatchRenderable, Scriptable, SecurityReflection {
 
 	/**
-	 * A user script that is run on this object
+	 * A user scriptEnv that is run on this object
 	 */
-	protected LuaScript script;
+	protected LuaSandbox scriptEnv;
 	
 	/**
 	 * The world of which this Entity is a part
@@ -39,34 +40,32 @@ public abstract class Entity extends Scriptable implements BatchRenderable {
 	}
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object
+	 * @param scriptEnv		A user scriptEnv that is run on this object
 	 */
-	public Entity(World world, String name, LuaScript script) {
+	public Entity(World world, String name, LuaSandbox scriptEnv) {
 		super();
 		this.world = world;
-		this.script = script;
+		this.scriptEnv = scriptEnv;
 		this.name = name;
 		this.id = world.makeID();
-		setWhitelist(this.defaultWhitelist());
 	}
 
-	public Entity(World world, String name, LuaScript luaScript, Whitelist whitelist) {
-		this(world,name,luaScript);
-		this.whitelist = whitelist;
+	public Entity(World world, String name, LuaSandbox luaSandbox, Whitelist whitelist) {
+		this(world,name, luaSandbox);
 	}
 
 	/**
-	 * @return		The user script
+	 * @return		The user scriptEnv
 	 */
-	public LuaScript getScript() {
-		return script;
+	public LuaSandbox getScriptEnv() {
+		return scriptEnv;
 	}
 	
 	/**
-	 * @param script		The user script to set
+	 * @param scriptEnv		The user scriptEnv to set
 	 */
-	public void setScript(LuaScript script) {
-		this.script = script;
+	public void setScriptEnv(LuaSandbox scriptEnv) {
+		this.scriptEnv = scriptEnv;
 	}
 	
 	/**
@@ -80,22 +79,4 @@ public abstract class Entity extends Scriptable implements BatchRenderable {
 	 */
 	public abstract boolean isSolid();
 
-	/**
-	 * Generates a LuaScriptEnvironment for the given entity
-	 * @param securityLevel The Security level of the requested LuaScriptEnvironment
-	 * @return
-	 */
-	public LuaScriptEnvironment getScriptEnvironment(SecurityLevel securityLevel) {
-	    LuaScriptEnvironment scriptEnvironment = new LuaScriptEnvironment(securityLevel);
-	    scriptEnvironment.add(getBindings(this.name, securityLevel));
-	    return scriptEnvironment;
-    }
-
-	/**
-	 * Generates a LuaScriptEnvironment for the given entity
-	 * @return
-	 */
-	public LuaScriptEnvironment getScriptEnvironment() {
-		return getScriptEnvironment(SecurityLevel.AUTHOR);
-	}
 }

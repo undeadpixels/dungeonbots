@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
 import com.undead_pixels.dungeon_bots.utils.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
@@ -12,36 +13,33 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public abstract class Scriptable {
-	protected Whitelist whitelist;
+public abstract class LuaDecorator {
 
-	public Whitelist getWhitelist() {
-		return whitelist;
-	}
 
-	public void setWhitelist(Whitelist w) {
-		this.whitelist = w;
-	}
-
-	protected LuaBinding getBindings(String name, final SecurityLevel securityLevel) {
+	/**
+	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or BindField
+	 * @param securityLevel
+	 * @return
+	 */
+	public static <T extends Scriptable> LuaBinding getBindings(T src, Whitelist whitelist, final SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
 
-		/* Use reflection to find and bind any methods annotated using @ScriptAPI
+		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
-		Stream.of(this.getClass().getDeclaredMethods())
+		Stream.of(src.getClass().getDeclaredMethods())
 				.filter(method -> {
-					ScriptAPI annotation = method.getDeclaredAnnotation(ScriptAPI.class);
+					BindMethod annotation = method.getDeclaredAnnotation(BindMethod.class);
 					return annotation != null && annotation.value().level <= securityLevel.level;
 				})
 				.forEach(method ->
 						t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
 										.map(BindTo::value)
 										.orElse(method.getName()),
-								evalMethod(this, method)));
+								evalMethod(src, method, whitelist)));
 
 		/* Use reflection to find and bind any fields annotated using @BindField
 		 *  that have the appropriate security level */
-		Stream.of(this.getClass().getDeclaredFields())
+		Stream.of(src.getClass().getDeclaredFields())
 				.filter(field -> {
 					BindField annotation = field.getDeclaredAnnotation(BindField.class);
 					return annotation != null && annotation.value().level <= securityLevel.level;
@@ -52,11 +50,11 @@ public abstract class Scriptable {
 						t.set(Optional.ofNullable(field.getDeclaredAnnotation(BindTo.class))
 										.map(BindTo::value)
 										.orElse(field.getName()),
-								CoerceJavaToLua.coerce(field.get(this)));
+								CoerceJavaToLua.coerce(field.get(src)));
 					}
 					catch (Exception e) { }
 				});
-		return new LuaBinding(name, t);
+		return new LuaBinding(src.getName(), t);
 	}
 
 	@FunctionalInterface
@@ -64,16 +62,16 @@ public abstract class Scriptable {
 		T get() throws InvocationTargetException, MethodNotOnWhitelistException, IllegalAccessException;
 	}
 
-	private LuaValue filterWhitelist(Method m, LuaValueSupplier<Object> fn)
+	private static LuaValue filterWhitelist(Method m, Whitelist whitelist, LuaValueSupplier<Object> fn)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
-		if(this.whitelist.onWhitelist(m.getName())) {
+		if(whitelist.onWhitelist(m.getName())) {
 			return CoerceJavaToLua.coerce(fn.get());
 		}
 		else
 			throw new MethodNotOnWhitelistException(m);
 	}
 
-	private LuaValue evalMethod(final Object caller, final Method m) {
+	private static LuaValue evalMethod(final Object caller, final Method m, Whitelist whitelist) {
 		m.setAccessible(true);
 		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
@@ -85,7 +83,7 @@ public abstract class Scriptable {
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
-						return filterWhitelist(m, () -> m.invoke(caller, args));
+						return filterWhitelist(m, whitelist, () -> m.invoke(caller, args));
 					}
 					catch (MethodNotOnWhitelistException me) {
 						return LuaValue.error(me.getMessage());
@@ -103,7 +101,7 @@ public abstract class Scriptable {
 					@Override
 					public LuaValue call() {
 						try {
-							return filterWhitelist(m, () -> m.invoke(caller));
+							return filterWhitelist(m, whitelist,  () -> m.invoke(caller));
 						}
 						catch (MethodNotOnWhitelistException me) {
 							return LuaValue.error(me.getMessage());
@@ -118,7 +116,7 @@ public abstract class Scriptable {
 					public LuaValue call(LuaValue arg) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, () -> m.invoke(caller, arg));
+							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg));
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -131,7 +129,7 @@ public abstract class Scriptable {
 					public LuaValue call(LuaValue arg1, LuaValue arg2) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, () -> m.invoke(caller, arg1, arg2));
+							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg1, arg2));
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -144,7 +142,7 @@ public abstract class Scriptable {
 					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 						try {
 							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return filterWhitelist(m, () -> m.invoke(caller, arg1, arg2, arg3));
+							return filterWhitelist(m, whitelist, () -> m.invoke(caller, arg1, arg2, arg3));
 						}
 						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
 						catch (Exception e) { return LuaValue.NIL; }
@@ -154,18 +152,6 @@ public abstract class Scriptable {
 			default:
 				return LuaValue.NIL;
 		}
-	}
-
-	/**
-	 * Gens a default Whitelist composed of all of the Methods available to the class.
-	 * @return A Whitelist of allowed methods
-	 */
-	public Whitelist defaultWhitelist() {
-		return new Whitelist()
-				.addTo(Stream.of(this.getClass().getDeclaredMethods())
-						.map(Method::getName)
-						.distinct()
-						.toArray());
 	}
 
 }

@@ -29,7 +29,7 @@ public class LuaJTest {
 
     @Test
     public void testLuaScriptResult() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("x = 1 + 2;");
         Optional<Varargs> results = script.start().join().getResults();
         Assert.assertTrue(
@@ -55,14 +55,14 @@ public class LuaJTest {
     
     @Test
     public void testNoResults() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("x = 1 + 2;");
         Assert.assertFalse("Script results should not be present", script.getResults().isPresent());
     }
 
     @Test
     public void testLuaScriptTimeout() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("while true do\nend\n");
         script.start().join(1000);
         Assert.assertTrue(
@@ -73,7 +73,7 @@ public class LuaJTest {
     @Test
     public void testCustomGlobals() {
         Globals globals = JsePlatform.standardGlobals();
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(globals);
+        LuaSandbox scriptEnv = new LuaSandbox(globals);
         LuaTestMethod testMethod = new LuaTestMethod();
         scriptEnv.add(new LuaBinding("addNum", CoerceJavaToLua.coerce(testMethod)));
         List<LuaScript> scripts = new ArrayList<>();
@@ -98,7 +98,7 @@ public class LuaJTest {
 
     @Test
     public void testStopScript() {
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
+        LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("while true do\nend\n");
         script.start().stop();
         Assert.assertTrue(
@@ -108,8 +108,8 @@ public class LuaJTest {
 
     @Test
     public void testLuaError() {
-    	//This script is being made of bad Lua.  It should generate an error.
-        LuaScriptEnvironment scriptEnv = new LuaScriptEnvironment(SecurityLevel.DEBUG);
+    	//This scriptEnv is being made of bad Lua.  It should generate an error.
+        LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("if = 2");
         script.start().join();
         Assert.assertTrue(

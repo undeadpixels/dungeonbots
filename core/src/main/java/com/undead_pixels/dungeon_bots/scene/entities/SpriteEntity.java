@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.Whitelist;
 
 /**
@@ -28,14 +28,14 @@ public abstract class SpriteEntity extends Entity {
 
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object. May be null.
+	 * @param script		A user scriptEnv that is run on this object. May be null.
 	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex) {
+	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex) {
 		this(world, name, script, tex, 0, 0);
 	}
 
-	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex, float x, float y) {
+	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex, float x, float y) {
 		super(world, name, script);
 		if(tex == null) {
 			sprite = new Sprite();
@@ -48,10 +48,10 @@ public abstract class SpriteEntity extends Entity {
 
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user script that is run on this object. May be null.
+	 * @param script		A user scriptEnv that is run on this object. May be null.
 	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, String name, LuaScript script, TextureRegion tex, Whitelist whitelist) {
+	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex, Whitelist whitelist) {
 		super(world, name, script, whitelist);
 		if(tex == null) {
 			sprite = new Sprite();
