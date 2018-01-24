@@ -2,11 +2,13 @@ package com.undead_pixels.dungeon_bots.script.interfaces;
 import com.undead_pixels.dungeon_bots.script.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.annotations.BindField;
 import com.undead_pixels.dungeon_bots.utils.annotations.BindMethod;
+import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,5 +51,17 @@ public interface LuaReflection {
 					return annotation != null && annotation.value().level <= securityLevel.level;
 				})
 				.collect(Collectors.toList());
+	}
+
+	static String bindTo(Method m) {
+		return Optional.ofNullable(m.getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(m.getName());
+	}
+
+	static String bindTo(Field m) {
+		return Optional.ofNullable(m.getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(m.getName());
 	}
 }

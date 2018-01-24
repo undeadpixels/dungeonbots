@@ -29,10 +29,7 @@ public abstract class LuaProxyFactory {
 		 *  that have the appropriate security level */
 		src.getBindableMethods(securityLevel)
 				.forEach(method ->
-						t.set(Optional.ofNullable(method.getDeclaredAnnotation(BindTo.class))
-										.map(BindTo::value)
-										.orElse(method.getName()),
-								evalMethod(src, method, whitelist)));
+						t.set(LuaReflection.bindTo(method), evalMethod(src, method, whitelist)));
 
 		/* Use reflection to find and bind any fields annotated using @BindField
 		 *  that have the appropriate security level */
@@ -40,10 +37,7 @@ public abstract class LuaProxyFactory {
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);
-						t.set(Optional.ofNullable(field.getDeclaredAnnotation(BindTo.class))
-										.map(BindTo::value)
-										.orElse(field.getName()),
-								CoerceJavaToLua.coerce(field.get(src)));
+						t.set(LuaReflection.bindTo(field), CoerceJavaToLua.coerce(field.get(src)));
 					}
 					catch (Exception e) { }
 				});
