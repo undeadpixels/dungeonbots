@@ -23,6 +23,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeEditor;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
@@ -91,6 +92,8 @@ public class DesktopLauncher {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme and replace with some kind of listener for saving
 		
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		frame.add(new JLabel("LABELLL!!!!!"), BorderLayout.EAST);
+		frame.add(new JCodeEditor(), BorderLayout.WEST);
 		
 		frame.setSize(1024, 768);
 		frame.revalidate();
