@@ -3,13 +3,13 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, Scriptable, LuaReflection {
+public abstract class Entity implements BatchRenderable, Scriptable, GetBindable {
 
 	/**
 	 * A user scriptEnv that is run on this object

@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.utils.annotations;
+package com.undead_pixels.dungeon_bots.script.annotations;
 
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.lib.jse.JsePlatform;
