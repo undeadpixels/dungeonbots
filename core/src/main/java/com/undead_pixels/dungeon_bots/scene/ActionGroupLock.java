@@ -19,7 +19,7 @@ public class ActionGroupLock {
 		while(! busyQueues.isEmpty()) {
 			ActionQueue aq = busyQueues.peekFirst();
 			
-			if(aq.getCurrent() == null) {
+			if(! aq.hasCurrent()) {
 				busyQueues.removeFirst();
 			} else {
 				return false;

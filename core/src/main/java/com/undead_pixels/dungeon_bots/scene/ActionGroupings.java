@@ -7,6 +7,11 @@ public abstract interface ActionGroupings {
 	
 	public boolean allowsDequeueAction(ActionQueue q);
 	public void update();
+	public default void dequeueIfAllowed(ActionQueue aq) {
+		if(allowsDequeueAction(aq)) {
+			aq.dequeueIfIdle();
+		}
+	}
 	
 	
 	public static class RTSGrouping implements ActionGroupings {

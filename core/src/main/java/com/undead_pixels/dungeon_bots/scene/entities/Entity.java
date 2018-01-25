@@ -17,6 +17,11 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	protected LuaSandbox scriptEnv;
 	
 	/**
+	 * The queue of actions this Entity is going to take
+	 */
+	protected ActionQueue actionQueue = new ActionQueue(this);
+	
+	/**
 	 * The world of which this Entity is a part
 	 */
 	protected final World world;
@@ -61,6 +66,11 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 		return scriptEnv;
 	}
 	
+	public void update(float dt) {
+		// TODO - scriptEnv.resume();
+		actionQueue.act(dt);
+	}
+	
 	/**
 	 * @param scriptEnv		The user scriptEnv to set
 	 */
@@ -78,7 +88,19 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	 * @return		If this object disallows movement through it
 	 */
 	public abstract boolean isSolid();
+
+	/**
+	 * TODO - should this be private?
+	 * 
+	 * @return	This Entity's action queue
+	 */
+	public ActionQueue getActionQueue() {
+		return actionQueue;
+	}
 	
+	/**
+	 * @return	The team of this Entity
+	 */
 	public TeamFlavor getTeam() {
 		return TeamFlavor.NONE; // TODO
 	}

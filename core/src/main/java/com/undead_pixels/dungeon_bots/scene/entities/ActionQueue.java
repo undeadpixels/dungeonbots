@@ -38,12 +38,19 @@ public class ActionQueue {
 	public void enqueue(Action a) {
 		queue.add(a);
 	}
-	
+
 	/**
 	 * @return	The current action. May be null.
 	 */
-	public Action getCurrent() {
+	private Action getCurrent() {
 		return current;
+	}
+
+	/**
+	 * @return	The current action. May be null.
+	 */
+	public boolean hasCurrent() {
+		return current != null;
 	}
 	
 	/**
@@ -65,6 +72,20 @@ public class ActionQueue {
 		}
 		
 		return false;
+	}
+	
+	public boolean act(float dt) {
+		Action c = current;
+		if(c == null) {
+			return true;
+		}
+		boolean isDone = c.act(dt);
+		
+		if(isDone) {
+			c.postAct();
+			current = null;
+		}
+		return isDone;
 	}
 	
 }

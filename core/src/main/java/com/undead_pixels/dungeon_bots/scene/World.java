@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
+import com.undead_pixels.dungeon_bots.scene.entities.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
@@ -30,6 +31,8 @@ public class World implements Scriptable, GetBindable {
     private Vector2 offset = new Vector2();
     
     private int idCounter = 0;
+    
+    private ActionGroupings playstyle = new ActionGroupings.EntityTurnsGrouping();
 
     public World() {
    	 	backgroundImage = null;
@@ -48,9 +51,12 @@ public class World implements Scriptable, GetBindable {
 		}
 		
 		for(Entity e : entities) {
+			ActionQueue aq = e.getActionQueue();
+			playstyle.dequeueIfAllowed(aq);
 			
 			e.update(dt);
 		}
+		playstyle.update();
 		
 		// TODO - tell the levelScript that a new frame happened
 	}

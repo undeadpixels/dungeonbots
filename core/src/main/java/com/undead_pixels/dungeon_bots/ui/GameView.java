@@ -146,7 +146,7 @@ public class GameView extends GDXandSwingScreen {
 		batch.setTransformMatrix(cam.view);
 		
 		if(world != null) {
-			//world.update(dt);
+			world.update(dt);
 			world.render(batch);
 		}
 
