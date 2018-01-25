@@ -38,10 +38,19 @@ public interface Action {
 			currentTime += dt;
 			
 			// TODO - nonlinear splines of time
-			return animateAtTime(currentTime / duration);
+			
+			float timeFraction = currentTime / duration;
+			
+			if(timeFraction > 1) {
+				timeFraction = 1;
+			}
+			animateAtTimeFraction(timeFraction);
+			
+
+			return timeFraction < 1;
 		}
 		
-		public abstract boolean animateAtTime(float currentTime);
+		public abstract void animateAtTimeFraction(float timeFraction);
 		
 	}
 	
@@ -123,7 +132,7 @@ public interface Action {
 			return a + (b-a)*t;
 		}
 		
-		public final boolean animateAtTime(float currentTime) {
+		public final void animateAtTimeFraction(float timeFraction) {
 			if(!didHaveFirstFrame) {
 				x0 =  sprite.getX();
 				y0 =  sprite.getY();
@@ -133,14 +142,10 @@ public interface Action {
 				didHaveFirstFrame = true;
 			}
 			
-			float t = currentTime;
+			float t = timeFraction;
 			sprite.setPosition(lerp(x0, x1, t), lerp(y0, y1, t));
 			sprite.setScale(lerp(sx0, sx1, t), lerp(sy0, sy1, t));
 			sprite.setRotation(lerp(r0, r1, t));
-			
-			
-			
-			return currentTime >= duration;
 		}
 	}
 }
