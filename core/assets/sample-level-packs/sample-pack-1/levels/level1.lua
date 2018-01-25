@@ -45,7 +45,7 @@ function init()
     end
     world:setTile(14, 14, tiles.goal)
 
-    world.player = Player.Player(2, 2)
+    world.player = Player.new(2, 2)
     world.player:setCode("autobind()")
 
     settings.allowedCode.whitelist("autobind")

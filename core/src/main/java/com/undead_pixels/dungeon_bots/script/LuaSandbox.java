@@ -159,6 +159,10 @@ public class LuaSandbox {
 		return o.hashCode() + m.toGenericString();
 	}
 
+	public static String staticId(Method m) {
+		return m.toGenericString();
+	}
+
 	public static String id(Object o, Field f) {
 		return o.hashCode() + f.toGenericString();
 	}

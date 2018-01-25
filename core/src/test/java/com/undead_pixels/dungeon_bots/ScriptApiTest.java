@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
@@ -35,7 +36,7 @@ public class ScriptApiTest {
 
     @Test
     public void testGetBindings() {
-        Actor player = new ActorBuilder().setName("player").createActor();
+        Player player = new Player(new World(), "player", null);
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.permissiveAdd(player);
         LuaScript luaScript = se.script("player.up();");
