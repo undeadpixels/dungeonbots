@@ -45,23 +45,21 @@ public class LuaScript {
 		// TODO: script should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
-		if (thread == null) {
-			thread = ThreadWrapper.create(() -> {
-				try {
-					scriptStatus = ScriptStatus.RUNNING;
-					LuaValue chunk = environment.getGlobals().load(this.script);
-					varargs = chunk.invoke();
-					scriptStatus = ScriptStatus.COMPLETE;
-					_LuaError = null;
-				} catch (LuaError le) {
-					scriptStatus = ScriptStatus.LUA_ERROR;
-					_LuaError = le;
-				}
-				catch (Exception e) {
-					scriptStatus = ScriptStatus.ERROR;
-				}
-			});
-		}
+		thread = ThreadWrapper.create(() -> {
+			try {
+				scriptStatus = ScriptStatus.RUNNING;
+				LuaValue chunk = environment.getGlobals().load(this.script);
+				varargs = chunk.invoke();
+				scriptStatus = ScriptStatus.COMPLETE;
+				_LuaError = null;
+			} catch (LuaError le) {
+				scriptStatus = ScriptStatus.LUA_ERROR;
+				_LuaError = le;
+			}
+			catch (Exception e) {
+				scriptStatus = ScriptStatus.ERROR;
+			}
+		});
 		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)
 			thread.start();
 		return this;
@@ -127,10 +125,10 @@ public class LuaScript {
 	/** Stops all execution and clears any stored values.  The script text 
 	 * remains unchanged. */
 	public void reset(long maxWait) {
-		join(maxWait);
-		this.scriptStatus = ScriptStatus.READY;
+		join(maxWait);		
 		varargs = null;
 		this._LuaError = null;
+		this.scriptStatus = ScriptStatus.READY;
 	}
 
 	/** Resets this script and updates its text. */

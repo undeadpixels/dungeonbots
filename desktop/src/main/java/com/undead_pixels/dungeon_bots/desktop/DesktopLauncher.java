@@ -23,7 +23,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeEditor;
+import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
@@ -98,7 +98,7 @@ public class DesktopLauncher {
 		// THE FOLLOWING DEMONSTRATES HOW TO USE THE NEW JCodeEditor!!!!
 		// =====================================================
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-		JCodeEditor editor = new JCodeEditor();
+		JCodeREPL editor = new JCodeREPL();
 		frame.add(editor, BorderLayout.WEST);
 		editor.message("This message is sent from some old object", canvas);
 		editor.message("This message will be in the form of an internal echo from the editor itself", editor);
@@ -108,6 +108,7 @@ public class DesktopLauncher {
 		editor.message("In retrospect, perhaps relying on a small group of religious zealots for galaxy-wide security may have been a mistake.", editor);
 		editor.message("War! The Republic is crumbling under attacks by the ruthless Sith Lord, Count Dooku. There are heroes on both sides. Evil is everywhere. In a stunning move, the fiendish droid leader, General Grievous, has swept into the Republic capital and kidnapped Chancellor Palpatine, leader of the Galactic Senate. As the Separatist Droid Army attempts to flee the besieged capital with their valuable hostage, two Jedi Knights lead a desperate mission to rescue the captive Chancellor....", canvas);
 		editor.message("Jeez.  It took you how many movies to get to the good stuff?  You should have just called your self 'Star Ways and Means Committee from the beginning'.", editor);
+		editor.setCode("x=5+4");
 		
 		frame.setSize(1024, 768);
 		frame.revalidate();
