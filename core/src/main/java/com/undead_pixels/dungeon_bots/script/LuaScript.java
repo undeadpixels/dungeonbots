@@ -10,12 +10,12 @@ import java.io.File;
 import java.util.Optional;
 
 /**
- * A LuaScript is an asynchronous wrapper around an execution context for a script that is invoked using a
- * LuaScriptEnvironment as the Sandbox.
+ * A LuaScript is an asynchronous wrapper around an execution context for a scriptEnv that is invoked using a
+ * LuaSandbox as the Sandbox.
  */
 public class LuaScript {
 
-	private final LuaScriptEnvironment environment;
+	private final LuaSandbox environment;
 	private String script;
 	private volatile Varargs varargs;
 	private volatile ScriptStatus scriptStatus;
@@ -23,11 +23,11 @@ public class LuaScript {
 	private Thread thread;
 
 	/**
-	 * Initializes a LuaScript with the provided LuaScriptEnvironment and source string
+	 * Initializes a LuaScript with the provided LuaSandbox and source string
 	 * @param env
 	 * @param script
 	 */
-	LuaScript(LuaScriptEnvironment env, String script) {
+	LuaScript(LuaSandbox env, String script) {
 		this.environment = env;
 		this.script = script;
 		this.scriptStatus = ScriptStatus.READY;
@@ -38,11 +38,11 @@ public class LuaScript {
 	}
 
 	
-	/** Starts execution of the script on a separate thread. */
+	/** Starts execution of the scriptEnv on a separate thread. */
 	public synchronized LuaScript start() {
 
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: script should cache as much of itself as it can. Cache the chunk?
+		// TODO: scriptEnv should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
 		thread = ThreadWrapper.create(() -> {
@@ -78,7 +78,7 @@ public class LuaScript {
 		return this;
 	}
 
-	/** Returns the status of this script. */
+	/** Returns the status of this scriptEnv. */
 	public synchronized ScriptStatus getStatus() {
 		return scriptStatus;
 	}
@@ -99,7 +99,7 @@ public class LuaScript {
 	}
 
 	/**
-	 * Forces the thread of this script to rejoin in no more than the given
+	 * Forces the thread of this scriptEnv to rejoin in no more than the given
 	 * number of milliseconds.
 	 */
 	public synchronized LuaScript join(long wait) {
@@ -122,7 +122,7 @@ public class LuaScript {
 		return Optional.ofNullable(varargs);
 	}
 
-	/** Stops all execution and clears any stored values.  The script text 
+	/** Stops all execution and clears any stored values.  The scriptEnv text
 	 * remains unchanged. */
 	public void reset(long maxWait) {
 		join(maxWait);		
@@ -131,7 +131,7 @@ public class LuaScript {
 		this.scriptStatus = ScriptStatus.READY;
 	}
 
-	/** Resets this script and updates its text. */
+	/** Resets this scriptEnv and updates its text. */
 	public void setScript(String newScript) {
 		reset(0);
 		this.script = newScript;
@@ -139,15 +139,16 @@ public class LuaScript {
 
 	
 	
-	/** Returns the text of this script. */
+	/** Returns the text of this scriptEnv. */
 	public String getScript() {
 		return this.script;
 	}
 
-	
 
-	/**Returns the error generated within the Lua script on execution.  If no 
-	 * error is generated, this value will be null.*/
+	/**
+	 *
+	 * @return LuaError
+	 */
 	public LuaError getError() {
 		return _LuaError;
 	}
