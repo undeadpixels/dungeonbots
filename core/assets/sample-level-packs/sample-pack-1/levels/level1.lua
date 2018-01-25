@@ -30,22 +30,20 @@ tileTypes
  - wall
  - goal
  - ???
-
-
 ]]
 
 function init()
-    world.tiles:setSize(16, 16)
+    world:setSize(16, 16)
     for i in 1,16 do
         for j in 1,16 do
             if i == 1 or i == 16 or j == 1 or j == 16 then
-                world.tiles.setTile(j, i, tileTypes.wall)
+                world:setTile(j, i, tileTypes.wall)
             else
-                world.tiles.setTile(j, i, tileTypes.floor)
+                world:setTile(j, i, tileTypes.floor)
             end
         end
     end
-    world.tiles.setTile(14, 14, tiles.goal)
+    world:setTile(14, 14, tiles.goal)
 
     world.player = Player.Player(2, 2)
     world.player:setCode("autobind()")

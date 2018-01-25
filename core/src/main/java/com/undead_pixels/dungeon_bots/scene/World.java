@@ -23,6 +23,8 @@ public class World implements Scriptable, LuaReflection {
 	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
 	private Tile[][] tiles;
+	private TileType[][] tileTypes;
+	private boolean tilesAreStale = false;
     private ArrayList<Entity> entities = new ArrayList<>();
     
     private Vector2 offset = new Vector2();
@@ -37,6 +39,8 @@ public class World implements Scriptable, LuaReflection {
     
     
 	public void update(float dt) {
+		refreshTiles();
+		
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
 				t.update(dt);
@@ -51,6 +55,7 @@ public class World implements Scriptable, LuaReflection {
 	}
 	
 	public void render(SpriteBatch batch) {
+		refreshTiles();
 		//System.out.println("Rendering world");
 		
 		//cam.translate(w/2, h/2);
@@ -84,18 +89,42 @@ public class World implements Scriptable, LuaReflection {
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
+		tileTypes = new TileType[w][h];
 	}
 	public Vector2 getSize() {
 		// TODO - copy old tiles?
 		return new Vector2(tiles.length, tiles[0].length);
 	}
+
+	public void refreshTiles() {
+		if(tilesAreStale) {
+			System.out.println("Refreshing tiles");
+			
+			int w = tiles.length;
+			int h = tiles[0].length;
+			for(int i = 0; i < tiles.length; i++) {
+				for(int j = 0; j < tiles.length; j++) {
+					System.out.println(w+" "+h+": "+i+" "+j);
+					TileType l = i >= 1   ? tileTypes[i-1][j] : null;
+					TileType r = i <  w-1 ? tileTypes[i+1][j] : null;
+					TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
+					TileType d = j >= 1   ? tileTypes[i][j-1] : null;
+					
+					TileType current = tileTypes[i][j];
+					Tile t = new Tile(this, current.getName(), null, current.getTexture(l, r, u, d), i, j);
+					tiles[i][j] = t;
+				}
+			}
+			
+			tilesAreStale = false;
+		}
+	}
 	
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
 		// TODO - more stuff here
-		Tile t = new Tile(this, "tile", null, tileType.textureRegion, (float)x, (float)y);
-		
-		tiles[x][y] = t;
+		tilesAreStale = true;
+		tileTypes[x][y] = tileType;
 	}
 	
 	private ArrayList<Layer> toLayers() {
