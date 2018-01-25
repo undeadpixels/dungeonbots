@@ -88,6 +88,12 @@ public class GameView extends GDXandSwingScreen {
 				}
 			}
 		}
+
+		world.setTile(5, 5, tt.getTile("wall"));
+		world.setTile(4, 5, tt.getTile("wall"));
+		world.setTile(6, 5, tt.getTile("wall"));
+		world.setTile(5, 4, tt.getTile("wall"));
+		world.setTile(5, 6, tt.getTile("wall"));
 		
 		TextureRegion tr = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), tilesize*0, tilesize*0, tilesize, tilesize);
 		

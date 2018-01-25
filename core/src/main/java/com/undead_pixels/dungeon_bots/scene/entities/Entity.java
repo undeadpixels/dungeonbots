@@ -78,5 +78,9 @@ public abstract class Entity implements BatchRenderable, Scriptable, LuaReflecti
 	 * @return		If this object disallows movement through it
 	 */
 	public abstract boolean isSolid();
+	
+	public TeamFlavor getTeam() {
+		return TeamFlavor.NONE; // TODO
+	}
 
 }

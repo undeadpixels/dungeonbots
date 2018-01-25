@@ -48,6 +48,7 @@ public class World implements Scriptable, LuaReflection {
 		}
 		
 		for(Entity e : entities) {
+			
 			e.update(dt);
 		}
 		
@@ -98,13 +99,11 @@ public class World implements Scriptable, LuaReflection {
 
 	public void refreshTiles() {
 		if(tilesAreStale) {
-			System.out.println("Refreshing tiles");
 			
 			int w = tiles.length;
 			int h = tiles[0].length;
 			for(int i = 0; i < tiles.length; i++) {
 				for(int j = 0; j < tiles.length; j++) {
-					System.out.println(w+" "+h+": "+i+" "+j);
 					TileType l = i >= 1   ? tileTypes[i-1][j] : null;
 					TileType r = i <  w-1 ? tileTypes[i+1][j] : null;
 					TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
