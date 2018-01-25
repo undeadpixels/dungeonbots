@@ -197,11 +197,24 @@ public class World implements Scriptable, GetBindable {
 		return idCounter++;
 	}
 	
-	public boolean canMoveToNewTile(Entity e, int x, int y) {
-		// TODO
-		return false;
+	public boolean requestMoveToNewTile(Entity e, int x, int y) {
+		if(x < 0 || y < 0) {
+			return false;
+		}
+		if(x >= tiles.length || y >= tiles[0].length) {
+			return false;
+		}
+		
+		if(tiles[x][y].isSolid()) {
+			return false;
+		}
+		
+		// TODO - check if other entities own that spot
+		// TODO - tell the world that this entity owns that spot
+		
+		return true;
 	}
 	public void didLeaveTile(Entity e, int x, int y) {
-		
+		// TODO
 	}
 }

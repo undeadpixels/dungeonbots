@@ -72,6 +72,46 @@ public class Actor extends SpriteEntity {
 				break;
 		}
 	}
+	
+	public void queueMoveSlowly(Direction dir) {
+		int dx = 0, dy = 0;
+
+		switch (dir) {
+			case UP:
+				dy = 1;
+				break;
+			case DOWN:
+				dy = -1;
+				break;
+			case LEFT:
+				dx = -1;
+				break;
+			case RIGHT:
+				dx = 1;
+				break;
+		}
+		
+		Entity e = this;
+		final int _dx = dx, _dy = dy;
+		
+		actionQueue.enqueue(new Action.SpriteAnimatedAction(sprite, 1.0f) {
+			int initialX, initialY;
+			
+			public boolean preAct() {
+				initialX = Math.round(e.getPosition().x);
+				initialY = Math.round(e.getPosition().y);
+				boolean canMove = world.canMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				
+				return canMove;
+				
+			}
+			
+			public void postAct() {
+				
+			}
+			
+		});
+	}
 
 	@Override
 	public String getName() {
