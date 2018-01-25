@@ -10,6 +10,10 @@ public class GameEditorState {
 	public GameEditorState() {
 		sections.put("world size",
 				new GameEditorStateSection.Fake("world.setSize(16, 16)"));
+		sections.put("load custom assets",
+				new GameEditorStateSection.Fake(""));
+		sections.put("register tiles",
+				new GameEditorStateSection.Fake(""));
 		sections.put("tiles",
 				new GameEditorStateSection.Fake(
 						"for i in 1,16 do\n" + 
@@ -23,7 +27,7 @@ public class GameEditorState {
 						"    end"));
 		sections.put("player init",
 				new GameEditorStateSection.Fake(
-						"world.player = Player.Player(2, 2)\n" + 
+						"world.player = world.newPlayer(2, 2)\n" + 
 						"world.player:setCode(\"autobind()\")"));
 		sections.put("bots init",
 				new GameEditorStateSection.Fake(""));
