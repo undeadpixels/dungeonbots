@@ -100,14 +100,14 @@ public class Actor extends SpriteEntity {
 			public boolean preAct() {
 				initialX = Math.round(e.getPosition().x);
 				initialY = Math.round(e.getPosition().y);
-				boolean canMove = world.canMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
 				
 				return canMove;
 				
 			}
 			
 			public void postAct() {
-				
+				world.didLeaveTile(e, initialX, initialY);
 			}
 			
 		});
