@@ -11,10 +11,17 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import org.luaj.vm2.LuaValue;
 
 public class World implements Scriptable, GetBindable {
     private LuaScript levelScript;
@@ -26,6 +33,7 @@ public class World implements Scriptable, GetBindable {
 	private TileType[][] tileTypes;
 	private boolean tilesAreStale = false;
     private ArrayList<Entity> entities = new ArrayList<>();
+    private Player player;
     
     private Vector2 offset = new Vector2();
     
@@ -35,6 +43,27 @@ public class World implements Scriptable, GetBindable {
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
     }
+
+    @Bind @BindTo("new")
+    public static LuaValue newWorld() {
+    	World w = new World();
+    	if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG) {
+    		SecurityContext.getWhitelist().addWhitelist(w.permissiveWhitelist());
+		}
+		return LuaProxyFactory.getLuaValue(w, SecurityContext.getActiveSecurityLevel());
+	}
+
+	@Bind
+	public void setPlayer(LuaValue luaPlayer) {
+    	Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
+    	player = p;
+	}
+
+	@Bind
+	public void setTile(LuaValue luaTile) {
+
+	}
+
     // TODO - another constructor for specific resource paths
     
     
@@ -81,7 +110,13 @@ public class World implements Scriptable, GetBindable {
 		}
 		batch.end();
 	}
-	
+
+	@Bind
+	public void addEntity(LuaValue v) {
+    	Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
+    	addEntity(e);
+	}
+
 	public void addEntity(Entity e) {
 		entities.add(e);
 	}
