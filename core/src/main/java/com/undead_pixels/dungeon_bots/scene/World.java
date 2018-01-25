@@ -14,9 +14,9 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 
-public class World implements Scriptable, LuaReflection {
+public class World implements Scriptable, GetBindable {
     private LuaScript levelScript;
     private final String name = "world";
 

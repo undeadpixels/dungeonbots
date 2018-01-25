@@ -1,9 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
 
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,13 +36,13 @@ public class Whitelist {
 		return this;
 	}
 
-	public <T extends LuaReflection> Whitelist add(T caller, Method m) {
-		whitelist.add(caller.genId(m));
+	public <T extends GetBindable> Whitelist add(T caller, Method m) {
+		whitelist.add(LuaReflection.genId(caller,m));
 		return this;
 	}
 
-	public <T extends LuaReflection> Whitelist remove(T caller, Method m) {
-		whitelist.remove(caller.genId(m));
+	public <T extends GetBindable> Whitelist remove(T caller, Method m) {
+		whitelist.remove(LuaReflection.genId(caller, m));
 		return this;
 	}
 
@@ -59,15 +57,20 @@ public class Whitelist {
 		return this;
 	}
 
-	public <T extends LuaReflection> Whitelist add(T... args) {
-		return addWhitelists(Stream.of(args).map(LuaReflection::permissiveWhitelist).collect(Collectors.toList()));
+	public <T extends GetBindable> Whitelist add(T... args) {
+		return addWhitelists(Stream.of(args).map(GetBindable::permissiveWhitelist).collect(Collectors.toList()));
+	}
+
+	public <T extends GetBindable> Whitelist add(Class<T> arg) {
+		whitelist.addAll(GetBindable.permissiveWhitelist(arg).whitelist);
+		return this;
 	}
 
 	public boolean onWhitelist(String bindId) {
 		return whitelist.contains(bindId);
 	}
 
-	public <T extends LuaReflection> boolean  onWhitelist(T caller, Method m) {
-		return whitelist.contains(caller.genId(m));
+	public <T extends GetBindable> boolean  onWhitelist(T caller, Method m) {
+		return whitelist.contains(LuaReflection.genId(caller,m));
 	}
 }

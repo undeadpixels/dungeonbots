@@ -9,9 +9,8 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.utils.annotations.BindMethod;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 import java.io.File;
 
@@ -19,7 +18,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
-import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -88,7 +87,7 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@BindMethod(SecurityLevel.AUTHOR) @BindTo("greeting")
+			@Bind(SecurityLevel.AUTHOR) @BindTo("greeting")
 			public LuaValue greet(LuaValue luaValue) {
 				String greet = luaValue.checkjstring();
 				return CoerceJavaToLua.coerce(greet + " " + this.name);
@@ -139,7 +138,7 @@ public class ScriptApiTest {
 			}
 
 			// Tag the error function with a 'high' security level
-			@BindMethod(SecurityLevel.DEBUG)
+			@Bind(SecurityLevel.DEBUG)
 			public LuaValue error() {
 				return LuaValue.NIL;
 			}
@@ -236,7 +235,7 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@BindMethod
+			@Bind
 			@BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b) {
     			number = a.checkint() + b.checkint();
@@ -298,7 +297,7 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@BindMethod
+			@Bind
 			@BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b, LuaValue c) {
 				number = a.checkint() + b.checkint() + c.checkint();
@@ -365,7 +364,7 @@ public class ScriptApiTest {
 				return 0;
 			}
 
-			@BindMethod
+			@Bind
 			@BindTo("add")
 			public Varargs addValues(Varargs v) {
 				int num = v.narg();
@@ -402,13 +401,13 @@ public class ScriptApiTest {
 	@Test public void testBindField() {
 		class RpgActor extends Entity {
 
-			@BindField
+			@Bind
 			private Integer strength;
 
-			@BindField
+			@Bind
 			private Integer dexterity;
 
-			@BindField
+			@Bind
 			private Integer intelligence;
 
 			public RpgActor(String name, int str, int dex ,int intel) {
@@ -465,7 +464,7 @@ public class ScriptApiTest {
 	@Test public void testModifyField() {
 		class RpgActor extends Entity {
 
-			@BindField
+			@Bind
 			public final LuaTable stats;
 
 			public RpgActor(String name, int str, int dex ,int intel) {

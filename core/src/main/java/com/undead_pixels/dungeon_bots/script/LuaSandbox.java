@@ -1,7 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import java.io.*;
 import java.lang.reflect.Field;
@@ -17,7 +17,8 @@ public class LuaSandbox {
 
     private Globals globals;
     private final Whitelist whitelist = new Whitelist();
-    private final SecurityLevel securityLevel;
+
+	private final SecurityLevel securityLevel;
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -64,9 +65,9 @@ public class LuaSandbox {
 	 * @return Returns the LuaSandbox
 	 */
     @SafeVarargs
-	public final <T extends Scriptable & LuaReflection> LuaSandbox restrictiveAdd(T... toAdd) {
+	public final <T extends Scriptable & GetBindable> LuaSandbox restrictiveAdd(T... toAdd) {
 		add(Stream.of(toAdd)
-				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))
+				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
 				.collect(Collectors.toList()));
 		return this;
 	}
@@ -78,13 +79,20 @@ public class LuaSandbox {
 	 * @return Returns the LuaSandbox
 	 */
 	@SafeVarargs
-    public final <T extends LuaReflection & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
+    public final <T extends GetBindable & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
 		whitelist.add(toAdd);
 		add(Stream.of(toAdd)
-				.map(src -> LuaProxyFactory.getBindings(src, whitelist, securityLevel))
+				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
 				.collect(Collectors.toList()));
 		return this;
 	}
+
+	public <T extends GetBindable & Scriptable> LuaSandbox permissiveAddClass(Class<T> clz) {
+		whitelist.add(clz);
+		add(LuaProxyFactory.getBindings(clz, securityLevel));
+		return this;
+	}
+
 
 	/**
 	 * Variadic method for adding the argument LuaBindings to the LuaSandbox. Essentially an overload of
@@ -165,5 +173,9 @@ public class LuaSandbox {
 
 	public static String id(Object o, Field f) {
 		return o.hashCode() + f.toGenericString();
+	}
+
+	public SecurityLevel getSecurityLevel() {
+		return securityLevel;
 	}
 }

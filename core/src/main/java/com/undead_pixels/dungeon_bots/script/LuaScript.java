@@ -40,7 +40,7 @@ public class LuaScript {
 	
 	/** Starts execution of the scriptEnv on a separate thread. */
 	public synchronized LuaScript start() {
-
+		SecurityContext.set(this.environment);
 		// TODO: creating threads is expensive. Make a pool of threads?
 		// TODO: scriptEnv should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
