@@ -28,8 +28,8 @@ import org.luaj.vm2.LuaInteger;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.LuaScriptEnvironment;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
 public class JCodeREPL extends JPanel implements ActionListener {
@@ -48,10 +48,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 */
 
 	public JCodeREPL() {
-		this(new LuaScriptEnvironment(SecurityLevel.DEBUG));
+		this(new LuaSandbox(SecurityLevel.DEBUG));
 	}
 
-	public JCodeREPL(LuaScriptEnvironment sandbox) {
+	public JCodeREPL(LuaSandbox sandbox) {
 		super(new BorderLayout());
 
 		_Script = sandbox.script("");
@@ -207,6 +207,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		}
 
+		setCode("");
 		return true;
 	}
 
