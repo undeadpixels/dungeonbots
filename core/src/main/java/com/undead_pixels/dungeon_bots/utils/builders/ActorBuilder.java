@@ -3,13 +3,14 @@ package com.undead_pixels.dungeon_bots.utils.builders;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.Whitelist;
 
 public class ActorBuilder {
 	private World world = new World();
 	private String name = "actor";
 	private TextureRegion tex = null;
-	private LuaScript script = null;
+	private LuaSandbox script = null;
 
 	public ActorBuilder setWorld(World world) {
 		this.world = world;
@@ -26,7 +27,7 @@ public class ActorBuilder {
 		return this;
 	}
 
-	public ActorBuilder setScript(LuaScript script) {
+	public ActorBuilder setScript(LuaSandbox script) {
 		this.script = script;
 		return this;
 	}

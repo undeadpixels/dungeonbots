@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.lua;
 
-import com.undead_pixels.dungeon_bots.utils.annotations.ScriptAPI;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
