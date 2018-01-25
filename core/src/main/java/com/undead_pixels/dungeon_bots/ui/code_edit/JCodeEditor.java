@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.util.Optional;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -17,10 +18,13 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+
+import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 
@@ -31,6 +35,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
+	private boolean _IsExecuting = false;
 
 	public enum Mode {
 		CUSTOM, REPL, SIMPLE
@@ -72,10 +77,15 @@ public class JCodeEditor extends JPanel implements ActionListener {
 			StyleConstants.setForeground(_SystemMessageStyle, Color.GREEN);
 			StyleConstants.setBackground(_SystemMessageStyle, Color.BLACK);
 			StyleConstants.setBold(_SystemMessageStyle, true);
+			
+			_ErrorMessageStyle = new SimpleAttributeSet();
+			StyleConstants.setForeground(_ErrorMessageStyle, Color.RED);
+			StyleConstants.setBackground(_ErrorMessageStyle, Color.BLACK);
+			StyleConstants.setBold(_ErrorMessageStyle,  true);
 
 			setPreferredSize(new Dimension(300, 500));
 			add(makeREPLToolBar(), BorderLayout.PAGE_START);
-			
+
 			_MessagePane = new JTextPane();
 			JScrollPane messageScroller = new JScrollPane(_MessagePane);
 			add(messageScroller, BorderLayout.CENTER);
@@ -150,6 +160,8 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 */
 
 	private SimpleAttributeSet _EchoMessageStyle = null;
+	private SimpleAttributeSet _SystemMessageStyle = null;
+	private SimpleAttributeSet _ErrorMessageStyle = null;
 
 	/**
 	 * Sets the echo message appearance to the given attribute set. If set to
@@ -161,7 +173,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		return _EchoMessageStyle = appearance;
 	}
 
-	private SimpleAttributeSet _SystemMessageStyle = null;
+	
 
 	/**
 	 * Sets the system message appearance to the given attribute set. If set to
@@ -179,7 +191,46 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
+	/**
+	 * @param milliseconds The maximum amount of time allowed for execution to complete.
+	 * @return
+	 */
 	public boolean execute(long milliseconds) {
+		if (_Script == null) return false;		
+		_Script.start();
+		_Script.join(milliseconds);
+		
+		if (_Script.getError() != null){
+			message(_Script.getError().getMessage(), this);
+		}else{
+			switch (_Script.getStatus()){
+			case READY:
+				Optional<Varargs> results = _Script.getResults();
+				message("TODO:  present results correctly, " + results.get().toString(), _SystemMessageStyle);
+				break;
+			case RUNNING:
+				message("Error - the script is still running.", _ErrorMessageStyle);
+				break;
+			case TIMEOUT:
+				message("Script interrupted without completion.", _ErrorMessageStyle);
+				break;			
+			default:
+			}
+			
+			
+		}
+		
+		
+		/*READY,
+	    RUNNING,
+	    STOPPED,
+	    LUA_ERROR,
+	    ERROR,
+	    TIMEOUT,
+	    PAUSED,
+	    COMPLETE*/
+		
+		//TODO:  wait until script execution completes.
 		/*
 		 * if (_CanExecute) { _Script.start(); _Script.join(milliseconds);
 		 * 
@@ -209,9 +260,35 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		}
 	}
 
+	/** Returns all the messages contained in this editor. */
+	public String getMessages() {
+
+		try {
+			if (_MessagePane == null)
+				return "";
+			StyledDocument doc = _MessagePane.getStyledDocument();			
+			return doc.getText(0, doc.getLength());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	/** Returns the code contents being edited in this editor. */
+	public String getCode() {
+		try {
+			Document doc = _EditorPane.getDocument();
+			return doc.getText(0, doc.getLength());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		System.out.println("action received by JCodeEditor object: " + arg0.getActionCommand());
+		
+		System.out.println("Action received by " + this.getClass().getName() + " object: " + arg0.getActionCommand());
 		// TODO Auto-generated method stub
 
 	}
