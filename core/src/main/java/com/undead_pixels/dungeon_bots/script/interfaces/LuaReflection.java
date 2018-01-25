@@ -12,15 +12,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.undead_pixels.dungeon_bots.script.LuaSandbox.id;
+
 public interface LuaReflection {
 
 	default Whitelist permissiveWhitelist() {
 		return new Whitelist()
 				.addTo(Stream.of(this.getClass().getDeclaredMethods())
 						.filter(method -> method.getDeclaredAnnotation(BindMethod.class) != null)
-						.map(Method::getName)
+						.map(this::genId)
 						.distinct()
-						.toArray());
+						.collect(Collectors.toList()));
 	}
 
 	default Collection<Method> getBindableMethods() {
@@ -64,4 +66,13 @@ public interface LuaReflection {
 				.map(BindTo::value)
 				.orElse(m.getName());
 	}
+
+	default String genId(Method m) {
+		return id(this, m);
+	}
+
+	default String genId(Field f) {
+		return id(this, f);
+	}
+
 }

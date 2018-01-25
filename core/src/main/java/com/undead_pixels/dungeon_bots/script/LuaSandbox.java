@@ -4,6 +4,8 @@ import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.stream.*;
 
@@ -14,7 +16,6 @@ import java.util.stream.*;
 public class LuaSandbox {
 
     private Globals globals;
-
     private final Whitelist whitelist = new Whitelist();
     private final SecurityLevel securityLevel;
 
@@ -152,5 +153,13 @@ public class LuaSandbox {
 	 */
 	public Whitelist getWhitelist() {
 		return whitelist;
+	}
+
+	public static String id(Object o, Method m) {
+		return o.hashCode() + m.toGenericString();
+	}
+
+	public static String id(Object o, Field f) {
+		return o.hashCode() + f.toGenericString();
 	}
 }

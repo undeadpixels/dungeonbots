@@ -23,7 +23,6 @@ import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
-import static com.undead_pixels.dungeon_bots.TestUtils.cmp;
 import static java.lang.String.*;
 
 public class ScriptApiTest {
@@ -42,7 +41,7 @@ public class ScriptApiTest {
         LuaScript luaScript = se.script("player.up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue(cmp(player.getPosition().y, 1.0, EPSILON));
+        Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
     }
 
     @Test
@@ -169,23 +168,23 @@ public class ScriptApiTest {
 
         LuaScript luaScript = se.init("player.up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue("Player Y Position not moved 'UP'",
-                cmp(player.getPosition().y, 1.0, EPSILON));
+        Assert.assertEquals("Player Y Position not moved 'UP'",
+                 1.0, player.getPosition().y, EPSILON);
 
         luaScript = se.init("player.down();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue("Player Y Position not moved 'DOWN'",
-                cmp(player.getPosition().y, 0.0, EPSILON));
+        Assert.assertEquals("Player Y Position not moved 'DOWN'",
+				0.0, player.getPosition().y, EPSILON);
 
         luaScript = se.init("player.left();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue("Player X Position not moved 'LEFT'",
-                cmp(player.getPosition().x, -1.0, EPSILON));
+        Assert.assertEquals("Player X Position not moved 'LEFT'",
+				-1.0, player.getPosition().x, EPSILON);
 
         luaScript = se.init("player.right();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertTrue("Player X Position not moved 'RIGHT'",
-                cmp(player.getPosition().x, 0.0, EPSILON));
+        Assert.assertEquals("Player X Position not moved 'RIGHT'",
+				0.0, player.getPosition().x, EPSILON);
     }
 
 	@Test public void testActorPosition() {
@@ -197,7 +196,8 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertTrue(cmp(ans.tofloat(1), ans.tofloat(2), EPSILON));
+		Assert.assertEquals(0.0, ans.todouble(1), EPSILON);
+		Assert.assertEquals(0.0, ans.todouble(2), EPSILON);
 	}
 
     @Test
