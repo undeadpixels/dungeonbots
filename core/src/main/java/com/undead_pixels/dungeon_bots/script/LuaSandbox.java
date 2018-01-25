@@ -16,7 +16,6 @@ import java.util.stream.*;
 public class LuaSandbox {
 
     private Globals globals;
-
     private final Whitelist whitelist = new Whitelist();
     private final SecurityLevel securityLevel;
 
