@@ -22,6 +22,8 @@ public class Player extends Actor {
 	@Bind @BindTo("new")
 	public static LuaValue generate(LuaValue x, LuaValue y) {
 		Player p = new Player(new World(), "player", new LuaSandbox(), null);
+		p.sprite.setX((float)x.checkdouble());
+		p.sprite.setY((float)y.checkdouble());
 		return LuaProxyFactory.getLuaValue(p, SecurityContext.getActiveSecurityLevel());
 	}
 }

@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
+import org.luaj.vm2.ast.Exp;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 /**
@@ -135,7 +136,7 @@ public class Actor extends SpriteEntity {
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs position(Varargs v) {
 		assert v.narg() == 0;
-		Vector2 pos = getPosition();
-		return LuaValue.varargsOf(new LuaValue[] { CoerceJavaToLua.coerce(pos.x), CoerceJavaToLua.coerce(pos.y)} );
+		Vector2 pos = this.getPosition();
+		return LuaValue.varargsOf(LuaValue.valueOf(pos.x), LuaValue.valueOf(pos.y));
 	}
 }

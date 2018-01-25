@@ -51,6 +51,10 @@ public class Whitelist {
 		return this;
 	}
 
+	public Whitelist addWhitelist(Whitelist w) {
+		return addWhitelists(Stream.of(w).collect(Collectors.toList()));
+	}
+
 
 	public Whitelist removeWhitelists(Collection<Whitelist> w) {
 		w.forEach(val -> whitelist.removeAll(val.whitelist));

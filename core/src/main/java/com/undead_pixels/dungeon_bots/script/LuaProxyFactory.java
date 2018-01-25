@@ -74,10 +74,19 @@ public abstract class LuaProxyFactory {
 					catch (Exception e) { }
 				});
 		return new LuaBinding(
-				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class)).map(BindTo::value).orElse(src.getName()),
+				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class)).map(BindTo::value).orElse(src.getSimpleName()),
 				t);
 	}
 
+
+	private static <T extends Scriptable & GetBindable> Varargs invokeWhitelistVarargs(Method m, Whitelist whitelist, T caller, Object... args)
+			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
+		if(whitelist.onWhitelist(caller, m)) {
+			return (Varargs) m.invoke(caller, args);
+		}
+		else
+			throw new MethodNotOnWhitelistException(m);
+	}
 
 
 	private static <T extends Scriptable & GetBindable> LuaValue invokeWhitelist(Method m, Whitelist whitelist, T caller, Object... args)
@@ -101,7 +110,7 @@ public abstract class LuaProxyFactory {
 				@Override
 				public Varargs invoke(Varargs args) {
 					try {
-						return invokeWhitelist(m, SecurityContext.activeWhitelist, caller, args);
+						return invokeWhitelistVarargs(m, SecurityContext.activeWhitelist, caller, args);
 					}
 					catch (MethodNotOnWhitelistException me) {
 						return LuaValue.error(me.getMessage());

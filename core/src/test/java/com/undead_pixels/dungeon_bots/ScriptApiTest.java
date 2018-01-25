@@ -196,8 +196,8 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertEquals(0.0, ans.todouble(1), EPSILON);
-		Assert.assertEquals(0.0, ans.todouble(2), EPSILON);
+		Assert.assertEquals(0.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(0.0, ans.arg(2).todouble(), EPSILON);
 	}
 
     @Test
@@ -531,4 +531,38 @@ public class ScriptApiTest {
 		Assert.assertTrue(rpgEntity.stats.get("intelligence").toint() == 5);
 	}
 
+	@Test public void testStaticMethods() {
+    	LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAddClass(Player.class);
+    	LuaScript script = se.init("return Player.new(1.0,1.0);").join();
+    	Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
+	}
+
+	@Test public void testGetUserData() {
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAddClass(Player.class);
+		LuaScript script = se.init("return Player.new(1.0,1.0);").join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
+		LuaTable t = script.getResults().get().arg(1).checktable();
+		Player p = (Player) t.get("this").checkuserdata(Player.class);
+		Assert.assertTrue(p != null);
+		Assert.assertEquals(p.getPosition().x, 1.0, 0.001);
+		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
+	}
+
+	@Test public void testGetAndUseUserData() {
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAddClass(Player.class);
+		LuaScript script = se.init("p = Player.new(1.0,1.0); return p;").join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
+		LuaTable t = script.getResults().get().arg(1).checktable();
+		Player p = (Player) t.get("this").checkuserdata(Player.class);
+		Assert.assertTrue(p != null);
+		Assert.assertEquals(p.getPosition().x, 1.0, 0.001);
+		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
+		se.getWhitelist().addWhitelist(p.permissiveWhitelist());
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
+		script = se.init("return p.position();").join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
+		Varargs ans = script.getResults().get();
+		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
+	}
 }

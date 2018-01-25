@@ -89,7 +89,8 @@ public class LuaSandbox {
 
 	public <T extends GetBindable & Scriptable> LuaSandbox permissiveAddClass(Class<T> clz) {
 		whitelist.add(clz);
-		add(LuaProxyFactory.getBindings(clz, securityLevel));
+		LuaBinding b = LuaProxyFactory.getBindings(clz,securityLevel);
+		add(b);
 		return this;
 	}
 
