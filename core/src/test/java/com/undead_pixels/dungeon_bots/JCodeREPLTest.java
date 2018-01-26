@@ -12,8 +12,7 @@ public class JCodeREPLTest {
 
 	@Test
 	public void testExecution() {
-		
-        
+
         JCodeREPL editor = new JCodeREPL();
         editor.setCode("x = 2 + 1; return x;");
         assertFalse(editor.getMessages().contains("3"));      
@@ -21,8 +20,7 @@ public class JCodeREPLTest {
         assertTrue(editor.execute(100));
         Object msgs = editor.getMessages();
         assertTrue(editor.getMessages().contains("3"));
-        
-        
+
 	}
 
 }

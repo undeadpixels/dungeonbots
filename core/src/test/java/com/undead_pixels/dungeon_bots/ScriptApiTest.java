@@ -1,28 +1,13 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-
-import java.io.File;
-
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
-import org.junit.Assert;
-import org.junit.Test;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
+import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
-import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
+import com.undead_pixels.dungeon_bots.script.interfaces.*;
+import org.junit.*;
 import org.luaj.vm2.*;
+import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import static java.lang.String.*;
@@ -31,8 +16,7 @@ public class ScriptApiTest {
 
 	private final double EPSILON = 0.00001;
 
-    @Test
-    public void testGetBindings() {
+    @Test public void testGetBindings() {
         Player player = new Player(new World(), "player", null);
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.permissiveAdd(player);
@@ -42,8 +26,7 @@ public class ScriptApiTest {
         Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
     }
 
-    @Test
-    public void testScriptApiSingleArgumentFunction() {
+    @Test public void testScriptApiSingleArgumentFunction() {
 		class OneArg implements Scriptable, GetBindable {
 
 			String name;
@@ -79,8 +62,7 @@ public class ScriptApiTest {
 		Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
     }
 
-    @Test
-    public void testSecurityLevel() {
+    @Test public void testSecurityLevel() {
 		class DebugError implements Scriptable, GetBindable {
 
 			String name;
@@ -152,8 +134,7 @@ public class ScriptApiTest {
 		Assert.assertEquals(0.0, ans.arg(2).todouble(), EPSILON);
 	}
 
-    @Test
-	public void testTwoArgFunction() {
+    @Test public void testTwoArgFunction() {
     	class TestEntity implements Scriptable, GetBindable {
 
     		int number = 0;
@@ -189,8 +170,7 @@ public class ScriptApiTest {
     	Assert.assertTrue(testEntity.number == 38);
 	}
 
-	@Test
-	public void testThreeArgFunction() {
+	@Test public void testThreeArgFunction() {
 		class TestEntity implements Scriptable, GetBindable {
 
 			String name;
@@ -231,8 +211,7 @@ public class ScriptApiTest {
 				testEntity.number == 75);
 	}
 
-	@Test
-	public void testVarArgsFunction() {
+	@Test public void testVarArgsFunction() {
 		class TestEntity implements Scriptable, GetBindable {
 
 			String name;
