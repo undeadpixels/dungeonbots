@@ -8,16 +8,11 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
-import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public abstract class LuaProxyFactory {
 
@@ -54,11 +49,12 @@ public abstract class LuaProxyFactory {
 					catch (Exception e) { }
 				});
 
+		// Make Lua proxy table readonly
 		LuaTable proxy = new LuaTable();
-		LuaTable handle = new LuaTable();
-		handle.set("__index", t);
-		handle.set("__newindex", CoerceJavaToLua.coerce(new UpdateError()));
-		proxy.setmetatable(handle);
+		LuaTable meta = new LuaTable();
+		meta.set("__index", t);
+		meta.set("__newindex", CoerceJavaToLua.coerce(new UpdateError()));
+		proxy.setmetatable(meta);
 		return proxy;
 	}
 
