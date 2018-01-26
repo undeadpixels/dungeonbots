@@ -24,22 +24,22 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import org.luaj.vm2.LuaInteger;
+import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
 
-public class JCodeEditor extends JPanel implements ActionListener {
+public class JCodeREPL extends JPanel implements ActionListener {
 
-	private Mode _Mode;
 	private LuaScript _Script;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
-	private boolean _IsExecuting = false;
-
-	public enum Mode {
-		CUSTOM, REPL, SIMPLE
-	}
+	private Object _LastResult = null;
+	// private boolean _IsExecuting = false;
 
 	/*
 	 * ================================================================
@@ -47,14 +47,20 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	public JCodeEditor(Mode mode) {
-		super(new BorderLayout());
-		_Mode = mode;
-		addComponents();
+	public JCodeREPL() {
+		this(new LuaSandbox(SecurityLevel.DEBUG));
 	}
 
-	public JCodeEditor() {
-		this(Mode.REPL);
+	public JCodeREPL(LuaSandbox sandbox) {
+		super(new BorderLayout());
+
+		_Script = sandbox.script("");
+
+		_EchoMessageStyle = createSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
+		_SystemMessageStyle = createSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
+		_ErrorMessageStyle = createSimpleAttributeSet(Color.RED, Color.BLACK, true);
+
+		addComponents();
 	}
 
 	private void addComponents() {
@@ -66,45 +72,20 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
 
-		switch (_Mode) {
-		case REPL:
-			_EchoMessageStyle = new SimpleAttributeSet();
-			StyleConstants.setForeground(_EchoMessageStyle, Color.WHITE);
-			StyleConstants.setBackground(_EchoMessageStyle, Color.BLACK);
-			StyleConstants.setBold(_EchoMessageStyle, false);
+		setPreferredSize(new Dimension(300, 500));
+		add(makeREPLToolBar(), BorderLayout.PAGE_START);
 
-			_SystemMessageStyle = new SimpleAttributeSet();
-			StyleConstants.setForeground(_SystemMessageStyle, Color.GREEN);
-			StyleConstants.setBackground(_SystemMessageStyle, Color.BLACK);
-			StyleConstants.setBold(_SystemMessageStyle, true);
-			
-			_ErrorMessageStyle = new SimpleAttributeSet();
-			StyleConstants.setForeground(_ErrorMessageStyle, Color.RED);
-			StyleConstants.setBackground(_ErrorMessageStyle, Color.BLACK);
-			StyleConstants.setBold(_ErrorMessageStyle,  true);
+		_MessagePane = new JTextPane();
+		JScrollPane messageScroller = new JScrollPane(_MessagePane);
+		add(messageScroller, BorderLayout.CENTER);
+		_MessagePane.setFocusable(false);
+		_MessagePane.setText("");
 
-			setPreferredSize(new Dimension(300, 500));
-			add(makeREPLToolBar(), BorderLayout.PAGE_START);
-
-			_MessagePane = new JTextPane();
-			JScrollPane messageScroller = new JScrollPane(_MessagePane);
-			add(messageScroller, BorderLayout.CENTER);
-			_MessagePane.setFocusable(false);
-			_MessagePane.setText("");
-
-			JPanel executePanel = new JPanel(new BorderLayout());
-			_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
-			this.add(executePanel, BorderLayout.PAGE_END);
-			executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
-			executePanel.add(makeButton("tbd.gif", "EXECUTE", "Click to execute", ">", this), BorderLayout.LINE_END);
-
-			break;
-		case SIMPLE:
-
-		default:
-			throw new IllegalStateException("Not implemented yet.");
-
-		}
+		JPanel executePanel = new JPanel(new BorderLayout());
+		_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
+		this.add(executePanel, BorderLayout.PAGE_END);
+		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
+		executePanel.add(makeButton("tbd.gif", "EXECUTE", "Click to execute", ">", this), BorderLayout.LINE_END);
 
 	}
 
@@ -141,7 +122,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 
 		resultButton.addActionListener(l);
 
-		URL url = JCodeEditor.class.getResource(imageURL);
+		URL url = JCodeREPL.class.getResource(imageURL);
 		if (url != null) {
 			resultButton.setIcon(new ImageIcon(url, altText));
 		} else {
@@ -159,30 +140,16 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	private SimpleAttributeSet _EchoMessageStyle = null;
-	private SimpleAttributeSet _SystemMessageStyle = null;
-	private SimpleAttributeSet _ErrorMessageStyle = null;
+	private AttributeSet _EchoMessageStyle = null;
+	private AttributeSet _SystemMessageStyle = null;
+	private AttributeSet _ErrorMessageStyle = null;
 
-	/**
-	 * Sets the echo message appearance to the given attribute set. If set to
-	 * null, no echo messages will appear. *
-	 * 
-	 * @return Returns the attributes set.
-	 */
-	public SimpleAttributeSet setEchoMessageAppearance(SimpleAttributeSet appearance) {
-		return _EchoMessageStyle = appearance;
-	}
-
-	
-
-	/**
-	 * Sets the system message appearance to the given attribute set. If set to
-	 * null, no system messages will appear. *
-	 * 
-	 * @return Returns the attributes set.
-	 */
-	public SimpleAttributeSet setSystemMessageAppearance(SimpleAttributeSet appearance) {
-		return _SystemMessageStyle = appearance;
+	private AttributeSet createSimpleAttributeSet(Color foreground, Color background, boolean bold) {
+		SimpleAttributeSet result = new SimpleAttributeSet();
+		StyleConstants.setForeground(result, foreground);
+		StyleConstants.setBackground(result, background);
+		StyleConstants.setBold(result, bold);
+		return result;
 	}
 
 	/*
@@ -192,51 +159,77 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 */
 
 	/**
-	 * @param milliseconds The maximum amount of time allowed for execution to complete.
+	 * @param milliseconds
+	 *            The maximum amount of time allowed for execution to complete.
 	 * @return
 	 */
 	public boolean execute(long milliseconds) {
-		if (_Script == null) return false;		
+		if (_Script == null)
+			return false;
+		_Script.setScript(getCode());
+		message(">>> " + getCode(), _EchoMessageStyle);
 		_Script.start();
 		_Script.join(milliseconds);
-		
-		if (_Script.getError() != null){
-			message(_Script.getError().getMessage(), this);
-		}else{
-			switch (_Script.getStatus()){
+
+		if (_Script.getError() != null) {
+			message(_Script.getError().getMessage(), _ErrorMessageStyle);
+		} else {
+			switch (_Script.getStatus()) {
+			case COMPLETE:
 			case READY:
-				Optional<Varargs> results = _Script.getResults();
-				message("TODO:  present results correctly, " + results.get().toString(), _SystemMessageStyle);
+				_LastResult = Interpret(_Script.getResults());
+				if (_LastResult == null) message ("null", _SystemMessageStyle);
+				else if (_LastResult instanceof LuaValue) message ("ok", _SystemMessageStyle);  //Void.  TODO:  would this always indicate void?
+				else message(_LastResult.toString(), _SystemMessageStyle);				
 				break;
 			case RUNNING:
 				message("Error - the script is still running.", _ErrorMessageStyle);
 				break;
 			case TIMEOUT:
 				message("Script interrupted without completion.", _ErrorMessageStyle);
-				break;			
+				break;
+			case STOPPED:
+				message("Script has been stopped.", _ErrorMessageStyle);
+				break;
+			case LUA_ERROR:
+				message("Error: " + _Script.getError().getMessage(), _ErrorMessageStyle);
+				break;
+			case ERROR:
+				message("Threading error: " + _Script.getError().toString(), _ErrorMessageStyle);
+				break;
+			case PAUSED:
+				message("Script has been paused.", _ErrorMessageStyle);
+				break;
 			default:
+				message("Unrecognized script status: " + _Script.getStatus(), _ErrorMessageStyle);
+				break;
 			}
-			
-			
+
 		}
-		
-		
-		/*READY,
-	    RUNNING,
-	    STOPPED,
-	    LUA_ERROR,
-	    ERROR,
-	    TIMEOUT,
-	    PAUSED,
-	    COMPLETE*/
-		
-		//TODO:  wait until script execution completes.
-		/*
-		 * if (_CanExecute) { _Script.start(); _Script.join(milliseconds);
-		 * 
-		 * return true; }
-		 */
-		return false;
+
+		setCode("");
+		return true;
+	}
+
+	/**
+	 * Interprets the result of a LuaScript execution and converts it into a
+	 * suitable Java object.
+	 */
+	public static Object Interpret(Optional<Varargs> rawResult) {
+		if (rawResult == null)
+			return null;
+		Varargs unpackedResult = rawResult.get();
+		if (unpackedResult instanceof LuaInteger)
+			return ((LuaInteger) unpackedResult).toint();
+		if (unpackedResult instanceof LuaValue) {
+			// 
+			LuaValue lv = (LuaValue) unpackedResult;
+			if (lv.tojstring() == "none") //Void result.
+				return lv;
+
+		}
+		throw new ClassCastException(
+				"Have not implemented Lua-to-Java interpretation of type " + unpackedResult.getClass().getName() + ".");
 	}
 
 	public void message(String message, Object sender) {
@@ -266,7 +259,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		try {
 			if (_MessagePane == null)
 				return "";
-			StyledDocument doc = _MessagePane.getStyledDocument();			
+			StyledDocument doc = _MessagePane.getStyledDocument();
 			return doc.getText(0, doc.getLength());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -285,10 +278,28 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		}
 	}
 
+	public void setCode(String code) {
+		try {
+			Document doc = _EditorPane.getDocument();
+			doc.remove(0, doc.getLength());
+			doc.insertString(0, code, _EchoMessageStyle);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		
-		System.out.println("Action received by " + this.getClass().getName() + " object: " + arg0.getActionCommand());
+	public void actionPerformed(ActionEvent action) {
+
+		switch (action.getActionCommand()) {
+		case "EXECUTE":
+			execute(100);
+			break;
+		default:
+			System.out.println("Unimplemented action received by " + this.getClass().getName() + " object: "
+					+ action.getActionCommand());
+			break;
+		}
 		// TODO Auto-generated method stub
 
 	}
