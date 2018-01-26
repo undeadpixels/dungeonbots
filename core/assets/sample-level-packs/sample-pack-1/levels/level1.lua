@@ -32,30 +32,33 @@ tileTypes
  - ???
 ]]
 
+
+
+
 function init()
-    world:setSize(16, 16)
+    world.setSize(16, 16)
     for i in 1,16 do
         for j in 1,16 do
             if i == 1 or i == 16 or j == 1 or j == 16 then
-                world:setTile(j, i, tileTypes.wall)
+                world.setTile(j, i, tileTypes.getTile("wall"))
             else
-                world:setTile(j, i, tileTypes.floor)
+                world.setTile(j, i, tileTypes.getTile("floor"))
             end
         end
     end
-    world:setTile(14, 14, tiles.goal)
+    world.setTile(Tile.goal(14, 14))
 
-    world.player = Player.new(2, 2)
-    world.player:setCode("autobind()")
-
-    settings.allowedCode.whitelist("autobind")
-
-    settings.playStyle.codeMode = "none"
-    settings.playStyle.playMode = "rts"
+    world.setPlayer(Player.new(world,2, 2))
+    --world.player:setCode("autobind()")
+    --settings.allowedCode.whitelist("autobind")
+    whitelist.allow(player, SecurityLevel.DEBUG)
+    --settings.playStyle.codeMode = "none"
+    --settings.playStyle.playMode = "rts"
 end
 
 function update(dt)
-    if world.player.x == 14 and world.player.y == 14 then
-        world.win(nil)
+    local x, y = world.getPlayer().position()
+    if x == 14 and y == 14 then
+        world.win()
     end
 end

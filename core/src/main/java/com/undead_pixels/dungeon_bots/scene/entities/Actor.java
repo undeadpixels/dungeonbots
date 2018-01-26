@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
+import org.junit.Assert;
 import org.luaj.vm2.*;
 import org.luaj.vm2.ast.Exp;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -178,13 +179,11 @@ public class Actor extends SpriteEntity {
 	 * <code>
 	 *     x, y = actor.position()
 	 * </code>
-	 * @param v An empty Varargs of the players position. <br> Will throw a runtime error if the Varargs parameter arg count is > 0
 	 * @return A Varargs of the players position
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public Varargs position(Varargs v) {
-		assert v.narg() == 0;
+	public Varargs position() {
 		Vector2 pos = this.getPosition();
-		return LuaValue.varargsOf(LuaValue.valueOf(pos.x), LuaValue.valueOf(pos.y));
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(pos.x), LuaValue.valueOf(pos.y)});
 	}
 }

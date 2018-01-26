@@ -8,13 +8,25 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class LuaProxyFactory {
+
+	private static class UpdateError extends ThreeArgFunction {
+		@Override
+		public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
+			throw new RuntimeException("Attempt to update readonly table");
+		}
+	}
 
 	/**
 	 *
@@ -41,7 +53,13 @@ public abstract class LuaProxyFactory {
 					}
 					catch (Exception e) { }
 				});
-		return t;
+
+		LuaTable proxy = new LuaTable();
+		LuaTable handle = new LuaTable();
+		handle.set("__index", t);
+		handle.set("__newindex", CoerceJavaToLua.coerce(new UpdateError()));
+		proxy.setmetatable(handle);
+		return proxy;
 	}
 
 
@@ -54,9 +72,15 @@ public abstract class LuaProxyFactory {
 		return new LuaBinding(src.getName(), getLuaValue(src, securityLevel));
 	}
 
+	/**
+	 *
+	 * @param src
+	 * @param securityLevel
+	 * @param <T>
+	 * @return
+	 */
 	public static <T extends Scriptable & GetBindable> LuaBinding getBindings(Class<T> src, final SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
-
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetBindable.getBindableStaticMethods(src,securityLevel)
@@ -98,87 +122,62 @@ public abstract class LuaProxyFactory {
 			throw new MethodNotOnWhitelistException(m);
 	}
 
+	private static LuaValue[] VarargToArr(Varargs varargs) {
+		final int SIZE = varargs.narg();
+		LuaValue[] list = new LuaValue[SIZE];
+		for(int i = 1; i < SIZE + 1; i++) {
+			list[i - 1] = varargs.arg(i);
+		}
+		return list;
+	}
+
+	private static Object[] getParams(Method m, Varargs varargs) {
+		Class<?>[] paramTypes = m.getParameterTypes();
+		if(paramTypes.length > 0 && paramTypes[0].equals(Varargs.class)) {
+			return new Object[] { paramTypes.length == varargs.narg() ?
+					varargs :
+					varargs.subargs(1) };
+		}
+		else {
+			Object[] ans = VarargToArr(varargs);
+			if(paramTypes.length == ans.length) {
+				return ans;
+			}
+			else {
+				switch (ans.length) {
+					case 0:
+					case 1:
+						return null;
+					default:
+						return Arrays.copyOfRange(ans, 1, ans.length);
+				}
+			}
+		}
+	}
+
 	private static <T extends Scriptable & GetBindable> LuaValue evalMethod(T caller, final Method m) {
 		m.setAccessible(true);
-		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
 
 		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
 		// like it is of type VarargFunction
-		if(returnType.equals(Varargs.class) || (paramTypes.length == 1 && paramTypes[0].equals(Varargs.class))) {
-			class Vararg extends VarArgFunction {
-				@Override
-				public Varargs invoke(Varargs args) {
-					try {
-						return invokeWhitelistVarargs(m, SecurityContext.activeWhitelist, caller, args);
-					}
-					catch (MethodNotOnWhitelistException me) {
-						return LuaValue.error(me.getMessage());
-					}
-					catch (Exception e) { return LuaValue.NIL; }
+		class Vararg extends VarArgFunction {
+			@Override
+			public Varargs invoke(Varargs args) {
+				try {
+					if(returnType.equals(Varargs.class))
+						return invokeWhitelistVarargs(m, SecurityContext.activeWhitelist, caller, getParams(m, args));
+					else
+						return LuaValue.varargsOf(
+								new LuaValue[] {
+										invokeWhitelist(m, SecurityContext.activeWhitelist, caller, getParams(m, args)) });
+				}
+				catch (Exception me) {
+					return LuaValue.error(me.getMessage());
 				}
 			}
-			return CoerceJavaToLua.coerce(new Vararg());
 		}
-
-		// Otherwise expect 0, 1, 2 or 3 parameters for the method
-		switch(paramTypes.length) {
-			case 0:
-				class ZeroArg extends ZeroArgFunction {
-					@Override
-					public LuaValue call() {
-						try {
-							return invokeWhitelist(m, SecurityContext.activeWhitelist, caller);
-						}
-						catch (MethodNotOnWhitelistException me) {
-							return LuaValue.error(me.getMessage());
-						}
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new ZeroArg());
-			case 1:
-				class OneArg extends OneArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return invokeWhitelist(m, SecurityContext.activeWhitelist, caller, arg);
-						}
-						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new OneArg());
-			case 2:
-				class TwoArg extends TwoArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg1, LuaValue arg2) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return invokeWhitelist(m, SecurityContext.activeWhitelist, caller, arg1, arg2);
-						}
-						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new TwoArg());
-			case 3:
-				class ThreeArg extends ThreeArgFunction {
-					@Override
-					public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
-						try {
-							assert Stream.of(paramTypes).allMatch(LuaValue.class::equals);
-							return invokeWhitelist(m, SecurityContext.activeWhitelist, caller, arg1, arg2, arg3);
-						}
-						catch (MethodNotOnWhitelistException me) { return LuaValue.error(me.getMessage()); }
-						catch (Exception e) { return LuaValue.NIL; }
-					}
-				}
-				return CoerceJavaToLua.coerce(new ThreeArg());
-			default:
-				return LuaValue.NIL;
-		}
+		return CoerceJavaToLua.coerce(new Vararg());
 	}
 
 }
