@@ -1,0 +1,30 @@
+package com.undead_pixels.dungeon_bots.scene.entities.actions;
+
+import java.util.LinkedList;
+
+/**
+ * A class indicating that actions for a particular group should be locked until eveLinkedList<E> completed
+ */
+public class ActionGroupLock {
+	
+	private LinkedList<ActionQueue> busyQueues = new LinkedList<>();
+	
+	public void add(ActionQueue queue) {
+		busyQueues.add(queue);
+	}
+	
+	public boolean isFinished() {
+		while(! busyQueues.isEmpty()) {
+			ActionQueue aq = busyQueues.peekFirst();
+			
+			if(! aq.hasCurrent()) {
+				busyQueues.removeFirst();
+			} else {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+}
