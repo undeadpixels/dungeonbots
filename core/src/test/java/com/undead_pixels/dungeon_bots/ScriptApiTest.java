@@ -38,7 +38,7 @@ public class ScriptApiTest {
         Player player = new Player(new World(), "player", null);
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.permissiveAdd(player);
-        LuaScript luaScript = se.script("player.up();");
+        LuaScript luaScript = se.script("player:up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
@@ -96,7 +96,7 @@ public class ScriptApiTest {
 
 		OneArg player = new OneArg( "player");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(player);
-		LuaScript luaScript = se.script("return player.greeting('Hello');");
+		LuaScript luaScript = se.script("return player:greeting('Hello');");
 		luaScript.start().join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
 				&& luaScript.getResults().isPresent());
@@ -157,7 +157,7 @@ public class ScriptApiTest {
         DebugError player = new DebugError( "player");
 		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
         LuaSandbox se = new LuaSandbox(SecurityLevel.AUTHOR).permissiveAdd(player);
-        LuaScript luaScript = se.script("return player.error();");
+        LuaScript luaScript = se.script("return player:error();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
     }
@@ -166,22 +166,22 @@ public class ScriptApiTest {
         Actor player = new ActorBuilder().setName("player").createActor();
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(player);
 
-        LuaScript luaScript = se.init("player.up();").join();
+        LuaScript luaScript = se.init("player:up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertEquals("Player Y Position not moved 'UP'",
                  1.0, player.getPosition().y, EPSILON);
 
-        luaScript = se.init("player.down();").join();
+        luaScript = se.init("player:down();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertEquals("Player Y Position not moved 'DOWN'",
 				0.0, player.getPosition().y, EPSILON);
 
-        luaScript = se.init("player.left();").join();
+        luaScript = se.init("player:left();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertEquals("Player X Position not moved 'LEFT'",
 				-1.0, player.getPosition().x, EPSILON);
 
-        luaScript = se.init("player.right();").join();
+        luaScript = se.init("player:right();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
         Assert.assertEquals("Player X Position not moved 'RIGHT'",
 				0.0, player.getPosition().x, EPSILON);
@@ -255,7 +255,7 @@ public class ScriptApiTest {
 
 		TestEntity testEntity = new TestEntity("test");
     	LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(testEntity);
-    	LuaScript luaScript = scriptEnvironment.init("return test.add(15,23);").join();
+    	LuaScript luaScript = scriptEnvironment.init("return test:add(15,23);").join();
     	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
     	int ans = luaScript.getResults().get().toint(1);
     	Assert.assertTrue(ans == 38);
@@ -319,7 +319,7 @@ public class ScriptApiTest {
 		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(testEntity);
 		Assert.assertTrue("Initial value of Entity number is not expected value",
 				testEntity.number == 0);
-		LuaScript luaScript = scriptEnvironment.init("return test.add(7, 23, 45);").join();
+		LuaScript luaScript = scriptEnvironment.init("return test:add(7, 23, 45);").join();
 		Assert.assertTrue("Expected ScriptStatus of COMPLETE",
 				luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
@@ -532,8 +532,10 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testStaticMethods() {
-    	LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).permissiveAddClass(Player.class);
-    	LuaScript script = se.init("return Player.new(1.0,1.0);").join();
+    	LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
+				.permissiveAddClass(Player.class)
+				.permissiveAddClass(World.class);
+    	LuaScript script = se.init("w = World.new(); return Player.new(w,1.0,1.0);").join();
     	Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 	}
 
@@ -551,11 +553,12 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testGetAndUseUserData() {
+    	World world = new World("w");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.permissiveAddClass(World.class)
+				.permissiveAdd(world)
 				.permissiveAddClass(Player.class);
 
-		LuaScript script = se.init("w = World.new(); p = Player.new(w,1.0,1.0); return p;").join();
+		LuaScript script = se.init("p = Player.new(w,1.0,1.0); return p;").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);

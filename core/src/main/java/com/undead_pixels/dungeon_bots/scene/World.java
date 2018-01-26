@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.undead_pixels.dungeon_bots.scene.TileTypes.TileType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
@@ -25,7 +24,7 @@ import org.luaj.vm2.LuaValue;
 
 public class World implements Scriptable, GetBindable {
     private LuaScript levelScript;
-    private final String name = "world";
+    private String name = "world";
 
 	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
@@ -43,6 +42,11 @@ public class World implements Scriptable, GetBindable {
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
     }
+
+    public World(String name) {
+    	super();
+    	this.name = name;
+	}
 
     @Bind @BindTo("new")
     public static LuaValue newWorld() {
@@ -69,7 +73,7 @@ public class World implements Scriptable, GetBindable {
     
 	public void update(float dt) {
 		refreshTiles();
-		
+
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
 				t.update(dt);
@@ -229,7 +233,7 @@ public class World implements Scriptable, GetBindable {
 	
 	public boolean canMoveToNewTile(Entity e, int x, int y) {
 		// TODO
-		return false;
+		return true;
 	}
 	public void didLeaveTile(Entity e, int x, int y) {
 		

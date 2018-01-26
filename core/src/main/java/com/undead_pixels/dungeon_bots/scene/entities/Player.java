@@ -21,7 +21,7 @@ public class Player extends Actor {
 	}
 
 	@Bind @BindTo("new")
-	public static LuaValue generate(LuaValue world, LuaValue x, LuaValue y) {
+	public static LuaValue newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World)world.checktable().get("this").checkuserdata(World.class);
 		Player p = new Player(w, "player", new LuaSandbox(), null);
 		if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG)
@@ -29,5 +29,12 @@ public class Player extends Actor {
 		p.sprite.setX((float)x.checkdouble());
 		p.sprite.setY((float)y.checkdouble());
 		return LuaProxyFactory.getLuaValue(p, SecurityContext.getActiveSecurityLevel());
+	}
+
+	@Bind
+	public void up() {
+		if(world.canMoveToNewTile(this, Math.round(getPosition().x), Math.round(this.getPosition().y))) {
+			super.up();
+		}
 	}
 }
