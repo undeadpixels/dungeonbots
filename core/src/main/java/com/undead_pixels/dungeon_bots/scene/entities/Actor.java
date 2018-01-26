@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.junit.Assert;
@@ -72,6 +73,53 @@ public class Actor extends SpriteEntity {
 				sprite.setX(sprite.getX() + dist);
 				break;
 		}
+	}
+	
+	public void queueMoveSlowly(Direction dir) {
+		int dx = 0, dy = 0;
+
+		switch (dir) {
+			case UP:
+				dy = 1;
+				break;
+			case DOWN:
+				dy = -1;
+				break;
+			case LEFT:
+				dx = -1;
+				break;
+			case RIGHT:
+				dx = 1;
+				break;
+		}
+		
+		Entity e = this;
+		final int _dx = dx, _dy = dy;
+		
+		actionQueue.enqueue(new SpriteAnimatedAction(sprite, getMoveDuration()) {
+			int initialX, initialY;
+			
+			public boolean preAct() {
+				initialX = Math.round(e.getPosition().x);
+				initialY = Math.round(e.getPosition().y);
+				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				
+				this.setFinalPosition(_dx + initialX, _dy + initialY);
+				
+				return canMove;
+				
+			}
+			
+			public void postAct() {
+				world.didLeaveTile(e, initialX, initialY);
+			}
+			
+		});
+	}
+
+	
+	public float getMoveDuration() {
+		return 0.5f;
 	}
 
 	@Override

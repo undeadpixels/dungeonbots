@@ -12,6 +12,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.SecurityContext;
@@ -36,6 +38,8 @@ public class World implements Scriptable, GetBindable {
     private Vector2 offset = new Vector2();
     
     private int idCounter = 0;
+    
+    private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
 
     public World() {
    	 	backgroundImage = null;
@@ -75,13 +79,19 @@ public class World implements Scriptable, GetBindable {
 
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
-				t.update(dt);
+				if(t != null) {
+					t.update(dt);
+				}
 			}
 		}
 		
 		for(Entity e : entities) {
+			ActionQueue aq = e.getActionQueue();
+			playstyle.dequeueIfAllowed(aq);
+			
 			e.update(dt);
 		}
+		playstyle.update();
 		
 		// TODO - tell the levelScript that a new frame happened
 	}
@@ -102,7 +112,9 @@ public class World implements Scriptable, GetBindable {
 
 		for(Tile[] ts : tiles) {
 			for(Tile t : ts) {
-				t.render(batch);
+				if(t != null) {
+					t.render(batch);
+				}
 			}
 		}
 
@@ -136,21 +148,22 @@ public class World implements Scriptable, GetBindable {
 
 	public void refreshTiles() {
 		if(tilesAreStale) {
-			System.out.println("Refreshing tiles");
 			
 			int w = tiles.length;
 			int h = tiles[0].length;
 			for(int i = 0; i < tiles.length; i++) {
 				for(int j = 0; j < tiles.length; j++) {
-					System.out.println(w+" "+h+": "+i+" "+j);
-					TileType l = i >= 1   ? tileTypes[i-1][j] : null;
-					TileType r = i <  w-1 ? tileTypes[i+1][j] : null;
-					TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
-					TileType d = j >= 1   ? tileTypes[i][j-1] : null;
-					
 					TileType current = tileTypes[i][j];
-					Tile t = new Tile(this, current.getName(), null, current.getTexture(l, r, u, d), i, j);
-					tiles[i][j] = t;
+					
+					if(current != null) {
+						TileType l = i >= 1   ? tileTypes[i-1][j] : null;
+						TileType r = i <  w-1 ? tileTypes[i+1][j] : null;
+						TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
+						TileType d = j >= 1   ? tileTypes[i][j-1] : null;
+
+						Tile t = new Tile(this, current.getName(), null, current.getTexture(l, r, u, d), i, j);
+						tiles[i][j] = t;
+					}
 				}
 			}
 			
@@ -230,11 +243,27 @@ public class World implements Scriptable, GetBindable {
 		return idCounter++;
 	}
 	
-	public boolean canMoveToNewTile(Entity e, int x, int y) {
-		// TODO
+	public boolean requestMoveToNewTile(Entity e, int x, int y) {
+		if(x < 0 || y < 0) {
+			System.out.println("Unable to move: x/y too small");
+			return false;
+		}
+		if(x >= tiles.length || y >= tiles[0].length) {
+			System.out.println("Unable to move: x/y too big");
+			return false;
+		}
+		
+		if(tiles[x][y] != null && tiles[x][y].isSolid()) {
+			System.out.println("Unable to move: tile solid");
+			return false;
+		}
+		
+		// TODO - check if other entities own that spot
+		// TODO - tell the world that this entity owns that spot
+		
 		return true;
 	}
 	public void didLeaveTile(Entity e, int x, int y) {
-		
+		// TODO
 	}
 }
