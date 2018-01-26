@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
@@ -94,13 +95,15 @@ public class Actor extends SpriteEntity {
 		Entity e = this;
 		final int _dx = dx, _dy = dy;
 		
-		actionQueue.enqueue(new Action.SpriteAnimatedAction(sprite, 1.0f) {
+		actionQueue.enqueue(new SpriteAnimatedAction(sprite, 1.0f) {
 			int initialX, initialY;
 			
 			public boolean preAct() {
 				initialX = Math.round(e.getPosition().x);
 				initialY = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				
+				this.setFinalPosition(_dx + initialX, _dy + initialY);
 				
 				return canMove;
 				

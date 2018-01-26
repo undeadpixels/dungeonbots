@@ -1,6 +1,8 @@
-package com.undead_pixels.dungeon_bots.scene.entities;
+package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
 import java.util.LinkedList;
+
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 
 public class ActionQueue {
 	private LinkedList<Action> queue = new LinkedList<>();
@@ -64,9 +66,13 @@ public class ActionQueue {
 		
 		while(!queue.isEmpty()) {
 			Action a = queue.removeFirst();
+			
+			System.out.println("Dequeueing action "+a);
+			
 			boolean ok = a.preAct();
 			
 			if(ok) {
+				current = a;
 				return true;
 			}
 		}
@@ -86,6 +92,19 @@ public class ActionQueue {
 			current = null;
 		}
 		return isDone;
+	}
+	
+	public String toString() {
+		String others = "";
+		
+		for(Action a : queue) {
+			if(!others.isEmpty()) {
+				others += ", ";
+			}
+			others += a;
+		}
+		
+		return "ActionQueue: ["+current+" ||| " + others + "]";
 	}
 	
 }
