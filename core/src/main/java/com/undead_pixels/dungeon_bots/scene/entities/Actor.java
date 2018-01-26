@@ -95,7 +95,7 @@ public class Actor extends SpriteEntity {
 		Entity e = this;
 		final int _dx = dx, _dy = dy;
 		
-		actionQueue.enqueue(new SpriteAnimatedAction(sprite, 1.0f) {
+		actionQueue.enqueue(new SpriteAnimatedAction(sprite, getMoveDuration()) {
 			int initialX, initialY;
 			
 			public boolean preAct() {
@@ -114,6 +114,11 @@ public class Actor extends SpriteEntity {
 			}
 			
 		});
+	}
+
+	
+	public float getMoveDuration() {
+		return 0.5f;
 	}
 
 	@Override

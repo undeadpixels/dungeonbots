@@ -46,7 +46,7 @@ public class EntityActionTest {
     		
     		int i = 0;
     		for(Vector2 v: expected) {
-        		w.update(0.5f);
+        		w.update(p.getMoveDuration() / 2 + .0001f);
         		System.out.println(p.getActionQueue());
         		System.out.println(p.getPosition());
         		assertEquals("Trying vertex #"+i, v, p.getPosition(), 0.01f);
