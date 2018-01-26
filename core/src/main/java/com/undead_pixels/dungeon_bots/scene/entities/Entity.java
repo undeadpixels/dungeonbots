@@ -2,19 +2,25 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.script.interfaces.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, Scriptable, LuaReflection {
+public abstract class Entity implements BatchRenderable, Scriptable, GetBindable {
 
 	/**
 	 * A user scriptEnv that is run on this object
 	 */
 	protected LuaSandbox scriptEnv;
+	
+	/**
+	 * The queue of actions this Entity is going to take
+	 */
+	protected ActionQueue actionQueue = new ActionQueue(this);
 	
 	/**
 	 * The world of which this Entity is a part
@@ -61,6 +67,11 @@ public abstract class Entity implements BatchRenderable, Scriptable, LuaReflecti
 		return scriptEnv;
 	}
 	
+	public void update(float dt) {
+		// TODO - scriptEnv.resume();
+		actionQueue.act(dt);
+	}
+	
 	/**
 	 * @param scriptEnv		The user scriptEnv to set
 	 */
@@ -78,5 +89,21 @@ public abstract class Entity implements BatchRenderable, Scriptable, LuaReflecti
 	 * @return		If this object disallows movement through it
 	 */
 	public abstract boolean isSolid();
+
+	/**
+	 * TODO - should this be private?
+	 * 
+	 * @return	This Entity's action queue
+	 */
+	public ActionQueue getActionQueue() {
+		return actionQueue;
+	}
+	
+	/**
+	 * @return	The team of this Entity
+	 */
+	public TeamFlavor getTeam() {
+		return TeamFlavor.NONE; // TODO
+	}
 
 }

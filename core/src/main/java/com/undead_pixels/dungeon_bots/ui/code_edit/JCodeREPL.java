@@ -39,7 +39,7 @@ import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.utils.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 

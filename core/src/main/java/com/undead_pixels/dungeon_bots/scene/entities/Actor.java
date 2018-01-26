@@ -3,10 +3,12 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.Whitelist;
-import com.undead_pixels.dungeon_bots.utils.annotations.*;
+import com.undead_pixels.dungeon_bots.script.annotations.*;
+import org.junit.Assert;
 import org.luaj.vm2.*;
+import org.luaj.vm2.ast.Exp;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 /**
@@ -72,6 +74,53 @@ public class Actor extends SpriteEntity {
 				break;
 		}
 	}
+	
+	public void queueMoveSlowly(Direction dir) {
+		int dx = 0, dy = 0;
+
+		switch (dir) {
+			case UP:
+				dy = 1;
+				break;
+			case DOWN:
+				dy = -1;
+				break;
+			case LEFT:
+				dx = -1;
+				break;
+			case RIGHT:
+				dx = 1;
+				break;
+		}
+		
+		Entity e = this;
+		final int _dx = dx, _dy = dy;
+		
+		actionQueue.enqueue(new SpriteAnimatedAction(sprite, getMoveDuration()) {
+			int initialX, initialY;
+			
+			public boolean preAct() {
+				initialX = Math.round(e.getPosition().x);
+				initialY = Math.round(e.getPosition().y);
+				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				
+				this.setFinalPosition(_dx + initialX, _dy + initialY);
+				
+				return canMove;
+				
+			}
+			
+			public void postAct() {
+				world.didLeaveTile(e, initialX, initialY);
+			}
+			
+		});
+	}
+
+	
+	public float getMoveDuration() {
+		return 0.5f;
+	}
 
 	@Override
 	public String getName() {
@@ -88,7 +137,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Prints debug info pertaining to the player to the console
 	 */
-	@BindMethod(SecurityLevel.DEBUG) @BindTo("debug")
+	@Bind(SecurityLevel.DEBUG) @BindTo("debug")
 	public void print() {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
@@ -96,7 +145,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player UP
 	 */
-	@BindMethod
+	@Bind
 	public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
@@ -104,7 +153,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player DOWN
 	 */
-	@BindMethod
+	@Bind
 	public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
@@ -112,7 +161,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player LEFT
 	 */
-	@BindMethod
+	@Bind
 	public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
@@ -120,7 +169,7 @@ public class Actor extends SpriteEntity {
 	/**
 	 * Moves the player RIGHT
 	 */
-	@BindMethod
+	@Bind
 	public void right() {
 		moveInstantly(Direction.RIGHT, 1);
 	}
@@ -130,13 +179,11 @@ public class Actor extends SpriteEntity {
 	 * <code>
 	 *     x, y = actor.position()
 	 * </code>
-	 * @param v An empty Varargs of the players position. <br> Will throw a runtime error if the Varargs parameter arg count is > 0
 	 * @return A Varargs of the players position
 	 */
-	@BindMethod(SecurityLevel.DEFAULT)
-	public Varargs position(Varargs v) {
-		assert v.narg() == 0;
-		Vector2 pos = getPosition();
-		return LuaValue.varargsOf(new LuaValue[] { CoerceJavaToLua.coerce(pos.x), CoerceJavaToLua.coerce(pos.y)} );
+	@Bind(SecurityLevel.DEFAULT)
+	public Varargs position() {
+		Vector2 pos = this.getPosition();
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(pos.x), LuaValue.valueOf(pos.y)});
 	}
 }
