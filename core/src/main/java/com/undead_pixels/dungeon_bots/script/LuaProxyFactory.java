@@ -8,6 +8,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +20,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public abstract class LuaProxyFactory {
+
+	private static class UpdateError extends ThreeArgFunction {
+		@Override
+		public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
+			throw new RuntimeException("Attempt to update readonly table");
+		}
+	}
 
 	/**
 	 *
@@ -45,7 +53,13 @@ public abstract class LuaProxyFactory {
 					}
 					catch (Exception e) { }
 				});
-		return t;
+
+		LuaTable proxy = new LuaTable();
+		LuaTable handle = new LuaTable();
+		handle.set("__index", t);
+		handle.set("__newindex", CoerceJavaToLua.coerce(new UpdateError()));
+		proxy.setmetatable(handle);
+		return proxy;
 	}
 
 
@@ -58,9 +72,15 @@ public abstract class LuaProxyFactory {
 		return new LuaBinding(src.getName(), getLuaValue(src, securityLevel));
 	}
 
+	/**
+	 *
+	 * @param src
+	 * @param securityLevel
+	 * @param <T>
+	 * @return
+	 */
 	public static <T extends Scriptable & GetBindable> LuaBinding getBindings(Class<T> src, final SecurityLevel securityLevel) {
 		LuaTable t = new LuaTable();
-
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetBindable.getBindableStaticMethods(src,securityLevel)
@@ -137,9 +157,7 @@ public abstract class LuaProxyFactory {
 
 	private static <T extends Scriptable & GetBindable> LuaValue evalMethod(T caller, final Method m) {
 		m.setAccessible(true);
-		Class<?>[] paramTypes = m.getParameterTypes();
 		Class<?> returnType = m.getReturnType();
-
 
 		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
 		// like it is of type VarargFunction
@@ -147,12 +165,12 @@ public abstract class LuaProxyFactory {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
-					if(returnType.equals(Varargs.class)) {
+					if(returnType.equals(Varargs.class))
 						return invokeWhitelistVarargs(m, SecurityContext.activeWhitelist, caller, getParams(m, args));
-					}
-					else {
-						return LuaValue.varargsOf( new LuaValue[] { invokeWhitelist(m, SecurityContext.activeWhitelist, caller, getParams(m, args)) });
-					}
+					else
+						return LuaValue.varargsOf(
+								new LuaValue[] {
+										invokeWhitelist(m, SecurityContext.activeWhitelist, caller, getParams(m, args)) });
 				}
 				catch (Exception me) {
 					return LuaValue.error(me.getMessage());

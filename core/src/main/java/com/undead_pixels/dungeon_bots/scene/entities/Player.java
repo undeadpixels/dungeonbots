@@ -31,10 +31,4 @@ public class Player extends Actor {
 		return LuaProxyFactory.getLuaValue(p, SecurityContext.getActiveSecurityLevel());
 	}
 
-	@Bind
-	public void up() {
-		if(world.canMoveToNewTile(this, Math.round(getPosition().x), Math.round(this.getPosition().y))) {
-			super.up();
-		}
-	}
 }

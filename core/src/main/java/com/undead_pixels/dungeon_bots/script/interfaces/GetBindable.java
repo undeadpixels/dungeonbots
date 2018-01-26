@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.script.interfaces;
 import com.undead_pixels.dungeon_bots.script.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
+import org.luaj.vm2.LuaUserdata;
+import org.luaj.vm2.LuaValue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

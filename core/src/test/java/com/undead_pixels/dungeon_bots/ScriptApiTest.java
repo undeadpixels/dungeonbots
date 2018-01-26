@@ -541,9 +541,9 @@ public class ScriptApiTest {
 
 	@Test public void testGetUserData() {
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.permissiveAddClass(World.class)
+				.permissiveAdd(new World("w"))
 				.permissiveAddClass(Player.class);
-		LuaScript script = se.init("w = World.new(); return Player.new(w,1.0,1.0);").join();
+		LuaScript script = se.init("return Player.new(w,1.0,1.0)").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
@@ -552,7 +552,8 @@ public class ScriptApiTest {
 		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
 	}
 
-	@Test public void testGetAndUseUserData() {
+	@Test
+	public void testGetAndUseUserData() {
     	World world = new World("w");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.permissiveAdd(world)
@@ -566,10 +567,22 @@ public class ScriptApiTest {
 		Assert.assertEquals(p.getPosition().x, 1.0, 0.001);
 		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
-		script = se.init("return p.position();").join();
+		script = se.init("return p:position();").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		Varargs ans = script.getResults().get();
 		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
 		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
+	}
+
+	@Test
+	public void testReadOnlyTables() {
+		World world = new World("w");
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
+				.permissiveAdd(world)
+				.permissiveAddClass(Player.class);
+
+		LuaScript script = se.init("p = Player.new(w,1.0,1.0); p.this = nil; return p;").join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.LUA_ERROR
+				&& script.getError().getMessage().contains("Attempt to update readonly table"));
 	}
 }
