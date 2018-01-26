@@ -14,6 +14,8 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 import java.io.File;
 
+import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.luaj.vm2.LuaValue;
@@ -26,10 +28,6 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import static java.lang.String.*;
 
 public class ScriptApiTest {
-	
-	public ScriptApiTest() {
-		System.out.println(new File(".").getAbsolutePath());
-	}
 
 	private final double EPSILON = 0.00001;
 
@@ -46,30 +44,12 @@ public class ScriptApiTest {
 
     @Test
     public void testScriptApiSingleArgumentFunction() {
-		class OneArg extends Entity {
+		class OneArg implements Scriptable, GetBindable {
+
+			String name;
 
 			OneArg(String name) {
-				super(new World(), name);
-			}
-
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
+				this.name = name;
 			}
 
 			@Override
@@ -79,11 +59,6 @@ public class ScriptApiTest {
 
 			@Override
 			public int getId() {
-				return 0;
-			}
-
-			@Override
-			public float getZ() {
 				return 0;
 			}
 
@@ -106,35 +81,12 @@ public class ScriptApiTest {
 
     @Test
     public void testSecurityLevel() {
-		class DebugError extends Entity {
+		class DebugError implements Scriptable, GetBindable {
+
+			String name;
 
 			DebugError(String name) {
-				super(new World(), name);
-			}
-
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
+				this.name = name;
 			}
 
 			// Tag the error function with a 'high' security level
@@ -202,41 +154,16 @@ public class ScriptApiTest {
 
     @Test
 	public void testTwoArgFunction() {
-    	class TestEntity extends Entity {
+    	class TestEntity implements Scriptable, GetBindable {
 
-    		public int number = 0;
+    		int number = 0;
+			String name;
 
     		TestEntity(String name) {
-				super(new World(), name);
+    			this.name = name;
 			}
 
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
-			}
-
-			@Bind
-			@BindTo("add")
+			@Bind @BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b) {
     			number = a.checkint() + b.checkint();
     			return CoerceJavaToLua.coerce(number);
@@ -264,41 +191,16 @@ public class ScriptApiTest {
 
 	@Test
 	public void testThreeArgFunction() {
-		class TestEntity extends Entity {
+		class TestEntity implements Scriptable, GetBindable {
 
+			String name;
 			private int number = 0;
 
 			TestEntity(String name) {
-				super(new World(), name);
+				this.name = name;
 			}
 
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
-			}
-
-			@Bind
-			@BindTo("add")
+			@Bind @BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b, LuaValue c) {
 				number = a.checkint() + b.checkint() + c.checkint();
 				return CoerceJavaToLua.coerce(number);
@@ -331,41 +233,16 @@ public class ScriptApiTest {
 
 	@Test
 	public void testVarArgsFunction() {
-		class TestEntity extends Entity {
+		class TestEntity implements Scriptable, GetBindable {
 
-			public int number = 0;
+			String name;
+			int number = 0;
 
 			TestEntity(String name) {
-				super(new World(), name);
+				this.name = name;
 			}
 
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
-			}
-
-			@Bind
-			@BindTo("add")
+			@Bind @BindTo("add")
 			public Varargs addValues(Varargs v) {
 				int num = v.narg();
 				int ans = 0;
@@ -399,7 +276,9 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testBindField() {
-		class RpgActor extends Entity {
+		class RpgActor implements Scriptable, GetBindable {
+
+			String name;
 
 			@Bind
 			private Integer strength;
@@ -411,35 +290,10 @@ public class ScriptApiTest {
 			private Integer intelligence;
 
 			public RpgActor(String name, int str, int dex ,int intel) {
-				super(new World(), name);
+				this.name = name;
 				this.strength = str;
 				this.dexterity = dex;
 				this.intelligence = intel;
-			}
-
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
 			}
 
 			@Override
@@ -462,42 +316,19 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testModifyField() {
-		class RpgActor extends Entity {
+		class RpgActor implements Scriptable, GetBindable {
+
+			String name;
 
 			@Bind
 			public final LuaTable stats;
 
 			public RpgActor(String name, int str, int dex ,int intel) {
-				super(new World(), name);
+				this.name = name;
 				stats = new LuaTable();
 				stats.set("strength", str);
 				stats.set("dexterity", dex);
 				stats.set("intelligence", intel);
-			}
-
-			@Override
-			public Vector2 getPosition() {
-				return null;
-			}
-
-			@Override
-			public boolean isSolid() {
-				return false;
-			}
-
-			@Override
-			public void update(float dt) {
-
-			}
-
-			@Override
-			public void render(SpriteBatch batch) {
-
-			}
-
-			@Override
-			public float getZ() {
-				return 0;
 			}
 
 			@Override
