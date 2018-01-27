@@ -16,14 +16,10 @@ public class Player extends Actor {
 		super(world, name, tex);
 	}
 
-	public Player(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, script, tex);
-	}
-
 	@Bind @BindTo("new")
 	public static LuaValue newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World)world.checktable().get("this").checkuserdata(World.class);
-		Player p = new Player(w, "player", new LuaSandbox(), null);
+		Player p = new Player(w, "player", null);
 		if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG)
 			SecurityContext.getWhitelist().addWhitelist(p.permissiveWhitelist());
 		p.sprite.setX((float)x.checkdouble());

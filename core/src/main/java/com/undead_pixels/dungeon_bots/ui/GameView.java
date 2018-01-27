@@ -108,7 +108,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		
 		TextureRegion tr = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), tilesize*0, tilesize*0, tilesize, tilesize);
 		
-		Player p = new Player(world, "asdf", new LuaSandbox(), tr);
+		Player p = new Player(world, "asdf", tr);
 		//if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG)
 		//	SecurityContext.getWhitelist().addWhitelist(p.permissiveWhitelist());
 		world.addEntity(p);

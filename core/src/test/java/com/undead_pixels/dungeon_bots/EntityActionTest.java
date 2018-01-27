@@ -22,7 +22,6 @@ public class EntityActionTest {
     		World w = new World();
     		w.setSize(16, 16);
     		Player p = new Player(w, "player", null);
-    		w.addEntity(p);
 
     		p.queueMoveSlowly(Direction.UP);
     		p.queueMoveSlowly(Direction.RIGHT);
@@ -49,7 +48,7 @@ public class EntityActionTest {
         		w.update(p.getMoveDuration() / 2 + .0001f);
         		System.out.println(p.getActionQueue());
         		System.out.println(p.getPosition());
-        		assertEquals("Trying vertex #"+i, v, p.getPosition(), 0.01f);
+        		assertEquals("Trying time step #"+(i+1), v, p.getPosition(), 0.01f);
         		i++;
     		}
     }

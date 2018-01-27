@@ -32,15 +32,6 @@ public class Actor extends SpriteEntity {
 		super(world, name, tex);
 		// TODO Auto-generated constructor stub
 	}
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user scriptEnv that is run on this object
-	 * @param tex		A texture for this Actor
-	 */
-	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, script, tex);
-		// TODO Auto-generated constructor stub
-	}
 
 	@Override
 	public float getZ() {

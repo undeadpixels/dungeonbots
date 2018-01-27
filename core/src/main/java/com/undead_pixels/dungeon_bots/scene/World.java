@@ -161,7 +161,7 @@ public class World implements Scriptable, GetBindable {
 						TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
 						TileType d = j >= 1   ? tileTypes[i][j-1] : null;
 
-						Tile t = new Tile(this, current.getName(), null, current.getTexture(l, r, u, d), i, j);
+						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j);
 						tiles[i][j] = t;
 					}
 				}

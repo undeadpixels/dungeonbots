@@ -22,8 +22,8 @@ public class Tile extends SpriteEntity {
 	 * @param x
 	 * @param y
 	 */
-	public Tile(World world, String name, LuaSandbox script, TextureRegion tex, float x, float y) {
-		super(world, name, script, tex, x, y);
+	public Tile(World world, String name, TextureRegion tex, float x, float y) {
+		super(world, name, tex, x, y);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -55,7 +55,6 @@ public class Tile extends SpriteEntity {
 				(World)lworld.checktable().checkuserdata(World.class),
 				"wall",
 				null,
-				null,
 				lx.tofloat(),
 				ly.tofloat());
 		return LuaProxyFactory.getLuaValue(t, SecurityContext.getActiveSecurityLevel());
@@ -67,7 +66,6 @@ public class Tile extends SpriteEntity {
 				(World)lworld.checktable().checkuserdata(World.class),
 				"floor",
 				null,
-				null,
 				lx.tofloat(),
 				ly.tofloat());
 		return LuaProxyFactory.getLuaValue(t, SecurityContext.getActiveSecurityLevel());
@@ -78,7 +76,6 @@ public class Tile extends SpriteEntity {
 		Tile t = new Tile(
 				(World)lworld.checktable().checkuserdata(World.class),
 				"goal",
-				null,
 				null,
 				lx.tofloat(),
 				ly.tofloat());

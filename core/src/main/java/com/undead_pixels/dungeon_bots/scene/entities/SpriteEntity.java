@@ -20,23 +20,15 @@ public abstract class SpriteEntity extends Entity {
 
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param tex		A texture for this Actor. May be null.
-	 */
-	public SpriteEntity(World world, String name, TextureRegion tex) {
-		this(world, name, null, tex);
-	}
-
-	/**
-	 * @param world		The world to contain this Actor
 	 * @param script		A user scriptEnv that is run on this object. May be null.
 	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex) {
-		this(world, name, script, tex, 0, 0);
+	public SpriteEntity(World world, String name, TextureRegion tex) {
+		this(world, name, tex, 0, 0);
 	}
 
-	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex, float x, float y) {
-		super(world, name, script);
+	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
+		super(world, name);
 		if(tex == null) {
 			sprite = new Sprite();
 		} else {
@@ -52,8 +44,8 @@ public abstract class SpriteEntity extends Entity {
 	 * @param script		A user scriptEnv that is run on this object. May be null.
 	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, String name, LuaSandbox script, TextureRegion tex, Whitelist whitelist) {
-		super(world, name, script, whitelist);
+	public SpriteEntity(World world, String name, TextureRegion tex, Whitelist whitelist) {
+		super(world, name, whitelist);
 		if(tex == null) {
 			sprite = new Sprite();
 		} else {
