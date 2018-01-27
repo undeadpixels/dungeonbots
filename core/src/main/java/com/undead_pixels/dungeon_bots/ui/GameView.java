@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.undead_pixels.dungeon_bots.scene.AFixedOrthographicCameraBecauseGDXsDefaultOrthographicCameraHasABugInItThatTookHoursToFigureOut;
 import com.undead_pixels.dungeon_bots.scene.TileTypes;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
@@ -214,7 +213,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 			
 		}
 
-		//System.out.println("Hit entity "+e+" at "+ gameSpace.x+", "+gameSpace.y+" (screen "+screenX+", "+screenY+")");
+		System.out.println("Clicked entity "+e+" at "+ gameSpace.x+", "+gameSpace.y+" (screen "+screenX+", "+screenY+")");
 		//System.out.println(new Vector3(0, 0, 0).prj(cam.invProjectionView));
 		//System.out.println(new Vector3(-1, -1, 0).prj(cam.invProjectionView));
 
