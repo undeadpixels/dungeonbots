@@ -267,4 +267,22 @@ public class World implements Scriptable, GetBindable {
 	public void didLeaveTile(Entity e, int x, int y) {
 		// TODO
 	}
+	
+	public Entity getEntityUnderLocation(float x, float y) {
+		for(Entity e : entities) {
+			Vector2 p = e.getPosition();
+			
+			if(x < p.x || x > p.x+1) {
+				continue;
+			}
+
+			if(y < p.y || y > p.y+1) {
+				continue;
+			}
+			
+			return e;
+		}
+		
+		return null;
+	}
 }

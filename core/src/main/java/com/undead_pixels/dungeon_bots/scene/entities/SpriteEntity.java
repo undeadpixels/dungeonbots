@@ -41,7 +41,8 @@ public abstract class SpriteEntity extends Entity {
 			sprite = new Sprite();
 		} else {
 			sprite = new Sprite(tex);
-			sprite.setScale(1.0f/tex.getRegionWidth());
+			sprite.setSize(1.0f, 1.0f);
+			sprite.setOrigin(.5f, .5f);
 		}
 		sprite.setPosition(x, y);
 	}
@@ -68,7 +69,8 @@ public abstract class SpriteEntity extends Entity {
 	@Override
 	public void render(SpriteBatch batch) {
 		if(sprite != null && sprite.getTexture() != null) {
-			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX());
+			//sprite.setRotation((float) ((System.currentTimeMillis() % 5000l) * (360f / 5000)));
+			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX()+", origin = "+sprite.getOriginX());
 			sprite.draw(batch);
 		}
 	}

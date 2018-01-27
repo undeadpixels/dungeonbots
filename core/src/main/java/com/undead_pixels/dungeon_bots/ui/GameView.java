@@ -1,23 +1,30 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.undead_pixels.dungeon_bots.scene.AFixedOrthographicCameraBecauseGDXsDefaultOrthographicCameraHasABugInItThatTookHoursToFigureOut;
 import com.undead_pixels.dungeon_bots.scene.TileTypes;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 
 /**
  * The screen for the regular game
  */
-public class GameView extends GDXandSwingScreen {
+public class GameView extends GDXandSwingScreen implements InputProcessor {
 	private Stage stage = new Stage(); // deleting this somehow makes it not work...?
 
 	Texture img = new Texture("badlogic.jpg");
@@ -103,6 +110,7 @@ public class GameView extends GDXandSwingScreen {
 		a.moveInstantly(Actor.Direction.RIGHT, 6);
 		
 		//Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(this);
 	}
 	
 	public void resize(int w, int h) {
@@ -125,6 +133,7 @@ public class GameView extends GDXandSwingScreen {
 		if(!didInitCam) {
 			batch = new SpriteBatch();
 			cam = new OrthographicCamera(w, h);
+			//cam = new AFixedOrthographicCameraBecauseGDXsDefaultOrthographicCameraHasABugInItThatTookHoursToFigureOut(w, h);
 			
 			float ratioW = w / world.getSize().x;
 			float ratioH = h / world.getSize().y;
@@ -133,8 +142,8 @@ public class GameView extends GDXandSwingScreen {
 			} else {
 				cam.zoom = 1.0f / ratioH;
 			}
-    			cam.position.x = world.getSize().x - .5f;
-    			cam.position.y = world.getSize().y - .5f;
+    			cam.position.x = world.getSize().x/2;
+    			cam.position.y = world.getSize().y/2;
     			didInitCam = true;
 		}
 
@@ -142,8 +151,8 @@ public class GameView extends GDXandSwingScreen {
 		cam.viewportHeight = h;
 		
 		cam.update();
-		batch.setProjectionMatrix(cam.projection);
-		batch.setTransformMatrix(cam.view);
+		batch.setProjectionMatrix(cam.combined);
+		//batch.setTransformMatrix(cam.view);
 		
 		if(world != null) {
 			world.update(dt);
@@ -152,8 +161,89 @@ public class GameView extends GDXandSwingScreen {
 
 		//Gdx.gl.glClearColor(1, 0, 0, 1);
 		//Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		//batch.begin();
-		//batch.draw(img, -img.getWidth()/2, -img.getHeight()/2);
-		//batch.end();
+		batch.begin();
+		batch.draw(img, 7.5f, 7.5f, 1, 1);
+		batch.end();
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		//System.out.println("raw: "+screenX+", "+screenY);
+		cam.update();
+		Vector3 gameSpace = cam.unproject(new Vector3(screenX, screenY, 0));
+		//Vector3 backToScreen = cam.project(new Vector3(gameSpace));
+		//System.out.println("A: "+gameSpace);
+		//System.out.println("B: "+backToScreen);
+		
+		//System.out.println(new Matrix4(cam.combined).mul(cam.invProjectionView));
+
+		//System.out.println(cam.combined);
+		//System.out.println(cam.view);
+		//System.out.println(cam.projection);
+
+		//Vector3 zero = new Vector3();
+		//System.out.println("Zero: "+zero);
+		//cam.project(zero);
+		//System.out.println("ZeroP: "+zero);
+		
+		//System.out.println("From gdxi "+Gdx.input.getX() + ", "+Gdx.input.getY());
+		
+		Entity e = world.getEntityUnderLocation(gameSpace.x, gameSpace.y);
+		
+		if(e instanceof Player) {
+			//LuaSandbox env = e.getScriptEnv();
+			
+			
+		}
+
+		//System.out.println("Hit entity "+e+" at "+ gameSpace.x+", "+gameSpace.y+" (screen "+screenX+", "+screenY+")");
+		//System.out.println(new Vector3(0, 0, 0).prj(cam.invProjectionView));
+		//System.out.println(new Vector3(-1, -1, 0).prj(cam.invProjectionView));
+
+		//System.out.println(batch.getProjectionMatrix());
+		//System.out.println(batch.getTransformMatrix());
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean mouseMoved(int screenX, int screenY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
