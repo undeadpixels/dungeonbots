@@ -10,7 +10,10 @@ public class User {
 		return new User();
 	}
 	
-	public static User FromJSON (String json){
+	public static User fromJSON (String json){
+		
+		if (json == "") return dummy();
+		
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 

@@ -1,14 +1,16 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -20,26 +22,23 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import com.undead_pixels.dungeon_bots.User;
 
-//import com.undead_pixels.dungeon_bots.desktop.FlowLayout;
-
-public class Login<T> extends JDialog {
+/**
+ * A login component that returns a user by calling the Login.challenge()
+ * method. If login is invalid, the Login.challenge() method returns null.
+ */
+public class Login extends JDialog {
 
 	/*
 	 * This class drawn from tutorial at
 	 * http://www.zentut.com/java-swing/simple-login-dialog/
 	 */
 
-	private enum Result {
-		LOGGED_IN, LOGIN_FAILURE, QUIT, NONE
-	}
-	
-	private T _User = null;
-
-	private Result _Result = Result.NONE;
+	private User _User = null;
+	private int _Attempts = 0;
+	private final int MAX_ATTEMPTS = 3;
 
 	private Login(Frame frame) {
 
@@ -107,32 +106,65 @@ public class Login<T> extends JDialog {
 		setAutoRequestFocus(true);
 
 		pack();
+		setLocation((Toolkit.getDefaultToolkit().getScreenSize().width) / 2 - getWidth() / 2,
+				(Toolkit.getDefaultToolkit().getScreenSize().height) / 2 - getHeight() / 2);
 
 		bttnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String userName = txtUserName.getText();
 				char[] pswd = pswdField.getPassword();
+				pswdField.setText("");
+				_Attempts++;
+				String userName = txtUserName.getText();
 				_User = fetchUser(userName, pswd);
+				if (_User != null)
+					// Valid login.
+					dispose();
+				else if (_Attempts < MAX_ATTEMPTS) {
+					JOptionPane.showMessageDialog(Login.this, "Invalid user name or password.  You have "
+							+ (MAX_ATTEMPTS - _Attempts) + " attempts remaining.", "Login.", JOptionPane.ERROR_MESSAGE);
+					txtUserName.setText("");
 
+				} else {
+					JOptionPane.showMessageDialog(Login.this, "Invalid user name or password.  Max attempts reached.",
+							"Login.", JOptionPane.ERROR_MESSAGE);
+					dispose();
+				}
 			}
 		});
 		bttnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				_Result = Result.QUIT;
+				pswdField.setText("");
 				dispose();
 			}
 		});
 		bttnNewUser.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				JOptionPane.showMessageDialog(Login.this, "Have not implemented new-user functionality.", "Login.",
+						JOptionPane.ERROR_MESSAGE);
+				pswdField.setText("");
+				txtUserName.setText("");
 			}
 		});
 		bttnDumb.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				JOptionPane.showMessageDialog(Login.this, "Have not implemented forgotten-password functionality.",
+						"Login.", JOptionPane.ERROR_MESSAGE);
+				pswdField.setText("");
+				txtUserName.setText("");
 			}
 		});
 
+		@SuppressWarnings("serial")
+		Action return_action = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				bttnLogin.doClick();
+			}
+		};
+
+		txtUserName.addActionListener(return_action);
+		pswdField.addActionListener(return_action);
 	}
 
 	public static JButton makeHyperTextButton(String message) {
@@ -149,26 +181,28 @@ public class Login<T> extends JDialog {
 		return bttn;
 	}
 
-	private T fetchUser(String username, char[] password){
-		T fetched = null;		
-		try{
-			return fetched;
-			//TODO:  get the User from remote source as JSON, and then build a User object from it thru User.FromJSON(String).
-		} catch (Exception ex){
+	private User fetchUser(String username, char[] password) {
+		User fetched = null;
+		try {
+			return fetched.fromJSON("");
+			// return null;
+			// TODO: get the User from remote source as JSON, and then build a
+			// User object from it thru User.FromJSON(String).
+		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Error fetching user:\n" + ex.toString());
 			return null;
+		} finally {
+			// This procedure so passwords don't exist as garbage somewhere in
+			// memory:
+			for (int i = 0; i < password.length; i++)
+				password[i] = 0;
 		}
-		finally{
-			//This procedure so passwords don't exist as garbage somewhere in memory:
-			for (int i = 0; i < password.length; i++) password[i] = 0;
-		}
-		
+
 	}
-	
+
 	public static User challenge(String message) {
 		JFrame loginFrame = new JFrame(message);
 		loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
 		loginFrame.setLayout(new FlowLayout());
 		loginFrame.setSize(300, 250);
 		Login login = new Login(loginFrame);
