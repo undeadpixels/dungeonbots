@@ -3,19 +3,27 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -25,6 +33,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import org.luaj.vm2.LuaInteger;
+import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -34,33 +43,44 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 
-	private LuaScript _Script;
+	private LuaSandbox _Sandbox;
+	private JScrollPane _MessageScroller;
+	public final long MaxExecutionTime = 3000;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 	private Object _LastResult = null;
-	// private boolean _IsExecuting = false;
+	private JButton _CancelBttn;
+	private JButton _ExecuteBttn;
+	private boolean _IsExecuting;
 
 	/*
 	 * ================================================================
-	 * JCodeEditor CONSTRUCTION MEMBERS
+	 * JCodeREPL CONSTRUCTION MEMBERS
 	 * ================================================================
 	 */
 
+	/** Creates a new REPL. All code will execute in a brand-new sandbox. */
 	public JCodeREPL() {
 		this(new LuaSandbox(SecurityLevel.DEBUG));
 	}
 
+	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
 		super(new BorderLayout());
 
-		_Script = sandbox.script("");
+		_Sandbox = sandbox;
 
 		_EchoMessageStyle = createSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = createSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
 		_ErrorMessageStyle = createSimpleAttributeSet(Color.RED, Color.BLACK, true);
 
 		addComponents();
+
+		_MessagePane.setText("");
+		_EditorPane.setText("");
+		
+		addKeyBindings();
 	}
 
 	private void addComponents() {
@@ -76,8 +96,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		add(makeREPLToolBar(), BorderLayout.PAGE_START);
 
 		_MessagePane = new JTextPane();
-		JScrollPane messageScroller = new JScrollPane(_MessagePane);
-		add(messageScroller, BorderLayout.CENTER);
+		_MessageScroller = new JScrollPane(_MessagePane);
+
+		add(_MessageScroller, BorderLayout.CENTER);
 		_MessagePane.setFocusable(false);
 		_MessagePane.setText("");
 
@@ -85,10 +106,24 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
 		this.add(executePanel, BorderLayout.PAGE_END);
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
-		executePanel.add(makeButton("tbd.gif", "EXECUTE", "Click to execute", ">", this), BorderLayout.LINE_END);
 
+		JPanel startStopPanel = new JPanel(new BorderLayout());
+		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
+		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		_CancelBttn.setEnabled(false);
+		JButton helpButton = makeButton("helpButton.gif", "HELP", "Click for help", "?", this);
+		startStopPanel.add(helpButton, BorderLayout.PAGE_START);
+		startStopPanel.add(_ExecuteBttn, BorderLayout.CENTER);
+		startStopPanel.add(_CancelBttn, BorderLayout.PAGE_END);
+		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 	}
 
+	private void addKeyBindings(){
+		KeyStroke ks = KeyStroke.getKeyStroke("ENTER");
+		InputMap map = this.getInputMap();
+		map.put(ks,  "EXECUTE");
+	}
+	
 	private JToolBar makeREPLToolBar() {
 		JToolBar result = new JToolBar();
 		result.add(makeButton("testing.gif", "CLICK", "ToolTipA", "REPLToolA", this));
@@ -136,7 +171,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/*
 	 * ================================================================
-	 * JCodeEditor APPEARANCE MEMBERS
+	 * JCodeREPL APPEARANCE MEMBERS
 	 * ================================================================
 	 */
 
@@ -154,61 +189,125 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/*
 	 * ================================================================
-	 * JCodeEditor CODING INTERFACE MEMBERS
+	 * JCodeREPL CODING INTERFACE MEMBERS
 	 * ================================================================
 	 */
 
-	/**
-	 * @param milliseconds
-	 *            The maximum amount of time allowed for execution to complete.
-	 * @return
-	 */
-	public boolean execute(long milliseconds) {
-		if (_Script == null)
-			return false;
-		_Script.setScript(getCode());
-		message(">>> " + getCode(), _EchoMessageStyle);
-		_Script.start();
-		_Script.join(milliseconds);
+	private class ScriptExecutionWorker extends SwingWorker<Object, String> {
 
-		if (_Script.getError() != null) {
-			message(_Script.getError().getMessage(), _ErrorMessageStyle);
-		} else {
-			switch (_Script.getStatus()) {
-			case COMPLETE:
-			case READY:
-				_LastResult = Interpret(_Script.getResults());
-				if (_LastResult == null) message ("null", _SystemMessageStyle);
-				else if (_LastResult instanceof LuaValue) message ("ok", _SystemMessageStyle);  //Void.  TODO:  would this always indicate void?
-				else message(_LastResult.toString(), _SystemMessageStyle);				
-				break;
-			case RUNNING:
-				message("Error - the script is still running.", _ErrorMessageStyle);
-				break;
-			case TIMEOUT:
-				message("Script interrupted without completion.", _ErrorMessageStyle);
-				break;
-			case STOPPED:
-				message("Script has been stopped.", _ErrorMessageStyle);
-				break;
-			case LUA_ERROR:
-				message("Error: " + _Script.getError().getMessage(), _ErrorMessageStyle);
-				break;
-			case ERROR:
-				message("Threading error: " + _Script.getError().toString(), _ErrorMessageStyle);
-				break;
-			case PAUSED:
-				message("Script has been paused.", _ErrorMessageStyle);
-				break;
-			default:
-				message("Unrecognized script status: " + _Script.getStatus(), _ErrorMessageStyle);
-				break;
-			}
+		public String executingCode = "";
+		private long _milliseconds = MaxExecutionTime;
 
+		public ScriptExecutionWorker(String code, long executionTime) {
+			executingCode = code;
+			_milliseconds = executionTime;
 		}
 
-		setCode("");
-		return true;
+		// Cannot override execute()
+
+		/** Does the work in the calling thread. Useful for testing purposes. */
+		public Object doSynchronized() {
+			return doInBackground();
+		}
+
+		@Override
+		protected Object doInBackground() {
+			try {
+				LuaScript script = _Sandbox.script(executingCode);
+				script.start(); // Since this is on a background thread, it
+								// COULD be done synchronously.
+				script.join(_milliseconds);
+
+				if (script.getError() != null)
+					return script.getError();
+
+				switch (script.getStatus()) {
+				case READY:
+					throw new Exception("Script did not execute.");
+				case COMPLETE:
+					return Interpret(script.getResults());
+				case RUNNING:
+					throw new Exception("Script is still running.");
+				case TIMEOUT:
+					throw new Exception("Script timed out.");
+				case STOPPED:
+					throw new Exception("Script has been stopped.");
+				case LUA_ERROR:
+					throw new Exception("Lua error.");
+				case ERROR:
+					throw new Exception("Threading error.");
+				case PAUSED:
+					throw new Exception("Script has been paused.");
+				default:
+					throw new Exception("Unrecognized status: " + script.getStatus() + ".");
+				}
+			} catch (Exception ex) {
+				return ex;
+			}
+		}
+
+		@Override
+		protected void done() {
+			try {
+				Object result = get();
+				onExecutionComplete(this, result);
+			} catch (Exception e) {
+				onExecutionComplete(this, e);
+			}
+		}
+	}
+
+	/**
+	 * Starts execution of the code contained in the code editor, on a
+	 * background thread.
+	 */
+	public void execute(long executionTime) {
+		setIsExecuting(true);
+		String code = getCode();
+		message(">>> " + code, _EchoMessageStyle);
+		ScriptExecutionWorker worker = new ScriptExecutionWorker(code, executionTime);
+		worker.execute();
+	}
+
+	/**
+	 * Executes the contents of the code editor, on the main thread. Useful for
+	 * testing purposes.
+	 */
+	public void executeSynchronized(long executionTime) {
+		setIsExecuting(true);
+		ScriptExecutionWorker worker = new ScriptExecutionWorker(getCode(), executionTime);
+		onExecutionComplete(worker, worker.doSynchronized());
+	}
+
+	private void onExecutionComplete(ScriptExecutionWorker sender, Object result) {
+		_LastResult = result;
+
+		// Send a message indicating the results.
+		if (result == null)
+			message("Ok", _SystemMessageStyle);
+		else if (result instanceof Exception)
+			message(((Exception) result).getMessage(), _ErrorMessageStyle);
+		else
+			message(result.toString(), _SystemMessageStyle);
+
+		// It's possible for some other entity to sneak some code in while the
+		// thread is in the
+		// background. Only clear out the code editor if the executed code is
+		// still in the editor.
+		if (sender.executingCode.equals(getCode()))
+			setCode("");
+
+		setIsExecuting(false);
+	}
+
+	/** Sets the GUI to correctly reflect the execution status. */
+	private void setIsExecuting(boolean value) {
+		if (_IsExecuting == value)
+			throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
+		_IsExecuting = value;
+		_CancelBttn.setEnabled(value);
+		_ExecuteBttn.setEnabled(!value);
+
 	}
 
 	/**
@@ -219,12 +318,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		if (rawResult == null)
 			return null;
 		Varargs unpackedResult = rawResult.get();
+		if (unpackedResult instanceof LuaNil)
+			return null;
 		if (unpackedResult instanceof LuaInteger)
 			return ((LuaInteger) unpackedResult).toint();
 		if (unpackedResult instanceof LuaValue) {
-			// 
+			//
 			LuaValue lv = (LuaValue) unpackedResult;
-			if (lv.tojstring() == "none") //Void result.
+			if (lv.tojstring() == "none") // Void result.
 				return lv;
 
 		}
@@ -232,6 +333,45 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				"Have not implemented Lua-to-Java interpretation of type " + unpackedResult.getClass().getName() + ".");
 	}
 
+	/** Returns the code contents being edited in this REPL. */
+	public String getCode() {
+		try {
+			Document doc = _EditorPane.getDocument();
+			return doc.getText(0, doc.getLength());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "";
+		}
+	}
+
+	/**
+	 * Sets the code as indicated. If running the code is intended, don't forget
+	 * to call execute(long).
+	 */
+	public void setCode(String code) {
+		try {
+			Document doc = _EditorPane.getDocument();
+			doc.remove(0, doc.getLength());
+			doc.insertString(0, code, _EchoMessageStyle);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/** Returns the last result that came from execution of the REPL. */
+	public Object getLastResult() {
+		return _LastResult;
+	}
+
+	/*
+	 * ================================================================
+	 * JCodeREPL MESSAGING MEMBERS
+	 * ================================================================
+	 */
+	/**
+	 * Posts a message to the message pane. The identity of the sender will
+	 * compel the style with which the message will appear.
+	 */
 	public void message(String message, Object sender) {
 		if (sender == this)
 			message(message, _EchoMessageStyle);
@@ -239,6 +379,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			message(message, _SystemMessageStyle);
 	}
 
+	/** Posts a message to the message pane, with the indicated style. */
 	protected void message(String message, AttributeSet attribs) {
 
 		if (_MessagePane == null || attribs == null)
@@ -248,12 +389,55 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		try {
 			doc.insertString(doc.getLength(), message + "\n\n", attribs);
 			doc.remove(0, Math.max(0, doc.getLength() - _MessageMax));
+			pageEnd(_MessageScroller);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 	}
 
-	/** Returns all the messages contained in this editor. */
+	private static void pageHome(JScrollPane scroller) {
+		EventQueue.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				JScrollBar vert = scroller.getVerticalScrollBar();
+				JScrollBar horiz = scroller.getHorizontalScrollBar();
+				vert.setValue(vert.getMinimum());
+				horiz.setValue(horiz.getMinimum());
+			}
+		});
+	}
+
+	private static void pageEnd(JScrollPane scroller) {
+
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					JScrollBar vert = scroller.getVerticalScrollBar();
+					JScrollBar horiz = scroller.getHorizontalScrollBar();
+					if (vert != null)
+						vert.setValue(vert.getMaximum());
+					if (horiz != null)
+						horiz.setValue(horiz.getMinimum());
+				} catch (Exception e) {
+				}
+
+			}
+		});
+	}
+
+	/** Scrolls the message pane to the end of the messages. */
+	public void pageEnd() {
+		pageEnd(_MessageScroller);
+	}
+
+	/** Scrolls the message pane to the beginning of the messages. */
+	public void pageHome() {
+		pageHome(_MessageScroller);
+	}
+
+	/** Returns all the messages contained in this REPL. */
 	public String getMessages() {
 
 		try {
@@ -267,33 +451,15 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 	}
 
-	/** Returns the code contents being edited in this editor. */
-	public String getCode() {
-		try {
-			Document doc = _EditorPane.getDocument();
-			return doc.getText(0, doc.getLength());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
-		}
-	}
-
-	public void setCode(String code) {
-		try {
-			Document doc = _EditorPane.getDocument();
-			doc.remove(0, doc.getLength());
-			doc.insertString(0, code, _EchoMessageStyle);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent action) {
 
 		switch (action.getActionCommand()) {
 		case "EXECUTE":
-			execute(100);
+			execute(3000);
+			break;
+		case "HELP":
+			System.out.println("Don't panic!");
 			break;
 		default:
 			System.out.println("Unimplemented action received by " + this.getClass().getName() + " object: "

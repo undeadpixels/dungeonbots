@@ -28,7 +28,6 @@ public class World implements Scriptable, GetBindable {
     private LuaScript levelScript;
     private String name = "world";
 
-	//private Texture backgroundImage = new Texture("badlogic.jpg");
 	private Texture backgroundImage;
 	private Tile[][] tiles;
 	private TileType[][] tileTypes;
