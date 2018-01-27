@@ -66,6 +66,9 @@ import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
  */
 public class DungeonBotsMain extends Game {
 
+	
+	private User _CurrentUser;
+	
 	/**
 	 * Singleton instance
 	 */
@@ -110,4 +113,7 @@ public class DungeonBotsMain extends Game {
 		setScreen(new GameView());
 	}
 
+	
+	
+	
 }

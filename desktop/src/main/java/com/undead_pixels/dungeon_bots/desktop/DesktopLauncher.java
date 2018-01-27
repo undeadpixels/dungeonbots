@@ -23,6 +23,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 import jsyntaxpane.DefaultSyntaxKit;
@@ -33,6 +34,11 @@ public class DesktopLauncher {
 	private static final boolean forceNimbus = true;
 	
 	public static void main (String[] arg) {
+		
+		System.out.println("Starting login...");
+		Login.Result loginResult = Login.challenge("Welcome to DungeonBots.");
+		System.out.println(loginResult.toString());
+		
 		DefaultSyntaxKit.initKit();
 		
 		// UI theming
