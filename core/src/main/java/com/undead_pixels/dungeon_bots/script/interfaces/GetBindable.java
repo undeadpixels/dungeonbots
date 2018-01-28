@@ -18,6 +18,9 @@ import static com.undead_pixels.dungeon_bots.script.LuaSandbox.staticId;
 
 public interface GetBindable {
 
+	int getId();
+	String getName();
+
 	static Whitelist permissiveWhitelist(final Class<?> clz) {
 		return LuaReflection.getPermissiveWhitelist(getBindableStaticMethods(clz).collect(Collectors.toList()));
 	}

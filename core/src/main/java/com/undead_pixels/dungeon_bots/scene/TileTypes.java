@@ -15,7 +15,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import org.luaj.vm2.LuaValue;
 
-public class TileTypes implements Scriptable, GetBindable {
+public class TileTypes implements GetBindable {
 	
 	private HashMap<String, TileType> typeMap = new HashMap<>();
 
@@ -33,14 +33,6 @@ public class TileTypes implements Scriptable, GetBindable {
 	 * @param tilesize		Size of each tile
 	 * @param x				X coordinate (in tile space) of the main variation of this tile
 	 * @param y				Y coordinate (in tile space) of the main variation of this tile
-	 * @param variationsX	An array indicating relative X variations of this tile
-	 * 							(other ways this same tile might be rendered based on circumstances)
-	 * @param variationsY	An array indicating relative Y variations of this tile
-	 * 							(other ways this same tile might be rendered based on circumstances)
-	 * @param random		If the variations are random or should be based on nearby tiles. "Nearby" (false)
-	 * 							means that the array should have 16 indices, each referring to bitwise-or of
-	 * 							Left=1, Right=2, Up=4, Down=8, where a 1 for each bit indicates that the given
-	 * 							tile is the same.
 	 */
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y) {
 		registerTile(name, texture, tilesize, x, y, new Vector2[] {new Vector2()}, true);

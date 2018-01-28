@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.Optional;
 
 /**
- * A LuaScript is an asynchronous wrapper around an execution context for a scriptEnv that is invoked using a
+ * A LuaScript is an asynchronous wrapper around an execution context for a sandbox that is invoked using a
  * LuaSandbox as the Sandbox.
  */
 public class LuaScript {
@@ -38,11 +38,11 @@ public class LuaScript {
 	}
 
 	
-	/** Starts execution of the scriptEnv on a separate thread. */
+	/** Starts execution of the sandbox on a separate thread. */
 	public synchronized LuaScript start() {
 		SecurityContext.set(this.environment);
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: scriptEnv should cache as much of itself as it can. Cache the chunk?
+		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
 		thread = ThreadWrapper.create(() -> {
@@ -78,7 +78,7 @@ public class LuaScript {
 		return this;
 	}
 
-	/** Returns the status of this scriptEnv. */
+	/** Returns the status of this sandbox. */
 	public synchronized ScriptStatus getStatus() {
 		return scriptStatus;
 	}
@@ -99,7 +99,7 @@ public class LuaScript {
 	}
 
 	/**
-	 * Forces the thread of this scriptEnv to rejoin in no more than the given
+	 * Forces the thread of this sandbox to rejoin in no more than the given
 	 * number of milliseconds.
 	 */
 	public synchronized LuaScript join(long wait) {
@@ -122,7 +122,7 @@ public class LuaScript {
 		return Optional.ofNullable(varargs);
 	}
 
-	/** Stops all execution and clears any stored values.  The scriptEnv text
+	/** Stops all execution and clears any stored values.  The sandbox text
 	 * remains unchanged. */
 	public void reset(long maxWait) {
 		join(maxWait);		
@@ -131,7 +131,7 @@ public class LuaScript {
 		this.scriptStatus = ScriptStatus.READY;
 	}
 
-	/** Resets this scriptEnv and updates its text. */
+	/** Resets this sandbox and updates its text. */
 	public void setScript(String newScript) {
 		reset(0);
 		this.script = newScript;
@@ -139,7 +139,7 @@ public class LuaScript {
 
 	
 	
-	/** Returns the text of this scriptEnv. */
+	/** Returns the text of this sandbox. */
 	public String getScript() {
 		return this.script;
 	}
