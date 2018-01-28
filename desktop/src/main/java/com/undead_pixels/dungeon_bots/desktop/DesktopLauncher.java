@@ -23,6 +23,8 @@ import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.User;
+import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 import jsyntaxpane.DefaultSyntaxKit;
@@ -33,6 +35,15 @@ public class DesktopLauncher {
 	private static final boolean forceNimbus = true;
 	
 	public static void main (String[] arg) {
+		
+		System.out.println("Starting login...");
+		User user = Login.challenge("Welcome to DungeonBots.");
+		if (user == null) {
+			System.out.println("Invalid user login.  Closing program.");
+			return;
+		}
+		System.out.println("Login valid.");
+		
 		DefaultSyntaxKit.initKit();
 		
 		// UI theming
@@ -89,7 +100,9 @@ public class DesktopLauncher {
 		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
 		frame.setLayout(new BorderLayout(0, 0));
 		
-		DungeonBotsMain.instance.setFrame(frame);
+		DungeonBotsMain game = DungeonBotsMain.instance;
+		game.setUser(user);
+		game.setFrame(frame);
 		
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme and replace with some kind of listener for saving

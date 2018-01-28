@@ -17,7 +17,7 @@ public class JCodeREPLTest {
         editor.setCode("x = 2 + 1; return x;");
         assertFalse(editor.getMessages().contains("3"));      
         
-        assertTrue(editor.execute(100));
+        editor.executeSynchronized(100);        
         Object msgs = editor.getMessages();
         assertTrue(editor.getMessages().contains("3"));
 
