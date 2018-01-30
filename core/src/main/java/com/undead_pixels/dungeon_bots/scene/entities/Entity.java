@@ -60,7 +60,19 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	 * @return		The user scriptEnv
 	 */
 	public LuaSandbox getScriptEnv() {
+		if(scriptEnv == null) {
+			return createScriptEnv();
+		}
 		return scriptEnv;
+	}
+	
+	protected LuaSandbox createScriptEnv() {
+		LuaSandbox env = new LuaSandbox(); // TODO 
+		// env.add(this.getLuaBinding());
+		
+		scriptEnv = env;
+		return scriptEnv;
+		
 	}
 	
 	public void update(float dt) {
