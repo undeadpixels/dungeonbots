@@ -31,18 +31,18 @@ import jsyntaxpane.TokenType;
 public class JCodeEditor extends JPanel implements ActionListener {
 
 	private EditabilityChart _Editable;
-	private JEditorPane _Editor;
-	private Map<TokenType, SyntaxStyle> _SyntaxStyles;
+	private JEditorPane _Editor;	
 	private JScrollPane _EditorScroller;
+	
 
 	public JCodeEditor() {
 		
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 		setLayout(new BorderLayout());
 		
-		_SyntaxStyles = makeDefaultStyles();
+		/*_SyntaxStyles = makeDefaultStyles();
 		for (TokenType key : _SyntaxStyles.keySet())
-			SyntaxStyles.getInstance().put(key, _SyntaxStyles.get(key));
+			SyntaxStyles.getInstance().put(key, _SyntaxStyles.get(key));*/
 		
 		
 		JToolBar toolBar = new JToolBar();
@@ -80,71 +80,6 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	private static Map<TokenType, SyntaxStyle> makeDefaultStyles() {
-		HashMap<TokenType, SyntaxStyle> styles = new HashMap<TokenType, SyntaxStyle>();
-
-		// Comments as described in original JSyntaxPane lib
-
-		// Language operators
-		styles.put(TokenType.OPERATOR, new SyntaxStyle(Color.WHITE, false, false));
-
-		// Delimiters. Constructs that are not necessarily operators for a
-		// language
-		styles.put(TokenType.DELIMITER, new SyntaxStyle(Color.ORANGE, false, false));
-
-		// language reserved keywords
-		styles.put(TokenType.KEYWORD, new SyntaxStyle(Color.BLUE, false, false));
-
-		// Other language reserved keywords, like C #defines
-		styles.put(TokenType.KEYWORD2, new SyntaxStyle(Color.CYAN, true, true));
-
-		// identifiers, variable names, class names
-		styles.put(TokenType.IDENTIFIER, new SyntaxStyle(Color.PINK, true, true));
-
-		// numbers in various formats
-		styles.put(TokenType.NUMBER, new SyntaxStyle(Color.GREEN, true, true)); ///
-
-		// String
-		styles.put(TokenType.STRING, new SyntaxStyle(Color.GREEN, true, true));
-
-		// For highlighting meta chars within a String
-		styles.put(TokenType.STRING2, new SyntaxStyle(Color.GREEN, true, true));
-
-		// comments
-		styles.put(TokenType.COMMENT, new SyntaxStyle(Color.GREEN, true, true));
-
-		// special stuff within comments
-		styles.put(TokenType.COMMENT2, new SyntaxStyle(Color.GREEN, true, true));
-
-		// regular expressions
-		styles.put(TokenType.REGEX, new SyntaxStyle(Color.GREEN, true, true));
-
-		// special chars within regular expressions
-		styles.put(TokenType.REGEX2, new SyntaxStyle(Color.GREEN, true, true));
-
-		// Types, usually not keywords, but supported by the language
-		styles.put(TokenType.TYPE, new SyntaxStyle(Color.GREEN, true, true));
-
-		// Types from standard libraries
-		styles.put(TokenType.TYPE2, new SyntaxStyle(Color.GREEN, true, true));
-
-		// Types for users
-		styles.put(TokenType.TYPE3, new SyntaxStyle(Color.GREEN, true, true));
-
-		// any other text
-		styles.put(TokenType.DEFAULT, new SyntaxStyle(Color.GREEN, true, true));
-
-		// Text that should be highlighted as a warning
-		styles.put(TokenType.WARNING, new SyntaxStyle(Color.GREEN, true, true));
-
-		// Text that signals an error
-		styles.put(TokenType.ERROR, new SyntaxStyle(Color.GREEN, true, true));
-
-		return styles;
-	}
-
-	
-	
 	
 	
 	
