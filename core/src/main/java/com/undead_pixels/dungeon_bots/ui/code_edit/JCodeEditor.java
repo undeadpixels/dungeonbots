@@ -17,6 +17,7 @@ public class JCodeEditor extends JPanel {
 
 	public JCodeEditor() {
 
+		//Working this through.
 	}
 
 }
