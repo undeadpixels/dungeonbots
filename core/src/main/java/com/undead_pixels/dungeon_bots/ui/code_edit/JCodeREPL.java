@@ -81,9 +81,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_Sandbox = sandbox;
 
-		_EchoMessageStyle = createSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
-		_SystemMessageStyle = createSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
-		_ErrorMessageStyle = createSimpleAttributeSet(Color.RED, Color.BLACK, true);
+		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
+		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
+		_ErrorMessageStyle = putSimpleAttributeSet(Color.RED, Color.BLACK, true);
 
 		addComponents();
 
@@ -188,7 +188,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private AttributeSet _SystemMessageStyle = null;
 	private AttributeSet _ErrorMessageStyle = null;
 
-	private AttributeSet createSimpleAttributeSet(Color foreground, Color background, boolean bold) {
+	public static AttributeSet putSimpleAttributeSet(Color foreground, Color background, boolean bold) {
 		SimpleAttributeSet result = new SimpleAttributeSet();
 		StyleConstants.setForeground(result, foreground);
 		StyleConstants.setBackground(result, background);

@@ -93,6 +93,16 @@ public class DesktopLauncher {
 		demoPanel.add(repl, BorderLayout.PAGE_START);
 
 		JCodeEditor editor = new JCodeEditor();
+		editor.setCode("-- this is a test\n\n"
+				+ "function f()\n"
+				+ "    foo()\n"
+				+ "    bar = baz * 16\n"
+				+ "    s = \"str\" .. 1\n"
+				+ "    if true then\n"
+				+ "        print(\"something was true\")\n"
+				+ "    end\n"
+				+ "end\n");
+		
 		demoPanel.add(editor, BorderLayout.AFTER_LINE_ENDS);
 
 		frame.setSize(1024, 768);
@@ -132,9 +142,10 @@ public class DesktopLauncher {
 			_SyntaxCfg.put("CaretColor", "0xffffff");
 			_SyntaxCfg.put("TokenMarker.Color", "0x403020");
 			_SyntaxCfg.put("PairMarker.Color", "0x665544");
-
-			//Comments come from the SyntaxStyle lib:
 			
+			_SyntaxCfg.put("Editable.Color",  "0x333333");
+
+			//Comments come from the SyntaxStyle lib:			
 			// Language operators
 			_SyntaxCfg.put("Style.OPERATOR", "0xe6e6e6, 2");
 
@@ -190,7 +201,7 @@ public class DesktopLauncher {
 			// Text that signals an error
 			_SyntaxCfg.put("Style.ERROR", "0xffffff, 0");
 
-			
+			//_SyntaxCfg.put("Style.NOT_EDITABLE", "0xffffff, 1");
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
