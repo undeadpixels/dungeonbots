@@ -48,7 +48,7 @@ public class EntityActionTest {
         		world.update(p.getMoveDuration() / 2 + .0001f);
         		System.out.println(p.getActionQueue());
         		System.out.println(p.getPosition());
-        		assertEquals("Trying vertex #"+i, expect, p.getPosition(), 0.01f);
+        		assertEquals("Trying time step #"+(i+1), expect, p.getPosition(), 0.01f);
         		i++;
     		}
     }

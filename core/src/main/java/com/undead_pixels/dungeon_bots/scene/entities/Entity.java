@@ -19,6 +19,11 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	protected LuaSandbox sandbox = new LuaSandbox();
 	
 	/**
+	 * A string representing this Entity's script (if any)
+	 */
+	protected String scriptText;
+	
+	/**
 	 * The queue of actions this Entity is going to take
 	 */
 	protected ActionQueue actionQueue = new ActionQueue(this);
@@ -42,6 +47,10 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	 * @param world		The world to contain this Actor
 	 */
 	public Entity(World world, String name) {
+		this(world, name, null);
+	}
+
+	public Entity(World world, String name, Whitelist whitelist) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
@@ -49,9 +58,14 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 		this.sandbox.addBindable(this);
 	}
 
-	/**
-	 * @return		The user sandbox
-	 */
+	
+	protected LuaSandbox createScriptEnv() {
+		LuaSandbox env = new LuaSandbox(); // TODO 
+		// env.add(this.getLuaBinding());
+		
+		sandbox = env;
+		return sandbox;
+	}
 	@Override
 	public LuaSandbox getSandbox() {
 		return sandbox;
