@@ -21,7 +21,7 @@ public class EntityActionTest {
     public void animatedMoveInSqureTest() {
     		World world = new World();
     		world.setSize(16, 16);
-    		Player p = new Player(world, "player", null);
+    		Player p = new Player(world, "player");
 
     		p.queueMoveSlowly(Direction.UP);
     		p.queueMoveSlowly(Direction.RIGHT);
