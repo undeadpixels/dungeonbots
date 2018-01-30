@@ -28,9 +28,9 @@ public abstract class SpriteEntity extends Entity {
 
 	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
 		super(world, name);
-		if(tex == null) {
+		if(tex == null)
 			sprite = new Sprite();
-		} else {
+		else {
 			sprite = new Sprite(tex);
 			sprite.setScale(1.0f/tex.getRegionWidth());
 		}

@@ -10,18 +10,31 @@ import java.util.stream.Stream;
 
 public class LuaReflection {
 
+	/**
+	 *
+	 * @param bindableMethods
+	 * @param caller
+	 * @param securityLevel
+	 * @return
+	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addTo(bindableMethods
-						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null
+				.addTo(bindableMethods.filter(method ->
+						method.getDeclaredAnnotation(Bind.class) != null
 								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
 						.map(method ->genId(caller, method)));
 	}
 
+	/**
+	 *
+	 * @param bindableMethods
+	 * @param securityLevel
+	 * @return
+	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addTo(bindableMethods
-						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null
+				.addTo(bindableMethods.filter(method ->
+						method.getDeclaredAnnotation(Bind.class) != null
 								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
 						.map(method ->genId(null, method)));
 	}
@@ -95,6 +108,9 @@ public class LuaReflection {
 				.flatMap(Stream::of)
 				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
 					(m,v) -> {
+						// Do not get methods that already exist in Map
+						// so as not to create ambiguous bindings to methods defined
+						// by a parent class.
 						String name = GetBindable.bindTo(v);
 						if(!m.containsKey(name))
 							m.put(name, v);
