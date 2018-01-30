@@ -21,7 +21,7 @@ public class TileTypes implements GetBindable {
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
 		TileTypes tileTypes = new TileTypes();
-		SecurityContext.getWhitelist().addWhitelist(tileTypes.getWhitelist(SecurityContext.getActiveSecurityLevel()));
+		SecurityContext.getWhitelist().add(tileTypes);
 		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 

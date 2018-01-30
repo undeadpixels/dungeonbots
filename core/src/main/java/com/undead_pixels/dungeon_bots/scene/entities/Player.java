@@ -23,7 +23,7 @@ public class Player extends Actor {
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World)world.checktable().get("this").checkuserdata(World.class);
 		Player p = new Player(w, "player", new LuaSandbox(), null);
-		SecurityContext.getWhitelist().addWhitelist(p.getWhitelist(SecurityContext.getActiveSecurityLevel()));
+		SecurityContext.getWhitelist().add(p);
 		p.sprite.setX((float)x.checkdouble());
 		p.sprite.setY((float)y.checkdouble());
 		return p;

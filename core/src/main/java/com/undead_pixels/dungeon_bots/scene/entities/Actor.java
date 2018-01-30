@@ -156,7 +156,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player UP
 	 */
 	@Bind
-	public void up() {
+	final public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
 
@@ -164,7 +164,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player DOWN
 	 */
 	@Bind
-	public void down() {
+	final public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
 
@@ -172,7 +172,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player LEFT
 	 */
 	@Bind
-	public void left() {
+	final public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
 
@@ -180,7 +180,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player RIGHT
 	 */
 	@Bind
-	public void right() {
+	final public void right() {
 		moveInstantly(Direction.RIGHT, 1);
 	}
 
@@ -192,7 +192,7 @@ public class Actor extends SpriteEntity {
 	 * @return A Varargs of the players position
 	 */
 	@Bind
-	public Varargs position() {
+	final public Varargs position() {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
 	}

@@ -31,6 +31,14 @@ public interface GetBindable {
 		return LuaReflection.getWhitelist(this.getBindableMethods(), this, securityLevel);
 	}
 
+	default Whitelist getWhitelist() {
+		return this.getWhitelist(SecurityContext.getActiveSecurityLevel());
+	}
+
+	static Whitelist getWhitelist(final Class<?> clz) {
+		return GetBindable.getWhitelist(clz, SecurityContext.getActiveSecurityLevel());
+	}
+
 	static Stream<Method> getBindableStaticMethods(final Class<?> clz) {
 		return LuaReflection.getBindableStaticMethods(clz);
 	}

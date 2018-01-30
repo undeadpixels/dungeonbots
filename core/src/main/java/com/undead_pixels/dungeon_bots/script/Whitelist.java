@@ -27,7 +27,12 @@ public class Whitelist implements GetBindable {
 		return this;
 	}
 
-	public Whitelist addTo(Stream<String> args) {
+	public <T extends GetBindable> Whitelist add(T bindable) {
+		addWhitelists(bindable.getWhitelist());
+		return this;
+	}
+
+	public  Whitelist addTo(Stream<String> args) {
 		whitelist.addAll(args.collect(Collectors.toList()));
 		return this;
 	}
@@ -37,12 +42,12 @@ public class Whitelist implements GetBindable {
 		return this;
 	}
 
-	public <T extends GetBindable> Whitelist add(T caller, Method m) {
+	public <T extends GetBindable> Whitelist add(final T caller, final Method m) {
 		whitelist.add(LuaReflection.genId(caller,m));
 		return this;
 	}
 
-	public <T extends GetBindable> Whitelist remove(T caller, Method m) {
+	public <T extends GetBindable> Whitelist remove(final T caller, final Method m) {
 		whitelist.remove(LuaReflection.genId(caller, m));
 		return this;
 	}
@@ -52,14 +57,13 @@ public class Whitelist implements GetBindable {
 		return this;
 	}
 
-	public Whitelist addWhitelist(Whitelist w) {
-		return addWhitelists(Stream.of(w));
-	}
-
-
 	public Whitelist removeWhitelists(Stream<Whitelist> w) {
 		w.forEach(val -> whitelist.removeAll(val.whitelist));
 		return this;
+	}
+
+	public Whitelist addWhitelists(Whitelist... w) {
+		return addWhitelists(Stream.of(w));
 	}
 
 	public <T extends GetBindable> Whitelist add(final SecurityLevel securityLevel, T... args) {

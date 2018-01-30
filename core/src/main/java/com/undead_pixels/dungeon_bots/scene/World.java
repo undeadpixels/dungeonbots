@@ -55,7 +55,7 @@ public class World implements GetBindable {
     @Bind @BindTo("new")
     public static LuaValue newWorld() {
     	World w = new World();
-    	SecurityContext.getWhitelist().addWhitelist(w.getWhitelist(SecurityContext.getActiveSecurityLevel()));
+    	SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
