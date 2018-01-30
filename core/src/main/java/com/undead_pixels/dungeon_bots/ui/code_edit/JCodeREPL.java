@@ -102,7 +102,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
 
-		setPreferredSize(new Dimension(300, 500));
 		add(makeREPLToolBar(), BorderLayout.PAGE_START);
 
 		_MessagePane = new JTextPane();
@@ -113,7 +112,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_MessagePane.setText("");
 
 		JPanel executePanel = new JPanel(new BorderLayout());
-		_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
+		//_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
 		this.add(executePanel, BorderLayout.PAGE_END);
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
 
@@ -383,6 +382,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL MESSAGING MEMBERS
 	 * ================================================================
 	 */
+	
+	/**
+	 * Posts a message to the message pane.
+	 */
+	public void message(String message){
+		message(message, null);
+	}
+	
 	/**
 	 * Posts a message to the message pane. The identity of the sender will
 	 * compel the style with which the message will appear.
