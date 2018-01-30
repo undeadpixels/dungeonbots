@@ -54,6 +54,8 @@ public class GameEditorState {
 					sc.close();
 					throw new ParseException("Could not understand section header: "+line, 0);
 				}
+				
+				currentSection = newSection;
 			} else {
 				if(line.startsWith(" ")) { // indented section
 					hadIndent = true;
