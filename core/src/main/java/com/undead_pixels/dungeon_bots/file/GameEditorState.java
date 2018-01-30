@@ -1,49 +1,93 @@
 package com.undead_pixels.dungeon_bots.file;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Scanner;
 
 public class GameEditorState {
 	
 	private LinkedHashMap<String, GameEditorStateSection> sections = new LinkedHashMap<>();
+	public WorldSizeSection worldSizeSection; // TODO - make private
+	public TileRegionSection tileRegionSection; // TODO - make private
+	public PlayerInitSection playerInitSection; // TODO - make private
 
 	public GameEditorState() {
 		sections.put("world size",
-				new GameEditorStateSection.Fake("world.setSize(16, 16)"));
+				worldSizeSection = new WorldSizeSection());
 		sections.put("load custom assets",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 		sections.put("register tiles",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 		sections.put("tiles",
-				new GameEditorStateSection.Fake(
-						"for i in 1,16 do\n" + 
-						"        for j in 1,16 do\n" + 
-						"            if i == 1 or i == 16 or j == 1 or j == 16 then\n" + 
-						"                world:setTile(j, i, tileTypes.wall)\n" + 
-						"            else\n" + 
-						"                world:setTile(j, i, tileTypes.floor)\n" + 
-						"            end\n" + 
-						"        end\n" + 
-						"    end"));
+				tileRegionSection = new TileRegionSection());
 		sections.put("player init",
-				new GameEditorStateSection.Fake(
-						"world.player = world.newPlayer(2, 2)\n" + 
-						"world.player:setCode(\"autobind()\")"));
+				playerInitSection = new PlayerInitSection());
 		sections.put("bots init",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 		sections.put("enemies init",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 		sections.put("whitelist",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 		sections.put("settings",
-				new GameEditorStateSection.Fake(""));
+				new FakeSection(""));
 	}
 
-	public GameEditorState(String luaCode) {
+	public GameEditorState(String luaCode) throws ParseException {
 		this(); // init the defaults
 		
+		Scanner sc = new Scanner(luaCode);
 		
-		// TODO - parse
+		GameEditorStateSection currentSection = new FakeSection("");
+		String prevLine = "";
+		boolean hadIndent = false;
+		ArrayList<String> currentLineList = new ArrayList<>();
+		while(sc.hasNextLine()) {
+			String line = sc.nextLine();
+			
+			if(line.startsWith("-- Editor Section: ")) {
+				String sectionName = line.split("\\: ", 2)[1];
+				
+				GameEditorStateSection newSection = sections.get(sectionName);
+				
+				if(newSection == null) {
+					sc.close();
+					throw new ParseException("Could not understand section header: "+line, 0);
+				}
+			} else {
+				if(line.startsWith(" ")) { // indented section
+					hadIndent = true;
+					prevLine += "\n" + line;
+				} else if(line.isEmpty()) { // end of section
+					if(!prevLine.isEmpty()) {
+						currentLineList.add(prevLine);
+					}
+					prevLine = "";
+					String[] s = currentLineList.toArray(new String[0]);
+					if(s.length > 0) {
+						currentSection.updateFromLuaString(s);
+					}
+					currentLineList.clear();
+				} else if(!line.isEmpty()) {
+					if(hadIndent) {
+						prevLine += line;
+					}
+					if(!prevLine.isEmpty()) {
+						currentLineList.add(prevLine);
+					}
+
+					if(!hadIndent) {
+						prevLine = line;
+					} else {
+						prevLine = "";
+					}
+					
+				}
+			}
+			
+		}
+		
+		sc.close();
 		
 	}
 
@@ -65,35 +109,5 @@ public class GameEditorState {
 		}
 		
 		return sb.toString();
-	}
-	
-	public static abstract class GameEditorStateSection {
-		public abstract String toLua();
-		public abstract void updateFromLuaString(String luaCode) throws ParseException;
-		
-		
-		/**
-		 * A fake GameEditorSection, just used for planning
-		 */
-		public static class Fake extends GameEditorStateSection {
-			private String str;
-
-			public Fake(String str) {
-				super();
-				this.str = str;
-			}
-
-			@Override
-			public String toLua() {
-				return str;
-			}
-
-			@Override
-			public void updateFromLuaString(String luaCode) throws ParseException {
-				throw new ParseException("Fake class cannot update itself. It's a fake.", 0);
-			}
-			
-			
-		}
 	}
 }
