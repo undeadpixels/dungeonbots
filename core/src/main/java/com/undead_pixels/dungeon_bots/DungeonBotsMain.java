@@ -45,8 +45,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pool;
-import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
-import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
+
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
