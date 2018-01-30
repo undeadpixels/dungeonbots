@@ -9,7 +9,8 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 public enum SecurityLevel {
     DEBUG(3, JsePlatform.debugGlobals()),
     AUTHOR(2, JsePlatform.standardGlobals()),
-    DEFAULT(1, new Globals());
+    DEFAULT(1, JsePlatform.standardGlobals()),
+    NONE(0, JsePlatform.standardGlobals());
     public final int level;
     public final Globals globals;
 

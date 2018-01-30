@@ -33,6 +33,6 @@ public class ActorBuilder {
 	}
 
 	public Actor createActor() {
-		return new Actor(world, name, script, tex);
+		return new Actor(world, name, tex); // TODO - what to do with script?
 	}
 }

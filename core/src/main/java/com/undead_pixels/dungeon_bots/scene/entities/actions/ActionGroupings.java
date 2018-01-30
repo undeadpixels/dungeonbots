@@ -34,7 +34,7 @@ public abstract interface ActionGroupings {
 		@Override
 		public boolean allowsDequeueAction(ActionQueue q) {
 			if(allowingDequeuesThisUpdate) {
-				return q.getEntity().getTeam() == currentTeam;
+				return q.getOwner().getTeam() == currentTeam;
 			}
 			return false;
 		}

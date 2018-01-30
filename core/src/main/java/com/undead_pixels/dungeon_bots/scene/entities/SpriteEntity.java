@@ -28,13 +28,28 @@ public abstract class SpriteEntity extends Entity {
 
 	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
 		super(world, name);
+		if(tex == null)
+			sprite = new Sprite();
+		else {
+			sprite = new Sprite(tex);
+			sprite.setSize(1.0f, 1.0f);
+			sprite.setOrigin(.5f, .5f);
+		}
+		sprite.setPosition(x, y);
+	}
+
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param script		A user scriptEnv that is run on this object. May be null.
+	 * @param tex		A texture for this Actor. May be null.
+	 */
+	public SpriteEntity(World world, String name, TextureRegion tex, Whitelist whitelist) {
+		super(world, name, whitelist);
 		if(tex == null) {
 			sprite = new Sprite();
 		} else {
 			sprite = new Sprite(tex);
-			sprite.setScale(1.0f/tex.getRegionWidth());
 		}
-		sprite.setPosition(x, y);
 	}
 
 	@Override
@@ -45,7 +60,8 @@ public abstract class SpriteEntity extends Entity {
 	@Override
 	public void render(SpriteBatch batch) {
 		if(sprite != null && sprite.getTexture() != null) {
-			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX());
+			//sprite.setRotation((float) ((System.currentTimeMillis() % 5000l) * (360f / 5000)));
+			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX()+", origin = "+sprite.getOriginX());
 			sprite.draw(batch);
 		}
 	}

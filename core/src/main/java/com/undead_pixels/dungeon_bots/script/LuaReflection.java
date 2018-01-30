@@ -3,12 +3,9 @@ package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class LuaReflection {
@@ -16,30 +13,30 @@ public class LuaReflection {
 	/**
 	 *
 	 * @param bindableMethods
+	 * @param caller
+	 * @param securityLevel
 	 * @return
 	 */
-	public static Whitelist getPermissiveWhitelist(final Collection<Method> bindableMethods) {
+	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addTo(bindableMethods.stream()
-						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null)
-						.map(method ->genId(null, method) )
-						.distinct()
-						.collect(Collectors.toList()));
+				.addTo(bindableMethods.filter(method ->
+						method.getDeclaredAnnotation(Bind.class) != null
+								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
+						.map(method ->genId(caller, method)));
 	}
 
 	/**
 	 *
 	 * @param bindableMethods
-	 * @param caller
+	 * @param securityLevel
 	 * @return
 	 */
-	public static Whitelist getPermissiveWhitelist(final Collection<Method> bindableMethods, final Object caller) {
+	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addTo(bindableMethods.stream()
-						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null)
-						.map(method ->genId(caller,method) )
-						.distinct()
-						.collect(Collectors.toList()));
+				.addTo(bindableMethods.filter(method ->
+						method.getDeclaredAnnotation(Bind.class) != null
+								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
+						.map(method ->genId(null, method)));
 	}
 
 	/**
@@ -56,87 +53,88 @@ public class LuaReflection {
 	/**
 	 *
 	 * @param o
-	 * @param securityLevel
 	 * @return
 	 */
-	public static Stream<Method> getBindableMethods(final Object o, final SecurityLevel securityLevel) {
+	public static Stream<Method> getBindableMethods(final Object o) {
 		return getAllMethods(o.getClass())
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& !Modifier.isStatic(method.getModifiers());
-				});
+							&& !Modifier.isStatic(method.getModifiers()); });
 	}
 
 	/**
 	 *
 	 * @param c
-	 * @param securityLevel
 	 * @return
 	 */
-	public static Stream<Method> getBindableStaticMethods(final Class<?> c, final SecurityLevel securityLevel) {
+	public static Stream<Method> getBindableStaticMethods(final Class<?> c) {
 		return getAllMethods(c)
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& Modifier.isStatic(method.getModifiers());
-				});
+							&& Modifier.isStatic(method.getModifiers()); });
 	}
 
 	/**
 	 *
 	 * @param c
-	 * @param securityLevel
 	 * @return
 	 */
-	public static Stream<Field> getBindableFields(final Class<?> c, final SecurityLevel securityLevel) {
+	public static Stream<Field> getBindableFields(final Class<?> c) {
 		return getAllFields(c)
 				.filter(field -> {
 					Bind annotation = field.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& annotation.value().level <= securityLevel.level
 							&& !Modifier.isStatic(field.getModifiers()); });
 	}
 
 	/**
 	 *
 	 * @param c
-	 * @param securityLevel
 	 * @return
 	 */
-	public static Stream<Field> getBindableStaticFields(final Class<?> c, final SecurityLevel securityLevel) {
+	public static Stream<Field> getBindableStaticFields(final Class<?> c) {
 		return getAllFields(c)
 				.filter(field -> {
 					Bind annotation = field.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& annotation.value().level <= securityLevel.level
 							&& Modifier.isStatic(field.getModifiers()); });
 	}
 
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
-		Class<?> c = clz;
-		final Map<String,Method> ans = new HashMap<>();
-		while(!c.equals(Object.class)) {
-			Stream.of(c.getDeclaredMethods())
-					.forEach(method -> {
-						String name = GetBindable.bindTo(method);
-						if(!ans.containsKey(name))
-							ans.put(name, method);
-					});
-			c = c.getSuperclass();
-		}
-		return ans.values().stream();
+		return flattenClass(clz)
+				.map(Class::getDeclaredMethods)
+				.flatMap(Stream::of)
+				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
+					(m,v) -> {
+						// Do not get methods that already exist in Map
+						// so as not to create ambiguous bindings to methods defined
+						// by a parent class.
+						String name = GetBindable.bindTo(v);
+						if(!m.containsKey(name))
+							m.put(name, v);
+					},
+					HashMap::putAll)
+				.values().stream();
 	}
 
 	private static Stream<Field> getAllFields(final Class<?> clz) {
-		Class<?> c = clz;
-		Collection<Collection<Field>> ans = new ArrayList<>();
-		while(!c.equals(Object.class)) {
-			ans.add(Stream.of(c.getDeclaredFields()).collect(Collectors.toList()));
-			c = c.getSuperclass();
+		return flattenClass(clz)
+				.map(Class::getDeclaredFields)
+				.flatMap(Stream::of).sequential();
+	}
+
+	private static Stream<Class<?>> flattenClass(final Class<?> src) {
+		Collection<Class<?>> classes = new ArrayList<>();
+		Class<?> temp = src;
+		try {
+			while (temp != null) {
+				classes.add(temp);
+				temp = temp.getSuperclass();
+			}
 		}
-		return ans.stream().flatMap(Collection::stream);
+		catch (Exception e) { }
+		return classes.stream().sequential();
 	}
 }

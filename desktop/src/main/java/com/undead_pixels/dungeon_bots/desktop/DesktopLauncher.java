@@ -77,34 +77,11 @@ public class DesktopLauncher {
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 
 		// =====================================================
-		// THE FOLLOWING DEMONSTRATES HOW TO USE THE NEW JCodeREPL and
-		// JCodeEditor!!!!
+		// Hey Wes, I moved the JCodeREPL into the touchDown function of GameView
+		// Just click on the player to bring up its associated REPL in a window
 		// =====================================================
-
-		JPanel demoPanel = new JPanel(new BorderLayout());
-		frame.add(demoPanel, BorderLayout.LINE_START);
-
-		JCodeREPL repl = new JCodeREPL();
-		repl.setPreferredSize(new Dimension(300, 400));
-		repl.message("This is the REPL message window.", null);
-		repl.setCode("x=5+4");
-		repl.execute(100);
-		repl.setCode("return x  --Waiting for execution...");
-		demoPanel.add(repl, BorderLayout.PAGE_START);
-
-		JCodeEditor editor = new JCodeEditor();
-		editor.setCode("-- this is a test\n\n"
-				+ "function f()\n"
-				+ "    foo()\n"
-				+ "    bar = baz * 16\n"
-				+ "    s = \"str\" .. 1\n"
-				+ "    if true then\n"
-				+ "        print(\"something was true\")\n"
-				+ "    end\n"
-				+ "end\n");
+		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 		
-		demoPanel.add(editor, BorderLayout.AFTER_LINE_ENDS);
-
 		frame.setSize(1024, 768);
 		frame.revalidate();
 		frame.setVisible(true);

@@ -1,13 +1,17 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import org.luaj.vm2.LuaValue;
 
 public class TileType implements GetBindable {
 	private final TextureRegion[] textureRegions;
 	private final boolean random;
 	private final String name;
+	private LuaValue luaValue;
 
 	public TileType(TextureRegion[] textureRegions, String name, boolean random) {
 		super();
@@ -46,5 +50,12 @@ public class TileType implements GetBindable {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public LuaValue getLuaValue() {
+		if (this.luaValue == null)
+			this.luaValue = LuaProxyFactory.getLuaValue(this);
+		return this.luaValue;
 	}
 }
