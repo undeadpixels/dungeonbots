@@ -17,7 +17,7 @@ public class ScriptApiTest {
 	private final double EPSILON = 0.00001;
 
     @Test public void testGetBindings() {
-        Player player = new Player(new World(), "player", null);
+        Player player = new Player(new World(), "player");
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.addBindable(player);
         LuaScript luaScript = se.script("player:up();");
