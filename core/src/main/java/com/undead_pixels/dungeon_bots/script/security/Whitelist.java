@@ -1,11 +1,14 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.security;
 
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.*;
+
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -98,6 +101,27 @@ public class Whitelist implements GetBindable {
 		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		return this.luaValue;
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public void allow(Varargs varargs) {
+		final int SIZE = varargs.narg();
+		assert SIZE > 0;
+		LuaTable tbl = varargs.checktable(1);
+		GetBindable val = (GetBindable) tbl.checkuserdata(1, GetBindable.class);
+		if(SIZE == 1) {
+			addWhitelists(val.getWhitelist());
+		}
+		else {
+			List<String> methodNames = new ArrayList<>();
+			for(int i = 2; i < SIZE; i++) {
+				try { methodNames.add(varargs.arg(i).checkjstring()); }
+				catch (Exception e) { }
+			}
+			methodNames.forEach(name ->
+				LuaReflection.getMethodWithName(val, name)
+						.ifPresent(m -> whitelist.add(LuaReflection.genId(val, m))));
+		}
 	}
 
 }

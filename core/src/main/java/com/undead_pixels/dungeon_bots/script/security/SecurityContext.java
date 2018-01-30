@@ -1,5 +1,6 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.security;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 public class SecurityContext {

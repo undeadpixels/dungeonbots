@@ -5,6 +5,7 @@
 
 package com.undead_pixels.dungeon_bots.script;
 
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
 import java.io.File;
 import java.util.Optional;

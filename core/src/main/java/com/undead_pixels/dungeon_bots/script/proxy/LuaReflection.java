@@ -1,8 +1,10 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.proxy;
 
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Supplier;
@@ -105,18 +107,7 @@ public class LuaReflection {
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
 		return flattenClass(clz)
 				.map(Class::getDeclaredMethods)
-				.flatMap(Stream::of)
-				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
-					(m,v) -> {
-						// Do not get methods that already exist in Map
-						// so as not to create ambiguous bindings to methods defined
-						// by a parent class.
-						String name = GetBindable.bindTo(v);
-						if(!m.containsKey(name))
-							m.put(name, v);
-					},
-					HashMap::putAll)
-				.values().stream();
+				.flatMap(Stream::of);
 	}
 
 	private static Stream<Field> getAllFields(final Class<?> clz) {
@@ -136,5 +127,11 @@ public class LuaReflection {
 		}
 		catch (Exception e) { }
 		return classes.stream().sequential();
+	}
+
+	public static Optional<Method> getMethodWithName(Object o, String name) {
+		return getBindableMethods(o.getClass())
+				.filter(m -> GetBindable.bindTo(m).equals(name))
+				.findFirst();
 	}
 }

@@ -1,10 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import org.luaj.vm2.LuaValue;
 
 public class TileType implements GetBindable {

@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.*;
 

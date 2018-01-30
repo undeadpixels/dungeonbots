@@ -14,12 +14,11 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
-import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import org.luaj.vm2.LuaValue;
 
@@ -60,14 +59,14 @@ public class World implements GetBindable {
 	}
 
 	@Bind
-	public void setPlayer(LuaValue luaPlayer) {
-    	Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
-    	player = p;
+	public void win() {
+    	System.out.println("A winner is you");
 	}
 
 	@Bind
-	public void setTile(LuaValue luaTile) {
-
+	public void setPlayer(LuaValue luaPlayer) {
+    	Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
+    	player = p;
 	}
 
     // TODO - another constructor for specific resource paths
@@ -135,11 +134,18 @@ public class World implements GetBindable {
 		entities.add(e);
 	}
 
+
+	@Bind
+	public void setSize(LuaValue w, LuaValue h) {
+    	setSize(w.checkint(), h.checkint());
+	}
+
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
 		tileTypes = new TileType[w][h];
 	}
+
 	public Vector2 getSize() {
 		// TODO - copy old tiles?
 		return new Vector2(tiles.length, tiles[0].length);
@@ -169,7 +175,13 @@ public class World implements GetBindable {
 			tilesAreStale = false;
 		}
 	}
-	
+
+	@Bind
+	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
+    	TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
+    	setTile(x.checkint() - 1, y.checkint() - 1, tileType);
+	}
+
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
 		// TODO - more stuff here
