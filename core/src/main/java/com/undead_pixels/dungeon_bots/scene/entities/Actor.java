@@ -158,7 +158,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void up() {
-		moveInstantly(Direction.UP, 1);
+		this.queueMoveSlowly(Direction.UP);
 	}
 
 	/**
@@ -166,7 +166,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void down() {
-		moveInstantly(Direction.DOWN, 1);
+		this.queueMoveSlowly(Direction.DOWN);
 	}
 
 	/**
@@ -174,7 +174,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void left() {
-		moveInstantly(Direction.LEFT, 1);
+		this.queueMoveSlowly(Direction.LEFT);
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void right() {
-		moveInstantly(Direction.RIGHT, 1);
+		this.queueMoveSlowly(Direction.RIGHT);
 	}
 
 	/**

@@ -10,9 +10,8 @@ public abstract class SpriteAnimatedAction extends AnimatedAction {
 	private Sprite sprite;
 	
 	private boolean didHaveFirstFrame = false;
-	private float duration;
-	private float x0, y0, sx0, sy0, r0;
-	private float x1, y1, sx1, sy1, r1;
+	private float x0 = Float.NaN, y0 = Float.NaN, sx0 = Float.NaN, sy0 = Float.NaN, r0 = Float.NaN;
+	private float x1 = Float.NaN, y1 = Float.NaN, sx1 = Float.NaN, sy1 = Float.NaN, r1 = Float.NaN;
 	
 	public void setFinalPosition(float x, float y) {
 		x1 = x;
@@ -49,6 +48,24 @@ public abstract class SpriteAnimatedAction extends AnimatedAction {
 			sx0 = sprite.getScaleX();
 			sy0 = sprite.getScaleY();
 			r0 =  sprite.getRotation();
+
+			if(Float.isNaN(x1)) {
+				x1 = x0;
+			}
+			if(Float.isNaN(y1)) {
+				y1 = y0;
+			}
+			if(Float.isNaN(sx1)) {
+				sx1 = sx0;
+			}
+			if(Float.isNaN(sy1)) {
+				sy1 = sy0;
+			}
+			if(Float.isNaN(r1)) {
+				r1 = r0;
+			}
+			
+			
 			didHaveFirstFrame = true;
 		}
 		
