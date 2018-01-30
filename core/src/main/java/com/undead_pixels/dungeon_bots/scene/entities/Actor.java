@@ -4,7 +4,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
+import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
 
@@ -15,6 +17,8 @@ import static org.luaj.vm2.LuaValue.*;
  * Examples include players, bots, and enemies.
  */
 public class Actor extends SpriteEntity {
+
+	private LuaValue luaBinding;
 
 	/**
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
@@ -31,6 +35,7 @@ public class Actor extends SpriteEntity {
 		super(world, name, tex);
 		// TODO Auto-generated constructor stub
 	}
+	
 	/**
 	 * @param world		The world to contain this Actor
 	 * @param script		A user sandbox that is run on this object
@@ -39,6 +44,7 @@ public class Actor extends SpriteEntity {
 	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
 		super(world, name, tex);
 		// TODO Auto-generated constructor stub
+		/// XXX
 	}
 
 	@Override
@@ -127,6 +133,13 @@ public class Actor extends SpriteEntity {
 	}
 
 	@Override
+	public LuaValue getLuaValue() {
+		if(this.luaBinding == null)
+			this.luaBinding = LuaProxyFactory.getLuaValue(this);
+		return this.luaBinding;
+	}
+
+	@Override
 	public int getId() {
 		return this.id;
 	}
@@ -145,7 +158,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player UP
 	 */
 	@Bind
-	public void up() {
+	final public void up() {
 		moveInstantly(Direction.UP, 1);
 	}
 
@@ -153,7 +166,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player DOWN
 	 */
 	@Bind
-	public void down() {
+	final public void down() {
 		moveInstantly(Direction.DOWN, 1);
 	}
 
@@ -161,7 +174,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player LEFT
 	 */
 	@Bind
-	public void left() {
+	final public void left() {
 		moveInstantly(Direction.LEFT, 1);
 	}
 
@@ -169,7 +182,7 @@ public class Actor extends SpriteEntity {
 	 * Moves the player RIGHT
 	 */
 	@Bind
-	public void right() {
+	final public void right() {
 		moveInstantly(Direction.RIGHT, 1);
 	}
 
@@ -180,8 +193,8 @@ public class Actor extends SpriteEntity {
 	 * </code>
 	 * @return A Varargs of the players position
 	 */
-	@Bind(SecurityLevel.DEFAULT)
-	public Varargs position() {
+	@Bind
+	final public Varargs position() {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
 	}

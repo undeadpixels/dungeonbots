@@ -23,7 +23,7 @@ public class TestWhitelist {
 	@Test
 	public void testGetWhitelist() {
 		Actor a = new ActorBuilder().createActor();
-		Whitelist w = a.permissiveWhitelist();
+		Whitelist w = a.getWhitelist(SecurityLevel.DEBUG);
 		Optional<Method> m = findMethod(a, "up");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 		m = findMethod(a, "down");
@@ -37,7 +37,7 @@ public class TestWhitelist {
 	@Test
 	public void testMethodNotOnWhitelist() {
 		Actor a = new ActorBuilder().createActor();
-		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG).restrictiveAdd(a);
+		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
 		Whitelist w = sandbox.getWhitelist();
 		Optional<Method> m = findMethod(a, "up");
 		assert m.isPresent();
@@ -54,7 +54,7 @@ public class TestWhitelist {
 	@Test
 	public void testRemoveFromWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).permissiveAdd(a);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
 		Optional<Method> m = findMethod(a, "up");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
@@ -72,10 +72,10 @@ public class TestWhitelist {
 	@Test
 	public void testAddToWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).restrictiveAdd(a);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
 
-		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
+ 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
 		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
 

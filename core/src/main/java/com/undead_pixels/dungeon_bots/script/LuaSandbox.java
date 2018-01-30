@@ -51,45 +51,25 @@ public class LuaSandbox {
 	 * @param bindings A collection of LuaBindings to append to the Global Environment
 	 * @return The modified LuaSandbox
 	 */
-	public LuaSandbox add(Collection<LuaBinding> bindings) {
-        for(LuaBinding binding : bindings)
-            globals.set(binding.bindTo, binding.luaValue);
+	public LuaSandbox add(Stream<LuaBinding> bindings) {
+        bindings.forEach(binding ->
+				globals.set(binding.bindTo, binding.luaValue));
         return this;
     }
 
-	/**
-	 * Creates a LuaValue proxy for each object and binds to the LuaValue to the Sandbox Environment.
-	 * Does not populate Whitelist.
-	 * @param toAdd A List of Objects implementing the Scriptable interface.
-	 * @param <T> A generic type implementing Scriptable
-	 * @return Returns the LuaSandbox
-	 */
     @SafeVarargs
-	public final <T extends GetBindable> LuaSandbox restrictiveAdd(T... toAdd) {
-		add(Stream.of(toAdd)
-				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
-				.collect(Collectors.toList()));
+    public final <T extends GetBindable> LuaSandbox  addBindable(T... bindable) {
+		whitelist.add(securityLevel, bindable);
+		add(Stream.of(bindable)
+				.map(GetBindable::getLuaBinding));
 		return this;
 	}
 
-	/**Creates a LuaValue proxy for each object and binds to the LuaValue to the Sandbox Environment.
-	 * Uses reflection to populate an initial whitelist that contains all of the available methods of the argument objects.
-	 * @param toAdd A List of Objects implementing the Scriptable interface.
-	 * @param <T> A generic type implementing Scriptable
-	 * @return Returns the LuaSandbox
-	 */
-	@SafeVarargs
-    public final <T extends GetBindable> LuaSandbox permissiveAdd(T... toAdd) {
-		whitelist.add(toAdd);
-		add(Stream.of(toAdd)
-				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
-				.collect(Collectors.toList()));
-		return this;
-	}
 
-	public <T extends GetBindable> LuaSandbox permissiveAddClass(Class<T> clz) {
-		whitelist.add(clz);
-		LuaBinding b = LuaProxyFactory.getBindings(clz,securityLevel);
+
+	public <T extends GetBindable> LuaSandbox addBindableClass(Class<T> clz) {
+		whitelist.add(securityLevel, clz);
+		LuaBinding b = LuaProxyFactory.getBindings(clz);
 		add(b);
 		return this;
 	}
@@ -102,7 +82,7 @@ public class LuaSandbox {
 	 * @return The modified LuaSandbox
 	 */
 	public LuaSandbox add(LuaBinding... bindings) {
-        return add(Stream.of(bindings).collect(Collectors.toList()));
+        return add(Stream.of(bindings));
     }
 
     /**

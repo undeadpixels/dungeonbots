@@ -1,25 +1,66 @@
 package com.undead_pixels.dungeon_bots.script;
 
+import java.util.ArrayList;
+
 import org.luaj.vm2.LuaTable;
 
-public class ScriptEvent {
+import com.undead_pixels.dungeon_bots.queueing.Taskable;
+
+public abstract class ScriptEvent implements Taskable<LuaSandbox> {
 	
-	// This whole thing is very much TODO
+	LuaSandbox sandbox;
+	LuaScript script;
 	
-	public static final String NO_COALESCING = "";
+	ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
 	
-	public final String coalesceGroup;
-	public final String functionCall;
-	public LuaTable[] args;
-	
-	
-	public ScriptEvent(String coalesceGroup, String functionCall, LuaTable[] args) {
-		super();
-		this.coalesceGroup = coalesceGroup;
-		this.functionCall = functionCall;
-		this.args = args;
+	public void addListener(ScriptEventStatusListener listener) {
+		listeners.add(listener);
 	}
 	
+	public ScriptEvent(LuaSandbox sandbox) {
+		this.sandbox = sandbox;
+	}
 	
+	/**
+	 * Create the given script and begin executing it
+	 * 
+	 * @return	true if the script will run as planned; false if it cannot execute
+	 */
+	@Override
+	public boolean preAct() {
+		boolean couldStart = startScript();
+		
+		if(!couldStart) {
+			for(ScriptEventStatusListener l: listeners) {
+				l.scriptEventFinished(this, ScriptStatus.ERROR);
+			}
+			
+			return false;
+		}
+		
+		return true;
+	}
+
+
+	@Override
+	public boolean act(float dt) {
+		if(script.getStatus() == ScriptStatus.COMPLETE
+				|| script.getStatus() == ScriptStatus.ERROR
+				|| script.getStatus() == ScriptStatus.LUA_ERROR) { // TODO @stewart, did I forget any cases here?
+			return true;
+		} else {
+			// TODO - script.resume();
+		}
+		return false;
+	}
+	
+	@Override
+	public void postAct() {
+		for(ScriptEventStatusListener l: listeners) {
+			l.scriptEventFinished(this, script.getStatus());
+		}
+	}
+	
+	public abstract boolean startScript();
 
 }
