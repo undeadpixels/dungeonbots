@@ -74,7 +74,7 @@ public class DesktopLauncher {
 																// listener for
 																// saving
 
-		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		//frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 
 		// =====================================================
 		// Hey Wes, I moved the JCodeREPL into the touchDown function of GameView
