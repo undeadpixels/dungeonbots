@@ -17,7 +17,6 @@ public class Tile extends SpriteEntity {
 	/**
 	 * @param world		The world to contain this Actor
 	 * @param name
-	 * @param script
 	 * @param tex		A texture for this Actor
 	 * @param x
 	 * @param y

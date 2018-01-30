@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
@@ -13,9 +14,9 @@ import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 public abstract class Entity implements BatchRenderable, Scriptable, GetBindable {
 
 	/**
-	 * A user scriptEnv that is run on this object
+	 * A user sandbox that is run on this object
 	 */
-	protected LuaSandbox scriptEnv;
+	protected LuaSandbox sandbox = new LuaSandbox();
 	
 	/**
 	 * A string representing this Entity's script (if any)
@@ -50,41 +51,46 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	}
 
 	public Entity(World world, String name, Whitelist whitelist) {
-		world.addEntity(this);
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
+		this.world.addEntity(this);
+		if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG) {
+			this.sandbox.permissiveAdd(this);
+		}
+		else {
+			this.sandbox.restrictiveAdd(this);
+		}
 	}
 
-	/**
-	 * @return		The user scriptEnv
-	 */
-	public LuaSandbox getScriptEnv() {
-		if(scriptEnv == null) {
-			return createScriptEnv();
-		}
-		return scriptEnv;
-	}
 	
 	protected LuaSandbox createScriptEnv() {
 		LuaSandbox env = new LuaSandbox(); // TODO 
 		// env.add(this.getLuaBinding());
 		
-		scriptEnv = env;
-		return scriptEnv;
-		
+		sandbox = env;
+		return sandbox;
+	}
+	@Override
+	public LuaSandbox getSandbox() {
+		return sandbox;
 	}
 	
 	public void update(float dt) {
-		// TODO - scriptEnv.resume();
+		// TODO - sandbox.resume();
 		actionQueue.act(dt);
 	}
 	
 	/**
-	 * @param scriptEnv		The user scriptEnv to set
+	 * @param scriptEnv		The user sandbox to set
 	 */
-	public void setScriptEnv(LuaSandbox scriptEnv) {
-		this.scriptEnv = scriptEnv;
+	public void setSandbox(LuaSandbox scriptEnv) {
+		this.sandbox = scriptEnv;
+	}
+
+	public <T extends GetBindable> Entity addToSandbox(T... vals) {
+		this.sandbox.permissiveAdd(vals);
+		return this;
 	}
 	
 	/**

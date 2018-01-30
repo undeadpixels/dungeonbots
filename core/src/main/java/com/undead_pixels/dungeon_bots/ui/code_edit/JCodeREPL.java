@@ -6,8 +6,18 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.Box;
@@ -79,7 +89,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_MessagePane.setText("");
 		_EditorPane.setText("");
-		
+
 		addKeyBindings();
 	}
 
@@ -118,12 +128,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 	}
 
-	private void addKeyBindings(){
+	private void addKeyBindings() {
 		KeyStroke ks = KeyStroke.getKeyStroke("ENTER");
 		InputMap map = this.getInputMap();
-		map.put(ks,  "EXECUTE");
+		map.put(ks, "EXECUTE");
 	}
-	
+
 	private JToolBar makeREPLToolBar() {
 		JToolBar result = new JToolBar();
 		result.add(makeButton("testing.gif", "CLICK", "ToolTipA", "REPLToolA", this));
@@ -193,6 +203,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
+	
 	private class ScriptExecutionWorker extends SwingWorker<Object, String> {
 
 		public String executingCode = "";
@@ -212,12 +223,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		@Override
 		protected Object doInBackground() {
-			try {
-				LuaScript script = _Sandbox.script(executingCode);
-				script.start(); // Since this is on a background thread, it
-								// COULD be done synchronously.
-				script.join(_milliseconds);
 
+			PrintStream originalOut = System.out;
+			try  {
+				
+				LuaScript script = _Sandbox.script(executingCode);
+				script.start(); 
+				script.join(_milliseconds);
+				
 				if (script.getError() != null)
 					return script.getError();
 
@@ -243,6 +256,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				}
 			} catch (Exception ex) {
 				return ex;
+			}finally{
+				System.setOut(originalOut);
 			}
 		}
 

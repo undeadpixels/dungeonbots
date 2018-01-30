@@ -24,7 +24,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import org.luaj.vm2.LuaValue;
 
-public class World implements Scriptable, GetBindable {
+public class World implements GetBindable {
     private LuaScript levelScript;
     private String name = "world";
 

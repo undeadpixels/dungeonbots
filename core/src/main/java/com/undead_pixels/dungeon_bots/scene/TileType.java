@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 
-public class TileType implements Scriptable, GetBindable {
+public class TileType implements GetBindable {
 	private final TextureRegion[] textureRegions;
 	private final boolean random;
 	private final String name;

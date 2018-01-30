@@ -19,9 +19,9 @@ public class EntityActionTest {
 
     @Test
     public void animatedMoveInSqureTest() {
-    		World w = new World();
-    		w.setSize(16, 16);
-    		Player p = new Player(w, "player", null);
+    		World world = new World();
+    		world.setSize(16, 16);
+    		Player p = new Player(world, "player", null);
 
     		p.queueMoveSlowly(Direction.UP);
     		p.queueMoveSlowly(Direction.RIGHT);
@@ -44,11 +44,11 @@ public class EntityActionTest {
     		};
     		
     		int i = 0;
-    		for(Vector2 v: expected) {
-        		w.update(p.getMoveDuration() / 2 + .0001f);
+    		for(Vector2 expect : expected) {
+        		world.update(p.getMoveDuration() / 2 + .0001f);
         		System.out.println(p.getActionQueue());
         		System.out.println(p.getPosition());
-        		assertEquals("Trying time step #"+(i+1), v, p.getPosition(), 0.01f);
+        		assertEquals("Trying time step #"+(i+1), expect, p.getPosition(), 0.01f);
         		i++;
     		}
     }

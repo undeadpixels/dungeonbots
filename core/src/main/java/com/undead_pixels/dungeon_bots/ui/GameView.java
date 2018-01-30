@@ -199,7 +199,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		Entity e = world.getEntityUnderLocation(gameSpace.x, gameSpace.y);
 		
 		if(e instanceof Player) {
-			LuaSandbox env = e.getScriptEnv();
+			LuaSandbox env = e.getSandbox();
 
 			JCodeREPL repl = new JCodeREPL(env);
 			Object o = new Object();

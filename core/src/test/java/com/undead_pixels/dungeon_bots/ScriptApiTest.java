@@ -27,7 +27,7 @@ public class ScriptApiTest {
     }
 
     @Test public void testScriptApiSingleArgumentFunction() {
-		class OneArg implements Scriptable, GetBindable {
+		class OneArg implements GetBindable {
 
 			String name;
 
@@ -63,7 +63,7 @@ public class ScriptApiTest {
     }
 
     @Test public void testSecurityLevel() {
-		class DebugError implements Scriptable, GetBindable {
+		class DebugError implements GetBindable {
 
 			String name;
 
@@ -135,7 +135,7 @@ public class ScriptApiTest {
 	}
 
     @Test public void testTwoArgFunction() {
-    	class TestEntity implements Scriptable, GetBindable {
+    	class TestEntity implements GetBindable {
 
     		int number = 0;
 			String name;
@@ -171,7 +171,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testThreeArgFunction() {
-		class TestEntity implements Scriptable, GetBindable {
+		class TestEntity implements GetBindable {
 
 			String name;
 			private int number = 0;
@@ -212,7 +212,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testVarArgsFunction() {
-		class TestEntity implements Scriptable, GetBindable {
+		class TestEntity implements GetBindable {
 
 			String name;
 			int number = 0;
@@ -248,14 +248,14 @@ public class ScriptApiTest {
 		LuaScript luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
-		Assert.assertTrue(format("Expected result of scriptEnv: '36' does not equal actual: '%d'", ans),
+		Assert.assertTrue(format("Expected result of sandbox: '36' does not equal actual: '%d'", ans),
 				ans == 36);
 		Assert.assertTrue(format("Expected entity field value: '36' does not match actual: '%d'", testEntity.number),
 				testEntity.number == 36);
 	}
 
 	@Test public void testBindField() {
-		class RpgActor implements Scriptable, GetBindable {
+		class RpgActor implements GetBindable {
 
 			String name;
 
@@ -295,7 +295,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testModifyField() {
-		class RpgActor implements Scriptable, GetBindable {
+		class RpgActor implements GetBindable {
 
 			String name;
 
@@ -353,7 +353,7 @@ public class ScriptApiTest {
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.permissiveAdd(new World("w"))
 				.permissiveAddClass(Player.class);
-		LuaScript script = se.init("return Player.new(w,1.0,1.0)").join();
+		LuaScript script = se.init("return Player.new(w,1.0,1.0);").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
@@ -364,18 +364,18 @@ public class ScriptApiTest {
 
 	@Test
 	public void testGetAndUseUserData() {
-    	World world = new World("w");
+    	World w = new World("world");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.permissiveAdd(world)
+				.permissiveAdd(w)
 				.permissiveAddClass(Player.class);
 
-		LuaScript script = se.init("p = Player.new(w,1.0,1.0); return p;").join();
+		LuaScript script = se.init("p = Player.new(world,1.0,1.0); return p;").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
 		Assert.assertTrue(p != null);
-		Assert.assertEquals(p.getPosition().x, 1.0, 0.001);
-		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
+		Assert.assertEquals( 1.0, p.getPosition().y,0.001);
+		Assert.assertEquals( 1.0, p.getPosition().y, 0.001);
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
 		script = se.init("return p:position();").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());

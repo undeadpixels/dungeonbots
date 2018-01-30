@@ -27,4 +27,6 @@ public class Player extends Actor {
 		return LuaProxyFactory.getLuaValue(p, SecurityContext.getActiveSecurityLevel());
 	}
 
+
+
 }

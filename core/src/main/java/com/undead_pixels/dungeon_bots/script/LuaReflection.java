@@ -85,6 +85,36 @@ public class LuaReflection {
 				});
 	}
 
+	/**
+	 *
+	 * @param c
+	 * @param securityLevel
+	 * @return
+	 */
+	public static Stream<Field> getBindableFields(final Class<?> c, final SecurityLevel securityLevel) {
+		return getAllFields(c)
+				.filter(field -> {
+					Bind annotation = field.getDeclaredAnnotation(Bind.class);
+					return annotation != null
+							&& annotation.value().level <= securityLevel.level
+							&& !Modifier.isStatic(field.getModifiers()); });
+	}
+
+	/**
+	 *
+	 * @param c
+	 * @param securityLevel
+	 * @return
+	 */
+	public static Stream<Field> getBindableStaticFields(final Class<?> c, final SecurityLevel securityLevel) {
+		return getAllFields(c)
+				.filter(field -> {
+					Bind annotation = field.getDeclaredAnnotation(Bind.class);
+					return annotation != null
+							&& annotation.value().level <= securityLevel.level
+							&& Modifier.isStatic(field.getModifiers()); });
+	}
+
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
 		Class<?> c = clz;
 		final Map<String,Method> ans = new HashMap<>();
@@ -108,23 +138,5 @@ public class LuaReflection {
 			c = c.getSuperclass();
 		}
 		return ans.stream().flatMap(Collection::stream);
-	}
-
-	public static Stream<Field> getBindableFields(final Class<?> c, final SecurityLevel securityLevel) {
-		return getAllFields(c)
-				.filter(field -> {
-					Bind annotation = field.getDeclaredAnnotation(Bind.class);
-					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& !Modifier.isStatic(field.getModifiers()); });
-	}
-
-	public static Stream<Field> getBindableStaticFields(final Class<?> c, final SecurityLevel securityLevel) {
-		return getAllFields(c)
-				.filter(field -> {
-					Bind annotation = field.getDeclaredAnnotation(Bind.class);
-					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& Modifier.isStatic(field.getModifiers()); });
 	}
 }

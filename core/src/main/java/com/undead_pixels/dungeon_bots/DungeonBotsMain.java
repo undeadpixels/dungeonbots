@@ -58,7 +58,6 @@ import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.*;
 import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
 */
 
-
 /**
  * The main class. Basically, all it does is point to the screen that we are
  * actually trying to render.
@@ -66,11 +65,23 @@ import com.undead_pixels.dungeon_bots.libraries.jsyntaxpane.syntaxkits.*;
  */
 public class DungeonBotsMain extends Game {
 
+	private User _CurrentUser = null;
+
+	public User getUser() {
+		return _CurrentUser;
+	}
+
+	public void setUser(User user) {
+		if (_CurrentUser != null)
+			throw new IllegalStateException("Game's user can be set only once.");
+		_CurrentUser = user;
+	}
+
 	/**
 	 * Singleton instance
 	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
-	
+
 	private JFrame frame = null;
 
 	/**
@@ -81,32 +92,42 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void setScreen(Screen screen) {
-		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); // clear the current screen's frame
+		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); // clear
+																			// the
+																			// current
+																			// screen's
+																			// frame
 		}
-		
+
 		super.setScreen(screen);
 
-		if(this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); // set the frame for the new screen
+		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); // set
+																			// the
+																			// frame
+																			// for
+																			// the
+																			// new
+																			// screen
 		}
 	}
 
 	/**
-	 * Used to tell this to work with a specific JFrame (which likely contains the GDX canvas)
+	 * Used to tell this to work with a specific JFrame (which likely contains
+	 * the GDX canvas)
 	 * 
 	 * @param frame
 	 */
 	public void setFrame(JFrame frame) {
-		if(frame != null) {
+		if (frame != null) {
 			this.frame = frame;
 		}
 	}
-	
 
 	@Override
 	public void create() {
-		//setScreen(new NullScreen());
+		// setScreen(new NullScreen());
 		setScreen(new GameView());
 	}
 
