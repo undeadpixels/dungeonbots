@@ -65,7 +65,7 @@ public class LuaSandbox {
 	 * @return Returns the LuaSandbox
 	 */
     @SafeVarargs
-	public final <T extends Scriptable & GetBindable> LuaSandbox restrictiveAdd(T... toAdd) {
+	public final <T extends GetBindable> LuaSandbox restrictiveAdd(T... toAdd) {
 		add(Stream.of(toAdd)
 				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
 				.collect(Collectors.toList()));
@@ -79,7 +79,7 @@ public class LuaSandbox {
 	 * @return Returns the LuaSandbox
 	 */
 	@SafeVarargs
-    public final <T extends GetBindable & Scriptable> LuaSandbox permissiveAdd(T... toAdd) {
+    public final <T extends GetBindable> LuaSandbox permissiveAdd(T... toAdd) {
 		whitelist.add(toAdd);
 		add(Stream.of(toAdd)
 				.map(src -> LuaProxyFactory.getBindings(src, securityLevel))
@@ -87,7 +87,7 @@ public class LuaSandbox {
 		return this;
 	}
 
-	public <T extends GetBindable & Scriptable> LuaSandbox permissiveAddClass(Class<T> clz) {
+	public <T extends GetBindable> LuaSandbox permissiveAddClass(Class<T> clz) {
 		whitelist.add(clz);
 		LuaBinding b = LuaProxyFactory.getBindings(clz,securityLevel);
 		add(b);
@@ -106,8 +106,8 @@ public class LuaSandbox {
     }
 
     /**
-     * Initializes a LuaScript using a file as the source scriptEnv to run.
-     * @param file A file that corresponds to the source scriptEnv.
+     * Initializes a LuaScript using a file as the source sandbox to run.
+     * @param file A file that corresponds to the source sandbox.
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
     public LuaScript script(File file) {
@@ -123,8 +123,8 @@ public class LuaSandbox {
     }
 
     /**
-     * Creates a new LuaScript using the argument string as the source scriptEnv to run.
-     * @param script The source scriptEnv to invoke
+     * Creates a new LuaScript using the argument string as the source sandbox to run.
+     * @param script The source sandbox to invoke
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
     public LuaScript script(String script) {
@@ -132,8 +132,8 @@ public class LuaSandbox {
     }
 
     /**
-     * Creates a new LuaScript using the argument string as the scriptEnv source, and starts the LuaScript
-     * @param script The source scriptEnv to invoke
+     * Creates a new LuaScript using the argument string as the sandbox source, and starts the LuaScript
+     * @param script The source sandbox to invoke
      * @return A LuaScript that has been started with .start()
      */
     public LuaScript init(String script) {

@@ -1,28 +1,13 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-
-import java.io.File;
-
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
-import org.junit.Assert;
-import org.junit.Test;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
+import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
-import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
+import com.undead_pixels.dungeon_bots.script.interfaces.*;
+import org.junit.*;
 import org.luaj.vm2.*;
+import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import static java.lang.String.*;
@@ -31,8 +16,7 @@ public class ScriptApiTest {
 
 	private final double EPSILON = 0.00001;
 
-    @Test
-    public void testGetBindings() {
+    @Test public void testGetBindings() {
         Player player = new Player(new World(), "player", null);
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.permissiveAdd(player);
@@ -42,9 +26,8 @@ public class ScriptApiTest {
         Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
     }
 
-    @Test
-    public void testScriptApiSingleArgumentFunction() {
-		class OneArg implements Scriptable, GetBindable {
+    @Test public void testScriptApiSingleArgumentFunction() {
+		class OneArg implements GetBindable {
 
 			String name;
 
@@ -79,9 +62,8 @@ public class ScriptApiTest {
 		Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
     }
 
-    @Test
-    public void testSecurityLevel() {
-		class DebugError implements Scriptable, GetBindable {
+    @Test public void testSecurityLevel() {
+		class DebugError implements GetBindable {
 
 			String name;
 
@@ -152,9 +134,8 @@ public class ScriptApiTest {
 		Assert.assertEquals(0.0, ans.arg(2).todouble(), EPSILON);
 	}
 
-    @Test
-	public void testTwoArgFunction() {
-    	class TestEntity implements Scriptable, GetBindable {
+    @Test public void testTwoArgFunction() {
+    	class TestEntity implements GetBindable {
 
     		int number = 0;
 			String name;
@@ -189,9 +170,8 @@ public class ScriptApiTest {
     	Assert.assertTrue(testEntity.number == 38);
 	}
 
-	@Test
-	public void testThreeArgFunction() {
-		class TestEntity implements Scriptable, GetBindable {
+	@Test public void testThreeArgFunction() {
+		class TestEntity implements GetBindable {
 
 			String name;
 			private int number = 0;
@@ -231,9 +211,8 @@ public class ScriptApiTest {
 				testEntity.number == 75);
 	}
 
-	@Test
-	public void testVarArgsFunction() {
-		class TestEntity implements Scriptable, GetBindable {
+	@Test public void testVarArgsFunction() {
+		class TestEntity implements GetBindable {
 
 			String name;
 			int number = 0;
@@ -269,14 +248,14 @@ public class ScriptApiTest {
 		LuaScript luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
-		Assert.assertTrue(format("Expected result of scriptEnv: '36' does not equal actual: '%d'", ans),
+		Assert.assertTrue(format("Expected result of sandbox: '36' does not equal actual: '%d'", ans),
 				ans == 36);
 		Assert.assertTrue(format("Expected entity field value: '36' does not match actual: '%d'", testEntity.number),
 				testEntity.number == 36);
 	}
 
 	@Test public void testBindField() {
-		class RpgActor implements Scriptable, GetBindable {
+		class RpgActor implements GetBindable {
 
 			String name;
 
@@ -316,7 +295,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testModifyField() {
-		class RpgActor implements Scriptable, GetBindable {
+		class RpgActor implements GetBindable {
 
 			String name;
 
@@ -374,7 +353,7 @@ public class ScriptApiTest {
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.permissiveAdd(new World("w"))
 				.permissiveAddClass(Player.class);
-		LuaScript script = se.init("return Player.new(w,1.0,1.0)").join();
+		LuaScript script = se.init("return Player.new(w,1.0,1.0);").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
@@ -385,18 +364,18 @@ public class ScriptApiTest {
 
 	@Test
 	public void testGetAndUseUserData() {
-    	World world = new World("w");
+    	World w = new World("world");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.permissiveAdd(world)
+				.permissiveAdd(w)
 				.permissiveAddClass(Player.class);
 
-		LuaScript script = se.init("p = Player.new(w,1.0,1.0); return p;").join();
+		LuaScript script = se.init("p = Player.new(world,1.0,1.0); return p;").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
 		Assert.assertTrue(p != null);
-		Assert.assertEquals(p.getPosition().x, 1.0, 0.001);
-		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
+		Assert.assertEquals( 1.0, p.getPosition().y,0.001);
+		Assert.assertEquals( 1.0, p.getPosition().y, 0.001);
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
 		script = se.init("return p:position();").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());

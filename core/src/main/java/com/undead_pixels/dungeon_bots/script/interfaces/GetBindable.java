@@ -5,9 +5,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.LuaUserdata;
 import org.luaj.vm2.LuaValue;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,57 +18,53 @@ import static com.undead_pixels.dungeon_bots.script.LuaSandbox.staticId;
 
 public interface GetBindable {
 
-	static Whitelist permissiveWhitelist(Class<?> clz) {
-		return LuaReflection.getPermissiveWhitelist(getBindableStaticMethods(clz));
+	int getId();
+	String getName();
+
+	static Whitelist permissiveWhitelist(final Class<?> clz) {
+		return LuaReflection.getPermissiveWhitelist(getBindableStaticMethods(clz).collect(Collectors.toList()));
 	}
 
 	default Whitelist permissiveWhitelist() {
-		return LuaReflection.getPermissiveWhitelist(this.getBindableMethods(), this);
+		return LuaReflection.getPermissiveWhitelist(this.getBindableMethods().collect(Collectors.toList()), this);
 	}
 
-	static Collection<Method> getBindableStaticMethods(Class<?> clz) {
+	static Stream<Method> getBindableStaticMethods(final Class<?> clz) {
 		return LuaReflection.getBindableStaticMethods(clz, SecurityLevel.DEBUG);
 	}
 
 
-	default Collection<Method> getBindableMethods() {
+	default Stream<Method> getBindableMethods() {
 		return LuaReflection.getBindableMethods(this, SecurityLevel.DEBUG);
 	}
 
-	default Collection<Method> getBindableMethods(SecurityLevel securityLevel) {
+	default Stream<Method> getBindableMethods(final SecurityLevel securityLevel) {
 		return LuaReflection.getBindableMethods(this, securityLevel);
 	}
 
-	static Collection<Method> getBindableStaticMethods(Class<?> clz, SecurityLevel securityLevel) {
+	static Stream<Method> getBindableStaticMethods(final Class<?> clz, final SecurityLevel securityLevel) {
 		return LuaReflection.getBindableStaticMethods(clz, securityLevel);
 	}
 
-	default Collection<Field> getBindableFields() {
+	default Stream<Field> getBindableFields() {
 		return LuaReflection.getBindableFields(this.getClass(), SecurityLevel.DEBUG);
 	}
 
-	default Collection<Field> getBindableFields(SecurityLevel securityLevel) {
+	default Stream<Field> getBindableFields(final SecurityLevel securityLevel) {
 		return LuaReflection.getBindableFields(this.getClass(), securityLevel);
 	}
 
-	static Collection<Field> getBindableStaticFields(Class<?> clz) {
+	static Stream<Field> getBindableStaticFields(final Class<?> clz) {
 		return LuaReflection.getBindableStaticFields(clz, SecurityLevel.DEBUG);
 	}
 
-	static Collection<Field> getBindableStaticFields(Class<?> clz, SecurityLevel securityLevel) {
+	static Stream<Field> getBindableStaticFields(final Class<?> clz, final SecurityLevel securityLevel) {
 		return LuaReflection.getBindableStaticFields(clz, securityLevel);
 	}
 
-	static String bindTo(Method m) {
+	static <T extends AnnotatedElement & Member> String bindTo(final T m) {
 		return Optional.ofNullable(m.getDeclaredAnnotation(BindTo.class))
 				.map(BindTo::value)
 				.orElse(m.getName());
 	}
-
-	static String bindTo(Field m) {
-		return Optional.ofNullable(m.getDeclaredAnnotation(BindTo.class))
-				.map(BindTo::value)
-				.orElse(m.getName());
-	}
-
 }

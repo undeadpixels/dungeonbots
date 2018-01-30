@@ -108,7 +108,7 @@ public class LuaJTest {
 
     @Test
     public void testLuaError() {
-    	//This scriptEnv is being made of bad Lua.  It should generate an error.
+    	//This sandbox is being made of bad Lua.  It should generate an error.
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
         LuaScript script = scriptEnv.script("if = 2");
         script.start().join();

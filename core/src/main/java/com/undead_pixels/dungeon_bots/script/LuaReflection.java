@@ -18,7 +18,7 @@ public class LuaReflection {
 	 * @param bindableMethods
 	 * @return
 	 */
-	public static Whitelist getPermissiveWhitelist(Collection<Method> bindableMethods) {
+	public static Whitelist getPermissiveWhitelist(final Collection<Method> bindableMethods) {
 		return new Whitelist()
 				.addTo(bindableMethods.stream()
 						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null)
@@ -33,7 +33,7 @@ public class LuaReflection {
 	 * @param caller
 	 * @return
 	 */
-	public static Whitelist getPermissiveWhitelist(Collection<Method> bindableMethods, Object caller) {
+	public static Whitelist getPermissiveWhitelist(final Collection<Method> bindableMethods, final Object caller) {
 		return new Whitelist()
 				.addTo(bindableMethods.stream()
 						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null)
@@ -48,7 +48,7 @@ public class LuaReflection {
 	 * @param m
 	 * @return
 	 */
-	public static String genId(Object o, Method m) {
+	public static String genId(final Object o, final Method m) {
 		return Optional.ofNullable(o).map(val -> Integer.toString(val.hashCode())).orElse("")
 				+ m.toGenericString();
 	}
@@ -59,15 +59,14 @@ public class LuaReflection {
 	 * @param securityLevel
 	 * @return
 	 */
-	public static Collection<Method> getBindableMethods(Object o, SecurityLevel securityLevel) {
-		return getAllMethods(o.getClass()).stream()
+	public static Stream<Method> getBindableMethods(final Object o, final SecurityLevel securityLevel) {
+		return getAllMethods(o.getClass())
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
 							&& annotation.value().level <= securityLevel.level
 							&& !Modifier.isStatic(method.getModifiers());
-				})
-				.collect(Collectors.toList());
+				});
 	}
 
 	/**
@@ -76,19 +75,49 @@ public class LuaReflection {
 	 * @param securityLevel
 	 * @return
 	 */
-	public static Collection<Method> getBindableStaticMethods(Class<?> c, SecurityLevel securityLevel) {
-		return getAllMethods(c).stream()
+	public static Stream<Method> getBindableStaticMethods(final Class<?> c, final SecurityLevel securityLevel) {
+		return getAllMethods(c)
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
 							&& annotation.value().level <= securityLevel.level
 							&& Modifier.isStatic(method.getModifiers());
-				})
-				.collect(Collectors.toList());
+				});
 	}
 
-	private static Collection<Method> getAllMethods(Class<?> c) {
-		Map<String,Method> ans = new HashMap<>();
+	/**
+	 *
+	 * @param c
+	 * @param securityLevel
+	 * @return
+	 */
+	public static Stream<Field> getBindableFields(final Class<?> c, final SecurityLevel securityLevel) {
+		return getAllFields(c)
+				.filter(field -> {
+					Bind annotation = field.getDeclaredAnnotation(Bind.class);
+					return annotation != null
+							&& annotation.value().level <= securityLevel.level
+							&& !Modifier.isStatic(field.getModifiers()); });
+	}
+
+	/**
+	 *
+	 * @param c
+	 * @param securityLevel
+	 * @return
+	 */
+	public static Stream<Field> getBindableStaticFields(final Class<?> c, final SecurityLevel securityLevel) {
+		return getAllFields(c)
+				.filter(field -> {
+					Bind annotation = field.getDeclaredAnnotation(Bind.class);
+					return annotation != null
+							&& annotation.value().level <= securityLevel.level
+							&& Modifier.isStatic(field.getModifiers()); });
+	}
+
+	private static Stream<Method> getAllMethods(final Class<?> clz) {
+		Class<?> c = clz;
+		final Map<String,Method> ans = new HashMap<>();
 		while(!c.equals(Object.class)) {
 			Stream.of(c.getDeclaredMethods())
 					.forEach(method -> {
@@ -98,35 +127,16 @@ public class LuaReflection {
 					});
 			c = c.getSuperclass();
 		}
-		return ans.values();
+		return ans.values().stream();
 	}
 
-	private static Collection<Field> getAllFields(Class<?> c) {
+	private static Stream<Field> getAllFields(final Class<?> clz) {
+		Class<?> c = clz;
 		Collection<Collection<Field>> ans = new ArrayList<>();
 		while(!c.equals(Object.class)) {
 			ans.add(Stream.of(c.getDeclaredFields()).collect(Collectors.toList()));
 			c = c.getSuperclass();
 		}
-		return ans.stream().flatMap(Collection::stream).collect(Collectors.toList());
-	}
-
-	public static Collection<Field> getBindableFields(Class<?> c, SecurityLevel securityLevel) {
-		return getAllFields(c).stream()
-				.filter(field -> {
-					Bind annotation = field.getDeclaredAnnotation(Bind.class);
-					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& !Modifier.isStatic(field.getModifiers());
-				}).collect(Collectors.toList());
-	}
-
-	public static Collection<Field> getBindableStaticFields(Class<?> c, SecurityLevel securityLevel) {
-		return getAllFields(c).stream()
-				.filter(field -> {
-					Bind annotation = field.getDeclaredAnnotation(Bind.class);
-					return annotation != null
-							&& annotation.value().level <= securityLevel.level
-							&& Modifier.isStatic(field.getModifiers());
-				}).collect(Collectors.toList());
+		return ans.stream().flatMap(Collection::stream);
 	}
 }

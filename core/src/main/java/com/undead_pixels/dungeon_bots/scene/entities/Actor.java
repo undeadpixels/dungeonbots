@@ -6,10 +6,9 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
-import org.junit.Assert;
 import org.luaj.vm2.*;
-import org.luaj.vm2.ast.Exp;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+
+import static org.luaj.vm2.LuaValue.*;
 
 /**
  * An actor is a general entity that is solid and capable of doing stuff.
@@ -34,11 +33,11 @@ public class Actor extends SpriteEntity {
 	}
 	/**
 	 * @param world		The world to contain this Actor
-	 * @param script		A user scriptEnv that is run on this object
+	 * @param script		A user sandbox that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
 	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, script, tex);
+		super(world, name, tex);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -184,6 +183,6 @@ public class Actor extends SpriteEntity {
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs position() {
 		Vector2 pos = this.getPosition();
-		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(pos.x), LuaValue.valueOf(pos.y)});
+		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
 	}
 }

@@ -1,24 +1,20 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import java.lang.reflect.*;
+import java.util.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Optional;
+public class LuaProxyFactory {
 
-public abstract class LuaProxyFactory {
-
-	private static class UpdateError extends ThreeArgFunction {
+	private final static class UpdateError extends ThreeArgFunction {
 		@Override
-		public LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
+		public final LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
 			throw new RuntimeException("Attempt to update readonly table");
 		}
 	}
@@ -29,8 +25,8 @@ public abstract class LuaProxyFactory {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends Scriptable & GetBindable> LuaValue getLuaValue(T src, SecurityLevel securityLevel) {
-		LuaTable t = new LuaTable();
+	public static <T extends GetBindable> LuaValue getLuaValue(final T src, final SecurityLevel securityLevel) {
+		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
@@ -50,8 +46,8 @@ public abstract class LuaProxyFactory {
 				});
 
 		// Make Lua proxy table readonly
-		LuaTable proxy = new LuaTable();
-		LuaTable meta = new LuaTable();
+		final LuaTable proxy = new LuaTable();
+		final LuaTable meta = new LuaTable();
 		meta.set("__index", t);
 		meta.set("__newindex", CoerceJavaToLua.coerce(new UpdateError()));
 		proxy.setmetatable(meta);
@@ -64,7 +60,7 @@ public abstract class LuaProxyFactory {
 	 * @param securityLevel
 	 * @return
 	 */
-	public static <T extends Scriptable & GetBindable> LuaBinding getBindings(T src, final SecurityLevel securityLevel) {
+	public static <T extends GetBindable> LuaBinding getBindings(final T src, final SecurityLevel securityLevel) {
 		return new LuaBinding(src.getName(), getLuaValue(src, securityLevel));
 	}
 
@@ -75,8 +71,8 @@ public abstract class LuaProxyFactory {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends Scriptable & GetBindable> LuaBinding getBindings(Class<T> src, final SecurityLevel securityLevel) {
-		LuaTable t = new LuaTable();
+	public static <T extends GetBindable> LuaBinding getBindings(final Class<T> src, final SecurityLevel securityLevel) {
+		final LuaTable t = new LuaTable();
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetBindable.getBindableStaticMethods(src,securityLevel)
@@ -99,7 +95,7 @@ public abstract class LuaProxyFactory {
 	}
 
 
-	private static <T extends Scriptable & GetBindable> Varargs invokeWhitelistVarargs(Method m, Whitelist whitelist, T caller, Object... args)
+	private static <T extends GetBindable> Varargs invokeWhitelistVarargs(final Method m, final Whitelist whitelist, final T caller, final Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m)) {
 			return (Varargs) m.invoke(caller, args);
@@ -109,7 +105,7 @@ public abstract class LuaProxyFactory {
 	}
 
 
-	private static <T extends Scriptable & GetBindable> LuaValue invokeWhitelist(Method m, Whitelist whitelist, T caller, Object... args)
+	private static <T extends GetBindable> LuaValue invokeWhitelist(final Method m, final Whitelist whitelist, final T caller, final Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m)) {
 			return CoerceJavaToLua.coerce(m.invoke(caller, args));
@@ -118,7 +114,7 @@ public abstract class LuaProxyFactory {
 			throw new MethodNotOnWhitelistException(m);
 	}
 
-	private static LuaValue[] VarargToArr(Varargs varargs) {
+	private static LuaValue[] VarargToArr(final Varargs varargs) {
 		final int SIZE = varargs.narg();
 		LuaValue[] list = new LuaValue[SIZE];
 		for(int i = 1; i < SIZE + 1; i++) {
@@ -127,7 +123,7 @@ public abstract class LuaProxyFactory {
 		return list;
 	}
 
-	private static Object[] getParams(Method m, Varargs varargs) {
+	private static Object[] getParams(final Method m, final Varargs varargs) {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		if(paramTypes.length > 0 && paramTypes[0].equals(Varargs.class)) {
 			return new Object[] { paramTypes.length == varargs.narg() ?
@@ -151,7 +147,7 @@ public abstract class LuaProxyFactory {
 		}
 	}
 
-	private static <T extends Scriptable & GetBindable> LuaValue evalMethod(T caller, final Method m) {
+	private static <T extends GetBindable> LuaValue evalMethod(final T caller, final Method m) {
 		m.setAccessible(true);
 		Class<?> returnType = m.getReturnType();
 
