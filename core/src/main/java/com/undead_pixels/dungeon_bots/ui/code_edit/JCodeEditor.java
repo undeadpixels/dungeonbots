@@ -156,6 +156,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 
 		public boolean exclusion(int from, int to) {
 
+			throw new IllegalStateException("Not implemented yet.");
 		}
 
 		private int findBracketingIndex(int item, int fromIdx, int toIdx) {
@@ -219,16 +220,16 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	public void setCode(String code) {
+	/*public void setCode(String code) {
 		int editable[] = new int[2];
 		editable[0] = 0;
 		editable[1] = 25; // code.length();
 
 		setCode(code, editable);
-	}
+	}*/
 
 	public void setCode(String code) {
-		this._Editable = editable;
+		/*this._Editable = editable;
 
 		_Editor.getHighlighter().removeAllHighlights();
 
@@ -247,7 +248,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 				e.printStackTrace();
 			}
 
-		}
+		}*/
 
 	}
 
