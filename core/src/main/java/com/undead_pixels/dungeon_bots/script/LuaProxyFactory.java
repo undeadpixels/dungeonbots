@@ -3,15 +3,19 @@ package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class LuaProxyFactory {
 
+	/**
+	 * Create Handler function for proxy metatable to throw exceptions when users try to SET
+	 * values in READONLY table
+	 */
 	private final static class UpdateError extends ThreeArgFunction {
 		@Override
 		public final LuaValue call(LuaValue arg1, LuaValue arg2, LuaValue arg3) {
@@ -25,18 +29,18 @@ public class LuaProxyFactory {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaValue getLuaValue(final T src, final SecurityLevel securityLevel) {
+	public static <T extends GetBindable> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
-		/* Use reflection to find and bind any methods annotated using @BindMethod
+		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
-		src.getBindableMethods(securityLevel)
+		src.getBindableMethods()
 				.forEach(method ->
 						t.set(GetBindable.bindTo(method), evalMethod(src, method)));
 
-		/* Use reflection to find and bind any fields annotated using @BindField
-		 *  that have the appropriate security level */
-		src.getBindableFields(securityLevel)
+		/* Use reflection to find and bind any fields annotated using @Bind
+		 * that have the appropriate security level */
+		src.getBindableFields()
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);
@@ -57,31 +61,29 @@ public class LuaProxyFactory {
 
 	/**
 	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or @BindField
-	 * @param securityLevel
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaBinding getBindings(final T src, final SecurityLevel securityLevel) {
-		return new LuaBinding(src.getName(), getLuaValue(src, securityLevel));
+	public static <T extends GetBindable> LuaBinding getBindings(final T src) {
+		return new LuaBinding(src.getName(), src.getLuaValue());
 	}
 
 	/**
 	 *
 	 * @param src
-	 * @param securityLevel
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaBinding getBindings(final Class<T> src, final SecurityLevel securityLevel) {
+	public static <T extends GetBindable> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
-		GetBindable.getBindableStaticMethods(src,securityLevel)
+		GetBindable.getBindableStaticMethods(src)
 				.forEach(method ->
 						t.set(GetBindable.bindTo(method), evalMethod(null, method)));
 
 		/* Use reflection to find and bind any fields annotated using @BindField
 		 *  that have the appropriate security level */
-		GetBindable.getBindableStaticFields(src,securityLevel)
+		GetBindable.getBindableStaticFields(src)
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);
@@ -94,21 +96,34 @@ public class LuaProxyFactory {
 				t);
 	}
 
-
-	private static <T extends GetBindable> Varargs invokeWhitelistVarargs(final Method m, final Whitelist whitelist, final T caller, final Object... args)
-			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
-		if(whitelist.onWhitelist(caller, m)) {
-			return (Varargs) m.invoke(caller, args);
+	private static Stream<Class<?>> getAllInterfaces(final Class<?> c) {
+		Set<Class<?>> clzSet = new HashSet<>();
+		Class<?> s = c;
+		try {
+			while(!Object.class.equals(s.getClass())) {
+				clzSet.addAll(Arrays.asList(s.getInterfaces()));
+				s = s.getSuperclass();
+			}
 		}
-		else
-			throw new MethodNotOnWhitelistException(m);
+		catch (NullPointerException n) { }
+		return clzSet.stream();
 	}
 
-
-	private static <T extends GetBindable> LuaValue invokeWhitelist(final Method m, final Whitelist whitelist, final T caller, final Object... args)
+	private static <T extends GetBindable> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m)) {
-			return CoerceJavaToLua.coerce(m.invoke(caller, args));
+			if(returnType.isAssignableFrom(Varargs.class))
+				return (Varargs) m.invoke(caller, args);
+			else if(returnType.isAssignableFrom(LuaValue.class)) {
+				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
+			}
+			else {
+				if(getAllInterfaces(returnType).anyMatch(GetBindable.class::isAssignableFrom))
+					return getLuaValue((GetBindable)m.invoke(caller, args));
+				else
+					return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
+			}
+
 		}
 		else
 			throw new MethodNotOnWhitelistException(m);
@@ -126,9 +141,10 @@ public class LuaProxyFactory {
 	private static Object[] getParams(final Method m, final Varargs varargs) {
 		Class<?>[] paramTypes = m.getParameterTypes();
 		if(paramTypes.length > 0 && paramTypes[0].equals(Varargs.class)) {
-			return new Object[] { paramTypes.length == varargs.narg() ?
-					varargs :
-					varargs.subargs(1) };
+			return new Object[] {
+					paramTypes.length == varargs.narg() ?
+							varargs :
+							varargs.subargs(1) };
 		}
 		else {
 			Object[] ans = VarargToArr(varargs);
@@ -151,18 +167,12 @@ public class LuaProxyFactory {
 		m.setAccessible(true);
 		Class<?> returnType = m.getReturnType();
 
-		// If the expected return type of the function is Varargs or the only parameter is a Varargs treat the function
-		// like it is of type VarargFunction
+		// All Java to LuaBindings are created as VarArgFunction objects
 		class Vararg extends VarArgFunction {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
-					if(returnType.equals(Varargs.class))
-						return invokeWhitelistVarargs(m, SecurityContext.activeWhitelist, caller, getParams(m, args));
-					else
-						return LuaValue.varargsOf(
-								new LuaValue[] {
-										invokeWhitelist(m, SecurityContext.activeWhitelist, caller, getParams(m, args)) });
+					return invokeWhitelist(m, returnType, SecurityContext.activeWhitelist, caller, getParams(m, args));
 				}
 				catch (Exception me) {
 					return LuaValue.error(me.getMessage());

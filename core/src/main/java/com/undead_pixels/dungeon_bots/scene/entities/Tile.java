@@ -14,6 +14,8 @@ import org.luaj.vm2.LuaValue;
  */
 public class Tile extends SpriteEntity {
 
+	private LuaValue luaValue;
+
 	/**
 	 * @param world		The world to contain this Actor
 	 * @param name
@@ -44,6 +46,13 @@ public class Tile extends SpriteEntity {
 	}
 
 	@Override
+	public LuaValue getLuaValue() {
+		if(this.luaValue == null)
+			this.luaValue = LuaProxyFactory.getLuaValue(this);
+		return this.luaValue;
+	}
+
+	@Override
 	public int getId() {
 		return id;
 	}
@@ -56,7 +65,7 @@ public class Tile extends SpriteEntity {
 				null,
 				lx.tofloat(),
 				ly.tofloat());
-		return LuaProxyFactory.getLuaValue(t, SecurityContext.getActiveSecurityLevel());
+		return LuaProxyFactory.getLuaValue(t);
 	}
 
 	@Bind
@@ -67,7 +76,7 @@ public class Tile extends SpriteEntity {
 				null,
 				lx.tofloat(),
 				ly.tofloat());
-		return LuaProxyFactory.getLuaValue(t, SecurityContext.getActiveSecurityLevel());
+		return LuaProxyFactory.getLuaValue(t);
 	}
 
 	@Bind
@@ -78,6 +87,6 @@ public class Tile extends SpriteEntity {
 				null,
 				lx.tofloat(),
 				ly.tofloat());
-		return LuaProxyFactory.getLuaValue(t, SecurityContext.getActiveSecurityLevel());
+		return LuaProxyFactory.getLuaValue(t);
 	}
 }

@@ -20,12 +20,13 @@ import com.undead_pixels.dungeon_bots.script.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import org.luaj.vm2.LuaValue;
 
 public class World implements GetBindable {
     private LuaScript levelScript;
+    private LuaValue luaBinding;
+
     private String name = "world";
 
 	private Texture backgroundImage;
@@ -54,10 +55,8 @@ public class World implements GetBindable {
     @Bind @BindTo("new")
     public static LuaValue newWorld() {
     	World w = new World();
-    	if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG) {
-    		SecurityContext.getWhitelist().addWhitelist(w.permissiveWhitelist());
-		}
-		return LuaProxyFactory.getLuaValue(w, SecurityContext.getActiveSecurityLevel());
+    	SecurityContext.getWhitelist().addWhitelist(w.getWhitelist(SecurityContext.getActiveSecurityLevel()));
+		return LuaProxyFactory.getLuaValue(w);
 	}
 
 	@Bind
@@ -202,6 +201,14 @@ public class World implements GetBindable {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public LuaValue getLuaValue() {
+		if(this.luaBinding == null) {
+			this.luaBinding = LuaProxyFactory.getLuaValue(this);
+		}
+		return this.luaBinding;
 	}
 
 	@Override

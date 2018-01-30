@@ -46,12 +46,7 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 		this.name = name;
 		this.id = world.makeID();
 		this.world.addEntity(this);
-		if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG) {
-			this.sandbox.permissiveAdd(this);
-		}
-		else {
-			this.sandbox.restrictiveAdd(this);
-		}
+		this.sandbox.addBindable(this);
 	}
 
 	/**
@@ -75,7 +70,7 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	}
 
 	public <T extends GetBindable> Entity addToSandbox(T... vals) {
-		this.sandbox.permissiveAdd(vals);
+		this.sandbox.addBindable(vals);
 		return this;
 	}
 	

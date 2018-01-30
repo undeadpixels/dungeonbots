@@ -6,25 +6,23 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
 import org.luaj.vm2.LuaValue;
 
 public class TileTypes implements GetBindable {
 	
 	private HashMap<String, TileType> typeMap = new HashMap<>();
+	private LuaValue luaValue;
 
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
 		TileTypes tileTypes = new TileTypes();
-		if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG)
-			SecurityContext.getWhitelist().addWhitelist(tileTypes.permissiveWhitelist());
-		return LuaProxyFactory.getLuaValue(tileTypes, SecurityContext.getActiveSecurityLevel());
+		SecurityContext.getWhitelist().addWhitelist(tileTypes.getWhitelist(SecurityContext.getActiveSecurityLevel()));
+		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 
 	/**
@@ -66,7 +64,7 @@ public class TileTypes implements GetBindable {
 
 	@Bind
 	public LuaValue getTile(LuaValue luaValue) {
-		return LuaProxyFactory.getLuaValue(getTile(luaValue.checkjstring()), SecurityContext.getActiveSecurityLevel());
+		return LuaProxyFactory.getLuaValue(getTile(luaValue.checkjstring()));
 	}
 
 	public TileType getTile(String name) {
@@ -81,5 +79,13 @@ public class TileTypes implements GetBindable {
 	@Override
 	public String getName() {
 		return this.getClass().getName();
+	}
+
+	@Override
+	public LuaValue getLuaValue() {
+		if(this.luaValue == null) {
+			this.luaValue = LuaProxyFactory.getLuaValue(this);
+		}
+		return this.luaValue;
 	}
 }

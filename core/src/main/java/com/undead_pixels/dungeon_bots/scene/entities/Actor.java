@@ -4,7 +4,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
+import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
 
@@ -15,6 +17,8 @@ import static org.luaj.vm2.LuaValue.*;
  * Examples include players, bots, and enemies.
  */
 public class Actor extends SpriteEntity {
+
+	private LuaValue luaBinding;
 
 	/**
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
@@ -127,6 +131,13 @@ public class Actor extends SpriteEntity {
 	}
 
 	@Override
+	public LuaValue getLuaValue() {
+		if(this.luaBinding == null)
+			this.luaBinding = LuaProxyFactory.getLuaValue(this);
+		return this.luaBinding;
+	}
+
+	@Override
 	public int getId() {
 		return this.id;
 	}
@@ -180,7 +191,7 @@ public class Actor extends SpriteEntity {
 	 * </code>
 	 * @return A Varargs of the players position
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind
 	public Varargs position() {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
