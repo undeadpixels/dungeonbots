@@ -31,7 +31,6 @@ import java.io.File;
 public class GameView extends GDXandSwingScreen implements InputProcessor {
 	private Stage stage = new Stage(); // deleting this somehow makes it not work...?
 
-	Texture img = new Texture("badlogic.jpg");
 	SpriteBatch batch;
 	
 	OrthographicCamera cam;
@@ -189,6 +188,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 
 			JCodeREPL repl = new JCodeREPL(env);
 			Object o = new Object();
+			/**
 			repl.message("This message is sent from some old object", o);
 			repl.message("This message will be in the form of an internal echo from the editor itself", repl);
 			repl.message("Turmoil has engulfed the Galactic Republic. The taxation of trade routes to outlying "
@@ -217,6 +217,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 			repl.setCode("x=5+4");
 			repl.execute(100);
 			repl.setCode("return x");
+			 */
 			this.addWindowFor(repl, "Player's REPL");
 			
 		}

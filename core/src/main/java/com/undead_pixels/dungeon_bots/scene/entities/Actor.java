@@ -157,32 +157,36 @@ public class Actor extends SpriteEntity {
 	 * Moves the player UP
 	 */
 	@Bind
-	final public void up() {
+	final public Actor up() {
 		this.queueMoveSlowly(Direction.UP);
+		return this;
 	}
 
 	/**
 	 * Moves the player DOWN
 	 */
 	@Bind
-	final public void down() {
+	final public Actor down() {
 		this.queueMoveSlowly(Direction.DOWN);
+		return this;
 	}
 
 	/**
 	 * Moves the player LEFT
 	 */
 	@Bind
-	final public void left() {
+	final public Actor left() {
 		this.queueMoveSlowly(Direction.LEFT);
+		return this;
 	}
 
 	/**
 	 * Moves the player RIGHT
 	 */
 	@Bind
-	final public void right() {
+	final public Actor right() {
 		this.queueMoveSlowly(Direction.RIGHT);
+		return this;
 	}
 
 	/**

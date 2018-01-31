@@ -83,7 +83,6 @@ public class Whitelist implements GetBindable {
 	}
 
 	public <T extends GetBindable> boolean  onWhitelist(T caller, Method m) {
-		//return true;
 		return whitelist.contains(LuaReflection.genId(caller,m));
 	}
 

@@ -16,9 +16,8 @@ import java.util.stream.*;
  */
 public class LuaSandbox {
 
-    private Globals globals;
+    private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
-
 	private final SecurityLevel securityLevel;
 
 	/**
@@ -58,6 +57,12 @@ public class LuaSandbox {
         return this;
     }
 
+	/**
+	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
+	 * @param bindable A Collection of Objects that implement the GetBindable interface
+	 * @param <T> A Type that implements the GetBindable interface
+	 * @return The source LuaSandbox
+	 */
     @SafeVarargs
     public final <T extends GetBindable> LuaSandbox  addBindable(T... bindable) {
 		whitelist.add(securityLevel, bindable);
@@ -66,8 +71,12 @@ public class LuaSandbox {
 		return this;
 	}
 
-
-
+	/**
+	 * Adds the static bindings of the argument Class
+	 * @param clz The Class to add the static Bindings of
+	 * @param <T> A Type that implements GetBindable
+	 * @return The source LuaSandbox
+	 */
 	public <T extends GetBindable> LuaSandbox addBindableClass(Class<T> clz) {
 		whitelist.add(securityLevel, clz);
 		LuaBinding b = LuaProxyFactory.getBindings(clz);
@@ -126,14 +135,6 @@ public class LuaSandbox {
      */
     public Globals getGlobals() {
         return globals;
-    }
-
-    /**
-     * Sets the Globals of the current LuaSandbox
-     * @param globals The globals to use to set the LuaSandbox Globals with
-     */
-    public void setGlobals(Globals globals) {
-        this.globals = globals;
     }
 
 	/**

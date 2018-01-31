@@ -17,10 +17,10 @@ import java.util.Optional;
 public class LuaScript {
 
 	private final LuaSandbox environment;
-	private String script;
+	private final String script;
 	private volatile Varargs varargs;
 	private volatile ScriptStatus scriptStatus;
-	private volatile LuaError _LuaError;
+	private volatile LuaError luaError;
 	private Thread thread;
 
 	/**
@@ -52,10 +52,10 @@ public class LuaScript {
 				LuaValue chunk = environment.getGlobals().load(this.script);
 				varargs = chunk.invoke();
 				scriptStatus = ScriptStatus.COMPLETE;
-				_LuaError = null;
+				luaError = null;
 			} catch (LuaError le) {
 				scriptStatus = ScriptStatus.LUA_ERROR;
-				_LuaError = le;
+				luaError = le;
 			}
 			catch (Exception e) {
 				scriptStatus = ScriptStatus.ERROR;
@@ -84,24 +84,36 @@ public class LuaScript {
 		return scriptStatus;
 	}
 
-	/** Resumes execution of a thread paused. */
+	/**
+	 *
+	 * @return
+	 */
+	@Deprecated
 	public synchronized LuaScript resume() {
 		throw new RuntimeException("Not Implemented");
 	}
 
-	/** Pauses execution of a thread. */
+	/**
+	 * @return Returns the invoked Script
+	 */
+	@Deprecated
 	public synchronized LuaScript pause() {
 		throw new RuntimeException("Not Implemented");
 	}
 
+	/**
+	 * Calls join on the contained thread, waiting indefinitely for completion.
+	 * @return The invoked LuaScript
+	 */
 	public synchronized LuaScript join() {
 		//TODO:  the Script should manage its thread internally, but expose a reset()
 		return join(0);
 	}
 
 	/**
-	 * Forces the thread of this sandbox to rejoin in no more than the given
-	 * number of milliseconds.
+	 * Calls join on the contained thread. Call with '0' to wait indefinitely.
+	 * @param wait The amount of time to wait for the join
+	 * @return The invoked LuaScript
 	 */
 	public synchronized LuaScript join(long wait) {
 		assert scriptStatus != ScriptStatus.STOPPED;
@@ -118,41 +130,31 @@ public class LuaScript {
 		}
 	}
 
-	
-	/**Returns the Varargs result, if there is one, or 'False' if execution hasn't 
-	 * completed yet or there are no results from the execution.*/
+
+	/**
+	 * Returns an Optional that may contain the invoked results of the LuaScript
+	 * @return An Optional containing results if they are present.
+	 */
 	public synchronized Optional<Varargs> getResults() {
 		return Optional.ofNullable(varargs);
 	}
 
-	/** Stops all execution and clears any stored values.  The sandbox text
-	 * remains unchanged. */
+	/**
+	 * Stops all execution and clears any stored values.  The sandbox text
+	 * remains unchanged.
+	 * */
 	public void reset(long maxWait) {
 		join(maxWait);		
 		varargs = null;
-		this._LuaError = null;
+		this.luaError = null;
 		this.scriptStatus = ScriptStatus.READY;
 	}
-
-	/** Resets this sandbox and updates its text. */
-	public void setScript(String newScript) {
-		reset(0);
-		this.script = newScript;
-	}
-
-	
-	
-	/** Returns the text of this sandbox. */
-	public String getScript() {
-		return this.script;
-	}
-
 
 	/**
 	 *
 	 * @return LuaError
 	 */
 	public LuaError getError() {
-		return _LuaError;
+		return luaError;
 	}
 }
