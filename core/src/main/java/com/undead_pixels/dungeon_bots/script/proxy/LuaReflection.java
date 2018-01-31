@@ -53,16 +53,27 @@ public class LuaReflection {
 	}
 
 	/**
-	 *
-	 * @param o
-	 * @return
+	 * Returns a collection of Bindable methods found for the argument object.
+	 * A Bindable method is any method that has been tagged with the @Bind annotation.
+	 * @param o The Object to get all Bindable methods of
+	 * @return A Stream of the Objects Bindable Methods
 	 */
 	public static Stream<Method> getBindableMethods(final Object o) {
 		return getAllMethods(o.getClass())
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& !Modifier.isStatic(method.getModifiers()); });
+							&& !Modifier.isStatic(method.getModifiers()); })
+				.sequential()
+				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
+						// Collect methods in order of most specific class to least
+						(map, method) -> {
+							String name = GetBindable.bindTo(method);
+							if(!map.containsKey(name))
+								map.put(name, method);
+						},
+						HashMap::putAll)
+				.values().stream();
 	}
 
 	/**
