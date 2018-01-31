@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.file;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Scanner;
 
@@ -55,7 +56,9 @@ public class GameEditorState {
 					throw new ParseException("Could not understand section header: "+line, 0);
 				}
 				
+				prevLine = "";
 				currentSection = newSection;
+				currentLineList.clear();
 			} else {
 				if(line.startsWith(" ")) { // indented section
 					hadIndent = true;
@@ -67,12 +70,15 @@ public class GameEditorState {
 					prevLine = "";
 					String[] s = currentLineList.toArray(new String[0]);
 					if(s.length > 0) {
+						//System.out.println("Updating from list of length "+s.length+"\n "+Arrays.toString(s));
 						currentSection.updateFromLuaString(s);
 					}
 					currentLineList.clear();
+					
+					hadIndent = false;
 				} else if(!line.isEmpty()) {
 					if(hadIndent) {
-						prevLine += line;
+						prevLine += "\n"+line;
 					}
 					if(!prevLine.isEmpty()) {
 						currentLineList.add(prevLine);
@@ -83,6 +89,8 @@ public class GameEditorState {
 					} else {
 						prevLine = "";
 					}
+					
+					hadIndent = false;
 					
 				}
 			}

@@ -22,7 +22,7 @@ public class EditorSaveTest {
 		GameEditorState s = new GameEditorState();
 		s.worldSizeSection.width = 50;
 		s.worldSizeSection.height = 51;
-		s.tileRegionSection.add(new TileRegionSection.TileRegion(5, 5, 15, 15, "floor"));
+		s.tileRegionSection.add(new TileRegionSection.TileRegion(5, 15, 5, 15, "floor"));
 		s.tileRegionSection.add(new TileRegionSection.TileRegion(2, 2, 3, 3, "wall"));
 		s.playerInitSection.px = 8;
 		s.playerInitSection.py = 9;
@@ -36,18 +36,19 @@ public class EditorSaveTest {
 		GameEditorState s = new GameEditorState();
 		s.worldSizeSection.width = 50;
 		s.worldSizeSection.height = 51;
-		s.tileRegionSection.add(new TileRegionSection.TileRegion(5, 5, 15, 15, "floor"));
+		s.tileRegionSection.add(new TileRegionSection.TileRegion(5, 15, 5, 15, "floor"));
 		s.tileRegionSection.add(new TileRegionSection.TileRegion(2, 2, 3, 3, "wall"));
 		s.playerInitSection.px = 8;
 		s.playerInitSection.py = 9;
 		
 		String luaOut = s.toLua();
+		System.out.println("1.\n"+luaOut);
 		
 		GameEditorState s2 = new GameEditorState(luaOut);
 
 		String luaOut2 = s2.toLua();
+		System.out.println("2.\n"+luaOut2);
 		
 		Assert.assertEquals("Check if serialize->deserialize->serialize is consistent", s.toLua(), luaOut2);
-		System.out.println(s.toLua());
 	}
 }

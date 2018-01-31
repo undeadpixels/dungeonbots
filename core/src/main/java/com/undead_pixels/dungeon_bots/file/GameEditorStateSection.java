@@ -17,18 +17,21 @@ public abstract class GameEditorStateSection {
 		return extract(m);
 	}
 	public static String[] extract(Matcher m) {
-		String[] ret = new String[m.groupCount()];
-		
+		if(m.matches()) {
+			String[] ret = new String[m.groupCount()];
 
-		for(int i = 0; i < ret.length; i++) {
-			ret[i] = m.group(i+1);
+			for(int i = 0; i < ret.length; i++) {
+				ret[i] = m.group(i+1);
+			}
+
+			return ret;
+		} else {
+			return new String[] {};
 		}
-		
-		return ret;
 	}
 
 	public static int intAt(String[] strs, int idx, int defaultValue) {
-		if(idx > strs.length) {
+		if(idx >= strs.length) {
 			return defaultValue;
 		}
 		try {
@@ -38,7 +41,7 @@ public abstract class GameEditorStateSection {
 		}
 	}
 	public static float floatAt(String[] strs, int idx, float defaultValue) {
-		if(idx > strs.length) {
+		if(idx >= strs.length) {
 			return defaultValue;
 		}
 		try {
@@ -48,7 +51,7 @@ public abstract class GameEditorStateSection {
 		}
 	}
 	public static String stringAt(String[] strs, int idx, String defaultValue) {
-		if(idx > strs.length) {
+		if(idx >= strs.length) {
 			return defaultValue;
 		}
 		
