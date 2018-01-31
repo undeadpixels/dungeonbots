@@ -4,9 +4,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
-import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
 
@@ -159,7 +158,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void up() {
-		moveInstantly(Direction.UP, 1);
+		this.queueMoveSlowly(Direction.UP);
 	}
 
 	/**
@@ -167,7 +166,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void down() {
-		moveInstantly(Direction.DOWN, 1);
+		this.queueMoveSlowly(Direction.DOWN);
 	}
 
 	/**
@@ -175,7 +174,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void left() {
-		moveInstantly(Direction.LEFT, 1);
+		this.queueMoveSlowly(Direction.LEFT);
 	}
 
 	/**
@@ -183,7 +182,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind
 	final public void right() {
-		moveInstantly(Direction.RIGHT, 1);
+		this.queueMoveSlowly(Direction.RIGHT);
 	}
 
 	/**

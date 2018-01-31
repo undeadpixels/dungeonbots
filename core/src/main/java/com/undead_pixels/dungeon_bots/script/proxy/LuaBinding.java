@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.proxy;
 
 import org.luaj.vm2.LuaValue;
 

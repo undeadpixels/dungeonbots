@@ -2,10 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.LuaReflection;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import org.luaj.vm2.LuaValue;
 
