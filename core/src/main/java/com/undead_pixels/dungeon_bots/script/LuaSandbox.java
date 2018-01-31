@@ -75,7 +75,6 @@ public class LuaSandbox {
 		return this;
 	}
 
-
 	/**
 	 * Variadic method for adding the argument LuaBindings to the LuaSandbox. Essentially an overload of
 	 * the add(Collection:LuaBinding) method
@@ -95,7 +94,7 @@ public class LuaSandbox {
     	try {
 			BufferedReader fr = new BufferedReader(new FileReader(file));
 			// May need to append newline to left string argument in accumulator function.
-			return script(fr.lines().reduce("", String::concat));
+			return script(fr.lines().reduce("", (a, b) -> a + "\n" + b));
 		}
 		catch (FileNotFoundException fileNotFound) {
     		// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
