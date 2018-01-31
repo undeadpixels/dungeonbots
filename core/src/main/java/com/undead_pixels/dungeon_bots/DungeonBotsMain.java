@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots;
 
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.JFrame;
 
@@ -37,24 +38,17 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void setScreen(Screen screen) {
+		
+		//Clear the current screen's frame.
 		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); // clear
-																			// the
-																			// current
-																			// screen's
-																			// frame
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); 
 		}
 
 		super.setScreen(screen);
 
+		//Set the frame for the new screen.
 		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); // set
-																			// the
-																			// frame
-																			// for
-																			// the
-																			// new
-																			// screen
+			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); 
 		}
 	}
 
@@ -94,11 +88,11 @@ public class DungeonBotsMain extends Game {
 		user.setCurrentGame(this);
 	}
 
-	private ArrayList<String> _Authors = new ArrayList<String>();
+	private HashSet<User> _Authors = new HashSet<User>();
 
 	/** Returns whether the indicated user is an author of this game. */
 	public boolean isAuthor(User user) {
-		return _Authors.contains(user.getUserName());
+		return _Authors.contains(user);
 	}
 
 }

@@ -58,33 +58,31 @@ public class DesktopLauncher {
 
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 
-		// create the GL canvas
-		JFrame frame = new JFrame("DungeonBots");
-		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
-		frame.setLayout(new BorderLayout(0, 0));
-
 		DungeonBotsMain game = DungeonBotsMain.instance;
 		game.setUser(user);
-		game.setFrame(frame);
-
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO - deleteme
-																// and replace
-																// with some
-																// kind of
-																// listener for
-																// saving
-
-		//frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-
-		// =====================================================
-		// Hey Wes, I moved the JCodeREPL into the touchDown function of GameView
-		// Just click on the player to bring up its associated REPL in a window
-		// =====================================================
-		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 		
-		frame.setSize(1024, 768);
-		frame.revalidate();
-		frame.setVisible(true);
+		//The appearance of the app will depend on the security level of the user.
+		switch (user.getSecurityLevel()) {
+		case AUTHOR:
+
+		case DEBUG:
+		case NONE:
+		case DEFAULT:
+			// create the GL canvas
+			JFrame frame = new JFrame("DungeonBots");
+			LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
+			frame.setLayout(new BorderLayout(0, 0));
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
+
+			game.setFrame(frame);
+			frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+			frame.setSize(1024, 768);
+			frame.revalidate();
+			frame.setVisible(true);
+			break;
+
+		}
+
 	}
 
 	private static void setDarkNimbus() {
@@ -119,24 +117,24 @@ public class DesktopLauncher {
 			_SyntaxCfg.put("CaretColor", "0xffffff");
 			_SyntaxCfg.put("TokenMarker.Color", "0x403020");
 			_SyntaxCfg.put("PairMarker.Color", "0x665544");
-			
-			_SyntaxCfg.put("Editable.Color",  "0x333333");
 
-			//Comments come from the SyntaxStyle lib:			
+			_SyntaxCfg.put("Editable.Color", "0x333333");
+
+			// Comments come from the SyntaxStyle lib:
 			// Language operators
 			_SyntaxCfg.put("Style.OPERATOR", "0xe6e6e6, 2");
 
 			// Delimiters. Constructs that are not necessarily operators for a
 			// language
 			_SyntaxCfg.put("Style.DELIMITER", "0xffffff, 2");
-			
-			//language reserved keywords
+
+			// language reserved keywords
 			_SyntaxCfg.put("Style.KEYWORD", "0x9999ff, 1");
-			
-			//Other language reserved keywords, like C #defines
+
+			// Other language reserved keywords, like C #defines
 			_SyntaxCfg.put("Style.KEYWORD2", "0xffffff, 1");
-			
-			//identifiers, variable names, class names
+
+			// identifiers, variable names, class names
 			_SyntaxCfg.put("Style.IDENTIFIER", "0xffffff, 0");
 
 			// numbers in various formats
@@ -144,41 +142,41 @@ public class DesktopLauncher {
 
 			// String
 			_SyntaxCfg.put("Style.STRING", "0xff7777, 1");
-			
-			//For highlighting meta chars within a String
+
+			// For highlighting meta chars within a String
 			_SyntaxCfg.put("Style.STRING2", "0xffffff, 1");
-			
-			//comments
+
+			// comments
 			_SyntaxCfg.put("Style.COMMENT", "0x00ffaa, 0");
-			
+
 			// special stuff within comments
 			_SyntaxCfg.put("Style.COMMENT2", "0xffffff, 0");
-			
+
 			// regular expressions
 			_SyntaxCfg.put("Style.REGEX", "0xffffff, 0");
-			
+
 			// special chars within regular expressions
 			_SyntaxCfg.put("Style.REGEX2", "0xffffff, 0");
-			
+
 			// Types, usually not keywords, but supported by the language
 			_SyntaxCfg.put("Style.TYPE", "0xffffff, 0");
-			
+
 			// Types from standard libraries
 			_SyntaxCfg.put("Style.TYPE2", "0xffffff, 0");
-			
+
 			// Types for users
 			_SyntaxCfg.put("Style.TYPE3", "0xffffff, 0");
-			
+
 			// any other text
 			_SyntaxCfg.put("Style.DEFAULT", "0xffffff, 0");
-			
+
 			// Text that should be highlighted as a warning
 			_SyntaxCfg.put("Style.WARNING", "0xffffff, 0");
-			
+
 			// Text that signals an error
 			_SyntaxCfg.put("Style.ERROR", "0xffffff, 0");
 
-			//_SyntaxCfg.put("Style.NOT_EDITABLE", "0xffffff, 1");
+			// _SyntaxCfg.put("Style.NOT_EDITABLE", "0xffffff, 1");
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

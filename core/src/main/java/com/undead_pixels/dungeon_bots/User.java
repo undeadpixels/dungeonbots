@@ -52,4 +52,18 @@ public class User {
 		return _UserName;
 	}
 
+	@Override
+	public boolean equals(Object other){
+		if (other==null) return false;
+		if (other instanceof User){
+			User u = (User)other;
+			return _UserName.equals(u._UserName);
+		}
+		return false;
+	}
+	
+	@Override
+	public int hashCode(){
+		return _UserName.hashCode();
+	}
 }
