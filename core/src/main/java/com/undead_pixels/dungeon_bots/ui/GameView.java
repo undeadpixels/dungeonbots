@@ -199,7 +199,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		Entity e = world.getEntityUnderLocation(gameSpace.x, gameSpace.y);
 		
 		if(e instanceof Player) {
-			LuaSandbox env = e.getSandbox();
+			/*LuaSandbox env = e.getSandbox();
 
 			JCodeREPL repl = new JCodeREPL(env);
 			Object o = new Object();
@@ -230,8 +230,12 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 					+ "called your self 'Star Ways and Means Committee from the beginning'.", repl);
 			repl.setCode("x=5+4");
 			repl.execute(100);
-			repl.setCode("return x");
-			this.addWindowFor(repl, "Player's REPL");
+			repl.setCode("return x");*/
+			
+			//this.addWindowFor(repl, "Player's REPL");
+			
+			JPlayerEditor jpe = new JPlayerEditor(e.getSandbox());
+			this.addWindowFor(jpe,  "Player Editor");
 			
 		}
 
