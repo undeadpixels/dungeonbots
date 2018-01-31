@@ -121,7 +121,7 @@ public class LuaProxyFactory {
 			}
 			else {
 				if(getAllInterfaces(returnType).anyMatch(GetBindable.class::isAssignableFrom))
-					return getLuaValue((GetBindable)m.invoke(caller, args));
+					return ((GetBindable) m.invoke(caller, args)).getLuaValue();
 				else
 					return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
 			}

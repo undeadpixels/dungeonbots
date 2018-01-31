@@ -73,7 +73,7 @@ public class LuaScript {
 		thread.interrupt();
 		try {
 			thread.join();
-		} catch (InterruptedException ie) {
+		} catch (Exception ie) {
 		}
 		scriptStatus = ScriptStatus.STOPPED;
 		return this;
@@ -104,6 +104,8 @@ public class LuaScript {
 	 * number of milliseconds.
 	 */
 	public synchronized LuaScript join(long wait) {
+		assert scriptStatus != ScriptStatus.STOPPED;
+
 		//TODO:  the Script should manage its thread internally, but expose a reset()
 		try {
 			thread.join(wait);

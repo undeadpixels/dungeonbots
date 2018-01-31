@@ -14,17 +14,23 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 
 public class World implements GetBindable {
     private LuaScript levelScript;
     private LuaValue luaBinding;
+	private LuaFunction mapUpdateFunc;
+	private LuaSandbox mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
     private String name = "world";
 
@@ -56,6 +62,10 @@ public class World implements GetBindable {
     	World w = new World();
     	SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
+	}
+
+	public void addMapUpdate(LuaFunction luaFunction) {
+    	mapUpdateFunc = luaFunction;
 	}
 
 	@Bind
@@ -90,8 +100,11 @@ public class World implements GetBindable {
 			e.update(dt);
 		}
 		playstyle.update();
-		
-		// TODO - tell the levelScript that a new frame happened
+
+		Whitelist temp = SecurityContext.getWhitelist();
+		SecurityContext.set(this.mapSandbox);
+		if(mapUpdateFunc != null)
+			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
 	}
 	
 	public void render(SpriteBatch batch) {
@@ -180,6 +193,12 @@ public class World implements GetBindable {
 	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
     	TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
     	setTile(x.checkint() - 1, y.checkint() - 1, tileType);
+	}
+
+	@Bind
+	public Player getPlayer() {
+    	SecurityContext.getWhitelist().add(this.player);
+    	return this.player;
 	}
 
 	public void setTile(int x, int y, TileType tileType) {
@@ -302,5 +321,9 @@ public class World implements GetBindable {
 		}
 		
 		return null;
+	}
+
+	public LuaSandbox getMapSandbox() {
+    	return this.mapSandbox;
 	}
 }

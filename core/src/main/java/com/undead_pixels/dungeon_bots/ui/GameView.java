@@ -45,7 +45,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		AssetManager.finishLoading();
 		//Player.PLAYER_TEXTURE = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), TILESIZE *1, TILESIZE *1, TILESIZE, TILESIZE);
 		world = new World();
-		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG);
+		LuaSandbox sandbox = world.getMapSandbox();
 
 		TileTypes tt = new TileTypes();
 
@@ -95,9 +95,12 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		sandbox.addBindable(world, tt, world.getWhitelist()).addBindableClass(Player.class);
 		LuaScript luaScript = sandbox.script(new File("sample-level-packs/sample-pack-1/levels/level1.lua")).start().join();
 		assert luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent();
-		LuaFunction luaFunction = luaScript.getResults().get().checktable(1).get("init").checkfunction();
-		luaFunction.invoke();
+		LuaTable tbl = luaScript.getResults().get().checktable(1);
+		LuaFunction luaFunction = tbl.get("init").checkfunction();
+		LuaFunction mapUpdate = tbl.get("update").checkfunction();
 
+		world.addMapUpdate(mapUpdate);
+		luaFunction.invoke();
 		//Gdx.input.setInputProcessor(stage);
 		Gdx.input.setInputProcessor(this);
 	}
