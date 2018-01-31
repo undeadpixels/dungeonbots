@@ -35,7 +35,8 @@ public class DesktopLauncher {
 	private static final boolean forceNimbus = true;
 	
 	public static void main (String[] arg) {
-		
+		/*
+
 		System.out.println("Starting login...");
 		User user = Login.challenge("Welcome to DungeonBots.");
 		if (user == null) {
@@ -43,8 +44,9 @@ public class DesktopLauncher {
 			return;
 		}
 		System.out.println("Login valid.");
-		
+		*/
 		DefaultSyntaxKit.initKit();
+
 		
 		// UI theming
 		if(forceNimbus) {
@@ -101,7 +103,7 @@ public class DesktopLauncher {
 		frame.setLayout(new BorderLayout(0, 0));
 		
 		DungeonBotsMain game = DungeonBotsMain.instance;
-		game.setUser(user);
+		//game.setUser(user);
 		game.setFrame(frame);
 		
 		

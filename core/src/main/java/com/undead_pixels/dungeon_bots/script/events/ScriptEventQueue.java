@@ -10,5 +10,4 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, ScriptEvent>
 		super(owner);
 		// TODO Auto-generated constructor stub
 	}
-
 }

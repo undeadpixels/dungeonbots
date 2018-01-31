@@ -1,11 +1,14 @@
 package com.undead_pixels.dungeon_bots.script.interfaces;
-import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.LuaValue;
 
 import java.lang.reflect.*;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.undead_pixels.dungeon_bots.script.LuaSandbox.id;

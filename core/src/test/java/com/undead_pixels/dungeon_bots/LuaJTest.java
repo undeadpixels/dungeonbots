@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.lua.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import org.junit.*;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.*;

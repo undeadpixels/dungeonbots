@@ -1,8 +1,10 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.proxy;
 
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Supplier;
@@ -51,16 +53,27 @@ public class LuaReflection {
 	}
 
 	/**
-	 *
-	 * @param o
-	 * @return
+	 * Returns a collection of Bindable methods found for the argument object.
+	 * A Bindable method is any method that has been tagged with the @Bind annotation.
+	 * @param o The Object to get all Bindable methods of
+	 * @return A Stream of the Objects Bindable Methods
 	 */
 	public static Stream<Method> getBindableMethods(final Object o) {
 		return getAllMethods(o.getClass())
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
-							&& !Modifier.isStatic(method.getModifiers()); });
+							&& !Modifier.isStatic(method.getModifiers()); })
+				.sequential()
+				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
+						// Collect methods in order of most specific class to least
+						(map, method) -> {
+							String name = GetBindable.bindTo(method);
+							if(!map.containsKey(name))
+								map.put(name, method);
+						},
+						HashMap::putAll)
+				.values().stream();
 	}
 
 	/**
@@ -105,18 +118,7 @@ public class LuaReflection {
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
 		return flattenClass(clz)
 				.map(Class::getDeclaredMethods)
-				.flatMap(Stream::of)
-				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
-					(m,v) -> {
-						// Do not get methods that already exist in Map
-						// so as not to create ambiguous bindings to methods defined
-						// by a parent class.
-						String name = GetBindable.bindTo(v);
-						if(!m.containsKey(name))
-							m.put(name, v);
-					},
-					HashMap::putAll)
-				.values().stream();
+				.flatMap(Stream::of);
 	}
 
 	private static Stream<Field> getAllFields(final Class<?> clz) {
@@ -136,5 +138,11 @@ public class LuaReflection {
 		}
 		catch (Exception e) { }
 		return classes.stream().sequential();
+	}
+
+	public static Optional<Method> getMethodWithName(Object o, String name) {
+		return getBindableMethods(o.getClass())
+				.filter(m -> GetBindable.bindTo(m).equals(name))
+				.findFirst();
 	}
 }

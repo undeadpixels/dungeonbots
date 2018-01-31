@@ -39,7 +39,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	/**
 	 * Adds a task to the queue
 	 * 
-	 * @param a	A new action
+	 * @param t	A new action
 	 */
 	public void enqueue(T t) {
 		queue.add(t);
@@ -48,7 +48,8 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	/**
 	 * Adds a task to the queue
 	 * 
-	 * @param a	A new action
+	 * @param t	A new action
+	 * @param group A coaelescing group
 	 */
 	public <A extends T> void enqueue(A t, CoalescingGroup<A> group) {
 		T otherT = coalescingGroupMap.get(group);
