@@ -13,8 +13,7 @@ public class JPlayerEditor extends JPanel {
 	public JPlayerEditor(LuaSandbox sandbox) {
 		super(new BorderLayout());
 
-		JCodeREPL repl = new JCodeREPL(sandbox);
-		Object o = new Object();
+		JCodeREPL repl = new JCodeREPL(sandbox);		
 		repl.message("This message is sent from some old object");
 		repl.message("This message will be in the form of an internal echo from the editor itself", repl);
 		repl.message("Turmoil has engulfed the Galactic Republic. The taxation of trade routes to outlying "
