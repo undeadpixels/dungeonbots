@@ -19,6 +19,7 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaTable;
 
@@ -40,7 +41,9 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 	
 	public GameView() {
 		final int TILESIZE = 16;
-		Player.PLAYER_TEXTURE = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), TILESIZE *1, TILESIZE *1, TILESIZE, TILESIZE);
+		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
+		AssetManager.finishLoading();
+		//Player.PLAYER_TEXTURE = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), TILESIZE *1, TILESIZE *1, TILESIZE, TILESIZE);
 		world = new World();
 		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
@@ -90,20 +93,10 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		tt.registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false);
 
 		sandbox.addBindable(world, tt, world.getWhitelist()).addBindableClass(Player.class);
-		LuaScript luaScript = sandbox.init(
-				"world:setSize(16, 16)\n" +
-				"    for i = 1,16 do\n" +
-				"        for j = 1,16 do\n" +
-				"            if i == 1 or i == 16 or j == 1 or j == 16 then\n" +
-				"                world:setTile(j, i, tileTypes:getTile(\"wall\"))\n" +
-				"            else\n" +
-				"                world:setTile(j, i, tileTypes:getTile(\"floor\"))\n" +
-				"            end\n" +
-				"        end\n" +
-				"    end\n" +
-				"    local player = Player.new(world, 2, 2)\n" +
-				"    world:setPlayer(player)").join();
-		assert luaScript.getStatus() == ScriptStatus.COMPLETE;
+		LuaScript luaScript = sandbox.script(new File("sample-level-packs/sample-pack-1/levels/level1.lua")).start().join();
+		assert luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent();
+		LuaFunction luaFunction = luaScript.getResults().get().checktable(1).get("init").checkfunction();
+		luaFunction.invoke();
 
 		//Gdx.input.setInputProcessor(stage);
 		Gdx.input.setInputProcessor(this);

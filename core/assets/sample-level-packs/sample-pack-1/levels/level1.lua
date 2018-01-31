@@ -47,7 +47,6 @@ tbl.init = function()
     end
     local player = Player.new(world, 2, 2)
     world:setPlayer(player)
-    --whitelist:allow(player, "up", "down", "left", "right")
 end
 
 tbl.update = function(dt)
