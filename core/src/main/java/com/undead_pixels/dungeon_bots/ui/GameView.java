@@ -1,16 +1,11 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-import java.awt.BorderLayout;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -19,11 +14,15 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
+import org.luaj.vm2.LuaFunction;
+import org.luaj.vm2.LuaTable;
+
+import java.io.File;
 
 /**
  * The screen for the regular game
@@ -40,12 +39,11 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 	private World world;
 	
 	public GameView() {
+		final int TILESIZE = 16;
+		Player.PLAYER_TEXTURE = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), TILESIZE *1, TILESIZE *1, TILESIZE, TILESIZE);
 		world = new World();
-		
-		// XXX - testing code; remove and replace with lua
-		world.setSize(16, 16);
+		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
-		int tilesize = 16;
 		TileTypes tt = new TileTypes();
 
 		// TODO - visually test these all at some point
@@ -67,6 +65,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 				new Vector2(3, 1), // E no left
 				new Vector2(4, 1), // F all
 		};
+
 		Vector2[] offsetsFloors = new Vector2[] {
 				new Vector2(5, 0), // 0 default
 				new Vector2(6, 1), // 1 only left
@@ -87,34 +86,25 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		};
 		
 		
-		tt.registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), 16, 0, 3, offsetsFloors, false);
-		tt.registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), 16, 0, 3, offsetsWalls, false);
-		
-		for(int i = 0; i < 16; i++) {
-			for(int j = 0; j < 16; j++) {
-				if(i != 0 && j != 0 && i != 15 && j != 15) {
-					world.setTile(j, i, tt.getTile("floor"));
-				} else {
-					world.setTile(j, i, tt.getTile("wall"));
-				}
-			}
-		}
+		tt.registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false);
+		tt.registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false);
 
-		world.setTile(5, 5, tt.getTile("wall"));
-		world.setTile(4, 5, tt.getTile("wall"));
-		world.setTile(6, 5, tt.getTile("wall"));
-		world.setTile(5, 4, tt.getTile("wall"));
-		world.setTile(5, 6, tt.getTile("wall"));
-		
-		TextureRegion tr = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), tilesize*0, tilesize*0, tilesize, tilesize);
-		
-		Player p = new Player(world, "asdf", tr);
-		//if(SecurityContext.getActiveSecurityLevel() == SecurityLevel.DEBUG)
-		//	SecurityContext.getWhitelist().addWhitelist(p.permissiveWhitelist());
-		world.addEntity(p);
-		p.moveInstantly(Actor.Direction.UP, 6);
-		p.moveInstantly(Actor.Direction.RIGHT, 6);
-		
+		sandbox.addBindable(world, tt, world.getWhitelist()).addBindableClass(Player.class);
+		LuaScript luaScript = sandbox.init(
+				"world:setSize(16, 16)\n" +
+				"    for i = 1,16 do\n" +
+				"        for j = 1,16 do\n" +
+				"            if i == 1 or i == 16 or j == 1 or j == 16 then\n" +
+				"                world:setTile(j, i, tileTypes:getTile(\"wall\"))\n" +
+				"            else\n" +
+				"                world:setTile(j, i, tileTypes:getTile(\"floor\"))\n" +
+				"            end\n" +
+				"        end\n" +
+				"    end\n" +
+				"    local player = Player.new(world, 2, 2)\n" +
+				"    world:setPlayer(player)").join();
+		assert luaScript.getStatus() == ScriptStatus.COMPLETE;
+
 		//Gdx.input.setInputProcessor(stage);
 		Gdx.input.setInputProcessor(this);
 	}

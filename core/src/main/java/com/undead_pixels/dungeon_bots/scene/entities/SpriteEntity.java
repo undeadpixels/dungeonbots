@@ -5,8 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.Whitelist;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
  * A regular Entity that is based upon a Sprite, not some other form of graphic

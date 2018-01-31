@@ -1,7 +1,9 @@
-package com.undead_pixels.dungeon_bots.script;
+package com.undead_pixels.dungeon_bots.script.proxy;
 
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
@@ -172,7 +174,7 @@ public class LuaProxyFactory {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
-					return invokeWhitelist(m, returnType, SecurityContext.activeWhitelist, caller, getParams(m, args));
+					return invokeWhitelist(m, returnType, SecurityContext.getWhitelist(), caller, getParams(m, args));
 				}
 				catch (Exception me) {
 					return LuaValue.error(me.getMessage());
