@@ -62,6 +62,8 @@ public class JCodeEditor extends JPanel implements ActionListener {
 		 * _SyntaxStyles.keySet()) SyntaxStyles.getInstance().put(key,
 		 * _SyntaxStyles.get(key));
 		 */
+		
+		
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.add(JCodeREPL.makeButton("cut.gif", "CUT", "Cut a highlighted section", "Cut", this));

@@ -5,15 +5,16 @@ import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 public class JPlayerEditor extends JPanel {
 
-	public JPlayerEditor(LuaSandbox sandbox) {
+	public JPlayerEditor(Player player) {
 		super(new BorderLayout());
 
-		JCodeREPL repl = new JCodeREPL(sandbox);		
+		JCodeREPL repl = new JCodeREPL(player.getSandbox());		
 		repl.message("This message is sent from some old object");
 		repl.message("This message will be in the form of an internal echo from the editor itself", repl);
 		repl.message("Turmoil has engulfed the Galactic Republic. The taxation of trade routes to outlying "

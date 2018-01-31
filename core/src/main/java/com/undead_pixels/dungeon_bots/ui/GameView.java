@@ -191,7 +191,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		if(e instanceof Player) {
 			
 			
-			JPlayerEditor jpe = new JPlayerEditor(e.getSandbox());
+			JPlayerEditor jpe = new JPlayerEditor((Player)e);
 			this.addWindowFor(jpe,  "Player Editor");
 			
 		}
