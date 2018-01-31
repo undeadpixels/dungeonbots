@@ -1,3 +1,4 @@
+package com.undead_pixels.dungeon_bots.scene;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.Test;
 

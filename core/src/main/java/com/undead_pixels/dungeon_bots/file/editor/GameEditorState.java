@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.file;
+package com.undead_pixels.dungeon_bots.file.editor;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -17,21 +17,21 @@ public class GameEditorState {
 		sections.put("world size",
 				worldSizeSection = new WorldSizeSection());
 		sections.put("load custom assets",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 		sections.put("register tiles",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 		sections.put("tiles",
 				tileRegionSection = new TileRegionSection());
 		sections.put("player init",
 				playerInitSection = new PlayerInitSection());
 		sections.put("bots init",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 		sections.put("enemies init",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 		sections.put("whitelist",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 		sections.put("settings",
-				new FakeSection(""));
+				new FakeEditorStateSection(""));
 	}
 
 	public GameEditorState(String luaCode) throws ParseException {
@@ -39,7 +39,7 @@ public class GameEditorState {
 		
 		Scanner sc = new Scanner(luaCode);
 		
-		GameEditorStateSection currentSection = new FakeSection("");
+		GameEditorStateSection currentSection = new FakeEditorStateSection("");
 		String prevLine = "";
 		boolean hadIndent = false;
 		ArrayList<String> currentLineList = new ArrayList<>();

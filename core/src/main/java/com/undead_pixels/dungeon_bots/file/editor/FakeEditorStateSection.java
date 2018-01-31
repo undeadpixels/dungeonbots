@@ -1,14 +1,14 @@
-package com.undead_pixels.dungeon_bots.file;
+package com.undead_pixels.dungeon_bots.file.editor;
 
 import java.text.ParseException;
 
 /**
  * A fake GameEditorSection, just used for planning
  */
-public class FakeSection extends GameEditorStateSection {
+public class FakeEditorStateSection extends GameEditorStateSection {
 	private String str;
 
-	public FakeSection(String str) {
+	public FakeEditorStateSection(String str) {
 		super();
 		this.str = str;
 	}

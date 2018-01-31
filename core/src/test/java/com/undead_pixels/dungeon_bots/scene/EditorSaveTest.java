@@ -1,12 +1,12 @@
-package com.undead_pixels.dungeon_bots;
+package com.undead_pixels.dungeon_bots.scene;
 
 import java.text.ParseException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.undead_pixels.dungeon_bots.file.GameEditorState;
-import com.undead_pixels.dungeon_bots.file.TileRegionSection;
+import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
+import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
 
 public class EditorSaveTest {
 

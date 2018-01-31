@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots;
+package com.undead_pixels.dungeon_bots.scene;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.*;

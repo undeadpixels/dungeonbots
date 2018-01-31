@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.ui;
+package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
@@ -18,7 +18,6 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaTable;

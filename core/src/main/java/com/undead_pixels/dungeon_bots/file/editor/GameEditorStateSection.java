@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.file;
+package com.undead_pixels.dungeon_bots.file.editor;
 
 import java.text.ParseException;
 import java.util.Scanner;

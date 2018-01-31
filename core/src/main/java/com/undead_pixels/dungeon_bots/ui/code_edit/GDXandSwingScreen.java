@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.ui;
+package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import java.awt.Component;
 import java.awt.Container;
