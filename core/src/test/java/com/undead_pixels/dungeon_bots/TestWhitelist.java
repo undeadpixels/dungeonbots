@@ -62,6 +62,8 @@ public class TestWhitelist {
 
 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		a.getWorld().setSize(16,16);
+		a.getWorld().update(1.0f);
 		Assert.assertEquals( 1.0, a.getPosition().y, 0.001);
 
 		w.remove(a, m.get());
@@ -84,6 +86,8 @@ public class TestWhitelist {
 		assert m.isPresent();
 		w.add(a, m.get());
 		luaScript = scriptEnvironment.init("test.up()").join();
+		a.getWorld().setSize(16,16);
+		a.getWorld().update(1.f);
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertEquals(a.getPosition().y, 1.0, 0.001);
 	}

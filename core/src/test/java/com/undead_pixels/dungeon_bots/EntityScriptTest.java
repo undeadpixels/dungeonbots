@@ -15,8 +15,11 @@ public class EntityScriptTest {
 		SecurityContext.set(SecurityLevel.DEBUG);
 		World w = new World();
 		Player p = new Player(w, "player");
+		w.setSize(16,16);
 		LuaScript luaScript = p.getSandbox().init("player:up()").join();
 		assertTrue(luaScript.getStatus() == COMPLETE);
+		w.update(1.f);
+		w.update(1.f);
 		assertEquals(1.0, p.getPosition().y, 0.001);
 	}
 

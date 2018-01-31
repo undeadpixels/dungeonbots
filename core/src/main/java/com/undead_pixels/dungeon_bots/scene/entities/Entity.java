@@ -108,4 +108,8 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 		return TeamFlavor.NONE; // TODO
 	}
 
+	public World getWorld() {
+		return world;
+	}
+
 }
