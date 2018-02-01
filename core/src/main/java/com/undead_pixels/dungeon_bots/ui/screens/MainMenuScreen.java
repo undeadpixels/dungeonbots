@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.ui.code_edit;
+package com.undead_pixels.dungeon_bots.ui.screens;
 
 import com.badlogic.gdx.ScreenAdapter;
 

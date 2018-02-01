@@ -60,13 +60,13 @@ public class World implements GetBindable {
 
 	@Bind
 	public void win() {
-    	System.out.println("A winner is you");
+		System.out.println("A winner is you");
 	}
 
 	@Bind
 	public void setPlayer(LuaValue luaPlayer) {
-    	Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
-    	player = p;
+		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
+		player = p;
 	}
 
     // TODO - another constructor for specific resource paths

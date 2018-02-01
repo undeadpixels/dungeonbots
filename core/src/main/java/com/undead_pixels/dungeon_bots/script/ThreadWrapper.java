@@ -12,11 +12,13 @@ public class ThreadWrapper {
         return new Thread(() -> {
             Thread thread = new Thread(toRun);
             thread.start();
-            while (thread.getState() != Thread.State.TERMINATED)
+            while (thread.getState() != Thread.State.TERMINATED) {
+            		// TODO - this is a busy-wait and needs to be fixed.
                 if(Thread.currentThread().isInterrupted()) {
                     thread.interrupt();
                     return;
                 }
+            }
         });
     }
 }

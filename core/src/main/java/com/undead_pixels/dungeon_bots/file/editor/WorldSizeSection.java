@@ -11,7 +11,7 @@ public class WorldSizeSection extends GameEditorStateSection {
 	}
 
 	@Override
-	public void updateFromLuaString(String[] luaCode) throws ParseException {
+	public void updateFromLuaStrings(String[] luaCode) throws ParseException {
 		String line = luaCode[0];
 		String[] vals = extract("world\\.setSize\\((\\d+), (\\d+)\\)", line);
 		width = intAt(vals, 0, width);
