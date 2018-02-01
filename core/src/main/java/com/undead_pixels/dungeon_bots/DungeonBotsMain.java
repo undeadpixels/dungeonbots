@@ -11,6 +11,7 @@ import javax.swing.JFrame;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.undead_pixels.dungeon_bots.ui.Login;
+import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 
@@ -76,9 +77,7 @@ public class DungeonBotsMain extends Game {
 
 	@Override
 	public void create() {
-		GameView gv = new GameView();
-		
-		setScreen(gv);
+		setScreen (new MainMenuScreen());
 	}
 
 	/*

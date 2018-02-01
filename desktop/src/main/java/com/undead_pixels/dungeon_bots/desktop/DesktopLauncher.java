@@ -65,7 +65,7 @@ public class DesktopLauncher {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 
 		DungeonBotsMain game = DungeonBotsMain.instance;
-		game.setUser(user);
+		
 		
 		// create the GL canvas
 		JFrame frame = new JFrame("DungeonBots");
