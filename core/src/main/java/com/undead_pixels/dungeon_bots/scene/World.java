@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,20 +19,24 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.LuaFunction;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
 public class World implements GetLuaFacade, GetLuaSandbox {
     private LuaScript levelScript;
     private LuaValue luaBinding;
 	private LuaFunction mapUpdateFunc;
-	private LuaSandbox mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+	private LuaSandbox mapSandbox;
 
     private String name = "world";
 
@@ -42,42 +47,65 @@ public class World implements GetLuaFacade, GetLuaSandbox {
     private ArrayList<Entity> entities = new ArrayList<>();
     private Player player;
     
-    private Vector2 offset = new Vector2();
-    
     private int idCounter = 0;
     
     private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
 
-    public World() {
-   	 	backgroundImage = null;
-   	 	tiles = new Tile[0][0];
-    }
-
-    public World(String name) {
-    	super();
-    	this.name = name;
+	public World() {
+		this(null, "world");
 	}
 
-    @Bind @BindTo("new")
+	public World(File luaScriptFile) {
+		this(luaScriptFile, "world");
+	}
+
+	public World(String name) {
+			this(null, name);
+	}
+	
+	public World(File luaScriptFile, String name) {
+		super();
+		
+		this.name = name;
+   	 	backgroundImage = null;
+   	 	tiles = new Tile[0][0];
+	
+		if(luaScriptFile != null) {
+			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+			TileTypes tt = new TileTypes();
+			mapSandbox.addBindable(this, tt, this.getWhitelist()).addBindableClass(Player.class);
+			levelScript = mapSandbox.script(luaScriptFile).start().join();
+			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
+			LuaTable tbl = levelScript.getResults().get().checktable(1);
+			LuaFunction init = tbl.get("init").checkfunction();
+			LuaFunction mapUpdate = tbl.get("update").checkfunction();
+			
+			setMapUpdate(mapUpdate);
+			
+			init.invoke();
+		}
+	}
+
+	@Bind @BindTo("new")
     public static LuaValue newWorld() {
-    	World w = new World();
-    	SecurityContext.getWhitelist().add(w);
+    		World w = new World();
+    		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
-	public void addMapUpdate(LuaFunction luaFunction) {
-    	mapUpdateFunc = luaFunction;
+	public void setMapUpdate(LuaFunction luaFunction) {
+		mapUpdateFunc = luaFunction;
 	}
 
 	@Bind
 	public void win() {
-    	System.out.println("A winner is you");
+		System.out.println("A winner is you");
 	}
 
 	@Bind
 	public void setPlayer(LuaValue luaPlayer) {
-    	Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
-    	player = p;
+		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
+		player = p;
 	}
 
     // TODO - another constructor for specific resource paths
@@ -103,9 +131,10 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		playstyle.update();
 
 		Whitelist temp = SecurityContext.getWhitelist();
-		SecurityContext.set(this.mapSandbox);
-		if(mapUpdateFunc != null)
+		if(mapUpdateFunc != null) {
+			SecurityContext.set(this.mapSandbox);
 			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
+		}
 	}
 	
 	public void render(SpriteBatch batch) {

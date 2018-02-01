@@ -71,7 +71,7 @@ public class GameEditorState {
 					String[] s = currentLineList.toArray(new String[0]);
 					if(s.length > 0) {
 						//System.out.println("Updating from list of length "+s.length+"\n "+Arrays.toString(s));
-						currentSection.updateFromLuaString(s);
+						currentSection.updateFromLuaStrings(s);
 					}
 					currentLineList.clear();
 					

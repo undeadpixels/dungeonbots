@@ -1,5 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
+/**
+ * A list of actions
+ */
 public final class SequentialActions implements Action {
 	
 	private Action[] innerActions;

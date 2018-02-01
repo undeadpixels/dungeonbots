@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public abstract class GameEditorStateSection {
 	public abstract String toLua();
-	public abstract void updateFromLuaString(String[] luaCode) throws ParseException;
+	public abstract void updateFromLuaStrings(String[] luaCode) throws ParseException;
 	
 	public static String[] extract(String regex, String text) {
 		return extract(Pattern.compile(regex), text);

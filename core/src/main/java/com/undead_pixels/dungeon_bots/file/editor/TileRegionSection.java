@@ -22,7 +22,7 @@ public class TileRegionSection extends GameEditorStateSection {
 	}
 
 	@Override
-	public void updateFromLuaString(String[] luaCode) throws ParseException {
+	public void updateFromLuaStrings(String[] luaCode) throws ParseException {
 		for(String line : luaCode) {
 			regions.add(new TileRegion(line));
 		}
