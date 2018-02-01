@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 /**
  * @author Stewart Charles
- * @version 1.0
+ * @version 2/1/2018
  * Class containing static methods that handle many common reflection related operations<br>
  * used for retrieving annotated methods and fields for creating Lua code that can invoke java methods
  */

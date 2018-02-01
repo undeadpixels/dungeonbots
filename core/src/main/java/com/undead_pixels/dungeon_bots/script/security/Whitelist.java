@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * @author Stewart Charles
+ * @version 2/1/2018
  * Creates a Whitelist of allowed callable Methods that is unique to the caller
  * and the method.
  */

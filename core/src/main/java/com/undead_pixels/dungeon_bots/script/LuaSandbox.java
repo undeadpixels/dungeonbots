@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
- * @version 1.0
+ * @version 2/1/2018
  * A LuaSandbox is a factory for creating a Sandbox of globals and methods that can be used to invoke
  * LuaScripts. A LuaSandbox is essentially a collection of allowed Lua functions.<br>
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.

@@ -161,8 +161,12 @@ public class Actor extends SpriteEntity {
 	}
 
 	private Actor moveAmt(Varargs amt, Direction direction) {
-		assert amt.narg() < 2;
-		int n = !amt.arg(1).isint() ? 1 : amt.arg(1).checkint();
+		int SIZE = amt.narg();
+		int n;
+		if (SIZE < 2)
+			n = amt.arg1().isint() ? amt.arg1().checkint() : 1;
+		else
+			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
 			this.queueMoveSlowly(direction);
 		return this;
