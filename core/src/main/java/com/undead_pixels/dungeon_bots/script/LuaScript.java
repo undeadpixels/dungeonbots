@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.Optional;
 
 /**
+ * @author Stewart Charles
+ * @version 2/1/2018
  * A LuaScript is an asynchronous wrapper around an execution context for a sandbox that is invoked using a
  * LuaSandbox.
  */

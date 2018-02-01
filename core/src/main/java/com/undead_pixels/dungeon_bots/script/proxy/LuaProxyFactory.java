@@ -12,6 +12,12 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * @author Stewart Charles
+ * @version 2/1/2018
+ * Class containing static methods that generate LuaValues that operate as proxy to invokable Java methods<br>
+ * in Lua scripts.
+ */
 public class LuaProxyFactory {
 
 	/**
@@ -131,7 +137,7 @@ public class LuaProxyFactory {
 			throw new MethodNotOnWhitelistException(m);
 	}
 
-	private static LuaValue[] VarargToArr(final Varargs varargs) {
+	private static LuaValue[] varargToArr(final Varargs varargs) {
 		final int SIZE = varargs.narg();
 		LuaValue[] list = new LuaValue[SIZE];
 		for(int i = 1; i < SIZE + 1; i++) {
@@ -142,14 +148,13 @@ public class LuaProxyFactory {
 
 	private static Object[] getParams(final Method m, final Varargs varargs) {
 		Class<?>[] paramTypes = m.getParameterTypes();
-		if(paramTypes.length > 0 && paramTypes[0].equals(Varargs.class)) {
-			return new Object[] {
-					paramTypes.length == varargs.narg() ?
-							varargs :
-							varargs.subargs(1) };
+		if(paramTypes.length == 1 && paramTypes[0].equals(Varargs.class)) {
+			return new Object[] { varargs };
 		}
+		else if(paramTypes.length == 1 && paramTypes[0].isAssignableFrom(LuaValue[].class))
+			return varargToArr(varargs);
 		else {
-			Object[] ans = VarargToArr(varargs);
+			Object[] ans = varargToArr(varargs);
 			if(paramTypes.length == ans.length) {
 				return ans;
 			}

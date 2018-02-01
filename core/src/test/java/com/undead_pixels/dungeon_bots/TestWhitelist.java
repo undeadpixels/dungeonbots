@@ -3,12 +3,15 @@ package com.undead_pixels.dungeon_bots;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.*;
-
+import org.luaj.vm2.Varargs;
 import java.lang.reflect.Method;
 import java.util.Optional;
+
+import static com.undead_pixels.dungeon_bots.script.proxy.LuaReflection.*;
 
 public class TestWhitelist {
 
@@ -25,13 +28,13 @@ public class TestWhitelist {
 	public void testGetWhitelist() {
 		Actor a = new ActorBuilder().createActor();
 		Whitelist w = a.getWhitelist(SecurityLevel.DEBUG);
-		Optional<Method> m = findMethod(a, "up");
+		Optional<Method> m = getMethodWithName(a, "up");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "down");
+		m = getMethodWithName(a, "down");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "left");
+		m = getMethodWithName(a, "left");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "right");
+		m = getMethodWithName(a, "right");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 	}
 
@@ -40,24 +43,25 @@ public class TestWhitelist {
 		Actor a = new ActorBuilder().createActor();
 		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
 		Whitelist w = sandbox.getWhitelist();
-		Optional<Method> m = findMethod(a, "up");
+		Optional<Method> m = getMethodWithName(a, "up");
 		assert m.isPresent();
 		w.add(a, m.get());
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "down");
+		m = findMethod(a, "down", Varargs.class);
 		Assert.assertFalse(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "left");
+		m = findMethod(a, "left", Varargs.class);
 		Assert.assertFalse(m.isPresent() && w.onWhitelist(a, m.get()));
-		m = findMethod(a, "right");
+		m = findMethod(a, "right", Varargs.class);
 		Assert.assertFalse(m.isPresent() && w.onWhitelist(a, m.get()));
 	}
 
 	@Test
 	public void testRemoveFromWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(a);
+		LuaSandbox scriptEnvironment = a.getSandbox();
+		scriptEnvironment.addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
-		Optional<Method> m = findMethod(a, "up");
+		Optional<Method> m = getMethodWithName(a, "up");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 
 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
@@ -82,7 +86,7 @@ public class TestWhitelist {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
 		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
 
-		Optional<Method> m = findMethod(a, "up");
+		Optional<Method> m = getMethodWithName(a, "up");
 		assert m.isPresent();
 		w.add(a, m.get());
 		luaScript = scriptEnvironment.init("test.up()").join();

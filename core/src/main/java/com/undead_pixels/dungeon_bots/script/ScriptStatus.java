@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.script;
 
 /**
+ * @author Stewart Charles
+ * @version 2/1/2018
  * An enumeration of the various status of a LuaScript
  */
 public enum ScriptStatus {
