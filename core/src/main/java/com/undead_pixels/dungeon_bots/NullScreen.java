@@ -49,6 +49,7 @@ import jsyntaxpane.syntaxkits.LuaSyntaxKit;
  * 
  * Edit: this will be deleted soon. Grab anything you want out of it.
  */
+@Deprecated
 public class NullScreen extends GDXandSwingScreen {
 
 	SpriteBatch batch = new SpriteBatch();

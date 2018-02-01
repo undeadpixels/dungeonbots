@@ -12,8 +12,24 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.LuaValue;
 
+/**
+ * A collection of TileType's
+ */
 public class TileTypes implements GetLuaFacade {
+
+	/**
+	 * Internal storage
+	 */
+	private HashMap<String, TileType> typeMap = new HashMap<>();
 	
+	/**
+	 * Lazily-loaded luaValue for this object
+	 */
+	private LuaValue luaValue;
+	
+	/**
+	 * Creates some default tiles (such as walls and floors)
+	 */
 	public TileTypes() {
 		super();
 
@@ -59,12 +75,10 @@ public class TileTypes implements GetLuaFacade {
 		
 		final int TILESIZE = 16;
 		
-		registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false);
-		registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false);
+		// register some default tile types
+		registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
+		registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
 	}
-
-	private HashMap<String, TileType> typeMap = new HashMap<>();
-	private LuaValue luaValue;
 
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
@@ -79,9 +93,10 @@ public class TileTypes implements GetLuaFacade {
 	 * @param tilesize		Size of each tile
 	 * @param x				X coordinate (in tile space) of the main variation of this tile
 	 * @param y				Y coordinate (in tile space) of the main variation of this tile
+	 * @param solid			True if this tile cannot be walked through
 	 */
-	public void registerTile(String name, Texture texture, int tilesize, int x, int y) {
-		registerTile(name, texture, tilesize, x, y, new Vector2[] {new Vector2()}, true);
+	public void registerTile(String name, Texture texture, int tilesize, int x, int y, boolean solid) {
+		registerTile(name, texture, tilesize, x, y, new Vector2[] {new Vector2()}, true, solid);
 	}
 
 	/**
@@ -92,12 +107,13 @@ public class TileTypes implements GetLuaFacade {
 	 * @param y				Y coordinate (in tile space) of the main variation of this tile
 	 * @param variations		An array indicating relative variations of this tile
 	 * 							(other ways this same tile might be rendered based on circumstances)
-	 * @param random		If the variations are random or should be based on nearby tiles. "Nearby" (false)
+	 * @param random			If the variations are random or should be based on nearby tiles. "Nearby" (false)
 	 * 							means that the array should have 16 indices, each referring to bitwise-or of
 	 * 							Left=1, Right=2, Up=4, Down=8, where a 1 for each bit indicates that the given
 	 * 							tile is the same.
+	 * @param solid			True if this tile cannot be walked through
 	 */
-	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random) {
+	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
 		int len = variations.length;
 		TextureRegion[] regions = new TextureRegion[len];
 		
@@ -107,7 +123,7 @@ public class TileTypes implements GetLuaFacade {
 		}
 		
 		
-		typeMap.put(name, new TileType(regions, name, random));
+		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
 	@Bind

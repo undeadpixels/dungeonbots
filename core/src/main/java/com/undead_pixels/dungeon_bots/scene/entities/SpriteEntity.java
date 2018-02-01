@@ -25,6 +25,15 @@ public abstract class SpriteEntity extends Entity {
 		this(world, name, tex, 0, 0);
 	}
 
+	/**
+	 * Constructor for a SpriteEntity
+	 * 
+	 * @param world	The world
+	 * @param name	This entity's name
+	 * @param tex	The texture to show
+	 * @param x		Location X, in tiles
+	 * @param y		Location Y, in tiles
+	 */
 	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
 		super(world, name);
 		if(tex == null)

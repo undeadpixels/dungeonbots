@@ -5,9 +5,17 @@ import java.text.ParseException;
 /**
  * A fake GameEditorSection, just used for planning
  */
-public class FakeEditorStateSection extends GameEditorStateSection {
+@Deprecated
+public class FakeEditorStateSection extends LevelScriptSection {
+	/**
+	 * String representation
+	 */
 	private String str;
 
+	/**
+	 * Constructor
+	 * @param str	The string representation
+	 */
 	public FakeEditorStateSection(String str) {
 		super();
 		this.str = str;

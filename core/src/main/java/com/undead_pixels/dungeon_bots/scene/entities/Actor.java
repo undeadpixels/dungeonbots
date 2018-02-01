@@ -42,6 +42,7 @@ public class Actor extends SpriteEntity {
 	 * @param script		A user sandbox that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
+	@Deprecated
 	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
 		super(world, name, tex);
 		// TODO Auto-generated constructor stub
@@ -129,6 +130,9 @@ public class Actor extends SpriteEntity {
 	}
 
 	
+	/**
+	 * @return	How quickly this Actor moves, in seconds
+	 */
 	public float getMoveDuration() {
 		return 0.5f;
 	}

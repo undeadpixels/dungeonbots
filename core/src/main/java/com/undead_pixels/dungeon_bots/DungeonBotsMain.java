@@ -130,18 +130,21 @@ public class DungeonBotsMain extends Game {
 		user.setCurrentGame(this);
 	}
 	
+	/**
+	 * A function that prompts the user to log in.
+	 * 
+	 * TODO - the following commented-out code should be called by Community stuff, once that is implemented.
+	 * However, this shouldn't be forced 
+	 * 
+	 * in our design doc, we said:
+	 * 
+	 *  An Internet connection will be required for access to the
+	 *  Sharing Platform, but this not required to run the pre-built
+	 *  parts of the game.
+	 * 
+	 * However, this will also be needed when we want to upload results to the server.
+	 */
 	public void requestLogin() {
-
-
-		// TODO - the following commented-out code should be moved into the Community stuff, once that is implemented.
-		// in our design doc, we said:
-		//
-		//  An Internet connection will be required for access to the
-		//  Sharing Platform, but this not required to run the pre-built
-		//  parts of the game.
-		//
-		// However, this will also be needed when we want to upload results to the server.
-		//
 		System.out.println("Starting login...");
 		User user = Login.challenge("Welcome to DungeonBots.");
 		if (user == null) {

@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class GameEditorState {
 	
-	private LinkedHashMap<String, GameEditorStateSection> sections = new LinkedHashMap<>();
+	private LinkedHashMap<String, LevelScriptSection> sections = new LinkedHashMap<>();
 	public WorldSizeSection worldSizeSection; // TODO - make private
 	public TileRegionSection tileRegionSection; // TODO - make private
 	public PlayerInitSection playerInitSection; // TODO - make private
@@ -39,7 +39,7 @@ public class GameEditorState {
 		
 		Scanner sc = new Scanner(luaCode);
 		
-		GameEditorStateSection currentSection = new FakeEditorStateSection("");
+		LevelScriptSection currentSection = new FakeEditorStateSection("");
 		String prevLine = "";
 		boolean hadIndent = false;
 		ArrayList<String> currentLineList = new ArrayList<>();
@@ -49,7 +49,7 @@ public class GameEditorState {
 			if(line.startsWith("-- Editor Section: ")) {
 				String sectionName = line.split("\\: ", 2)[1];
 				
-				GameEditorStateSection newSection = sections.get(sectionName);
+				LevelScriptSection newSection = sections.get(sectionName);
 				
 				if(newSection == null) {
 					sc.close();
@@ -105,7 +105,7 @@ public class GameEditorState {
 		StringBuilder sb = new StringBuilder();
 		
 		for(String name: sections.keySet()) {
-			GameEditorStateSection s = sections.get(name);
+			LevelScriptSection s = sections.get(name);
 			
 			String sectionText = s.toLua();
 			
