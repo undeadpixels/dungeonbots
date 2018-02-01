@@ -160,6 +160,14 @@ public class Actor extends SpriteEntity {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	private Actor moveAmt(Varargs amt, Direction direction) {
+		assert amt.narg() < 2;
+		int n = !amt.arg(1).isint() ? 1 : amt.arg(1).checkint();
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction);
+		return this;
+	}
+
 	/**
 	 * Moves the player UP
 	 * @author Stewart Charles
@@ -167,9 +175,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor up() {
-		this.queueMoveSlowly(Direction.UP);
-		return this;
+	final public Actor up(Varargs amt) {
+		return moveAmt(amt, Direction.UP);
 	}
 
 	/**
@@ -179,9 +186,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor down() {
-		this.queueMoveSlowly(Direction.DOWN);
-		return this;
+	final public Actor down(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN);
 	}
 
 	/**
@@ -191,9 +197,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor left() {
-		this.queueMoveSlowly(Direction.LEFT);
-		return this;
+	final public Actor left(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT);
 	}
 
 	/**
@@ -203,9 +208,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor right() {
-		this.queueMoveSlowly(Direction.RIGHT);
-		return this;
+	final public Actor right(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT);
 	}
 
 	/**

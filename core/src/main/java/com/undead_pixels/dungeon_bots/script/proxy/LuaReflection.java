@@ -131,7 +131,7 @@ public class LuaReflection {
 	 * @return An optional that possibly contains the Method if it is found.
 	 */
 	public static Optional<Method> getMethodWithName(Object o, String name) {
-		return getBindableMethods(o.getClass())
+		return getBindableMethods(o)
 				.filter(m -> GetLuaFacade.bindTo(m).equals(name))
 				.findFirst();
 	}
