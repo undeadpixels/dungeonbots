@@ -2,7 +2,7 @@ package com.undead_pixels.dungeon_bots.script.proxy;
 
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 import java.lang.reflect.*;
@@ -11,9 +11,8 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class LuaReflection {
-
 	/**
-	 *
+	 * Generates a Whitelist of Methods for the target object not exceeding the given security level.
 	 * @param bindableMethods
 	 * @param caller
 	 * @param securityLevel
@@ -28,7 +27,7 @@ public class LuaReflection {
 	}
 
 	/**
-	 *
+	 * Generates a Whitelist of Methods for the target class not exceeding the given security level.
 	 * @param bindableMethods
 	 * @param securityLevel
 	 * @return
@@ -47,9 +46,9 @@ public class LuaReflection {
 	 * @param m
 	 * @return
 	 */
-	public static String genId(final Object o, final Method m) {
+	public static String genId(final Object o, final Member m) {
 		return Optional.ofNullable(o).map(val -> Integer.toString(val.hashCode())).orElse("")
-				+ m.toGenericString();
+				+ Integer.toString(m.hashCode());
 	}
 
 	/**
@@ -68,7 +67,7 @@ public class LuaReflection {
 				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
 						// Collect methods in order of most specific class to least
 						(map, method) -> {
-							String name = GetBindable.bindTo(method);
+							String name = GetLuaFacade.bindTo(method);
 							if(!map.containsKey(name))
 								map.put(name, method);
 						},
@@ -142,7 +141,7 @@ public class LuaReflection {
 
 	public static Optional<Method> getMethodWithName(Object o, String name) {
 		return getBindableMethods(o.getClass())
-				.filter(m -> GetBindable.bindTo(m).equals(name))
+				.filter(m -> GetLuaFacade.bindTo(m).equals(name))
 				.findFirst();
 	}
 }

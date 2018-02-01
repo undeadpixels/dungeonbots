@@ -1,11 +1,11 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import org.luaj.vm2.LuaValue;
 
-public class TileType implements GetBindable {
+public class TileType implements GetLuaFacade {
 	private final TextureRegion[] textureRegions;
 	private final boolean random;
 	private final String name;

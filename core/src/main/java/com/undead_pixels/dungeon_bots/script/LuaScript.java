@@ -73,7 +73,7 @@ public class LuaScript {
 		thread.interrupt();
 		try {
 			thread.join();
-		} catch (Exception ie) {
+		} catch (Throwable ie) {
 		}
 		scriptStatus = ScriptStatus.STOPPED;
 		return this;

@@ -9,10 +9,10 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.LuaValue;
 
-public class TileTypes implements GetBindable {
+public class TileTypes implements GetLuaFacade {
 	
 	private HashMap<String, TileType> typeMap = new HashMap<>();
 	private LuaValue luaValue;

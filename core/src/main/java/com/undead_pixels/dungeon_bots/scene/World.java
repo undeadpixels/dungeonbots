@@ -21,12 +21,12 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 
-public class World implements GetBindable {
+public class World implements GetLuaFacade {
     private LuaScript levelScript;
     private LuaValue luaBinding;
 	private LuaFunction mapUpdateFunc;

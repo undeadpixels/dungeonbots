@@ -1,5 +1,5 @@
 package com.undead_pixels.dungeon_bots.script;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -59,25 +59,25 @@ public class LuaSandbox {
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
-	 * @param bindable A Collection of Objects that implement the GetBindable interface
-	 * @param <T> A Type that implements the GetBindable interface
+	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
+	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
     @SafeVarargs
-    public final <T extends GetBindable> LuaSandbox  addBindable(T... bindable) {
+    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindable) {
 		whitelist.add(securityLevel, bindable);
 		add(Stream.of(bindable)
-				.map(GetBindable::getLuaBinding));
+				.map(GetLuaFacade::getLuaBinding));
 		return this;
 	}
 
 	/**
 	 * Adds the static bindings of the argument Class
 	 * @param clz The Class to add the static Bindings of
-	 * @param <T> A Type that implements GetBindable
+	 * @param <T> A Type that implements GetLuaFacade
 	 * @return The source LuaSandbox
 	 */
-	public <T extends GetBindable> LuaSandbox addBindableClass(Class<T> clz) {
+	public <T extends GetLuaFacade> LuaSandbox addBindableClass(Class<T> clz) {
 		whitelist.add(securityLevel, clz);
 		LuaBinding b = LuaProxyFactory.getBindings(clz);
 		add(b);
@@ -138,25 +138,17 @@ public class LuaSandbox {
     }
 
 	/**
-	 *
+	 * Get the Whitelist of the LuaSandbox
 	 * @return
 	 */
 	public Whitelist getWhitelist() {
 		return whitelist;
 	}
 
-	public static String id(Object o, Method m) {
-		return o.hashCode() + m.toGenericString();
-	}
-
-	public static String staticId(Method m) {
-		return m.toGenericString();
-	}
-
-	public static String id(Object o, Field f) {
-		return o.hashCode() + f.toGenericString();
-	}
-
+	/**
+	 * Get the SecurityLevel of the LuaSandbox
+	 * @return
+	 */
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
 	}

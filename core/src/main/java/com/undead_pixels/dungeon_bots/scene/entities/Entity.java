@@ -4,14 +4,14 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, Scriptable, GetBindable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
 
 	/**
 	 * A user sandbox that is run on this object
@@ -76,7 +76,7 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	}
 
 	@SafeVarargs
-	public final <T extends GetBindable> Entity addToSandbox(T... vals) {
+	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
 		this.sandbox.addBindable(vals);
 		return this;
 	}
