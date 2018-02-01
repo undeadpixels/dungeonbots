@@ -8,6 +8,7 @@ import java.io.InputStream;
  * 
  * Might be deleted and replaced with something else, such as gdx's AssetManager or something
  */
+@Deprecated
 public class ResourcePath {
 	public ResourcePath(String path) {
 		
