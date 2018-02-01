@@ -17,7 +17,6 @@ public class ThreadWrapper {
             while (thread.getState() != Thread.State.TERMINATED)
                 if(Thread.currentThread().isInterrupted()) {
                     thread.interrupt();
-                    thread.stop();
                     return;
                 }
         });
