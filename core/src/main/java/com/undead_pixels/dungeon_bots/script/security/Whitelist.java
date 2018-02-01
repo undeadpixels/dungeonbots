@@ -24,82 +24,149 @@ public class Whitelist implements GetLuaFacade {
 		this.whitelist = new HashSet<>();
 	}
 
-	public Whitelist addTo(String... args) {
-		whitelist.addAll(Stream.of(args).collect(Collectors.toList()));
-		return this;
+	/**
+	 * Add the Argument Whitelist ID's to the Whitelist
+	 * @param args
+	 * @return
+	 */
+	public Whitelist addId(final String... args) {
+		return addId(Stream.of(args));
 	}
 
-	public Whitelist removeFrom(String... args) {
-		whitelist.removeAll(Stream.of(args).collect(Collectors.toList()));
-		return this;
+	/**
+	 * Remove the Argument Whitelist ID's to the Whitelist
+	 * @param args
+	 * @return
+	 */
+	public Whitelist removeId(final String... args) {
+		return removeId(Stream.of(args));
 	}
 
-	public <T extends GetLuaFacade> Whitelist add(T bindable) {
-		addWhitelists(bindable.getWhitelist());
-		return this;
-	}
-
-	public  Whitelist addTo(Stream<String> args) {
+	/**
+	 * Adds the argument ID's to the source Whitelist
+	 * @param args A Stream of String ID's to add
+	 * @return The source Whitelist
+	 */
+	public  Whitelist addId(final Stream<String> args) {
 		whitelist.addAll(args.collect(Collectors.toList()));
 		return this;
 	}
 
-	public Whitelist removeFrom(Stream<String> args) {
+	/**
+	 * Removes the argument ID's from the source Whitelist
+	 * @param args A Stream of String ID's to remove
+	 * @return The source Whitelist
+	 */
+	public Whitelist removeId(final Stream<String> args) {
 		whitelist.removeAll(args.collect(Collectors.toList()));
 		return this;
 	}
 
+	/**
+	 * Adds the argument objects default Whitelist generated from the getWhitelist method<br>
+	 * implemented by the GetLuaFacade interface by default.<br>
+	 * @param bindables A variadic list of elements implementing the GetLuaFacade interface
+	 * @param <T> A Type that implements GetLuaFacade
+	 * @return The source Whitelist
+	 */
+	@SafeVarargs
+	public final <T extends GetLuaFacade> Whitelist add(final T... bindables) {
+		Stream.of(bindables).forEach(bindable -> addWhitelists(bindable.getWhitelist()));
+		return this;
+	}
+
+	/**
+	 * Adds the argument method to the Whitelist with an ID associated with the caller.<br>
+	 * Use this to Whitelist a caller invoking a given method.<br>
+	 * @param caller The caller object
+	 * @param m The target method
+	 * @param <T> A type that implements GetLuaFacade
+	 * @return The source Whitelist
+	 */
 	public <T extends GetLuaFacade> Whitelist add(final T caller, final Method m) {
 		whitelist.add(LuaReflection.genId(caller,m));
 		return this;
 	}
 
+	/**
+	 * Removes the argument method to the Whitelist with an ID associated with the caller.<br>
+	 * Use this to Whitelist a caller invoking a given method.<br>
+	 * This disallows a specific caller from invoking a method.<br>
+	 * @param caller
+	 * @param m
+	 * @param <T>
+	 * @return
+	 */
 	public <T extends GetLuaFacade> Whitelist remove(final T caller, final Method m) {
 		whitelist.remove(LuaReflection.genId(caller, m));
 		return this;
 	}
 
-	public Whitelist addWhitelists(Stream<Whitelist> w) {
-		w.forEach(val -> whitelist.addAll(val.whitelist));
-		return this;
-	}
-
-	public Whitelist removeWhitelists(Stream<Whitelist> w) {
-		w.forEach(val -> whitelist.removeAll(val.whitelist));
-		return this;
-	}
-
-	public Whitelist addWhitelists(Whitelist... w) {
-		return addWhitelists(Stream.of(w));
-	}
-
-	public <T extends GetLuaFacade> Whitelist add(final SecurityLevel securityLevel, T... args) {
+	/**
+	 * Adds the argument elements Whitelists to the source Whitelist.
+	 * @param securityLevel The Security Level of the Whitelists to retrieve <br>
+	 *                         when calling the GetLuaFacade.getWhitlist function
+	 * @param args A variadic array of elements implementing the GetLuaFacade interface
+	 * @param <T> A type that implements the GetLuaFacade interface
+	 * @return The source Whitelist
+	 */
+	public <T extends GetLuaFacade> Whitelist add(final SecurityLevel securityLevel, final T... args) {
 		return addWhitelists(Stream.of(args).map(val -> val.getWhitelist(securityLevel)));
 	}
 
+	/**
+	 * Adds the whitelist of the argument Class to the source Whitelist
+	 * @param securityLevel The security level to invoke when acquiring the Whitelist of the argument class
+	 * @param arg The argument class
+	 * @param <T> A Type that implements GetLuaFacade to obtain the Whitelist
+	 * @return The source Whitelist
+	 */
 	public <T extends GetLuaFacade> Whitelist add(final SecurityLevel securityLevel, final Class<T> arg) {
 		whitelist.addAll(GetLuaFacade.getWhitelist(arg, securityLevel).whitelist);
 		return this;
 	}
 
-	public boolean onWhitelist(String bindId) {
+	/**
+	 * Query if a specific id is in the source Whitelist
+	 * @param bindId The String id to query
+	 * @return True if found on the whitelist
+	 */
+	public boolean onWhitelist(final String bindId) {
 		return whitelist.contains(bindId);
 	}
 
-	public <T extends GetLuaFacade> boolean  onWhitelist(T caller, Method m) {
-		return whitelist.contains(LuaReflection.genId(caller,m));
+	/**
+	 * Query if the given method is on the source Whitelist associated with the specified caller
+	 * @param caller The caller that invokes the specified method. Can be null if a static method.
+	 * @param m The target method.
+	 * @param <T> A Type that implements GetLuaFacade
+	 * @return True if found on the whitelist
+	 */
+	public <T extends GetLuaFacade> boolean onWhitelist(final T caller, final Method m) {
+		return onWhitelist(LuaReflection.genId(caller,m));
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Override
 	public int getId() {
 		return this.hashCode();
 	}
 
+	/**
+	 * @return
+	 */
 	@Override
 	public String getName() {
 		return "whitelist";
 	}
 
+	/**
+	 * Creates or return an existing LuaValue facade of the Whitelist
+	 * @return
+	 */
 	@Override
 	public LuaValue getLuaValue() {
 		if(this.luaValue == null)
@@ -107,6 +174,17 @@ public class Whitelist implements GetLuaFacade {
 		return this.luaValue;
 	}
 
+	/**
+	 * Binding to Lua code that allows Authors to add things to the whitelist.<br>
+	 * <pre>{@code
+	 *     -- Whitelists functions named up, down, left and right that belong to the player entity if found
+	 *     whitelist.allow(player, "up", "down", "left", "right")
+	 *
+	 *     -- Whitelists all functions for the player entity
+	 *     whitelist.allow(player)
+	 *     }</pre>
+	 * @param varargs
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void allow(Varargs varargs) {
 		final int SIZE = varargs.narg();
@@ -128,4 +206,12 @@ public class Whitelist implements GetLuaFacade {
 		}
 	}
 
+	private Whitelist addWhitelists(Whitelist... w) {
+		return addWhitelists(Stream.of(w));
+	}
+
+	private Whitelist addWhitelists(Stream<Whitelist> w) {
+		w.forEach(val -> whitelist.addAll(val.whitelist));
+		return this;
+	}
 }

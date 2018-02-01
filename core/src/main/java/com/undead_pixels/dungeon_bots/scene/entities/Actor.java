@@ -12,6 +12,8 @@ import org.luaj.vm2.*;
 import static org.luaj.vm2.LuaValue.*;
 
 /**
+ * @author Kevin Parker
+ * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
@@ -58,10 +60,10 @@ public class Actor extends SpriteEntity {
 	}
 	
 	/**
-	 * TODO - DELETEME
 	 * @param dir
 	 * @param dist
 	 */
+	@Deprecated
 	public void moveInstantly(Direction dir, int dist) {
 		switch (dir) {
 			case UP:
@@ -78,7 +80,12 @@ public class Actor extends SpriteEntity {
 				break;
 		}
 	}
-	
+
+	/**
+	 * Enqueues an action to the action queue that directs the Actor to
+	 * move in the provided direction
+	 * @param dir The direction to move
+	 */
 	public void queueMoveSlowly(Direction dir) {
 		int dx = 0, dy = 0;
 
@@ -155,6 +162,9 @@ public class Actor extends SpriteEntity {
 
 	/**
 	 * Moves the player UP
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
 	final public Actor up() {
@@ -164,6 +174,9 @@ public class Actor extends SpriteEntity {
 
 	/**
 	 * Moves the player DOWN
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
 	final public Actor down() {
@@ -173,6 +186,9 @@ public class Actor extends SpriteEntity {
 
 	/**
 	 * Moves the player LEFT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
 	final public Actor left() {
@@ -182,6 +198,9 @@ public class Actor extends SpriteEntity {
 
 	/**
 	 * Moves the player RIGHT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
 	final public Actor right() {
@@ -190,10 +209,12 @@ public class Actor extends SpriteEntity {
 	}
 
 	/**
+	 * @author Stewart Charles
+	 * @since 1.0
 	 * Returns a Varargs of the players position
-	 * <code>
-	 *     x, y = actor.position()
-	 * </code>
+	 * <pre>{@code
+	 * x, y = actor:position()
+	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
 	@Bind

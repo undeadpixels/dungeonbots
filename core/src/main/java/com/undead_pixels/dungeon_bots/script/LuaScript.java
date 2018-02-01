@@ -12,7 +12,7 @@ import java.util.Optional;
 
 /**
  * A LuaScript is an asynchronous wrapper around an execution context for a sandbox that is invoked using a
- * LuaSandbox as the Sandbox.
+ * LuaSandbox.
  */
 public class LuaScript {
 
@@ -66,7 +66,10 @@ public class LuaScript {
 		return this;
 	}
 
-	/** Forces an executing thread to stop. */
+	/**
+	 * Forces an executing thread to stop.
+	 * @return The source LuaScript
+	 */
 	public synchronized LuaScript stop() {
 		if (thread == null)
 			return this;
@@ -79,7 +82,11 @@ public class LuaScript {
 		return this;
 	}
 
-	/** Returns the status of this sandbox. */
+	/**
+	 * Returns an enum of the Scripts status<br>
+	 * Values: READY, RUNNING, STOPPED, LUA_ERROR,ERROR,TIMEOUT,PAUSED,COMPLETE
+	 * @return Returns the status of this sandbox.
+	 */
 	public synchronized ScriptStatus getStatus() {
 		return scriptStatus;
 	}
@@ -151,7 +158,7 @@ public class LuaScript {
 	}
 
 	/**
-	 *
+	 * Returns the current LuaError
 	 * @return LuaError
 	 */
 	public LuaError getError() {

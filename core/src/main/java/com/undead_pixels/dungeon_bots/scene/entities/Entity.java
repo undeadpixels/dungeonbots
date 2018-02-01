@@ -9,6 +9,8 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
+ * @author Kevin Parker
+ * @version 1.0
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
