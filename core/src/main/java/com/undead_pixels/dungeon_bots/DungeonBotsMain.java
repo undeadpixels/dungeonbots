@@ -30,8 +30,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pool;
+import com.undead_pixels.dungeon_bots.ui.WorldView;
+import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
-import com.undead_pixels.dungeon_bots.ui.screens.GameView;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
@@ -99,7 +101,7 @@ public class DungeonBotsMain extends Game {
 	public void create() {
 		// TODO - change this to a main menu
 		// setScreen(new NullScreen());
-		setScreen(new GameView());
+		setScreen(new GameplayScreen());
 	}
 
 	/*
@@ -109,15 +111,45 @@ public class DungeonBotsMain extends Game {
 	 */
 	private User currentUser = null;
 
+	/**
+	 * @return	The current user
+	 */
 	public User getUser() {
 		return currentUser;
 	}
 
+	/**
+	 * Sets the current user
+	 * 
+	 * @param user	The user
+	 */
 	public void setUser(User user) {
 		if (user == currentUser)
 			return;
 		currentUser = user;
 		user.setCurrentGame(this);
+	}
+	
+	public void requestLogin() {
+
+
+		// TODO - the following commented-out code should be moved into the Community stuff, once that is implemented.
+		// in our design doc, we said:
+		//
+		//  An Internet connection will be required for access to the
+		//  Sharing Platform, but this not required to run the pre-built
+		//  parts of the game.
+		//
+		// However, this will also be needed when we want to upload results to the server.
+		//
+		System.out.println("Starting login...");
+		User user = Login.challenge("Welcome to DungeonBots.");
+		if (user == null) {
+			System.out.println("Invalid user login.  Closing program.");
+			return;
+		}
+		System.out.println("Login valid.");
+		DungeonBotsMain.instance.setUser(user);
 	}
 
 }

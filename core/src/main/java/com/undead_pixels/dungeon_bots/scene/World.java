@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,11 +16,16 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
+
+import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 
 public class World implements GetBindable {
@@ -35,26 +41,44 @@ public class World implements GetBindable {
     private ArrayList<Entity> entities = new ArrayList<>();
     private Player player;
     
-    private Vector2 offset = new Vector2();
-    
     private int idCounter = 0;
     
     private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
 
-    public World() {
-   	 	backgroundImage = null;
-   	 	tiles = new Tile[0][0];
-    }
-
-    public World(String name) {
-    	super();
-    	this.name = name;
+	public World() {
+		this(null, "world");
 	}
 
-    @Bind @BindTo("new")
+	public World(File luaScriptFile) {
+		this(luaScriptFile, "world");
+	}
+
+	public World(String name) {
+			this(null, name);
+	}
+	
+	public World(File luaScriptFile, String name) {
+		super();
+		
+		this.name = name;
+   	 	backgroundImage = null;
+   	 	tiles = new Tile[0][0];
+	
+		if(luaScriptFile != null) {
+			LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG);
+			TileTypes tt = new TileTypes();
+			sandbox.addBindable(this, tt, this.getWhitelist()).addBindableClass(Player.class);
+			levelScript = sandbox.script(luaScriptFile).start().join();
+			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
+			LuaFunction luaFunction = levelScript.getResults().get().checktable(1).get("init").checkfunction();
+			luaFunction.invoke();
+		}
+	}
+
+	@Bind @BindTo("new")
     public static LuaValue newWorld() {
-    	World w = new World();
-    	SecurityContext.getWhitelist().add(w);
+    		World w = new World();
+    		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 

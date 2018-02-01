@@ -39,6 +39,9 @@ import jsyntaxpane.util.Configuration;
  * The Launcher for this game.
  * Runs for a couple moments to initialize contexts and
  * start other things and then is unused once the application is running.
+ * 
+ * Unless we need something really specific (or we want to change more colors),
+ * we shouldn't need to touch this class any more.
  */
 public class DesktopLauncher {
 
@@ -50,31 +53,12 @@ public class DesktopLauncher {
 
 	public static void main(String[] arg) {
 
-		// TODO - the following commented-out code should be moved into the Community stuff, once that is implemented.
-		// in our design doc, we said:
-		//
-		//  An Internet connection will be required for access to the
-		//  Sharing Platform, but this not required to run the pre-built
-		//  parts of the game.
-		//
-		// However, this will also be needed when we want to upload results to the server.
-		//
-		/*
-		System.out.println("Starting login...");
-		User user = Login.challenge("Welcome to DungeonBots.");
-		if (user == null) {
-			System.out.println("Invalid user login.  Closing program.");
-			return;
-		}
-		System.out.println("Login valid.");
-		DungeonBotsMain.instance.setUser(user);
-		*/
-
 		DefaultSyntaxKit.initKit();
 
 		// UI theming
-		if (forceNimbus)
+		if (forceNimbus) {
 			setDarkNimbus();
+		}
 
 		// Tell macOS to handle the main menu bar like most macOS apps do
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
