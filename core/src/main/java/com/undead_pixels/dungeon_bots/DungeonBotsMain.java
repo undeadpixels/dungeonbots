@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots;
 
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -16,9 +18,7 @@ import com.undead_pixels.dungeon_bots.ui.GameView;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
- * actually trying to render. WO: should also point to the world - this is a
- * class that gives us a handle on what we will be serializing and uploading to
- * the website, right?
+ * actually trying to render. 
  *
  */
 public class DungeonBotsMain extends Game {
@@ -61,13 +61,14 @@ public class DungeonBotsMain extends Game {
 	public void setFrame(JFrame frame) {
 		if (frame != null) {
 			this.frame = frame;
-		}
+		}		
 	}
 
 	@Override
 	public void create() {
-		// setScreen(new NullScreen());
-		setScreen(new GameView());
+		GameView gv = new GameView();
+		
+		setScreen(gv);
 	}
 
 	/*
@@ -94,5 +95,8 @@ public class DungeonBotsMain extends Game {
 	public boolean isAuthor(User user) {
 		return _Authors.contains(user);
 	}
+
+	
+	
 
 }

@@ -17,6 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -60,22 +61,32 @@ public class DesktopLauncher {
 
 		DungeonBotsMain game = DungeonBotsMain.instance;
 		game.setUser(user);
-		
-		//The appearance of the app will depend on the security level of the user.
+
+		// The appearance of the app will depend on the security level of the
+		// user.
+		// create the GL canvas
+		JFrame frame = new JFrame("DungeonBots");
+		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
+		frame.setLayout(new BorderLayout(0, 0));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
+		game.setFrame(frame);
+		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+
 		switch (user.getSecurityLevel()) {
 		case AUTHOR:
 
+			//Display the frame as a something within the level editor.
+			
+			
+			break;
+			
 		case DEBUG:
-		case NONE:
-		case DEFAULT:
-			// create the GL canvas
-			JFrame frame = new JFrame("DungeonBots");
-			LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
-			frame.setLayout(new BorderLayout(0, 0));
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
 
-			game.setFrame(frame);
-			frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		case NONE:
+
+		case DEFAULT:			
+			System.out.println("Displaying as default...");
+			//Just display the frame.
 			frame.setSize(1024, 768);
 			frame.revalidate();
 			frame.setVisible(true);

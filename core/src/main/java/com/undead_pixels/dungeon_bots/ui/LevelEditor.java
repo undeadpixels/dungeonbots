@@ -10,7 +10,10 @@ public class LevelEditor extends JPanel {
 	private User _User;
 	
 	public LevelEditor(User user) {
+		
 		_User = user;
+		
+		
 	}
 
 	
