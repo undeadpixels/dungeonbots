@@ -31,14 +31,14 @@ public class LuaProxyFactory {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaValue getLuaValue(final T src) {
+	public static <T extends GetLuaFacade> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
 		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
 		src.getBindableMethods()
 				.forEach(method ->
-						t.set(GetBindable.bindTo(method), evalMethod(src, method)));
+						t.set(GetLuaFacade.bindTo(method), evalMethod(src, method)));
 
 		/* Use reflection to find and bind any fields annotated using @Bind
 		 * that have the appropriate security level */
@@ -46,7 +46,7 @@ public class LuaProxyFactory {
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);
-						t.set(GetBindable.bindTo(field), CoerceJavaToLua.coerce(field.get(src)));
+						t.set(GetLuaFacade.bindTo(field), CoerceJavaToLua.coerce(field.get(src)));
 					}
 					catch (Exception e) { }
 				});
@@ -65,7 +65,7 @@ public class LuaProxyFactory {
 	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or @BindField
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaBinding getBindings(final T src) {
+	public static <T extends GetLuaFacade> LuaBinding getBindings(final T src) {
 		return new LuaBinding(src.getName(), src.getLuaValue());
 	}
 
@@ -75,21 +75,21 @@ public class LuaProxyFactory {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T extends GetBindable> LuaBinding getBindings(final Class<T> src) {
+	public static <T extends GetLuaFacade> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
-		GetBindable.getBindableStaticMethods(src)
+		GetLuaFacade.getBindableStaticMethods(src)
 				.forEach(method ->
-						t.set(GetBindable.bindTo(method), evalMethod(null, method)));
+						t.set(GetLuaFacade.bindTo(method), evalMethod(null, method)));
 
 		/* Use reflection to find and bind any fields annotated using @BindField
 		 *  that have the appropriate security level */
-		GetBindable.getBindableStaticFields(src)
+		GetLuaFacade.getBindableStaticFields(src)
 				.forEach(field -> {
 					try {
 						field.setAccessible(true);
-						t.set(GetBindable.bindTo(field), CoerceJavaToLua.coerce(field.get(null)));
+						t.set(GetLuaFacade.bindTo(field), CoerceJavaToLua.coerce(field.get(null)));
 					}
 					catch (Exception e) { }
 				});
@@ -111,7 +111,7 @@ public class LuaProxyFactory {
 		return clzSet.stream();
 	}
 
-	private static <T extends GetBindable> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args)
+	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m)) {
 			if(returnType.isAssignableFrom(Varargs.class))
@@ -120,8 +120,8 @@ public class LuaProxyFactory {
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
 			}
 			else {
-				if(getAllInterfaces(returnType).anyMatch(GetBindable.class::isAssignableFrom))
-					return getLuaValue((GetBindable)m.invoke(caller, args));
+				if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))
+					return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
 				else
 					return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
 			}
@@ -165,7 +165,7 @@ public class LuaProxyFactory {
 		}
 	}
 
-	private static <T extends GetBindable> LuaValue evalMethod(final T caller, final Method m) {
+	private static <T extends GetLuaFacade> LuaValue evalMethod(final T caller, final Method m) {
 		m.setAccessible(true);
 		Class<?> returnType = m.getReturnType();
 

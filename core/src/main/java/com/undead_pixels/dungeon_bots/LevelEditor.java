@@ -3,7 +3,7 @@
  */
 package com.undead_pixels.dungeon_bots;
 
-import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
+import com.undead_pixels.dungeon_bots.ui.code_edit.GDXandSwingScreen;
 
 /**
  * @author Wesley

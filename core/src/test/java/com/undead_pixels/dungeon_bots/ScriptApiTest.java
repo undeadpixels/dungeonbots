@@ -29,7 +29,7 @@ public class ScriptApiTest {
     }
 
     @Test public void testScriptApiSingleArgumentFunction() {
-		class OneArg implements GetBindable {
+		class OneArg implements GetLuaFacade {
 
 			String name;
 
@@ -65,7 +65,7 @@ public class ScriptApiTest {
     }
 
     @Test public void testSecurityLevel() {
-		class DebugError implements GetBindable {
+		class DebugError implements GetLuaFacade {
 
 			String name;
 
@@ -144,7 +144,7 @@ public class ScriptApiTest {
 	}
 
     @Test public void testTwoArgFunction() {
-    	class TestEntity implements GetBindable {
+    	class TestEntity implements GetLuaFacade {
 
     		int number = 0;
 			String name;
@@ -180,7 +180,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testThreeArgFunction() {
-		class TestEntity implements GetBindable {
+		class TestEntity implements GetLuaFacade {
 
 			String name;
 			private int number = 0;
@@ -221,7 +221,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testVarArgsFunction() {
-		class TestEntity implements GetBindable {
+		class TestEntity implements GetLuaFacade {
 
 			String name;
 			int number = 0;
@@ -264,7 +264,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testBindField() {
-		class RpgActor implements GetBindable {
+		class RpgActor implements GetLuaFacade {
 
 			String name;
 
@@ -304,7 +304,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testModifyField() {
-		class RpgActor implements GetBindable {
+		class RpgActor implements GetLuaFacade {
 
 			String name;
 
