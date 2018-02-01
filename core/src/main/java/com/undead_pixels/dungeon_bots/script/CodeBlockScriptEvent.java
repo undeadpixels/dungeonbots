@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.script;
 
-import org.luaj.vm2.LuaTable;
 
 /**
  * An "event" that is executed by invoking a block of code.

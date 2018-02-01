@@ -6,7 +6,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
-import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
  * @author Kevin Parker

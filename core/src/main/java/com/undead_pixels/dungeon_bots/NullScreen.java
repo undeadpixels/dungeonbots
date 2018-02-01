@@ -11,8 +11,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -22,7 +20,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -33,15 +30,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 
-import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.SyntaxStyle;
 import jsyntaxpane.SyntaxStyles;
 import jsyntaxpane.TokenType;
-import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
 /**
  * This will be deleted eventually, but it at least allows us to have a fake

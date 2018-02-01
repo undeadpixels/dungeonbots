@@ -1,7 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 
 /**
  * A scheme for grouping collections of actions together.

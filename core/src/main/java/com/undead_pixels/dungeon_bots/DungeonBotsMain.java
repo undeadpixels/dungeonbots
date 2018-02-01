@@ -1,42 +1,13 @@
 package com.undead_pixels.dungeon_bots;
 
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import javax.swing.JFrame;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.scenes.scene2d.*;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.*;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.ui.List.ListStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane.ScrollPaneStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.SelectBox.SelectBoxStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.Pool;
-import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
-
-import jsyntaxpane.DefaultSyntaxKit;
-import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
