@@ -1,17 +1,48 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
 import org.luaj.vm2.LuaValue;
 
-public class TileType implements GetBindable {
+/**
+ * A layer of abstraction beyond regular tiles. These can be different textures depending on what's around them.
+ */
+public class TileType implements GetLuaFacade {
+	
+	/**
+	 * Possible textures
+	 */
 	private final TextureRegion[] textureRegions;
+	
+	/**
+	 * If the textures should be selected from randomly
+	 */
 	private final boolean random;
+	/**
+	 * A name for this TileType
+	 */
 	private final String name;
+	
+	/**
+	 * Lazily-loaded LuaValue representing this tile
+	 */
 	private LuaValue luaValue;
+	
+	/**
+	 * True if this tile cannot be walked through
+	 */
+	private boolean solid;
 
-	public TileType(TextureRegion[] textureRegions, String name, boolean random) {
+	/**
+	 * Constructor
+	 * 
+	 * @param textureRegions		Possible textures
+	 * @param name				A name for this TileType
+	 * @param random				If the textures should be selected from randomly
+	 * @param solid				True if this tile cannot be walked through
+	 */
+	public TileType(TextureRegion[] textureRegions, String name, boolean random, boolean solid) {
 		super();
 		if(textureRegions.length < 16) {
 			this.random = true;
@@ -20,15 +51,23 @@ public class TileType implements GetBindable {
 		}
 		this.textureRegions = textureRegions;
 		this.name = name;
-		// TODO - make the textureRegion dependent on surrounding tiles (so walls will flow nicely together and such)
 	}
 
+	/**
+	 * Get the texture of this, depending on the surrounding tiles
+	 * 
+	 * @param left		Tile to the left
+	 * @param right		Tile to the right
+	 * @param up			Tile above
+	 * @param down		Tile below
+	 * @return			The texture of this tile
+	 */
 	public TextureRegion getTexture(TileType left, TileType right, TileType up, TileType down) {
 		if(random) {
 			if(textureRegions.length == 1) {
 				return textureRegions[0];
 			} else {
-				// TODO
+				// TODO - randomize
 				return textureRegions[0];
 			}
 		} else {
@@ -55,5 +94,12 @@ public class TileType implements GetBindable {
 		if (this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		return this.luaValue;
+	}
+
+	/**
+	 * @return	True if this tile cannot be walked through
+	 */
+	public boolean isSolid() {
+		return solid;
 	}
 }

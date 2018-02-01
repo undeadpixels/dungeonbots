@@ -12,6 +12,8 @@ import org.luaj.vm2.*;
 import static org.luaj.vm2.LuaValue.*;
 
 /**
+ * @author Kevin Parker
+ * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
@@ -32,6 +34,7 @@ public class Actor extends SpriteEntity {
 	 */
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
+		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -40,8 +43,10 @@ public class Actor extends SpriteEntity {
 	 * @param script		A user sandbox that is run on this object
 	 * @param tex		A texture for this Actor
 	 */
+	@Deprecated
 	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
 		super(world, name, tex);
+		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 		/// XXX
 	}
@@ -58,10 +63,10 @@ public class Actor extends SpriteEntity {
 	}
 	
 	/**
-	 * TODO - DELETEME
 	 * @param dir
 	 * @param dist
 	 */
+	@Deprecated
 	public void moveInstantly(Direction dir, int dist) {
 		switch (dir) {
 			case UP:
@@ -78,7 +83,12 @@ public class Actor extends SpriteEntity {
 				break;
 		}
 	}
-	
+
+	/**
+	 * Enqueues an action to the action queue that directs the Actor to
+	 * move in the provided direction
+	 * @param dir The direction to move
+	 */
 	public void queueMoveSlowly(Direction dir) {
 		int dx = 0, dy = 0;
 
@@ -122,6 +132,9 @@ public class Actor extends SpriteEntity {
 	}
 
 	
+	/**
+	 * @return	How quickly this Actor moves, in seconds
+	 */
 	public float getMoveDuration() {
 		return 0.5f;
 	}
@@ -153,43 +166,69 @@ public class Actor extends SpriteEntity {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	private Actor moveAmt(Varargs amt, Direction direction) {
+		int SIZE = amt.narg();
+		int n;
+		if (SIZE < 2)
+			n = amt.arg1().isint() ? amt.arg1().checkint() : 1;
+		else
+			n = amt.arg(2).checkint();
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction);
+		return this;
+	}
+
 	/**
 	 * Moves the player UP
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
-	final public void up() {
-		this.queueMoveSlowly(Direction.UP);
+	final public Actor up(Varargs amt) {
+		return moveAmt(amt, Direction.UP);
 	}
 
 	/**
 	 * Moves the player DOWN
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
-	final public void down() {
-		this.queueMoveSlowly(Direction.DOWN);
+	final public Actor down(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN);
 	}
 
 	/**
 	 * Moves the player LEFT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
-	final public void left() {
-		this.queueMoveSlowly(Direction.LEFT);
+	final public Actor left(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT);
 	}
 
 	/**
 	 * Moves the player RIGHT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
 	 */
 	@Bind
-	final public void right() {
-		this.queueMoveSlowly(Direction.RIGHT);
+	final public Actor right(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT);
 	}
 
 	/**
+	 * @author Stewart Charles
+	 * @since 1.0
 	 * Returns a Varargs of the players position
-	 * <code>
-	 *     x, y = actor.position()
-	 * </code>
+	 * <pre>{@code
+	 * x, y = actor:position()
+	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
 	@Bind

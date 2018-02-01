@@ -9,7 +9,6 @@ public class User {
 
 	// The following would not be serialized:
 	private SecurityLevel _SecurityLevel = SecurityLevel.AUTHOR;
-	private DungeonBotsMain _CurrentGame = null;
 
 	public User(String userName) {
 		_UserName  = userName;
@@ -36,15 +35,14 @@ public class User {
 	 * that.
 	 */
 	public SecurityLevel setCurrentGame(DungeonBotsMain game) {
-		if (game == _CurrentGame)
-			return _SecurityLevel;
-		_CurrentGame = game;
+		// TODO - this needs to be changed
+		
 		if (game == null)
 			return _SecurityLevel = SecurityLevel.DEFAULT;
 		game.setUser(this);
-		if (game.isAuthor(this))
-			return _SecurityLevel = SecurityLevel.AUTHOR;
-		return _SecurityLevel = _SecurityLevel.DEFAULT;
+		//if (game.isAuthor(this))
+		//	return _SecurityLevel = SecurityLevel.AUTHOR;
+		return _SecurityLevel = SecurityLevel.DEFAULT;
 	}
 
 	/** Returns the username for this user. */

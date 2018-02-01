@@ -34,73 +34,63 @@ import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.SyntaxStyle;
 import jsyntaxpane.TokenType;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
+import jsyntaxpane.util.Configuration;
 
+/**
+ * The Launcher for this game.
+ * Runs for a couple moments to initialize contexts and
+ * start other things and then is unused once the application is running.
+ * 
+ * Unless we need something really specific (or we want to change more colors),
+ * we shouldn't need to touch this class any more.
+ */
 public class DesktopLauncher {
 
+	/**
+	 * A boolean to force the theme to be a dark, platform-independent flavor,
+	 * instead of the native OS-specific theme that is default.
+	 */
 	private static final boolean forceNimbus = true;
 
-	private static jsyntaxpane.util.Configuration _SyntaxCfg;
-
 	public static void main(String[] arg) {
-
-		System.out.println("Starting login...");
-		User user = Login.challenge("Welcome to DungeonBots.");
-		if (user == null) {
-			System.out.println("Invalid user login.  Closing program.");
-			return;
-		}
-		System.out.println("Login valid.");
 
 		DefaultSyntaxKit.initKit();
 
 		// UI theming
-		if (forceNimbus)
+		if (forceNimbus) {
 			setDarkNimbus();
+		}
 
+		// Tell macOS to handle the main menu bar like most macOS apps do
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 
 		DungeonBotsMain game = DungeonBotsMain.instance;
 		game.setUser(user);
-
-		// The appearance of the app will depend on the security level of the
-		// user.
+		
 		// create the GL canvas
 		JFrame frame = new JFrame("DungeonBots");
 		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
 		frame.setLayout(new BorderLayout(0, 0));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
-		game.setFrame(frame);
+
+		
+		// Add everything to a window and show it
+		DungeonBotsMain.instance.setFrame(frame);
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-
-		switch (user.getSecurityLevel()) {
-		case AUTHOR:
-
-			//Display the frame as a something within the level editor.
-			
-			
-			break;
-			
-		case DEBUG:
-
-		case NONE:
-
-		case DEFAULT:			
-			System.out.println("Displaying as default...");
-			//Just display the frame.
-			frame.setSize(1024, 768);
-			frame.revalidate();
-			frame.setVisible(true);
-			break;
-
-		}
+		frame.setSize(1024, 768);
+		frame.revalidate();
+		frame.setVisible(true);
 
 	}
 
+	/**
+	 * Sets the swing "look-and-feel" (theme) to nimbus and then makes it dark.
+	 * 
+	 * Also changes the default config for the JSyntaxPane stuff. 
+	 */
 	private static void setDarkNimbus() {
-		// Sure...
 
 		try {
-			// if(true) throw new Exception();
 			// https://stackoverflow.com/questions/36128291/how-to-make-a-swing-application-have-dark-nimbus-theme-netbeans/39482204#39482204
 			UIManager.put("control", new Color(128, 128, 128));
 			UIManager.put("info", new Color(128, 128, 128));
@@ -120,77 +110,76 @@ public class DesktopLauncher {
 
 			// The following sets the syntax appearance configuration.
 			// Style is one of: 0 = plain, 1=bold, 2=italic, 3=bold/italic
-			_SyntaxCfg = DefaultSyntaxKit.getConfig(LuaSyntaxKit.class);
-			_SyntaxCfg.put("LineNumbers.Background", "0x203040");
-			_SyntaxCfg.put("LineNumbers.Foreground", "0xccccee");
-			_SyntaxCfg.put("LineNumbers.CurrentBack", "0x304050");
+			Configuration syntaxConfig = DefaultSyntaxKit.getConfig(LuaSyntaxKit.class);
+			syntaxConfig.put("LineNumbers.Background", "0x203040");
+			syntaxConfig.put("LineNumbers.Foreground", "0xccccee");
+			syntaxConfig.put("LineNumbers.CurrentBack", "0x304050");
 
-			_SyntaxCfg.put("CaretColor", "0xffffff");
-			_SyntaxCfg.put("TokenMarker.Color", "0x403020");
-			_SyntaxCfg.put("PairMarker.Color", "0x665544");
+			syntaxConfig.put("CaretColor", "0xffffff");
+			syntaxConfig.put("TokenMarker.Color", "0x403020");
+			syntaxConfig.put("PairMarker.Color", "0x665544");
 
-			_SyntaxCfg.put("Editable.Color", "0x333333");
+			syntaxConfig.put("Editable.Color", "0x333333");
 
 			// Comments come from the SyntaxStyle lib:
 			// Language operators
-			_SyntaxCfg.put("Style.OPERATOR", "0xe6e6e6, 2");
+			syntaxConfig.put("Style.OPERATOR", "0xe6e6e6, 2");
 
 			// Delimiters. Constructs that are not necessarily operators for a
 			// language
-			_SyntaxCfg.put("Style.DELIMITER", "0xffffff, 2");
+			syntaxConfig.put("Style.DELIMITER", "0xffffff, 2");
 
 			// language reserved keywords
-			_SyntaxCfg.put("Style.KEYWORD", "0x9999ff, 1");
+			syntaxConfig.put("Style.KEYWORD", "0x9999ff, 1");
 
 			// Other language reserved keywords, like C #defines
-			_SyntaxCfg.put("Style.KEYWORD2", "0xffffff, 1");
+			syntaxConfig.put("Style.KEYWORD2", "0xffffff, 1");
 
 			// identifiers, variable names, class names
-			_SyntaxCfg.put("Style.IDENTIFIER", "0xffffff, 0");
+			syntaxConfig.put("Style.IDENTIFIER", "0xffffff, 0");
 
 			// numbers in various formats
-			_SyntaxCfg.put("Style.NUMBER", "0xefefef, 1");
+			syntaxConfig.put("Style.NUMBER", "0xefefef, 1");
 
 			// String
-			_SyntaxCfg.put("Style.STRING", "0xff7777, 1");
+			syntaxConfig.put("Style.STRING", "0xff7777, 1");
 
 			// For highlighting meta chars within a String
-			_SyntaxCfg.put("Style.STRING2", "0xffffff, 1");
+			syntaxConfig.put("Style.STRING2", "0xffffff, 1");
 
 			// comments
-			_SyntaxCfg.put("Style.COMMENT", "0x00ffaa, 0");
+			syntaxConfig.put("Style.COMMENT", "0x00ffaa, 0");
 
 			// special stuff within comments
-			_SyntaxCfg.put("Style.COMMENT2", "0xffffff, 0");
+			syntaxConfig.put("Style.COMMENT2", "0xffffff, 0");
 
 			// regular expressions
-			_SyntaxCfg.put("Style.REGEX", "0xffffff, 0");
+			syntaxConfig.put("Style.REGEX", "0xffffff, 0");
 
 			// special chars within regular expressions
-			_SyntaxCfg.put("Style.REGEX2", "0xffffff, 0");
+			syntaxConfig.put("Style.REGEX2", "0xffffff, 0");
 
 			// Types, usually not keywords, but supported by the language
-			_SyntaxCfg.put("Style.TYPE", "0xffffff, 0");
+			syntaxConfig.put("Style.TYPE", "0xffffff, 0");
 
 			// Types from standard libraries
-			_SyntaxCfg.put("Style.TYPE2", "0xffffff, 0");
+			syntaxConfig.put("Style.TYPE2", "0xffffff, 0");
 
 			// Types for users
-			_SyntaxCfg.put("Style.TYPE3", "0xffffff, 0");
+			syntaxConfig.put("Style.TYPE3", "0xffffff, 0");
 
 			// any other text
-			_SyntaxCfg.put("Style.DEFAULT", "0xffffff, 0");
+			syntaxConfig.put("Style.DEFAULT", "0xffffff, 0");
 
 			// Text that should be highlighted as a warning
-			_SyntaxCfg.put("Style.WARNING", "0xffffff, 0");
+			syntaxConfig.put("Style.WARNING", "0xffffff, 0");
 
 			// Text that signals an error
-			_SyntaxCfg.put("Style.ERROR", "0xffffff, 0");
+			syntaxConfig.put("Style.ERROR", "0xffffff, 0");
 
 			// _SyntaxCfg.put("Style.NOT_EDITABLE", "0xffffff, 1");
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

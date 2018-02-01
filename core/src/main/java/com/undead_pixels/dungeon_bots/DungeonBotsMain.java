@@ -10,9 +10,9 @@ import javax.swing.JFrame;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
-import com.undead_pixels.dungeon_bots.ui.GameView;
-
+import com.undead_pixels.dungeon_bots.ui.Login;
+import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 
 
 
@@ -20,6 +20,13 @@ import com.undead_pixels.dungeon_bots.ui.GameView;
  * The main class. Basically, all it does is point to the screen that we are
  * actually trying to render. 
  *
+ * A really stupid naming choice on libGDX's part, but this thing inheriting
+ * from Game does not mean that this is related the part of the game that you play.
+ * It does not contain a world or even care about the world.
+ * This class just talks to whatever the active screen is
+ * (such as a GameScreen, GameEditorScreen, CommunityScreen,
+ * and various full-screen menus, such as MainMenuScreen)
+ * And then it passes rendering (and technically input) events to them.
  */
 public class DungeonBotsMain extends Game {
 
@@ -28,6 +35,9 @@ public class DungeonBotsMain extends Game {
 	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
 
+	/**
+	 * The main frame for the entire game.
+	 */
 	private JFrame frame = null;
 
 	/**
@@ -39,14 +49,14 @@ public class DungeonBotsMain extends Game {
 	@Override
 	public void setScreen(Screen screen) {
 		
-		//Clear the current screen's frame.
+		// Clear the current screen's frame.
 		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
 			((GDXandSwingScreen) this.screen).attachScreenToFrame(null); 
 		}
 
 		super.setScreen(screen);
 
-		//Set the frame for the new screen.
+		// Set the frame for the new screen.
 		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
 			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame); 
 		}
@@ -76,24 +86,50 @@ public class DungeonBotsMain extends Game {
 	 * DungeonBotsMain USER IDENTIFICATION AND SECURITY STUFF
 	 * ================================================================
 	 */
-	private User _CurrentUser = null;
+	private User currentUser = null;
 
+	/**
+	 * @return	The current user
+	 */
 	public User getUser() {
-		return _CurrentUser;
+		return currentUser;
 	}
 
+	/**
+	 * Sets the current user
+	 * 
+	 * @param user	The user
+	 */
 	public void setUser(User user) {
-		if (user == _CurrentUser)
+		if (user == currentUser)
 			return;
-		_CurrentUser = user;
+		currentUser = user;
 		user.setCurrentGame(this);
 	}
-
-	private HashSet<User> _Authors = new HashSet<User>();
-
-	/** Returns whether the indicated user is an author of this game. */
-	public boolean isAuthor(User user) {
-		return _Authors.contains(user);
+	
+	/**
+	 * A function that prompts the user to log in.
+	 * 
+	 * TODO - the following commented-out code should be called by Community stuff, once that is implemented.
+	 * However, this shouldn't be forced 
+	 * 
+	 * in our design doc, we said:
+	 * 
+	 *  An Internet connection will be required for access to the
+	 *  Sharing Platform, but this not required to run the pre-built
+	 *  parts of the game.
+	 * 
+	 * However, this will also be needed when we want to upload results to the server.
+	 */
+	public void requestLogin() {
+		System.out.println("Starting login...");
+		User user = Login.challenge("Welcome to DungeonBots.");
+		if (user == null) {
+			System.out.println("Invalid user login.  Closing program.");
+			return;
+		}
+		System.out.println("Login valid.");
+		DungeonBotsMain.instance.setUser(user);
 	}
 
 	
