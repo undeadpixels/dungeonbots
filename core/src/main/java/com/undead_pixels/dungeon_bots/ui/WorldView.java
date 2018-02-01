@@ -24,12 +24,17 @@ public class WorldView {
 	private World world;
 	
 	public WorldView() {
-		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-		AssetManager.finishLoading();
-		
 		world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
 	}
 		
+
+	public WorldView(World world) {
+		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
+		AssetManager.finishLoading();
+		
+		this.world = world;
+	}
+
 
 	/**
 	 * Updates this WorldView's world

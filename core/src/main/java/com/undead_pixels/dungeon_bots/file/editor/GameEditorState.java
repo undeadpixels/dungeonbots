@@ -5,24 +5,35 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Scanner;
 
+import com.undead_pixels.dungeon_bots.scene.World;
+
+/**
+ * A state object for the game editor.
+ * Backed by both a world and some serializable/deserializable pieces.
+ */
 public class GameEditorState {
 	
 	private LinkedHashMap<String, LevelScriptSection> sections = new LinkedHashMap<>();
-	public WorldSizeSection worldSizeSection; // TODO - make private
-	public TileRegionSection tileRegionSection; // TODO - make private
-	public PlayerInitSection playerInitSection; // TODO - make private
+	
+	
+	public final WorldSizeSection worldSizeSection; // TODO - make private?
+	public final TileRegionSection tileRegionSection; // TODO - make private?
+	public final PlayerInitSection playerInitSection; // TODO - make private?
+	public final World world;
 
 	public GameEditorState() {
+		world = new World();
+		
 		sections.put("world size",
-				worldSizeSection = new WorldSizeSection());
+				worldSizeSection = new WorldSizeSection(world));
 		sections.put("load custom assets",
 				new FakeEditorStateSection(""));
 		sections.put("register tiles",
 				new FakeEditorStateSection(""));
 		sections.put("tiles",
-				tileRegionSection = new TileRegionSection());
+				tileRegionSection = new TileRegionSection(world));
 		sections.put("player init",
-				playerInitSection = new PlayerInitSection());
+				playerInitSection = new PlayerInitSection(world));
 		sections.put("bots init",
 				new FakeEditorStateSection(""));
 		sections.put("enemies init",

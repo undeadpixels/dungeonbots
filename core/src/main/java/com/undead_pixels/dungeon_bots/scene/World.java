@@ -26,6 +26,8 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
@@ -81,6 +83,11 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 * An array of TileType's. Used to generate the array of tiles.
 	 */
 	private TileType[][] tileTypes;
+	
+	/**
+	 * The collection of available TileType's
+	 */
+	private TileTypes tileTypesCollection;
 	
 	/**
 	 * Indication of if the tile array needs to be refreshed
@@ -146,11 +153,16 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
-	
+
+		
 		if(luaScriptFile != null) {
+			tileTypesCollection = new TileTypes();
+			
+			AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
+			AssetManager.finishLoading();
+			
 			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
-			TileTypes tt = new TileTypes();
-			mapSandbox.addBindable(this, tt, this.getWhitelist()).addBindableClass(Player.class);
+			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			levelScript = mapSandbox.script(luaScriptFile).start().join();
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			LuaTable tbl = levelScript.getResults().get().checktable(1);
@@ -527,5 +539,15 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	@Override
 	public LuaSandbox getSandbox() {
 		return this.mapSandbox;
+	}
+
+	/**
+	 * @return	The types of tiles available
+	 */
+	public TileTypes getTileTypes() {
+		if(tileTypesCollection == null) {
+			tileTypesCollection = new TileTypes();
+		}
+		return tileTypesCollection;
 	}
 }

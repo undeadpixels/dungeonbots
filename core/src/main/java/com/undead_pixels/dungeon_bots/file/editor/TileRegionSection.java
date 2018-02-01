@@ -5,15 +5,26 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.undead_pixels.dungeon_bots.scene.World;
+
 /**
  * A section of a level script indicating the tile map
  */
 public class TileRegionSection extends LevelScriptSection {
+
+	/**
+	 * The world
+	 */
+	private World world;
 	
 	/**
 	 * A list of each tile (or region of tiles)
 	 */
 	private ArrayList<TileRegion> regions = new ArrayList<>();
+
+	public TileRegionSection(World world) {
+		this.world = world;
+	}
 
 	@Override
 	public String toLua() {
@@ -39,6 +50,12 @@ public class TileRegionSection extends LevelScriptSection {
 	 */
 	public void add(TileRegion tileRegion) {
 		regions.add(tileRegion);
+		
+		for(int i = tileRegion.x0; i <= tileRegion.x1; i++) {
+			for(int j = tileRegion.y0; j <= tileRegion.y1; j++) {
+				world.setTile(i, j, world.getTileTypes().getTile(tileRegion.tileName));
+			}
+		}
 	}
 	
 	
