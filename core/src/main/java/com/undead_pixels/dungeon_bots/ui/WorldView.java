@@ -31,7 +31,6 @@ public class WorldView {
 	public WorldView(World world) {
 		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
 		AssetManager.finishLoading();
-		
 		this.world = world;
 	}
 

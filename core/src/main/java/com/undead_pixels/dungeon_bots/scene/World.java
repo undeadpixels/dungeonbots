@@ -219,7 +219,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		for(Entity e : entities) {
 			ActionQueue aq = e.getActionQueue();
 			playstyle.dequeueIfAllowed(aq);
-			
 			e.update(dt);
 		}
 		playstyle.update();

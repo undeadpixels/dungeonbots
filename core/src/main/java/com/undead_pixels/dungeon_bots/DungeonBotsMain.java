@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots;
 
-
 import javax.swing.JFrame;
 
 import com.badlogic.gdx.Game;
@@ -8,8 +7,6 @@ import com.badlogic.gdx.Screen;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
-
-
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
