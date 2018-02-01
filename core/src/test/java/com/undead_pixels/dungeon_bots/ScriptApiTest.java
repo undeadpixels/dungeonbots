@@ -17,17 +17,19 @@ public class ScriptApiTest {
 	private final double EPSILON = 0.00001;
 
     @Test public void testGetBindings() {
-        Player player = new Player(new World(), "player", null);
+        Player player = new Player(new World(), "player");
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.addBindable(player);
         LuaScript luaScript = se.script("player:up();");
         luaScript.start().join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		player.getWorld().setSize(16,16);
+		player.getWorld().update(1.f);
         Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
     }
 
     @Test public void testScriptApiSingleArgumentFunction() {
-		class OneArg implements GetBindable {
+		class OneArg implements GetLuaFacade {
 
 			String name;
 
@@ -63,7 +65,7 @@ public class ScriptApiTest {
     }
 
     @Test public void testSecurityLevel() {
-		class DebugError implements GetBindable {
+		class DebugError implements GetLuaFacade {
 
 			String name;
 
@@ -98,27 +100,34 @@ public class ScriptApiTest {
 
     @Test public void testActorMovement() {
         Actor player = new ActorBuilder().setName("player").createActor();
+        World w = player.getWorld();
+        w.setSize(16,16);
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
 
         LuaScript luaScript = se.init("player:up();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+        w.update(1.f);
         Assert.assertEquals("Player Y Position not moved 'UP'",
                  1.0, player.getPosition().y, EPSILON);
 
         luaScript = se.init("player:down();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		w.update(1.f);
         Assert.assertEquals("Player Y Position not moved 'DOWN'",
 				0.0, player.getPosition().y, EPSILON);
 
+		luaScript = se.init("player:right();").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		w.update(1.f);
+		Assert.assertEquals("Player X Position not moved 'RIGHT'",
+				1.0, player.getPosition().x, EPSILON);
+
         luaScript = se.init("player:left();").join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		w.update(1.f);
         Assert.assertEquals("Player X Position not moved 'LEFT'",
-				-1.0, player.getPosition().x, EPSILON);
-
-        luaScript = se.init("player:right();").join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        Assert.assertEquals("Player X Position not moved 'RIGHT'",
 				0.0, player.getPosition().x, EPSILON);
+
     }
 
 	@Test public void testActorPosition() {
@@ -135,7 +144,7 @@ public class ScriptApiTest {
 	}
 
     @Test public void testTwoArgFunction() {
-    	class TestEntity implements GetBindable {
+    	class TestEntity implements GetLuaFacade {
 
     		int number = 0;
 			String name;
@@ -171,7 +180,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testThreeArgFunction() {
-		class TestEntity implements GetBindable {
+		class TestEntity implements GetLuaFacade {
 
 			String name;
 			private int number = 0;
@@ -212,7 +221,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testVarArgsFunction() {
-		class TestEntity implements GetBindable {
+		class TestEntity implements GetLuaFacade {
 
 			String name;
 			int number = 0;
@@ -255,7 +264,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testBindField() {
-		class RpgActor implements GetBindable {
+		class RpgActor implements GetLuaFacade {
 
 			String name;
 
@@ -295,7 +304,7 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testModifyField() {
-		class RpgActor implements GetBindable {
+		class RpgActor implements GetLuaFacade {
 
 			String name;
 

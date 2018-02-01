@@ -4,14 +4,15 @@ import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-import com.undead_pixels.dungeon_bots.script.interfaces.Scriptable;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 
 /**
+ * @author Kevin Parker
+ * @version 1.0
  * Pretty much everything visible/usable within a regular game. Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, Scriptable, GetBindable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
 
 	/**
 	 * A user sandbox that is run on this object
@@ -44,46 +45,42 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	protected final String name;
 
 	/**
-	 * @param world		The world to contain this Actor
+	 * Constructor for this entity
+	 * 
+	 * @param world	The world
+	 * @param name	This entity's name
 	 */
 	public Entity(World world, String name) {
-		this(world, name, null);
-	}
-
-	public Entity(World world, String name, Whitelist whitelist) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
-		this.world.addEntity(this);
 		this.sandbox.addBindable(this);
 	}
 
-	
-	protected LuaSandbox createScriptEnv() {
-		LuaSandbox env = new LuaSandbox(); // TODO 
-		// env.add(this.getLuaBinding());
-		
-		sandbox = env;
-		return sandbox;
-	}
 	@Override
 	public LuaSandbox getSandbox() {
 		return sandbox;
 	}
 	
+	@Override
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
 	}
 	
 	/**
-	 * @param scriptEnv		The user sandbox to set
+	 * @param sandbox		The user sandbox to set
 	 */
-	public void setSandbox(LuaSandbox scriptEnv) {
-		this.sandbox = scriptEnv;
+	public void setSandbox(LuaSandbox sandbox) {
+		this.sandbox = sandbox;
 	}
 
-	public <T extends GetBindable> Entity addToSandbox(T... vals) {
+	/**
+	 * @param vals	The values to add to the sandbox
+	 * @return		this
+	 */
+	@SafeVarargs
+	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
 		this.sandbox.addBindable(vals);
 		return this;
 	}
@@ -113,6 +110,13 @@ public abstract class Entity implements BatchRenderable, Scriptable, GetBindable
 	 */
 	public TeamFlavor getTeam() {
 		return TeamFlavor.NONE; // TODO
+	}
+
+	/**
+	 * @return	The world this entity belongs to
+	 */
+	public World getWorld() {
+		return world;
 	}
 
 }

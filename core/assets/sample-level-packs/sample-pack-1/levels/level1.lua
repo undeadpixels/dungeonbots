@@ -32,33 +32,28 @@ tileTypes
  - ???
 ]]
 
+local tbl = { }
 
-
-
-function init()
-    world.setSize(16, 16)
-    for i in 1,16 do
-        for j in 1,16 do
+tbl.init = function()
+    world:setSize(16, 16)
+    for i = 1,16 do
+        for j = 1,16 do
             if i == 1 or i == 16 or j == 1 or j == 16 then
-                world.setTile(j, i, tileTypes.getTile("wall"))
+                world:setTile(j, i, tileTypes:getTile("wall"))
             else
-                world.setTile(j, i, tileTypes.getTile("floor"))
+                world:setTile(j, i, tileTypes:getTile("floor"))
             end
         end
     end
-    world.setTile(Tile.goal(14, 14))
-
-    world.setPlayer(Player.new(world,2, 2))
-    --world.player:setCode("autobind()")
-    --settings.allowedCode.whitelist("autobind")
-    whitelist.allow(player, SecurityLevel.DEBUG)
-    --settings.playStyle.codeMode = "none"
-    --settings.playStyle.playMode = "rts"
+    local player = Player.new(world, 2, 2)
+    world:setPlayer(player)
 end
 
-function update(dt)
+tbl.update = function(dt)
     local x, y = world.getPlayer().position()
-    if x == 14 and y == 14 then
+    if x == 5 and y == 5 then
         world.win()
     end
 end
+
+return tbl

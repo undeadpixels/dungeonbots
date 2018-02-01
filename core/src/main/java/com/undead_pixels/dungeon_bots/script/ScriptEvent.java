@@ -2,8 +2,6 @@ package com.undead_pixels.dungeon_bots.script;
 
 import java.util.ArrayList;
 
-import org.luaj.vm2.LuaTable;
-
 import com.undead_pixels.dungeon_bots.queueing.Taskable;
 
 public abstract class ScriptEvent implements Taskable<LuaSandbox> {
