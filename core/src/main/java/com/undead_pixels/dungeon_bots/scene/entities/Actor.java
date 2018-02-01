@@ -34,6 +34,7 @@ public class Actor extends SpriteEntity {
 	 */
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
+		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -45,6 +46,7 @@ public class Actor extends SpriteEntity {
 	@Deprecated
 	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
 		super(world, name, tex);
+		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 		/// XXX
 	}
