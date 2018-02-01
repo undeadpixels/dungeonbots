@@ -5,9 +5,26 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TileRegionSection extends GameEditorStateSection {
+import com.undead_pixels.dungeon_bots.scene.World;
+
+/**
+ * A section of a level script indicating the tile map
+ */
+public class TileRegionSection extends LevelScriptSection {
+
+	/**
+	 * The world
+	 */
+	private World world;
 	
+	/**
+	 * A list of each tile (or region of tiles)
+	 */
 	private ArrayList<TileRegion> regions = new ArrayList<>();
+
+	public TileRegionSection(World world) {
+		this.world = world;
+	}
 
 	@Override
 	public String toLua() {
@@ -28,15 +45,45 @@ public class TileRegionSection extends GameEditorStateSection {
 		}
 	}
 
+	/**
+	 * @param tileRegion		The region to add to this section
+	 */
 	public void add(TileRegion tileRegion) {
 		regions.add(tileRegion);
+		
+		for(int i = tileRegion.x0; i <= tileRegion.x1; i++) {
+			for(int j = tileRegion.y0; j <= tileRegion.y1; j++) {
+				world.setTile(i, j, world.getTileTypes().getTile(tileRegion.tileName));
+			}
+		}
 	}
 	
 	
+	/**
+	 * A region of tiles (always axis-aligned rectangular)
+	 * 
+	 * Can also represent a single tile
+	 */
 	public static class TileRegion {
+		/**
+		 * Position of this region
+		 */
 		final int x0, x1, y0, y1;
+		
+		/**
+		 * Name of the tile used in this region
+		 */
 		final String tileName;
 
+		/**
+		 * Constructor
+		 * 
+		 * @param x0		Left side
+		 * @param x1		Right side
+		 * @param y0		Bottom side
+		 * @param y1		Top side
+		 * @param tileName
+		 */
 		public TileRegion(int x0, int x1, int y0, int y1, String tileName) {
 			super();
 			this.x0 = x0;
@@ -46,6 +93,12 @@ public class TileRegionSection extends GameEditorStateSection {
 			this.tileName = tileName;
 		}
 		
+		/**
+		 * Constructor
+		 * 
+		 * @param luaCode		Lua code that can generate a region
+		 * @throws ParseException	If this code doesn't look like this class's definition of a region
+		 */
 		public TileRegion(String luaCode) throws ParseException {
 
 			Pattern noFor = Pattern.compile(
@@ -67,7 +120,7 @@ public class TileRegionSection extends GameEditorStateSection {
 			Matcher twoForMatcher = twoFor.matcher(luaCode);
 
 			if(noForMatcher.matches()) {
-				String[] strs = extract(noForMatcher);
+				String[] strs = extractGroupsFromText(noForMatcher);
 
 				x0 = intAt(strs, 0, 0);
 				y0 = intAt(strs, 1, 0);
@@ -78,7 +131,7 @@ public class TileRegionSection extends GameEditorStateSection {
 			//} else if(oneForMatcher.matches()) {
 			//	String[] strs = extract(oneForMatcher);
 			} else if(twoForMatcher.matches()) {
-				String[] strs = extract(twoForMatcher);
+				String[] strs = extractGroupsFromText(twoForMatcher);
 
 				x0 = intAt(strs, 0, 0);
 				x1 = intAt(strs, 1, 0);
@@ -91,6 +144,9 @@ public class TileRegionSection extends GameEditorStateSection {
 			
 		}
 
+		/**
+		 * @return	This TileRegion, converted to Lua code
+		 */
 		public String toLua() {
 			String ret = "";
 			int indent = 0;

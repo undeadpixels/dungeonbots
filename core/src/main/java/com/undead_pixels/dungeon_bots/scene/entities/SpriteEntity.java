@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
  * A regular Entity that is based upon a Sprite, not some other form of graphic
@@ -25,6 +24,15 @@ public abstract class SpriteEntity extends Entity {
 		this(world, name, tex, 0, 0);
 	}
 
+	/**
+	 * Constructor for a SpriteEntity
+	 * 
+	 * @param world	The world
+	 * @param name	This entity's name
+	 * @param tex	The texture to show
+	 * @param x		Location X, in tiles
+	 * @param y		Location Y, in tiles
+	 */
 	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
 		super(world, name);
 		if(tex == null)

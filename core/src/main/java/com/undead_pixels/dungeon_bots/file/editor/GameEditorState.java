@@ -2,28 +2,38 @@ package com.undead_pixels.dungeon_bots.file.editor;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Scanner;
 
+import com.undead_pixels.dungeon_bots.scene.World;
+
+/**
+ * A state object for the game editor.
+ * Backed by both a world and some serializable/deserializable pieces.
+ */
 public class GameEditorState {
 	
-	private LinkedHashMap<String, GameEditorStateSection> sections = new LinkedHashMap<>();
-	public WorldSizeSection worldSizeSection; // TODO - make private
-	public TileRegionSection tileRegionSection; // TODO - make private
-	public PlayerInitSection playerInitSection; // TODO - make private
+	private LinkedHashMap<String, LevelScriptSection> sections = new LinkedHashMap<>();
+	
+	
+	public final WorldSizeSection worldSizeSection; // TODO - make private?
+	public final TileRegionSection tileRegionSection; // TODO - make private?
+	public final PlayerInitSection playerInitSection; // TODO - make private?
+	public final World world;
 
 	public GameEditorState() {
+		world = new World();
+		
 		sections.put("world size",
-				worldSizeSection = new WorldSizeSection());
+				worldSizeSection = new WorldSizeSection(world));
 		sections.put("load custom assets",
 				new FakeEditorStateSection(""));
 		sections.put("register tiles",
 				new FakeEditorStateSection(""));
 		sections.put("tiles",
-				tileRegionSection = new TileRegionSection());
+				tileRegionSection = new TileRegionSection(world));
 		sections.put("player init",
-				playerInitSection = new PlayerInitSection());
+				playerInitSection = new PlayerInitSection(world));
 		sections.put("bots init",
 				new FakeEditorStateSection(""));
 		sections.put("enemies init",
@@ -39,7 +49,7 @@ public class GameEditorState {
 		
 		Scanner sc = new Scanner(luaCode);
 		
-		GameEditorStateSection currentSection = new FakeEditorStateSection("");
+		LevelScriptSection currentSection = new FakeEditorStateSection("");
 		String prevLine = "";
 		boolean hadIndent = false;
 		ArrayList<String> currentLineList = new ArrayList<>();
@@ -49,7 +59,7 @@ public class GameEditorState {
 			if(line.startsWith("-- Editor Section: ")) {
 				String sectionName = line.split("\\: ", 2)[1];
 				
-				GameEditorStateSection newSection = sections.get(sectionName);
+				LevelScriptSection newSection = sections.get(sectionName);
 				
 				if(newSection == null) {
 					sc.close();
@@ -105,7 +115,7 @@ public class GameEditorState {
 		StringBuilder sb = new StringBuilder();
 		
 		for(String name: sections.keySet()) {
-			GameEditorStateSection s = sections.get(name);
+			LevelScriptSection s = sections.get(name);
 			
 			String sectionText = s.toLua();
 			

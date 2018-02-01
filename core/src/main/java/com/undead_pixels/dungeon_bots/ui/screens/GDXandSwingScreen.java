@@ -3,12 +3,10 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 import java.awt.Component;
 import java.awt.Container;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
 
 import com.badlogic.gdx.Screen;

@@ -24,7 +24,7 @@ public interface BatchRenderable {
     
     
     /**
-     * @return	the requested z (layer) value
+     * @return	the requested z (layer) value. Higher values get rendered on top.
      */
     public float getZ();
     

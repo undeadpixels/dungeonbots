@@ -6,7 +6,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
-import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 /**
  * @author Kevin Parker
@@ -45,11 +44,16 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	protected final String name;
 
+	/**
+	 * Constructor for this entity
+	 * 
+	 * @param world	The world
+	 * @param name	This entity's name
+	 */
 	public Entity(World world, String name) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
-		this.world.addEntity(this);
 		this.sandbox.addBindable(this);
 	}
 
@@ -58,6 +62,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return sandbox;
 	}
 	
+	@Override
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
@@ -70,6 +75,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.sandbox = sandbox;
 	}
 
+	/**
+	 * @param vals	The values to add to the sandbox
+	 * @return		this
+	 */
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
 		this.sandbox.addBindable(vals);
@@ -103,6 +112,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return TeamFlavor.NONE; // TODO
 	}
 
+	/**
+	 * @return	The world this entity belongs to
+	 */
 	public World getWorld() {
 		return world;
 	}
