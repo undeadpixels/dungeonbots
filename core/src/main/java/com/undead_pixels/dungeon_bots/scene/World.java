@@ -15,6 +15,9 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
@@ -23,14 +26,17 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetBindable;
-
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.LuaFunction;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
-public class World implements GetBindable {
+public class World implements GetLuaFacade, GetLuaSandbox {
     private LuaScript levelScript;
     private LuaValue luaBinding;
+	private LuaFunction mapUpdateFunc;
+	private LuaSandbox mapSandbox;
 
     private String name = "world";
 
@@ -65,13 +71,18 @@ public class World implements GetBindable {
    	 	tiles = new Tile[0][0];
 	
 		if(luaScriptFile != null) {
-			LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEBUG);
+			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			TileTypes tt = new TileTypes();
-			sandbox.addBindable(this, tt, this.getWhitelist()).addBindableClass(Player.class);
-			levelScript = sandbox.script(luaScriptFile).start().join();
+			mapSandbox.addBindable(this, tt, this.getWhitelist()).addBindableClass(Player.class);
+			levelScript = mapSandbox.script(luaScriptFile).start().join();
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
-			LuaFunction luaFunction = levelScript.getResults().get().checktable(1).get("init").checkfunction();
-			luaFunction.invoke();
+			LuaTable tbl = levelScript.getResults().get().checktable(1);
+			LuaFunction init = tbl.get("init").checkfunction();
+			LuaFunction mapUpdate = tbl.get("update").checkfunction();
+			
+			setMapUpdate(mapUpdate);
+			
+			init.invoke();
 		}
 	}
 
@@ -80,6 +91,10 @@ public class World implements GetBindable {
     		World w = new World();
     		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
+	}
+
+	public void setMapUpdate(LuaFunction luaFunction) {
+		mapUpdateFunc = luaFunction;
 	}
 
 	@Bind
@@ -114,8 +129,11 @@ public class World implements GetBindable {
 			e.update(dt);
 		}
 		playstyle.update();
-		
-		// TODO - tell the levelScript that a new frame happened
+
+		Whitelist temp = SecurityContext.getWhitelist();
+		SecurityContext.set(this.mapSandbox);
+		if(mapUpdateFunc != null)
+			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
 	}
 	
 	public void render(SpriteBatch batch) {
@@ -206,6 +224,12 @@ public class World implements GetBindable {
     	setTile(x.checkint() - 1, y.checkint() - 1, tileType);
 	}
 
+	@Bind
+	public Player getPlayer() {
+    	SecurityContext.getWhitelist().add(this.player);
+    	return this.player;
+	}
+
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
 		// TODO - more stuff here
@@ -251,6 +275,7 @@ public class World implements GetBindable {
 	public int getId() {
 		return this.hashCode();
 	}
+
 
 	private static class Layer implements Comparable<Layer> {
 		private final float z;
@@ -326,5 +351,10 @@ public class World implements GetBindable {
 		}
 		
 		return null;
+	}
+
+	@Override
+	public LuaSandbox getSandbox() {
+		return this.mapSandbox;
 	}
 }

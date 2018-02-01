@@ -51,7 +51,7 @@ end
 
 tbl.update = function(dt)
     local x, y = world.getPlayer().position()
-    if x == 14 and y == 14 then
+    if x == 5 and y == 5 then
         world.win()
     end
 end
