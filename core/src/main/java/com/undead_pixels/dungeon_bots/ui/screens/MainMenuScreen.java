@@ -61,6 +61,22 @@ public class MainMenuScreen extends GDXandSwingScreen {
 			
 		});
 
+		community.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Gdx.app.postRunnable(new Runnable() {
+
+					@Override
+					public void run() {
+						DungeonBotsMain.instance.requestLogin();
+					}
+					
+				});
+			}
+			
+		});
+
 		b.add(play);
 		b.add(create);
 		b.add(community);
