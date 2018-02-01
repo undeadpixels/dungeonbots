@@ -14,6 +14,12 @@ import org.luaj.vm2.LuaValue;
  */
 public class Player extends Actor {
 
+	/**
+	 * Constructor
+	 * 
+	 * @param world	The world this player belongs to
+	 * @param name	The name of this player
+	 */
 	public Player(World world, String name) {
 		super(world, name, AssetManager.getAsset("player", AssetManager.AssetSrc.Player, 3, 1)
 						.orElse(null));
@@ -21,6 +27,7 @@ public class Player extends Actor {
 
 	/**
 	 * Static LuaBinding used to generate new players
+	 * 
 	 * @param world The world to assign to the player
 	 * @param x The initial x position of the player
 	 * @param y The initial y position of the player

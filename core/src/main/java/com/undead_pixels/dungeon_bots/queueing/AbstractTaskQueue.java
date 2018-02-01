@@ -5,11 +5,40 @@ import java.util.LinkedList;
 
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 
+/**
+ * An abstract queue for Taskable objects.
+ * 
+ * For example, entities have an ActionQueue, where they enqueue actions,
+ * and they're executed in order.
+ * 
+ * 
+ * @param <O>	The type of this Queue's owner
+ * @param <T>	The type of this Queue's elements
+ */
 public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
+	/**
+	 * Internal storage
+	 */
 	protected LinkedList<T> queue = new LinkedList<>();
+	
+	/**
+	 * A map from a CoalescingGroup to the task it coalesces into.
+	 */
 	protected HashMap<CoalescingGroup<? extends T>, T> coalescingGroupMap = new HashMap<>();
+	
+	/**
+	 * Inverse of coalescingGroupMap
+	 */
 	protected HashMap<T, CoalescingGroup<? extends T>> invCoalescingGroupMap = new HashMap<>();
+	
+	/**
+	 * The current Task
+	 */
 	protected T current;
+	
+	/**
+	 * The owner of this queue
+	 */
 	protected O owner;
 	
 
@@ -114,6 +143,8 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 		
 		while(!queue.isEmpty()) {
 			T t = queue.removeFirst();
+			CoalescingGroup<? extends T> group = invCoalescingGroupMap.remove(t);
+			coalescingGroupMap.remove(group);
 			
 			System.out.println("Dequeueing task "+t);
 			
@@ -128,6 +159,14 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 		return false;
 	}
 	
+	/**
+	 * Tells this queue to update/act.
+	 * 
+	 * This causes the current task in the queue to also act.
+	 * 
+	 * @param dt		Delta Time
+	 * @return		True if this queue is done with its current event
+	 */
 	public boolean act(float dt) {
 		T c = current;
 		if(c == null) {
