@@ -19,10 +19,10 @@ import java.util.stream.Stream;
 public class LuaReflection {
 	/**
 	 * Generates a Whitelist of Methods for the target object not exceeding the given security level.
-	 * @param bindableMethods
-	 * @param caller
-	 * @param securityLevel
-	 * @return
+	 * @param bindableMethods An argument stream of bindable methods
+	 * @param caller The object that invokes the bindable methods
+	 * @param securityLevel The desired Security Level of the whitelist
+	 * @return A Whitelist that contains ID's of all bindable methods matching the security level
 	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
 		return new Whitelist()
