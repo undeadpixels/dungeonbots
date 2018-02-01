@@ -131,9 +131,10 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		playstyle.update();
 
 		Whitelist temp = SecurityContext.getWhitelist();
-		SecurityContext.set(this.mapSandbox);
-		if(mapUpdateFunc != null)
+		if(mapUpdateFunc != null) {
+			SecurityContext.set(this.mapSandbox);
 			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
+		}
 	}
 	
 	public void render(SpriteBatch batch) {
