@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots;
+package com.undead_pixels.dungeon_bots.scene;
 
 import org.junit.Assert;
 import org.junit.Test;

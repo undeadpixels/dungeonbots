@@ -19,8 +19,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.undead_pixels.dungeon_bots.ui.GDXandSwingScreen;
-import com.undead_pixels.dungeon_bots.ui.GameView;
 
 import javax.swing.*;
 import javax.swing.text.rtf.RTFEditorKit;
@@ -47,6 +45,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pool;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenu;
 import com.undead_pixels.dungeon_bots.ui.DropDownMenuStyle;
+import com.undead_pixels.dungeon_bots.ui.code_edit.GDXandSwingScreen;
+import com.undead_pixels.dungeon_bots.ui.code_edit.GameView;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
