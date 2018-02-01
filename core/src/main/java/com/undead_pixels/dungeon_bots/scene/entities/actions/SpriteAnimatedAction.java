@@ -2,6 +2,9 @@ package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
+/**
+ * An action that involves animating a sprite
+ */
 public abstract class SpriteAnimatedAction extends AnimatedAction {
 	public SpriteAnimatedAction(Sprite sprite, float duration) {
 		super(duration);

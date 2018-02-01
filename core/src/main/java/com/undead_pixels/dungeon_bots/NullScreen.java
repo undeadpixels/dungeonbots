@@ -35,7 +35,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.undead_pixels.dungeon_bots.ui.code_edit.GDXandSwingScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 
 import jsyntaxpane.DefaultSyntaxKit;
 import jsyntaxpane.SyntaxStyle;
@@ -46,6 +46,8 @@ import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 /**
  * This will be deleted eventually, but it at least allows us to have a fake
  * screen
+ * 
+ * Edit: this will be deleted soon. Grab anything you want out of it.
  */
 public class NullScreen extends GDXandSwingScreen {
 

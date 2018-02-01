@@ -37,20 +37,6 @@ public abstract class SpriteEntity extends Entity {
 		sprite.setPosition(x, y);
 	}
 
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user scriptEnv that is run on this object. May be null.
-	 * @param tex		A texture for this Actor. May be null.
-	 */
-	public SpriteEntity(World world, String name, TextureRegion tex, Whitelist whitelist) {
-		super(world, name, whitelist);
-		if(tex == null) {
-			sprite = new Sprite();
-		} else {
-			sprite = new Sprite(tex);
-		}
-	}
-
 	@Override
 	public void update(float dt) {
 		super.update(dt);

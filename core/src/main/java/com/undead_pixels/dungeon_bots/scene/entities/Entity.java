@@ -45,14 +45,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	protected final String name;
 
-	/**
-	 * @param world		The world to contain this Actor
-	 */
 	public Entity(World world, String name) {
-		this(world, name, null);
-	}
-
-	public Entity(World world, String name, Whitelist whitelist) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();

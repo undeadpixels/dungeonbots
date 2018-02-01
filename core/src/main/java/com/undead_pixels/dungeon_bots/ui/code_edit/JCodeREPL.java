@@ -81,9 +81,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_Sandbox = sandbox;
 
-		_EchoMessageStyle = createSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
-		_SystemMessageStyle = createSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
-		_ErrorMessageStyle = createSimpleAttributeSet(Color.RED, Color.BLACK, true);
+		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
+		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
+		_ErrorMessageStyle = putSimpleAttributeSet(Color.RED, Color.BLACK, true);
 
 		addComponents();
 
@@ -102,7 +102,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
 
-		setPreferredSize(new Dimension(300, 500));
 		add(makeREPLToolBar(), BorderLayout.PAGE_START);
 
 		_MessagePane = new JTextPane();
@@ -113,7 +112,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_MessagePane.setText("");
 
 		JPanel executePanel = new JPanel(new BorderLayout());
-		_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
+		//_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
 		this.add(executePanel, BorderLayout.PAGE_END);
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
 
@@ -189,7 +188,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private AttributeSet _SystemMessageStyle = null;
 	private AttributeSet _ErrorMessageStyle = null;
 
-	private AttributeSet createSimpleAttributeSet(Color foreground, Color background, boolean bold) {
+	public static AttributeSet putSimpleAttributeSet(Color foreground, Color background, boolean bold) {
 		SimpleAttributeSet result = new SimpleAttributeSet();
 		StyleConstants.setForeground(result, foreground);
 		StyleConstants.setBackground(result, background);
@@ -383,6 +382,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL MESSAGING MEMBERS
 	 * ================================================================
 	 */
+	
+	/**
+	 * Posts a message to the message pane.
+	 */
+	public void message(String message){
+		message(message, null);
+	}
+	
 	/**
 	 * Posts a message to the message pane. The identity of the sender will
 	 * compel the style with which the message will appear.
