@@ -11,8 +11,6 @@ import java.lang.reflect.*;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.undead_pixels.dungeon_bots.script.LuaSandbox.id;
-
 /**
  * Interface for exposing or providing LuaBindings and Whitelist security features
  * for datatypes that wish to have a Lua facade
