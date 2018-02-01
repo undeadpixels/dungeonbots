@@ -16,6 +16,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -26,7 +27,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 
-public class World implements GetLuaFacade {
+public class World implements GetLuaFacade, GetLuaSandbox {
     private LuaScript levelScript;
     private LuaValue luaBinding;
 	private LuaFunction mapUpdateFunc;
@@ -247,6 +248,7 @@ public class World implements GetLuaFacade {
 		return this.hashCode();
 	}
 
+
 	private static class Layer implements Comparable<Layer> {
 		private final float z;
 		public Layer(float z) {
@@ -323,7 +325,8 @@ public class World implements GetLuaFacade {
 		return null;
 	}
 
-	public LuaSandbox getMapSandbox() {
-    	return this.mapSandbox;
+	@Override
+	public LuaSandbox getSandbox() {
+		return this.mapSandbox;
 	}
 }

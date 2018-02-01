@@ -43,7 +43,7 @@ public class GameView extends GDXandSwingScreen implements InputProcessor {
 		AssetManager.finishLoading();
 		//Player.PLAYER_TEXTURE = new TextureRegion(new Texture("DawnLike/Characters/Player0.png"), TILESIZE *1, TILESIZE *1, TILESIZE, TILESIZE);
 		world = new World();
-		LuaSandbox sandbox = world.getMapSandbox();
+		LuaSandbox sandbox = world.getSandbox();
 
 		TileTypes tt = new TileTypes();
 
