@@ -8,6 +8,8 @@ import org.luaj.vm2.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -22,6 +24,7 @@ public class LuaSandbox {
     private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
 	private final SecurityLevel securityLevel;
+	private final List<? extends GetLuaFacade> bindings = new LinkedList<>();
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -104,9 +107,9 @@ public class LuaSandbox {
      */
     public LuaScript script(File file) {
     	try {
-			BufferedReader fr = new BufferedReader(new FileReader(file));
 			// May need to append newline to left string argument in accumulator function.
-			return script(fr.lines().reduce("", (a, b) -> a + "\n" + b));
+			return script(new BufferedReader(new FileReader(file)).lines()
+					.reduce("", (a, b) -> a + "\n" + b));
 		}
 		catch (FileNotFoundException fileNotFound) {
     		// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
