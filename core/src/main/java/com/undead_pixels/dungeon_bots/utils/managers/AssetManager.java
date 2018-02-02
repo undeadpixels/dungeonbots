@@ -42,9 +42,7 @@ public class AssetManager {
 			}
 			return Optional.ofNullable(textureRegionMap.get(name));
 		}
-		catch (Exception e) {
-			return Optional.empty();
-		}
+		catch (Exception e) { return Optional.empty(); }
 
 	}
 

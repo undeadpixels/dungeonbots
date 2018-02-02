@@ -17,6 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -62,6 +63,9 @@ public class DesktopLauncher {
 
 		// Tell macOS to handle the main menu bar like most macOS apps do
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+		DungeonBotsMain game = DungeonBotsMain.instance;
+		
 		
 		// create the GL canvas
 		JFrame frame = new JFrame("DungeonBots");

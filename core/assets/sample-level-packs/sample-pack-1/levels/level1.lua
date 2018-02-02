@@ -35,6 +35,13 @@ tileTypes
 local tbl = { }
 
 tbl.init = function()
+    local script = [[
+    moveUp = function(n)
+      -- Implement a function that moves the player up
+      -- 'n' spaces.
+    end
+    ]]
+    world:setLevelScript(script)
     world:setSize(16, 16)
     for i = 1,16 do
         for j = 1,16 do
