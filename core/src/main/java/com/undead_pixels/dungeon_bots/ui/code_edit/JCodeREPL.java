@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -18,17 +20,21 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -63,6 +69,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
+	private final int MAX_HISTORY_COUNT = 100;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
@@ -72,6 +79,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private boolean _IsExecuting;
 
 	private LuaScript _RunningScript = null;
+
+	private ArrayList<String> _CommandHistory = new ArrayList<String>();
+	private int _CommandHistoryIndex = 0;
 
 	/*
 	 * ================================================================
@@ -111,7 +121,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
 
-		add(makeREPLToolBar(), BorderLayout.PAGE_START);
+		JToolBar toolBar = makeREPLToolBar();
+		add(toolBar, BorderLayout.PAGE_START);
+		toolBar.setFocusable(false);
 
 		_MessagePane = new JTextPane();
 		_MessageScroller = new JScrollPane(_MessagePane);
@@ -127,15 +139,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		JPanel startStopPanel = new JPanel(new BorderLayout());
 		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
 		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		_ExecuteBttn.setFocusable(false);
+		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
-		JButton helpButton = makeButton("helpButton.gif", "HELP", "Click for help", "?", this);
-		startStopPanel.add(helpButton, BorderLayout.PAGE_START);
 		startStopPanel.add(_ExecuteBttn, BorderLayout.CENTER);
 		startStopPanel.add(_CancelBttn, BorderLayout.PAGE_END);
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 
-		// The execute button should be the default button
-		
+		_EditorPane.requestFocusInWindow();
 
 	}
 
@@ -143,25 +154,116 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	@SuppressWarnings("serial")
 	private void addKeyBindings() {
 
-		// Should execute() on ENTER+CTRL
-		_EditorPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
-		_EditorPane.getActionMap().put("EXECUTE", new AbstractAction() {
+		InputMap inputMap = _EditorPane.getInputMap();
+		ActionMap actionMap = _EditorPane.getActionMap();
 
+		// On CTRL+ENTER, should execute.
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
+		actionMap.put("EXECUTE", new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				execute(MAX_EXECUTION_TIME);
 			}
 		});
 
+		// On ESC, should clear the command line.
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
+		actionMap.put("CLEAR", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				_EditorPane.setText("");
+			}
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
+		actionMap.put("STOP", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				messageError("^C");
+				stop();
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
+		actionMap.put("CLOSE", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				messageError("^Q");
+				Component parent = _EditorPane.getParent();
+				while (parent != null){
+					//System.out.println(parent.getClass().toString());
+					parent = parent.getParent();
+					if (parent instanceof JDialog){
+						JDialog dialog = (JDialog) parent;
+						dialog.setVisible(false);
+					}
+				}								
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
+		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (--_CommandHistoryIndex >= 0)
+					_EditorPane.setText(_CommandHistory.get(_CommandHistoryIndex));
+				else {
+					_CommandHistoryIndex = 0;
+					_EditorPane.setText("");
+				}
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
+		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (++_CommandHistoryIndex < _CommandHistory.size())
+					_EditorPane.setText(_CommandHistory.get(_CommandHistoryIndex));
+				else {
+					_CommandHistoryIndex = _CommandHistory.size();
+					_EditorPane.setText("");
+				}
+			}
+
+		});
+
 		// TODO: handle code completion, code run on ENTER (when well-formed),
 		// code suggestion.
 	}
 
+	/**
+	 * Just trying to keep the code a little organized. This is called by
+	 * addComponents().
+	 */
 	private JToolBar makeREPLToolBar() {
+
 		JToolBar result = new JToolBar();
-		result.add(makeButton("testing.gif", "CUT", "ToolTipA", "Cut", this));
-		result.add(makeButton("testing.gif", "COPY", "ToolTipB", "Copy", this));
-		result.add(makeButton("testing.gif", "PASTE", "ToolTipB", "Paste", this));		
+		JButton cutBttn = makeButton("cutBttn.gif", "CUT",
+				"Cut from the command line and move the text to the clipboard.", "Cut", this);
+		JButton copyBttn = makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.", "Copy",
+				this);
+		JButton pasteBttn = makeButton("pasteBttn.gif", "PASTE", "Paste from the clipboard to the command line.",
+				"Paste", this);
+		JButton helpBttn = makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help", this);
+
+		cutBttn.setFocusable(false);
+		copyBttn.setFocusable(false);
+		pasteBttn.setFocusable(false);
+		helpBttn.setFocusable(false);
+
+		result.add(cutBttn);
+		result.add(copyBttn);
+		result.add(pasteBttn);
+		result.add(helpBttn);
+
 		return result;
 	}
 
@@ -227,6 +329,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL CODING INTERFACE MEMBERS
 	 * ================================================================
 	 */
+
+	/** Stops any running script by forcing an interrupt. */
+	public void stop() {
+		LuaScript toBeCancelled = _RunningScript;
+		if (toBeCancelled == null)
+			return;
+		toBeCancelled.stop();
+	}
 
 	/**
 	 * The reason for the ScriptExecutionWorker is to make the Lua script run to
@@ -342,6 +452,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private void onExecutionComplete(ScriptExecutionWorker sender, Object result) {
 		_LastResult = result;
 
+		// Update the command history records.
+		if (_CommandHistory.size() == 0
+				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.executingCode))
+			_CommandHistory.add(sender.executingCode);
+		_CommandHistoryIndex = _CommandHistory.size();
+		_EditorPane.setText("");
+
 		// Send a message indicating the results.
 		if (result == null)
 			message("null", _SystemMessageStyle);
@@ -352,13 +469,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		else
 			message(result.toString(), _SystemMessageStyle);
 
-		// It's possible for some other entity to sneak some code in while the
-		// thread is in the
-		// background. Only clear out the code editor if the executed code is
-		// still in the editor.
-		if (sender.executingCode.equals(getCode()))
-			setCode("");
-
+		// Update flag
 		setIsExecuting(false);
 	}
 
@@ -555,10 +666,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			System.out.println("Don't panic!");
 			break;
 		case "CANCEL":
-			LuaScript toBeCancelled = _RunningScript;
-			if (toBeCancelled == null)
-				return;
-			toBeCancelled.stop();
+			stop();
 			break;
 		default:
 			System.out.println("Unimplemented action received by " + this.getClass().getName() + " object: "
@@ -567,6 +675,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 		// TODO Auto-generated method stub
 
+	}
+
+	/** Called when there is a new visual parent for this REPL. */
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		_EditorPane.requestFocusInWindow();
 	}
 
 }
