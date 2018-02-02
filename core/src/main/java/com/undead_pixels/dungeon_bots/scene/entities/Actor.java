@@ -3,6 +3,9 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -109,26 +112,43 @@ public class Actor extends SpriteEntity {
 		
 		Entity e = this;
 		final int _dx = dx, _dy = dy;
+		final int[] initialPos = {0, 0};
 		
-		actionQueue.enqueue(new SpriteAnimatedAction(sprite, getMoveDuration()) {
-			int initialX, initialY;
+		SpriteAnimatedAction tryMoveAction = new SpriteAnimatedAction(sprite, getMoveDuration()) {
 			
 			public boolean preAct() {
-				initialX = Math.round(e.getPosition().x);
-				initialY = Math.round(e.getPosition().y);
-				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				initialPos[0] = Math.round(e.getPosition().x);
+				initialPos[1] = Math.round(e.getPosition().y);
+				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
 				
-				this.setFinalPosition(_dx + initialX, _dy + initialY);
+				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				
 				return canMove;
 				
 			}
 			
 			public void postAct() {
-				world.didLeaveTile(e, initialX, initialY);
+				world.didLeaveTile(e, initialPos[0], initialPos[1]);
 			}
 			
-		});
+		};
+
+		Action fail1 = new SpriteAnimatedAction(sprite, .1f) {
+			public boolean preAct() {
+				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
+				return true;
+			}
+		};
+		Action fail2 = new SpriteAnimatedAction(sprite, .1f) {
+			public boolean preAct() {
+				this.setFinalPosition(initialPos[0], initialPos[1]);
+				return true;
+			}
+		};
+		
+		Action moveFailAction = new SequentialActions(fail1, fail2);
+		
+		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 	}
 
 	

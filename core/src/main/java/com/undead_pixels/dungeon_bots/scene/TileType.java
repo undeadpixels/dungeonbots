@@ -51,6 +51,7 @@ public class TileType implements GetLuaFacade {
 		}
 		this.textureRegions = textureRegions;
 		this.name = name;
+		this.solid = solid;
 	}
 
 	/**
