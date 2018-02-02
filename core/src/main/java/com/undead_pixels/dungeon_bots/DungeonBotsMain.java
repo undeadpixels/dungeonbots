@@ -15,8 +15,6 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 
-
-
 /**
  * The main class. Basically, all it does is point to the screen that we are
  * actually trying to render. 
