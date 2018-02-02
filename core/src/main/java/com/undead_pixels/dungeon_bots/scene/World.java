@@ -493,8 +493,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			return false;
 		}
 
-		System.out.println(tiles[x][y]);
-		System.out.println(tiles[x][y].isSolid());
 		if(tiles[x][y] != null && tiles[x][y].isSolid()) {
 			System.out.println("Unable to move: tile solid");
 			return false;
