@@ -1,4 +1,6 @@
+
 com.undead_pixels.dungeon_bots
+com.undead_pixels.dungeon_bots.desktop
 com.undead_pixels.dungeon_bots.file
 com.undead_pixels.dungeon_bots.file.editor
 com.undead_pixels.dungeon_bots.lua
@@ -14,6 +16,8 @@ com.undead_pixels.dungeon_bots.script.proxy
 com.undead_pixels.dungeon_bots.script.security
 com.undead_pixels.dungeon_bots.ui
 com.undead_pixels.dungeon_bots.ui.code_edit
+com.undead_pixels.dungeon_bots.ui.screens
+com.undead_pixels.dungeon_bots.uitesting
 com.undead_pixels.dungeon_bots.utils.Exceptions
 com.undead_pixels.dungeon_bots.utils.builders
 com.undead_pixels.dungeon_bots.utils.managers

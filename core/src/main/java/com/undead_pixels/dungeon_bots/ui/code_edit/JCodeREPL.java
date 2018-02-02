@@ -2,10 +2,14 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,23 +20,31 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -44,6 +56,7 @@ import javax.swing.text.StyledDocument;
 
 import org.luaj.vm2.LuaInteger;
 import org.luaj.vm2.LuaNil;
+import org.luaj.vm2.LuaString;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
@@ -55,7 +68,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
-	public final long MaxExecutionTime = 3000;
+	public final long MAX_EXECUTION_TIME = 3000;
+	private final int MAX_HISTORY_COUNT = 100;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
@@ -63,6 +77,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
 	private boolean _IsExecuting;
+
+	private LuaScript _RunningScript = null;
+
+	private ArrayList<String> _CommandHistory = new ArrayList<String>();
+	private int _CommandHistoryIndex = 0;
 
 	/*
 	 * ================================================================
@@ -102,7 +121,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
 
-		add(makeREPLToolBar(), BorderLayout.PAGE_START);
+		JToolBar toolBar = makeREPLToolBar();
+		add(toolBar, BorderLayout.PAGE_START);
+		toolBar.setFocusable(false);
 
 		_MessagePane = new JTextPane();
 		_MessageScroller = new JScrollPane(_MessagePane);
@@ -112,31 +133,137 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_MessagePane.setText("");
 
 		JPanel executePanel = new JPanel(new BorderLayout());
-		//_EditorPane.setPreferredSize(new Dimension(this.getPreferredSize().width, 100));
 		this.add(executePanel, BorderLayout.PAGE_END);
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
 
 		JPanel startStopPanel = new JPanel(new BorderLayout());
 		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
 		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		_ExecuteBttn.setFocusable(false);
+		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
-		JButton helpButton = makeButton("helpButton.gif", "HELP", "Click for help", "?", this);
-		startStopPanel.add(helpButton, BorderLayout.PAGE_START);
 		startStopPanel.add(_ExecuteBttn, BorderLayout.CENTER);
 		startStopPanel.add(_CancelBttn, BorderLayout.PAGE_END);
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
+
+		_EditorPane.requestFocusInWindow();
+
 	}
 
+	/** Binds the CTRL+Enter key to execute the code. */
+	@SuppressWarnings("serial")
 	private void addKeyBindings() {
-		KeyStroke ks = KeyStroke.getKeyStroke("ENTER");
-		InputMap map = this.getInputMap();
-		map.put(ks, "EXECUTE");
+
+		InputMap inputMap = _EditorPane.getInputMap();
+		ActionMap actionMap = _EditorPane.getActionMap();
+
+		// On CTRL+ENTER, should execute.
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
+		actionMap.put("EXECUTE", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				execute(MAX_EXECUTION_TIME);
+			}
+		});
+
+		// On ESC, should clear the command line.
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
+		actionMap.put("CLEAR", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				_EditorPane.setText("");
+			}
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
+		actionMap.put("STOP", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				messageError("^C");
+				stop();
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
+		actionMap.put("CLOSE", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				messageError("^Q");
+				Component parent = _EditorPane.getParent();
+				while (parent != null){
+					//System.out.println(parent.getClass().toString());
+					parent = parent.getParent();
+					if (parent instanceof JDialog){
+						JDialog dialog = (JDialog) parent;
+						dialog.setVisible(false);
+					}
+				}								
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
+		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (--_CommandHistoryIndex >= 0)
+					_EditorPane.setText(_CommandHistory.get(_CommandHistoryIndex));
+				else {
+					_CommandHistoryIndex = 0;
+					_EditorPane.setText("");
+				}
+			}
+
+		});
+
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
+		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (++_CommandHistoryIndex < _CommandHistory.size())
+					_EditorPane.setText(_CommandHistory.get(_CommandHistoryIndex));
+				else {
+					_CommandHistoryIndex = _CommandHistory.size();
+					_EditorPane.setText("");
+				}
+			}
+
+		});
+
+		// TODO: handle code completion, code run on ENTER (when well-formed),
+		// code suggestion.
 	}
 
+	/**
+	 * Just trying to keep the code a little organized. This is called by
+	 * addComponents().
+	 */
 	private JToolBar makeREPLToolBar() {
+
 		JToolBar result = new JToolBar();
-		result.add(makeButton("testing.gif", "CLICK", "ToolTipA", "REPLToolA", this));
-		result.add(makeButton("testing.gif", "CLICK", "ToolTipB", "REPLToolB", this));
+		JButton cutBttn = makeButton("cutBttn.gif", "CUT",
+				"Cut from the command line and move the text to the clipboard.", "Cut", this);
+		JButton copyBttn = makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.", "Copy",
+				this);
+		JButton pasteBttn = makeButton("pasteBttn.gif", "PASTE", "Paste from the clipboard to the command line.",
+				"Paste", this);
+		JButton helpBttn = makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help", this);
+
+		cutBttn.setFocusable(false);
+		copyBttn.setFocusable(false);
+		pasteBttn.setFocusable(false);
+		helpBttn.setFocusable(false);
+
+		result.add(cutBttn);
+		result.add(copyBttn);
+		result.add(pasteBttn);
+		result.add(helpBttn);
+
 		return result;
 	}
 
@@ -189,6 +316,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private AttributeSet _ErrorMessageStyle = null;
 
 	public static AttributeSet putSimpleAttributeSet(Color foreground, Color background, boolean bold) {
+
 		SimpleAttributeSet result = new SimpleAttributeSet();
 		StyleConstants.setForeground(result, foreground);
 		StyleConstants.setBackground(result, background);
@@ -202,11 +330,22 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	
+	/** Stops any running script by forcing an interrupt. */
+	public void stop() {
+		LuaScript toBeCancelled = _RunningScript;
+		if (toBeCancelled == null)
+			return;
+		toBeCancelled.stop();
+	}
+
+	/**
+	 * The reason for the ScriptExecutionWorker is to make the Lua script run to
+	 * its completion but not lock up the GUI.
+	 */
 	private class ScriptExecutionWorker extends SwingWorker<Object, String> {
 
 		public String executingCode = "";
-		private long _milliseconds = MaxExecutionTime;
+		private long _milliseconds = MAX_EXECUTION_TIME;
 
 		public ScriptExecutionWorker(String code, long executionTime) {
 			executingCode = code;
@@ -220,30 +359,35 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			return doInBackground();
 		}
 
+		/** Returns the currently operating script, if there is one. */
+		public LuaScript getScript() {
+			return _RunningScript;
+		}
+
 		@Override
 		protected Object doInBackground() {
 
 			PrintStream originalOut = System.out;
-			try  {
-				
-				LuaScript script = _Sandbox.script(executingCode);
-				script.start(); 
-				script.join(_milliseconds);
-				
-				if (script.getError() != null)
-					return script.getError();
+			try {
 
-				switch (script.getStatus()) {
+				_RunningScript = _Sandbox.script(executingCode);
+				_RunningScript.start();
+				_RunningScript.join(_milliseconds);
+
+				if (_RunningScript.getError() != null)
+					return _RunningScript.getError();
+
+				switch (_RunningScript.getStatus()) {
 				case READY:
 					throw new Exception("Script did not execute.");
 				case COMPLETE:
-					return Interpret(script.getResults());
+					return Interpret(_RunningScript.getResults());
 				case RUNNING:
 					throw new Exception("Script is still running.");
 				case TIMEOUT:
 					throw new Exception("Script timed out.");
 				case STOPPED:
-					throw new Exception("Script has been stopped.");
+					throw new Exception("Script has been interrupted.");
 				case LUA_ERROR:
 					throw new Exception("Lua error.");
 				case ERROR:
@@ -251,11 +395,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				case PAUSED:
 					throw new Exception("Script has been paused.");
 				default:
-					throw new Exception("Unrecognized status: " + script.getStatus() + ".");
+					throw new Exception("Unrecognized status: " + _RunningScript.getStatus() + ".");
 				}
 			} catch (Exception ex) {
 				return ex;
-			}finally{
+			} finally {
 				System.setOut(originalOut);
 			}
 		}
@@ -264,6 +408,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		protected void done() {
 			try {
 				Object result = get();
+				_RunningScript = null;
 				onExecutionComplete(this, result);
 			} catch (Exception e) {
 				onExecutionComplete(this, e);
@@ -276,6 +421,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * background thread.
 	 */
 	public void execute(long executionTime) {
+
+		if (_RunningScript != null) {
+			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
+			return;
+		}
+
 		setIsExecuting(true);
 		String code = getCode();
 		message(">>> " + code, _EchoMessageStyle);
@@ -288,29 +439,37 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * testing purposes.
 	 */
 	public void executeSynchronized(long executionTime) {
+		if (_RunningScript != null) {
+			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
+			return;
+		}
 		setIsExecuting(true);
 		ScriptExecutionWorker worker = new ScriptExecutionWorker(getCode(), executionTime);
+		_RunningScript = null;
 		onExecutionComplete(worker, worker.doSynchronized());
 	}
 
 	private void onExecutionComplete(ScriptExecutionWorker sender, Object result) {
 		_LastResult = result;
 
+		// Update the command history records.
+		if (_CommandHistory.size() == 0
+				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.executingCode))
+			_CommandHistory.add(sender.executingCode);
+		_CommandHistoryIndex = _CommandHistory.size();
+		_EditorPane.setText("");
+
 		// Send a message indicating the results.
 		if (result == null)
-			message("Ok", _SystemMessageStyle);
+			message("null", _SystemMessageStyle);
+		else if (result instanceof LuaNil)
+			message("null", _SystemMessageStyle);
 		else if (result instanceof Exception)
 			message(((Exception) result).getMessage(), _ErrorMessageStyle);
 		else
 			message(result.toString(), _SystemMessageStyle);
 
-		// It's possible for some other entity to sneak some code in while the
-		// thread is in the
-		// background. Only clear out the code editor if the executed code is
-		// still in the editor.
-		if (sender.executingCode.equals(getCode()))
-			setCode("");
-
+		// Update flag
 		setIsExecuting(false);
 	}
 
@@ -328,23 +487,26 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * Interprets the result of a LuaScript execution and converts it into a
 	 * suitable Java object.
 	 */
-	public static Object Interpret(Optional<Varargs> rawResult) {
+	protected static Object Interpret(Optional<Varargs> rawResult) {
 		if (rawResult == null)
 			return null;
 		Varargs unpackedResult = rawResult.get();
+
 		if (unpackedResult instanceof LuaNil)
-			return null;
-		if (unpackedResult instanceof LuaInteger)
+			return unpackedResult;
+		else if (unpackedResult instanceof LuaInteger)
 			return ((LuaInteger) unpackedResult).toint();
-		if (unpackedResult instanceof LuaValue) {
-			//
+		else if (unpackedResult instanceof LuaString)
+			return ((LuaString) unpackedResult).toString();
+
+		else if (unpackedResult instanceof LuaValue) {
 			LuaValue lv = (LuaValue) unpackedResult;
 			if (lv.tojstring() == "none") // Void result.
 				return lv;
 
 		}
-		throw new ClassCastException(
-				"Have not implemented Lua-to-Java interpretation of type " + unpackedResult.getClass().getName() + ".");
+		throw new ClassCastException("Error: Have not implemented Lua-to-Java interpretation of type "
+				+ unpackedResult.getClass().getName() + ".");
 	}
 
 	/** Returns the code contents being edited in this REPL. */
@@ -382,14 +544,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL MESSAGING MEMBERS
 	 * ================================================================
 	 */
-	
+
 	/**
 	 * Posts a message to the message pane.
 	 */
-	public void message(String message){
-		message(message, null);
+	public void message(String message) {
+		message(message, _SystemMessageStyle);
 	}
-	
+
 	/**
 	 * Posts a message to the message pane. The identity of the sender will
 	 * compel the style with which the message will appear.
@@ -399,6 +561,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			message(message, _EchoMessageStyle);
 		else
 			message(message, _SystemMessageStyle);
+	}
+
+	/** Cause a message to display as an error in the REPL. */
+	public void messageError(String message) {
+		message(message, _ErrorMessageStyle);
 	}
 
 	/** Posts a message to the message pane, with the indicated style. */
@@ -473,15 +640,33 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 	}
 
+	/*
+	 * ================================================================
+	 * JCodeREPL ACTION HANDLING MEMBERS
+	 * ================================================================
+	 */
+
 	@Override
 	public void actionPerformed(ActionEvent action) {
 
 		switch (action.getActionCommand()) {
+		case "CUT":
+			_EditorPane.cut();
+			break;
+		case "COPY":
+			_EditorPane.copy();
+			break;
+		case "PASTE":
+			_EditorPane.paste();
+			break;
 		case "EXECUTE":
 			execute(3000);
 			break;
 		case "HELP":
 			System.out.println("Don't panic!");
+			break;
+		case "CANCEL":
+			stop();
 			break;
 		default:
 			System.out.println("Unimplemented action received by " + this.getClass().getName() + " object: "
@@ -490,6 +675,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 		// TODO Auto-generated method stub
 
+	}
+
+	/** Called when there is a new visual parent for this REPL. */
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		_EditorPane.requestFocusInWindow();
 	}
 
 }

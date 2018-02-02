@@ -12,6 +12,12 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * @author Stewart Charles
+ * @version 2/1/2018
+ * Class containing static methods that generate LuaValues that operate as proxy to invokable Java methods<br>
+ * in Lua scripts.
+ */
 public class LuaProxyFactory {
 
 	/**
@@ -26,10 +32,11 @@ public class LuaProxyFactory {
 	}
 
 	/**
-	 *
-	 * @param src
-	 * @param <T>
-	 * @return
+	 * Generates a LuaValue that is decorated with LuaFunctions that can invoke
+	 * methods of the target object that have been annotated with @Bind
+	 * @param src The target object
+	 * @param <T> A Type that implements GetLuaFacade
+	 * @return A LuaValue that operates as a proxy to the src object
 	 */
 	public static <T extends GetLuaFacade> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
@@ -62,18 +69,22 @@ public class LuaProxyFactory {
 
 
 	/**
-	 * Generates a LuaTable and binds any methods or fields annotated with @BindMethod or @BindField
-	 * @return
+	 * Generates a LuaBinding associated with the target objects
+	 * that has been decorated with LuaFunctions that can invoke
+	 * methods of the target object that have been annotated with @Bind.
+	 * @param src The target object
+	 * @param <T> A Type that implements GetLuaFacade
+	 * @return A LuaBinding to the src object
 	 */
 	public static <T extends GetLuaFacade> LuaBinding getBindings(final T src) {
 		return new LuaBinding(src.getName(), src.getLuaValue());
 	}
 
 	/**
-	 *
-	 * @param src
-	 * @param <T>
-	 * @return
+	 * Generates a LuaBinding that contains a name and LuaValue that can invoke methods of the target class
+	 * @param src The target class
+	 * @param <T> A Type that implements GetLuaFacade
+	 * @return A LuaBinding to the target object
 	 */
 	public static <T extends GetLuaFacade> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
@@ -113,43 +124,36 @@ public class LuaProxyFactory {
 
 	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args)
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
-		if(whitelist.onWhitelist(caller, m)) {
+		if(whitelist.onWhitelist(caller, m))
 			if(returnType.isAssignableFrom(Varargs.class))
 				return (Varargs) m.invoke(caller, args);
-			else if(returnType.isAssignableFrom(LuaValue.class)) {
+			else if(returnType.isAssignableFrom(LuaValue.class))
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
-			}
-			else {
-				if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))
-					return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
-				else
-					return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
-			}
-
-		}
+			else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))
+				return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
+			else
+				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
 		else
 			throw new MethodNotOnWhitelistException(m);
 	}
 
-	private static LuaValue[] VarargToArr(final Varargs varargs) {
+	private static LuaValue[] varargToArr(final Varargs varargs) {
 		final int SIZE = varargs.narg();
-		LuaValue[] list = new LuaValue[SIZE];
-		for(int i = 1; i < SIZE + 1; i++) {
+		final LuaValue[] list = new LuaValue[SIZE];
+		for(int i = 1; i < SIZE + 1; i++)
 			list[i - 1] = varargs.arg(i);
-		}
 		return list;
 	}
 
 	private static Object[] getParams(final Method m, final Varargs varargs) {
-		Class<?>[] paramTypes = m.getParameterTypes();
-		if(paramTypes.length > 0 && paramTypes[0].equals(Varargs.class)) {
-			return new Object[] {
-					paramTypes.length == varargs.narg() ?
-							varargs :
-							varargs.subargs(1) };
+		final Class<?>[] paramTypes = m.getParameterTypes();
+		if(paramTypes.length == 1 && paramTypes[0].equals(Varargs.class)) {
+			return new Object[] { varargs };
 		}
+		else if(paramTypes.length == 1 && paramTypes[0].isAssignableFrom(LuaValue[].class))
+			return varargToArr(varargs);
 		else {
-			Object[] ans = VarargToArr(varargs);
+			Object[] ans = varargToArr(varargs);
 			if(paramTypes.length == ans.length) {
 				return ans;
 			}
@@ -167,7 +171,7 @@ public class LuaProxyFactory {
 
 	private static <T extends GetLuaFacade> LuaValue evalMethod(final T caller, final Method m) {
 		m.setAccessible(true);
-		Class<?> returnType = m.getReturnType();
+		final Class<?> returnType = m.getReturnType();
 
 		// All Java to LuaBindings are created as VarArgFunction objects
 		class Vararg extends VarArgFunction {

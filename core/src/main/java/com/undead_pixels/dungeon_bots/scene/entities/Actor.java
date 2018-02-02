@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
@@ -186,6 +187,18 @@ public class Actor extends SpriteEntity {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	private Actor moveAmt(Varargs amt, Direction direction) {
+		int SIZE = amt.narg();
+		int n;
+		if (SIZE < 2)
+			n = amt.arg1().isint() ? amt.arg1().checkint() : 1;
+		else
+			n = amt.arg(2).checkint();
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction);
+		return this;
+	}
+
 	/**
 	 * Moves the player UP
 	 * @author Stewart Charles
@@ -193,9 +206,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor up() {
-		this.queueMoveSlowly(Direction.UP);
-		return this;
+	final public Actor up(Varargs amt) {
+		return moveAmt(amt, Direction.UP);
 	}
 
 	/**
@@ -205,9 +217,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor down() {
-		this.queueMoveSlowly(Direction.DOWN);
-		return this;
+	final public Actor down(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN);
 	}
 
 	/**
@@ -217,9 +228,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor left() {
-		this.queueMoveSlowly(Direction.LEFT);
-		return this;
+	final public Actor left(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT);
 	}
 
 	/**
@@ -229,9 +239,8 @@ public class Actor extends SpriteEntity {
 	 * @return The invoked Actor
 	 */
 	@Bind
-	final public Actor right() {
-		this.queueMoveSlowly(Direction.RIGHT);
-		return this;
+	final public Actor right(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT);
 	}
 
 	/**

@@ -2,7 +2,6 @@
  * Written by UNDEAD PIXELS
  * */
 
-
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -11,8 +10,9 @@ import java.io.File;
 import java.util.Optional;
 
 /**
- * A LuaScript is an asynchronous wrapper around an execution context for a sandbox that is invoked using a
- * LuaSandbox.
+ * @author Stewart Charles
+ * @version 2/1/2018 A LuaScript is an asynchronous wrapper around an execution
+ *          context for a sandbox that is invoked using a LuaSandbox.
  */
 public class LuaScript {
 
@@ -25,6 +25,7 @@ public class LuaScript {
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
+	 * 
 	 * @param env
 	 * @param script
 	 */
@@ -38,12 +39,12 @@ public class LuaScript {
 		throw new RuntimeException("Not Implemented");
 	}
 
-	
 	/** Starts execution of the sandbox on a separate thread. */
 	public synchronized LuaScript start() {
 		SecurityContext.set(this.environment);
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
+		// TODO: sandbox should cache as much of itself as it can. Cache the
+		// chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
 		thread = ThreadWrapper.create(() -> {
@@ -56,8 +57,7 @@ public class LuaScript {
 			} catch (LuaError le) {
 				scriptStatus = ScriptStatus.LUA_ERROR;
 				luaError = le;
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				scriptStatus = ScriptStatus.ERROR;
 			}
 		});
@@ -67,7 +67,11 @@ public class LuaScript {
 	}
 
 	/**
-	 * Forces an executing thread to stop.
+	 * Forces an executing thread to stop. Note that it is impossible to
+	 * determine how much of the code assigned to this thread will have
+	 * executed, so the sandbox of this thread should be considered to be in a
+	 * corrupt state.
+	 * 
 	 * @return The source LuaScript
 	 */
 	public synchronized LuaScript stop() {
@@ -85,6 +89,7 @@ public class LuaScript {
 	/**
 	 * Returns an enum of the Scripts status<br>
 	 * Values: READY, RUNNING, STOPPED, LUA_ERROR,ERROR,TIMEOUT,PAUSED,COMPLETE
+	 * 
 	 * @return Returns the status of this sandbox.
 	 */
 	public synchronized ScriptStatus getStatus() {
@@ -110,22 +115,27 @@ public class LuaScript {
 
 	/**
 	 * Calls join on the contained thread, waiting indefinitely for completion.
+	 * 
 	 * @return The invoked LuaScript
 	 */
 	public synchronized LuaScript join() {
-		//TODO:  the Script should manage its thread internally, but expose a reset()
+		// TODO: the Script should manage its thread internally, but expose a
+		// reset()
 		return join(0);
 	}
 
 	/**
 	 * Calls join on the contained thread. Call with '0' to wait indefinitely.
-	 * @param wait The amount of time to wait for the join
+	 * 
+	 * @param wait
+	 *            The amount of time to wait for the join
 	 * @return The invoked LuaScript
 	 */
 	public synchronized LuaScript join(long wait) {
 		assert scriptStatus != ScriptStatus.STOPPED;
 
-		//TODO:  the Script should manage its thread internally, but expose a reset()
+		// TODO: the Script should manage its thread internally, but expose a
+		// reset()
 		try {
 			thread.join(wait);
 			if (thread.isAlive())
@@ -137,9 +147,9 @@ public class LuaScript {
 		}
 	}
 
-
 	/**
 	 * Returns an Optional that may contain the invoked results of the LuaScript
+	 * 
 	 * @return An Optional containing results if they are present.
 	 */
 	public synchronized Optional<Varargs> getResults() {
@@ -147,11 +157,11 @@ public class LuaScript {
 	}
 
 	/**
-	 * Stops all execution and clears any stored values.  The sandbox text
+	 * Stops all execution and clears any stored values. The sandbox text
 	 * remains unchanged.
-	 * */
+	 */
 	public void reset(long maxWait) {
-		join(maxWait);		
+		join(maxWait);
 		varargs = null;
 		this.luaError = null;
 		this.scriptStatus = ScriptStatus.READY;
@@ -159,6 +169,7 @@ public class LuaScript {
 
 	/**
 	 * Returns the current LuaError
+	 * 
 	 * @return LuaError
 	 */
 	public LuaError getError() {

@@ -12,17 +12,17 @@ import java.util.stream.Stream;
 
 /**
  * @author Stewart Charles
- * @version 1.0
+ * @version 2/1/2018
  * Class containing static methods that handle many common reflection related operations<br>
  * used for retrieving annotated methods and fields for creating Lua code that can invoke java methods
  */
 public class LuaReflection {
 	/**
 	 * Generates a Whitelist of Methods for the target object not exceeding the given security level.
-	 * @param bindableMethods
-	 * @param caller
-	 * @param securityLevel
-	 * @return
+	 * @param bindableMethods An argument stream of bindable methods
+	 * @param caller The object that invokes the bindable methods
+	 * @param securityLevel The desired Security Level of the whitelist
+	 * @return A Whitelist that contains ID's of all bindable methods matching the security level
 	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
 		return new Whitelist()
@@ -131,7 +131,7 @@ public class LuaReflection {
 	 * @return An optional that possibly contains the Method if it is found.
 	 */
 	public static Optional<Method> getMethodWithName(Object o, String name) {
-		return getBindableMethods(o.getClass())
+		return getBindableMethods(o)
 				.filter(m -> GetLuaFacade.bindTo(m).equals(name))
 				.findFirst();
 	}

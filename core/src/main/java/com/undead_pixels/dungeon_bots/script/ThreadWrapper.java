@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.script;
 
 
 /**
+ * @author Stewart Charles
+ * @version 2/1/2018
  * A class that contains a static method for creating asynchronous threads that run without blocking the main thread.
  */
 public class ThreadWrapper {

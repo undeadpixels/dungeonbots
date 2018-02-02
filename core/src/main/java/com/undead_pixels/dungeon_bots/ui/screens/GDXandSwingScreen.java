@@ -227,6 +227,7 @@ public class GDXandSwingScreen implements Screen {
 		
 		if(frame != null) {
 			JDialog d = new JDialog(frame, title);
+			d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			d.add(c);
 			d.setJMenuBar(menu);
 			d.pack();
