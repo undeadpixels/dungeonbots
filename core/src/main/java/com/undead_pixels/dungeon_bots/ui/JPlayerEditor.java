@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
@@ -13,6 +14,8 @@ public class JPlayerEditor extends JPanel {
 
 	public JPlayerEditor(Player player) {
 		super(new BorderLayout());
+		
+		this.setPreferredSize(new Dimension(400,600));
 
 		JCodeREPL repl = new JCodeREPL(player.getSandbox());		
 		repl.message("This message is sent from some old object");
@@ -43,6 +46,8 @@ public class JPlayerEditor extends JPanel {
 		repl.setCode("x=5+4");
 		repl.execute(100);
 		repl.setCode("return x");
+		repl.setPreferredSize(new Dimension(400,500));
+		
 		
 		this.add(repl, BorderLayout.LINE_START);
 	}
