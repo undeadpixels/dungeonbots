@@ -119,6 +119,11 @@ public class World implements GetLuaFacade, GetLuaSandbox {
     private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
 
 	/**
+	 *
+	 */
+	private String defaultScript;
+
+	/**
 	 * Simple constructor
 	 */
 	public World() {
@@ -549,5 +554,18 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			tileTypesCollection = new TileTypes();
 		}
 		return tileTypesCollection;
+	}
+
+	public String getDefaultScript() {
+		return defaultScript != null ? defaultScript : "";
+	}
+
+	public void setDefaultScript(String defaultScript) {
+		this.defaultScript = defaultScript;
+	}
+
+	@Bind
+	public void setLevelScript(LuaValue luaValue) {
+		setDefaultScript(luaValue.checkjstring());
 	}
 }
