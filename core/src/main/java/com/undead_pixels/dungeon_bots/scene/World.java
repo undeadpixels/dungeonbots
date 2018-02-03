@@ -339,7 +339,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j, current.isSolid());
 						
-						System.out.print(current.isSolid() ? "#" : ".");
+						//System.out.print(current.isSolid() ? "#" : ".");
 						tiles[i][j] = t;
 					}
 				}
