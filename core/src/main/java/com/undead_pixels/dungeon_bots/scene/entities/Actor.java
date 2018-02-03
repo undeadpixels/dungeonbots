@@ -100,7 +100,6 @@ public class Actor extends SpriteEntity {
 	 */
 	public void queueMoveSlowly(Direction dir) {
 		int dx = 0, dy = 0;
-		this.addText("Moving in a direction: "+dir.name());
 
 		switch (dir) {
 			case UP:
@@ -257,6 +256,18 @@ public class Actor extends SpriteEntity {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
 	}
-	
-	
+
+	@Bind
+	final public void say(Varargs args) {
+		String text = "";
+		
+		for(int i = 2; i <= args.narg(); i++) {
+			if(i > 2) {
+				text += " ";
+			}
+			text += args.tojstring(i);
+		}
+		
+		this.addText(text);
+	}
 }
