@@ -78,6 +78,7 @@ public class LuaScript {
 		if (thread == null)
 			return this;
 		thread.interrupt();
+		thread.stop();
 		try {
 			thread.join();
 		} catch (Throwable ie) {
