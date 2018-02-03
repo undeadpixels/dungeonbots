@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.HashSet;
 import javax.swing.JFrame;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -37,6 +40,11 @@ public class DungeonBotsMain extends Game {
 	 * The main frame for the entire game.
 	 */
 	private JFrame frame = null;
+	
+	/**
+	 * The GDX canvas, stored here in case it is removed from the frame
+	 */
+	private Component glCanvas;
 
 	/**
 	 * private constructor for singleton
@@ -53,6 +61,12 @@ public class DungeonBotsMain extends Game {
 		}
 
 		super.setScreen(screen);
+		Gdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				//frame.add(glCanvas, BorderLayout.CENTER);
+			}
+		});
 
 		// Set the frame for the new screen.
 		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
@@ -66,9 +80,10 @@ public class DungeonBotsMain extends Game {
 	 * 
 	 * @param frame
 	 */
-	public void setFrame(JFrame frame) {
+	public void setFrameAndCanvas(JFrame frame, Component canvas) {
 		if (frame != null) {
 			this.frame = frame;
+			this.glCanvas = canvas;
 		}
 	}
 

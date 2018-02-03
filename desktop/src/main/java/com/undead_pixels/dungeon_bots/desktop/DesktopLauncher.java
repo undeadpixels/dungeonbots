@@ -75,7 +75,7 @@ public class DesktopLauncher {
 
 		
 		// Add everything to a window and show it
-		DungeonBotsMain.instance.setFrame(frame);
+		DungeonBotsMain.instance.setFrameAndCanvas(frame, canvas.getCanvas());
 		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 		frame.setSize(1024, 768);
 		frame.revalidate();
