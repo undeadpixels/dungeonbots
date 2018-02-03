@@ -85,10 +85,10 @@ public class Actor extends SpriteEntity {
 				sprite.setY(sprite.getY() - dist);
 				break;
 			case LEFT:
-				sprite.setY(sprite.getX() - dist);
+				sprite.setX(sprite.getX() - dist);
 				break;
 			case RIGHT:
-				sprite.setY(sprite.getX() + dist);
+				sprite.setX(sprite.getX() + dist);
 				break;
 		}
 	}

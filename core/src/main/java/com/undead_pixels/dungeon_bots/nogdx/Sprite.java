@@ -1,6 +1,9 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
 public class Sprite {
+	
+	private float x;
+	private float y;
 
 	public Sprite(TextureRegion tex) {
 		// TODO Auto-generated constructor stub
@@ -10,9 +13,20 @@ public class Sprite {
 		// TODO Auto-generated constructor stub
 	}
 
+	public void setX(float x) {
+		this.x = x;
+	}
+
+	public void setY(float y) {
+		this.y = y;
+	}
+
 	public float getX() {
-		// TODO Auto-generated method stub
-		return 0;
+		return x;
+	}
+
+	public float getY() {
+		return y;
 	}
 
 	public void setSize(float sizeX, float sizeY) {
@@ -26,7 +40,8 @@ public class Sprite {
 	}
 
 	public void setPosition(float x, float y) {
-		// TODO Auto-generated method stub
+		this.x = x;
+		this.y = y;
 		
 	}
 
@@ -40,24 +55,9 @@ public class Sprite {
 		
 	}
 
-	public float getY() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 	public float getScaleX() {
 		// TODO Auto-generated method stub
 		return 0;
-	}
-
-	public void setY(float f) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setX(float checkdouble) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public void setScale(float lerp, float lerp2) {
