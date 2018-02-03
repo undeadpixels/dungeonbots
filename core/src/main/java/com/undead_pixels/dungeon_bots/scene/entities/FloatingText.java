@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -9,19 +11,8 @@ import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 
 public class FloatingText extends ChildEntity {
 	
-	private static BitmapFont font;
-	private static final float fontSize;
-	
-	static {
-
-		if(Gdx.files == null) {
-			font = null;
-			fontSize = 0.0f;
-		} else {
-			font = new BitmapFont();
-			fontSize = font.getLineHeight();
-		}
-	}
+	private static Font font = new Font("Arial", Font.BOLD, 12);
+	private static final float fontSize = 12.0f;
 	
 	/**
 	 * Amount of time that the text will continue to float before disappearing
@@ -102,7 +93,7 @@ public class FloatingText extends ChildEntity {
 	
 	private class TextInfo {
 		private String text;
-		private Color color = Color.WHITE;
+		private Color color = Color.white;
 		
 		private float age;
 		
@@ -124,14 +115,15 @@ public class FloatingText extends ChildEntity {
 				fadeRatio = 1;
 			}
 			if(font != null) {
-				color.a = fadeRatio;
-				font.setColor(color);
-				font.setUseIntegerPositions(false);
-				font.getData().setScale(0.75f / fontSize);
-				GlyphLayout layout = new GlyphLayout(font, text);
+				//color.a = fadeRatio;
+				//font.setColor(color);
+				//font.setUseIntegerPositions(false);
+				//font.getData().setScale(0.75f / fontSize);
+				//GlyphLayout layout = new GlyphLayout(font, text);
 
-				font.draw(batch, layout, pos.x - layout.width/2 + .5f, pos.y + layout.height + 1);
-				return new Vector2(pos.x, pos.y + font.getLineHeight());
+				//font.draw(batch, layout, pos.x - layout.width/2 + .5f, pos.y + layout.height + 1);
+				//return new Vector2(pos.x, pos.y + font.getLineHeight());
+				return pos; // XXX
 			} else {
 				return pos;
 			}

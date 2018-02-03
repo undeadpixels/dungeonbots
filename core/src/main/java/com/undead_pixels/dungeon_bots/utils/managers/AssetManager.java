@@ -24,18 +24,18 @@ public class AssetManager {
 	}
 
 	public static void loadAsset(AssetSrc src, Class<?> clz) {
-		assetManager.load(src.src, clz);
+		// TODO assetManager.load(src.src, clz);
 	}
 
 	public static void finishLoading() {
-		assetManager.finishLoading();
+		// TODO assetManager.finishLoading();
 	}
 
 	public static Optional<TextureRegion> getAsset(String name, AssetSrc src, int offset_x, int offset_y) {
 		try {
 			if(!textureRegionMap.containsKey(name)) {
-				Texture t = assetManager.get(src.src, Texture.class);
-				textureRegionMap.put(name, new TextureRegion(t, DIM * offset_x, DIM * offset_y, DIM, DIM));
+				// TODO Texture t = assetManager.get(src.src, Texture.class);
+				// TODO textureRegionMap.put(name, new TextureRegion(t, DIM * offset_x, DIM * offset_y, DIM, DIM));
 			}
 			return Optional.ofNullable(textureRegionMap.get(name));
 		}

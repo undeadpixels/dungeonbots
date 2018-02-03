@@ -9,7 +9,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
-import com.badlogic.gdx.Gdx;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 
 /**
@@ -31,15 +30,7 @@ public class MainMenuScreen extends GDXandSwingScreen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Gdx.app.postRunnable(new Runnable() {
-
-					@Override
-					public void run() {
-						DungeonBotsMain.instance.setScreen(new LevelEditorScreen());
-						
-					}
-					
-				});
+				DungeonBotsMain.instance.setScreen(new LevelEditorScreen());
 			}
 			
 		});
@@ -48,15 +39,7 @@ public class MainMenuScreen extends GDXandSwingScreen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Gdx.app.postRunnable(new Runnable() {
-
-					@Override
-					public void run() {
-						DungeonBotsMain.instance.setScreen(new GameplayScreen());
-						
-					}
-					
-				});
+				DungeonBotsMain.instance.setScreen(new GameplayScreen());
 			}
 			
 		});
@@ -65,14 +48,7 @@ public class MainMenuScreen extends GDXandSwingScreen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Gdx.app.postRunnable(new Runnable() {
-
-					@Override
-					public void run() {
-						DungeonBotsMain.instance.requestLogin();
-					}
-					
-				});
+				DungeonBotsMain.instance.requestLogin();
 			}
 			
 		});

@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -247,8 +248,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		//cam.translate(w/2, h/2);
 		
 		// TODO - probably use a better background color once we have things stable
-		Gdx.gl.glClearColor(.65f, .2f, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		batch.glClearColor(.65f, .2f, 0, 1);
+		batch.glClear();
 
 		// draw background image
 		batch.begin();

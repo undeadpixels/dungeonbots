@@ -9,50 +9,11 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
-import com.badlogic.gdx.Screen;
-
 /**
  * An upgraded version of a GDX Screen that also allows javax.swing widgets to be plopped
  * alongside or in overlaying windows.
  */
-public class GDXandSwingScreen implements Screen {
-
-	// just some default overrides of GDX stuff. Override again if you want them.
-	@Override
-	public void show() {
-
-	}
-
-	@Override
-	public void render(float delta) {
-
-	}
-
-	@Override
-	public void resize(int width, int height) {
-
-	}
-
-	@Override
-	public void pause() {
-
-	}
-
-	@Override
-	public void resume() {
-
-	}
-
-	@Override
-	public void hide() {
-
-	}
-
-	@Override
-	public void dispose() {
-
-	}
-
+public class GDXandSwingScreen {
 	
 	/**
 	 * Internal reference to the frame the GDX's context (and any side panels this owns) lives in.

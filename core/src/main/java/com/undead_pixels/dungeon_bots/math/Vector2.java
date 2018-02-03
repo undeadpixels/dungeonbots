@@ -9,6 +9,10 @@ public class Vector2 {
 		this.y = y;
 	}
 
+	public Vector2() {
+		this(0, 0);
+	}
+
 	public float getX() {
 		return x;
 	}
