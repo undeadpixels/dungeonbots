@@ -24,6 +24,8 @@ import static org.luaj.vm2.LuaValue.*;
 public class Actor extends SpriteEntity {
 
 	private LuaValue luaBinding;
+	
+	private FloatingText floatingText;
 
 	/**
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
@@ -39,6 +41,8 @@ public class Actor extends SpriteEntity {
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
 		this.world.addEntity(this);
+		floatingText = new FloatingText(this, name+"-text");
+		world.addEntity(floatingText);
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -53,6 +57,7 @@ public class Actor extends SpriteEntity {
 		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 		/// XXX
+		// DELETEME
 	}
 
 	@Override
@@ -95,6 +100,7 @@ public class Actor extends SpriteEntity {
 	 */
 	public void queueMoveSlowly(Direction dir) {
 		int dx = 0, dy = 0;
+		this.addText("Moving in a direction: "+dir.name());
 
 		switch (dir) {
 			case UP:
@@ -151,6 +157,10 @@ public class Actor extends SpriteEntity {
 		
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 	}
+	
+	public void addText(String text) {
+		this.floatingText.addLine(text);
+	}
 
 	
 	/**
@@ -161,20 +171,10 @@ public class Actor extends SpriteEntity {
 	}
 
 	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
 	public LuaValue getLuaValue() {
 		if(this.luaBinding == null)
 			this.luaBinding = LuaProxyFactory.getLuaValue(this);
 		return this.luaBinding;
-	}
-
-	@Override
-	public int getId() {
-		return this.id;
 	}
 
 	// Lua ScriptApi methods that are collected and bound to a LuaSandbox using runtime reflection
@@ -257,4 +257,6 @@ public class Actor extends SpriteEntity {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
 	}
+	
+	
 }

@@ -266,14 +266,16 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 				}
 			}
 		}
+		batch.end();
 
 		// draw each layer of entities
 		for(Layer layer : toLayers()) {
+			batch.begin();
 			for(Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
+			batch.end();
 		}
-		batch.end();
 	}
 
 	@Bind

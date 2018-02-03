@@ -63,5 +63,10 @@ public abstract class SpriteEntity extends Entity {
 	public Vector2 getPosition() {
 		return new Vector2(sprite.getX(), sprite.getY());
 	}
+	
+	@Override
+	public float getScale() {
+		return sprite.getScaleX();
+	}
 
 }
