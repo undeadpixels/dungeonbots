@@ -1,8 +1,5 @@
 package com.undead_pixels.dungeon_bots.utils.managers;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

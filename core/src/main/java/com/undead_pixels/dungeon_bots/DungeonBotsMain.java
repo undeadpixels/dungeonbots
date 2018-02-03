@@ -9,9 +9,6 @@ import java.util.HashSet;
 
 import javax.swing.JFrame;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;

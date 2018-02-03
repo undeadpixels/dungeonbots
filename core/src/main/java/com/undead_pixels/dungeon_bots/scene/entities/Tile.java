@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;

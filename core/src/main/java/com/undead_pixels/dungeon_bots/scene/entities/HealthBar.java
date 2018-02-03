@@ -1,7 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
 public class HealthBar extends ChildEntity {
 
 	public HealthBar(Entity parent, String name) {

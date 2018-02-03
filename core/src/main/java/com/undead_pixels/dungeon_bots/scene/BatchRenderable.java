@@ -1,7 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
 /**
  * Something with both render(SpriteBatch) and update(dt) functions.
  * Basically anything that's renderable but should be batched with other similar things.
