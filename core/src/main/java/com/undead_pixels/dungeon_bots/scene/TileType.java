@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import org.luaj.vm2.LuaValue;

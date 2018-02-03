@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -66,7 +69,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	/**
 	 * A background image for this world
 	 */
-	private Texture backgroundImage;
+	private TextureRegion backgroundImage;
 	
 	/**
 	 * An array of tiles, in the bottom layer of this world

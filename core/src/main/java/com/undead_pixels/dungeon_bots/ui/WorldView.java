@@ -1,11 +1,8 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
+import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
@@ -87,7 +84,7 @@ public class WorldView {
 
 	public Vector2 getScreenToGameCoords(int screenX, int screenY) {
 		cam.update();
-		Vector3 gameSpace = cam.unproject(new Vector3(screenX, screenY, 0));
+		Vector2 gameSpace = cam.unproject(new Vector2(screenX, screenY));
 		
 		return new Vector2(gameSpace.x, gameSpace.y);
 	}

@@ -1,9 +1,5 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.ui.JPlayerEditor;
@@ -13,7 +9,6 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  * A screen for gameplay
  */
 public class GameplayScreen extends GDXandSwingScreen implements InputProcessor {
-	private Stage stage = new Stage(); // deleting this somehow makes it not work...?
 	
 	/**
 	 * The view for this screen
@@ -26,7 +21,6 @@ public class GameplayScreen extends GDXandSwingScreen implements InputProcessor 
 		super();
 		
 		view = new WorldView();
-		
 		
 		Gdx.input.setInputProcessor(this);
 	}

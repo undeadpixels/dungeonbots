@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.google.gson.Gson;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
@@ -83,10 +85,10 @@ public class Actor extends SpriteEntity {
 				sprite.setY(sprite.getY() - dist);
 				break;
 			case LEFT:
-				sprite.setX(sprite.getX() - dist);
+				sprite.setY(sprite.getX() - dist);
 				break;
 			case RIGHT:
-				sprite.setX(sprite.getX() + dist);
+				sprite.setY(sprite.getX() + dist);
 				break;
 		}
 	}

@@ -4,9 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+
 public class AssetManager {
 	private static final int DIM = 16;
-	private static com.badlogic.gdx.assets.AssetManager assetManager = new com.badlogic.gdx.assets.AssetManager();
 
 	public enum AssetSrc {
 		Player("DawnLike/Characters/Player0.png"),
@@ -19,7 +20,6 @@ public class AssetManager {
 	private static Map<String, TextureRegion> textureRegionMap = new HashMap<>();
 
 	public static void reset() {
-		assetManager.clear();
 		textureRegionMap.clear();
 	}
 
