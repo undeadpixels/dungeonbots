@@ -5,6 +5,8 @@ import org.luaj.vm2.lib.DebugLib;
 
 /**
  * Based on https://stackoverflow.com/questions/17496868/lua-java-luaj-handling-or-interrupting-infinite-loops-and-threads?noredirect=1&lq=1
+ * 
+ * This will be helpful: http://www.luaj.org/luaj/3.0/examples/jse/SampleSandboxed.java
  */
 public class InstructionHook extends DebugLib {
     public boolean interrupted = false;
