@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
-import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -42,6 +41,11 @@ public class World implements GetLuaFacade, GetLuaSandbox {
      * A lazy-loaded LuaValue representation of this world
      */
     private LuaValue luaBinding;
+    
+	/**
+	 * The LuaFunction to call on every update
+	 */
+	private LuaFunction mapUpdateFunc;
 	
 	/**
 	 * The sandbox that the levelScript runs inside of
@@ -109,11 +113,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	private String defaultScript;
 
 	/**
-	 *
-	 */
-	private Level level;
-
-	/**
 	 * Simple constructor
 	 */
 	public World() {
@@ -146,6 +145,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 */
 	public World(File luaScriptFile, String name) {
 		super();
+		
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
@@ -157,10 +157,14 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			AssetManager.finishLoading();
 			
 			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
-			Whitelist w = new Whitelist();
-			mapSandbox.addBindable(this, tileTypesCollection, w).addBindableClass(Player.class);
-			level = new Level(mapSandbox, luaScriptFile);
-			level.init();
+			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+			levelScript = mapSandbox.script(luaScriptFile).start().join();
+			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
+			LuaTable tbl = levelScript.getResults().get().checktable(1);
+			LuaFunction init = tbl.get("init").checkfunction();
+			LuaFunction mapUpdate = tbl.get("update").checkfunction();
+			mapUpdateFunc = mapUpdate;
+			init.invoke();
 		}
 	}
 
@@ -211,8 +215,13 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			e.update(dt);
 		}
 		playstyle.update();
-		if(level != null)
-			level.update();
+
+		// update level script
+		Whitelist temp = SecurityContext.getWhitelist();
+		if(mapUpdateFunc != null) {
+			SecurityContext.set(this.mapSandbox);
+			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
+		}
 	}
 	
 	/**

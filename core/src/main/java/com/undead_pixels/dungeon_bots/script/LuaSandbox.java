@@ -3,7 +3,6 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import java.io.*;
@@ -59,7 +58,6 @@ public class LuaSandbox {
 	 * @return The modified LuaSandbox
 	 */
 	public LuaSandbox add(Stream<LuaBinding> bindings) {
-		SecurityContext.set(this);
         bindings.forEach(binding ->
 				globals.set(binding.bindTo, binding.luaValue));
         return this;
@@ -73,7 +71,6 @@ public class LuaSandbox {
 	 */
     @SafeVarargs
     public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindable) {
-		SecurityContext.set(this);
 		whitelist.add(securityLevel, bindable);
 		add(Stream.of(bindable)
 				.map(GetLuaFacade::getLuaBinding));
@@ -87,7 +84,6 @@ public class LuaSandbox {
 	 * @return The source LuaSandbox
 	 */
 	public <T extends GetLuaFacade> LuaSandbox addBindableClass(Class<T> clz) {
-		SecurityContext.set(this);
 		whitelist.add(securityLevel, clz);
 		LuaBinding b = LuaProxyFactory.getBindings(clz);
 		add(b);
@@ -161,11 +157,5 @@ public class LuaSandbox {
 	 */
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
-	}
-
-	public LuaSandbox invoke(Runnable r) {
-		SecurityContext.set(this);
-		r.run();
-		return this;
 	}
 }

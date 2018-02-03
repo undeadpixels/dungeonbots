@@ -1,8 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 
 
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
-
 /**
  * @author Stewart Charles
  * @version 2/1/2018
@@ -14,21 +12,18 @@ public class ThreadWrapper {
      * @param toRun
      * @return
      */
-    public static Thread create(LuaSandbox luaSandbox, Runnable toRun) {
+    public static Thread create(Runnable toRun) {
         return new Thread(() -> {
             Thread thread = new Thread(toRun);
-            long id = thread.getId();
-			SecurityContext.set(id, luaSandbox);
             thread.start();
             while (thread.getState() != Thread.State.TERMINATED) {
             		// TODO - this is a busy-wait and needs to be fixed.
                 if(Thread.currentThread().isInterrupted()) {
                     thread.interrupt();
                     thread.stop();
-                    break;
+                    return;
                 }
             }
-            SecurityContext.remove(id);
         });
     }
 }

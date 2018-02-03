@@ -43,9 +43,12 @@ public class LuaScript {
 	/** Starts execution of the sandbox on a separate thread. */
 	public synchronized LuaScript start() {
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
+		// TODO: sandbox should cache as much of itself as it can. Cache the
+		// chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
-		thread = ThreadWrapper.create(environment, () -> {
+
+		thread = ThreadWrapper.create(() -> {
+			SecurityContext.set(environment);
 			try {
 				scriptStatus = ScriptStatus.RUNNING;
 				LuaValue chunk = environment.getGlobals().load(this.script);
@@ -57,9 +60,6 @@ public class LuaScript {
 				luaError = le;
 			} catch (Exception e) {
 				scriptStatus = ScriptStatus.ERROR;
-			}
-			finally {
-				SecurityContext.remove(Thread.currentThread().getId());
 			}
 		});
 		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)
