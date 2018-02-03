@@ -5,6 +5,7 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.utils.exceptions.ResultWrapper;
 import org.luaj.vm2.*;
 import java.io.File;
 import java.util.Optional;
@@ -41,13 +42,10 @@ public class LuaScript {
 
 	/** Starts execution of the sandbox on a separate thread. */
 	public synchronized LuaScript start() {
-		SecurityContext.set(this.environment);
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: sandbox should cache as much of itself as it can. Cache the
-		// chunk?
+		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
-
-		thread = ThreadWrapper.create(() -> {
+		thread = ThreadWrapper.create(environment, () -> {
 			try {
 				scriptStatus = ScriptStatus.RUNNING;
 				LuaValue chunk = environment.getGlobals().load(this.script);
@@ -59,6 +57,9 @@ public class LuaScript {
 				luaError = le;
 			} catch (Exception e) {
 				scriptStatus = ScriptStatus.ERROR;
+			}
+			finally {
+				SecurityContext.remove(Thread.currentThread().getId());
 			}
 		});
 		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)
@@ -174,5 +175,9 @@ public class LuaScript {
 	 */
 	public LuaError getError() {
 		return luaError;
+	}
+
+	public Optional<SandboxedValue> getSandboxedValue() {
+		return getResults().map(val -> new SandboxedValue(val, environment));
 	}
 }
