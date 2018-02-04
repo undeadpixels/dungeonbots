@@ -57,11 +57,11 @@ public class DungeonBotsMain {
 
 	public void setScreen(GDXandSwingScreen screen) {
 
-		// TODO - SwingUtilities.invokeLater(new Runnable() {
+		// TODO - SwingUtilities.invokeLater(new Runnable() { ...
 		
 		if(frame != null) {
 			// Clear the current screen's frame.
-			if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
+			if (this.screen != null && this.screen != screen) {
 				((GDXandSwingScreen) this.screen).attachScreenToFrame(null);
 			}
 
@@ -71,6 +71,8 @@ public class DungeonBotsMain {
 			if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
 				((GDXandSwingScreen) this.screen).attachScreenToFrame(frame);
 			}
+		} else {
+			this.screen = screen;
 		}
 	}
 
