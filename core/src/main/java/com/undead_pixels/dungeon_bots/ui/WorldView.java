@@ -24,7 +24,7 @@ public class WorldView {
 	private World world;
 	
 	public WorldView() {
-		world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
+		world = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
 	}
 		
 

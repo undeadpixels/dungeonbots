@@ -312,8 +312,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			
 			int w = tiles.length;
 			int h = tiles[0].length;
-			for(int i = 0; i < tiles.length; i++) {
-				for(int j = 0; j < tiles.length; j++) {
+			for(int i = 0; i < w; i++) {
+				for(int j = 0; j < h; j++) {
 					TileType current = tileTypes[i][j];
 					
 					if(current != null) {
