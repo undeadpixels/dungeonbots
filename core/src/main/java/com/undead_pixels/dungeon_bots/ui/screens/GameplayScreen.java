@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
+import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -32,6 +33,8 @@ public class GameplayScreen extends GDXandSwingScreen implements KeyListener, Mo
 		view.addKeyListener(this);
 		view.addMouseListener(this);
 		view.addMouseMotionListener(this);
+		
+		this.addPane(view, BorderLayout.CENTER);
 	}
 
 	@Override

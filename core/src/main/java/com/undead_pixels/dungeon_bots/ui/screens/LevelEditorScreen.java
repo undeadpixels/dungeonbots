@@ -53,6 +53,8 @@ public class LevelEditorScreen extends GDXandSwingScreen implements MouseListene
 		view.addMouseListener(this);
 		view.addMouseMotionListener(this);
 		
+		this.addPane(view, BorderLayout.CENTER);
+		
 		
 
 		// super-simple swing gui on side

@@ -7,6 +7,8 @@ import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.io.File;
@@ -27,6 +29,8 @@ public class WorldView extends JComponent {
 	
 	public WorldView() {
 		world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
+		
+		this.setPreferredSize(new Dimension(9999, 9999));
 	}
 		
 
@@ -36,6 +40,8 @@ public class WorldView extends JComponent {
 		this.world = world;
 		
 		lastTime = System.nanoTime(); // warning: this can overflow after 292 years of runtime
+		
+		this.setPreferredSize(new Dimension(9999, 9999));
 	}
 	
 	/**
@@ -47,21 +53,22 @@ public class WorldView extends JComponent {
 		long nowTime = System.currentTimeMillis();
 		float dt = (nowTime - lastTime) / 1000_000_000.0f;
 		
+		// TODO - move this update() thing elsewhere. Pretty please.
+		// TODO
+		// TODO
+		// TODO
+		if(world != null) {
+			world.update(dt);
+		}
+		
 		try {
 			Graphics2D g2d = (Graphics2D) g;
-			// TODO - move this update() thing elsewhere. Pretty please.
-			// TODO
-			// TODO
-			// TODO
-			if(world != null) {
-				world.update(dt);
-			}
 			
 			
 			float w = this.getWidth();
 			float h = this.getHeight();
 			
-			SpriteBatch batch = new SpriteBatch(g2d);
+			SpriteBatch batch = new SpriteBatch(g2d, w, h);
 			
 			if(!didInitCam) {
 				cam = new OrthographicCamera(w, h);

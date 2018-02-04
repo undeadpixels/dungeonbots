@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -248,7 +249,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		//cam.translate(w/2, h/2);
 		
 		// TODO - probably use a better background color once we have things stable
-		batch.glClearColor(.65f, .2f, 0, 1);
+		batch.glClearColor(new Color(.65f, .2f, 0, 1));
 		batch.glClear();
 
 		// draw background image

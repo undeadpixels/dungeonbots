@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
+import java.awt.geom.AffineTransform;
+
 public class Sprite {
 	
 	private float x;
@@ -34,7 +36,7 @@ public class Sprite {
 		
 	}
 
-	public void setOrigin(float x, float y) {
+	public void setOrigin(float ox, float oy) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -52,7 +54,6 @@ public class Sprite {
 
 	public void draw(SpriteBatch batch) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public float getScaleX() {
@@ -60,7 +61,12 @@ public class Sprite {
 		return 0;
 	}
 
-	public void setScale(float lerp, float lerp2) {
+	public float getScaleY() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public void setScale(float sx, float sy) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -68,11 +74,6 @@ public class Sprite {
 	public void setRotation(float lerp) {
 		// TODO Auto-generated method stub
 		
-	}
-
-	public float getScaleY() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 	public float getRotation() {
