@@ -50,8 +50,9 @@ public class WorldView extends JComponent {
 	@Override
 	public void paint(Graphics g) {
 		
-		long nowTime = System.currentTimeMillis();
-		float dt = (nowTime - lastTime) / 1000_000_000.0f;
+		long nowTime = System.nanoTime();
+		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
+		lastTime = nowTime;
 		
 		// TODO - move this update() thing elsewhere. Pretty please.
 		// TODO
@@ -92,6 +93,9 @@ public class WorldView extends JComponent {
 			ex.printStackTrace();
 		}
 		
+		
+		// TODO - this is basically a busy loop. Do with a timer instead.
+		this.repaint();
 	}
 
 	public OrthographicCamera getCamera() {

@@ -6,7 +6,7 @@ public class Sprite {
 	
 	private float x, y;
 	
-	private float scaleX, scaleY;
+	private float scaleX = 1, scaleY = 1;
 	
 	private float rotation;
 	
@@ -51,13 +51,13 @@ public class Sprite {
 	public void draw(SpriteBatch batch) {
 		AffineTransform xform;
 		if(rotation == 0) {
-			xform = AffineTransform.getTranslateInstance(-.5 + x, -.5 + y);
+			xform = AffineTransform.getTranslateInstance(x, 1+y);
 		} else {
-			xform = AffineTransform.getTranslateInstance(x, y);
+			xform = AffineTransform.getTranslateInstance(.5 + x, .5 + y);
 			xform.rotate(rotation);
-			xform.translate(-.5, -.5);
+			xform.translate(-.5, .5);
 		}
-		xform.scale(1.0 / tex.getW(), -1.0 / tex.getH());
+		xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 		batch.draw(tex, xform);
 	}
 

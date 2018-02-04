@@ -36,8 +36,9 @@ public class AssetManager {
 	public static Optional<TextureRegion> getAsset(String name, AssetSrc src, int offset_x, int offset_y) {
 		try {
 			if(!textureRegionMap.containsKey(name)) {
-				// TODO Texture t = assetManager.get(src.src, Texture.class);
-				// TODO textureRegionMap.put(name, new TextureRegion(t, DIM * offset_x, DIM * offset_y, DIM, DIM));
+				// TODO - actually cache these
+				Texture t = new Texture(src.src);
+				textureRegionMap.put(name, new TextureRegion(t, DIM * offset_x, DIM * offset_y, DIM, DIM));
 			}
 			return Optional.ofNullable(textureRegionMap.get(name));
 		}

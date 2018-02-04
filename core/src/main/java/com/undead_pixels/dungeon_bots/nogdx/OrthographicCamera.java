@@ -36,10 +36,11 @@ public class OrthographicCamera {
 	public AffineTransform getTransform() {
 		float size = Math.min(viewportWidth, viewportHeight);
 		float scale = size * zoom;
-		AffineTransform ret = AffineTransform.getScaleInstance(scale, scale);
-		ret.translate(viewportWidth/2/scale - position.x, viewportHeight/2/scale - position.y);
+		AffineTransform ret = AffineTransform.getScaleInstance(scale, -scale);
+		ret.translate(viewportWidth/2/scale - position.x, -viewportHeight/2/scale - position.y);
 		//ret.translate(0, ty);
 		
+		/*
 		System.out.println(viewportWidth +", "+viewportHeight+", "+zoom);
 		
 		for(int i = 0; i < 4; i++) {
@@ -49,6 +50,7 @@ public class OrthographicCamera {
 			}
 			System.out.println();
 		}
+		*/
 		return ret;
 	}
 
@@ -61,7 +63,7 @@ public class OrthographicCamera {
 		} else {
 			zoom = ratioH;
 		}
-		position = new Vector2(size.x/2 - .5f, size.y/2 - 1.5f);
+		position = new Vector2(size.x/2, size.y/2);
 	}
 
 }
