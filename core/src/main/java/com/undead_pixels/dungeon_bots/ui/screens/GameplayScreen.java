@@ -20,14 +20,9 @@ public class GameplayScreen extends GDXandSwingScreen implements InputProcessor 
 	 */
 	private WorldView view;
 
-
-
 	public GameplayScreen() {
 		super();
-		
 		view = new WorldView();
-		
-		
 		Gdx.input.setInputProcessor(this);
 	}
 

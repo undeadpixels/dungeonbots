@@ -38,8 +38,8 @@ public class Player extends Actor {
 		World w = (World)world.checktable().get("this").checkuserdata(World.class);
 		Player p = new Player(w, "player");
 		SecurityContext.getWhitelist().add(p);
-		p.sprite.setX((float)x.checkdouble());
-		p.sprite.setY((float)y.checkdouble());
+		p.sprite.setX((float)x.checkdouble() - 1.0f);
+		p.sprite.setY((float)y.checkdouble() - 1.0f);
 		return p;
 	}
 

@@ -4,7 +4,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
-import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
+import com.undead_pixels.dungeon_bots.utils.exceptions.MethodNotOnWhitelistException;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;

@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.scene;
+package com.undead_pixels.dungeon_bots.scene.level;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;

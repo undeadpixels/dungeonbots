@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.utils.Exceptions;
+package com.undead_pixels.dungeon_bots.utils.exceptions;
 
 import java.lang.reflect.Method;
 
