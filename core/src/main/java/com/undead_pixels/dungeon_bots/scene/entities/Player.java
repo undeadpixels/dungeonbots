@@ -12,7 +12,7 @@ import org.luaj.vm2.LuaValue;
  * @author Stewart Charles
  * @version 1.0
  */
-public class Player extends Actor {
+public class Player extends RpgActor {
 
 	/**
 	 * Constructor

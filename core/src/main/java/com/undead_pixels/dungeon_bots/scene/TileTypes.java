@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -81,20 +80,12 @@ public class TileTypes implements GetLuaFacade {
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
 		if(Gdx.files == null) {
-
 			registerTile("floor", null, TILESIZE, 0, 3, offsetsFloors, false, false);
 			registerTile("wall", null, TILESIZE, 0, 3, offsetsWalls, false, true);
 		} else {
 			registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
 			registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
 		}
-	}
-
-	@Bind @BindTo("new")
-	public static LuaValue generate() {
-		TileTypes tileTypes = new TileTypes();
-		SecurityContext.getWhitelist().add(tileTypes);
-		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 
 	/**
@@ -126,7 +117,6 @@ public class TileTypes implements GetLuaFacade {
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
 		int len = variations.length;
 		TextureRegion[] regions = new TextureRegion[len];
-		
 		for(int i = 0; i < len; i++) {
 			//regions[i] = new TextureRegion(new Texture("DawnLike/Objects/Floor.png"), ts*1, ts*4, ts, ts);
 			if(texture == null) {
@@ -135,8 +125,6 @@ public class TileTypes implements GetLuaFacade {
 				regions[i] = new TextureRegion(texture, (int)(tilesize*(x+variations[i].x)), (int)(tilesize*(y+variations[i].y)), tilesize, tilesize);
 			}
 		}
-		
-		
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
@@ -161,9 +149,8 @@ public class TileTypes implements GetLuaFacade {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null) {
+		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
-		}
 		return this.luaValue;
 	}
 }

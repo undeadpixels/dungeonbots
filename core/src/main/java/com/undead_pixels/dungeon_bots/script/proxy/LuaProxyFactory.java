@@ -126,7 +126,7 @@ public class LuaProxyFactory {
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m))
 			if(returnType.isAssignableFrom(Varargs.class))
-				return (Varargs) m.invoke(caller, args);
+				return Varargs.class.cast(m.invoke(caller, args));
 			else if(returnType.isAssignableFrom(LuaValue.class))
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
 			else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))

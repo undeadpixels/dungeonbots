@@ -22,14 +22,20 @@ import java.util.stream.Stream;
 public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	private final int STAT_COUNT = 4;
 
-	// Skill resource attributes
-	// The use of certain skills temporarily consumes their associated resources
-	protected int health;
-	protected int mana;
-	protected int stamina;
+	// -- Skill resource attributes --
+	// -- The use of certain skills temporarily consumes their associated resources --
+	protected int health = 10;
+	protected int mana = 10;
+	protected int stamina = 10;
 
 	// Skill stats determine the effectiveness and potency of associated skill abilities
-	protected final int[] stats = new int[STAT_COUNT];
+	protected final int[] stats = new int[] { 5, 5, 5, 5 };
+
+	public RpgActor(World world, String name, TextureRegion tex, int[] s) {
+		super(world, name, tex);
+		assert s.length == STAT_COUNT;
+		System.arraycopy(s, 0, stats, 0, STAT_COUNT);
+	}
 
 	public RpgActor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
@@ -40,7 +46,6 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	}
 
 	/* -- LuaBindings -- */
-
 	/**
 	 * Returns the source players stats as a Varargs
 	 * <pre>{@code
@@ -50,7 +55,11 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	 */
 	@Bind @BindTo("stats")
 	public Varargs getStats() {
-		return LuaValue.varargsOf((LuaValue[])Stream.of(stats).map(CoerceJavaToLua::coerce).toArray());
+		return  LuaValue.varargsOf(new LuaValue[] {
+				LuaValue.valueOf(stats[0]),
+				LuaValue.valueOf(stats[1]),
+				LuaValue.valueOf(stats[2]),
+				LuaValue.valueOf(stats[3])});
 	}
 
 	@Bind @BindTo("strength")
@@ -87,4 +96,32 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	public int getStamina() {
 		return stamina;
 	}
+
+	@Bind
+	public RpgActor setStats(Varargs v) {
+		int start = v.arg1().isint() ? 1 : 2;
+		assert v.narg() >= 4;
+		for(int i = 0; i < STAT_COUNT; i++)
+			this.stats[i] = v.arg(i + start).checkint();
+		return this;
+	}
+
+	@Bind
+	public RpgActor setHealth(LuaValue h) {
+		this.health = h.checkint();
+		return this;
+	}
+
+	@Bind
+	public RpgActor setMana(LuaValue m) {
+		this.mana = m.checkint();
+		return this;
+	}
+
+	@Bind
+	public RpgActor setStamina(LuaValue s) {
+		this.stamina = s.checkint();
+		return this;
+	}
+
 }

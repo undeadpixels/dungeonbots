@@ -6,10 +6,9 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -24,7 +23,8 @@ public class LuaSandbox {
     private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
 	private final SecurityLevel securityLevel;
-	private final List<? extends GetLuaFacade> bindings = new LinkedList<>();
+	private final List<GetLuaFacade> bindings = new LinkedList<>();
+	private final List<Class<? extends GetLuaFacade>> staticBindings = new LinkedList<>();
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -57,7 +57,7 @@ public class LuaSandbox {
 	 * @param bindings A collection of LuaBindings to append to the Global Environment
 	 * @return The modified LuaSandbox
 	 */
-	public LuaSandbox add(Stream<LuaBinding> bindings) {
+	private LuaSandbox add(Stream<LuaBinding> bindings) {
         bindings.forEach(binding ->
 				globals.set(binding.bindTo, binding.luaValue));
         return this;
@@ -71,6 +71,7 @@ public class LuaSandbox {
 	 */
     @SafeVarargs
     public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindable) {
+    	bindings.addAll(Arrays.asList(bindable));
 		whitelist.add(securityLevel, bindable);
 		add(Stream.of(bindable)
 				.map(GetLuaFacade::getLuaBinding));
@@ -80,13 +81,15 @@ public class LuaSandbox {
 	/**
 	 * Adds the static bindings of the argument Class
 	 * @param clz The Class to add the static Bindings of
-	 * @param <T> A Type that implements GetLuaFacade
 	 * @return The source LuaSandbox
 	 */
-	public <T extends GetLuaFacade> LuaSandbox addBindableClass(Class<T> clz) {
-		whitelist.add(securityLevel, clz);
-		LuaBinding b = LuaProxyFactory.getBindings(clz);
-		add(b);
+	@SafeVarargs
+	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
+		staticBindings.addAll(Arrays.asList(clz));
+		Stream.of(clz).forEach(c -> {
+			whitelist.add(securityLevel, c);
+			add(LuaProxyFactory.getBindings(c));
+		});
 		return this;
 	}
 
@@ -157,5 +160,13 @@ public class LuaSandbox {
 	 */
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
+	}
+
+	public List<GetLuaFacade> getBindings() {
+		return bindings;
+	}
+
+	public List<Class<? extends GetLuaFacade>> getStaticBindings() {
+		return staticBindings;
 	}
 }
