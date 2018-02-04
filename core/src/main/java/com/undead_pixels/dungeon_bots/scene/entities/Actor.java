@@ -4,6 +4,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -21,6 +24,8 @@ import static org.luaj.vm2.LuaValue.*;
 public class Actor extends SpriteEntity {
 
 	private LuaValue luaBinding;
+	
+	private FloatingText floatingText;
 
 	/**
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
@@ -36,6 +41,8 @@ public class Actor extends SpriteEntity {
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
 		this.world.addEntity(this);
+		floatingText = new FloatingText(this, name+"-text");
+		world.addEntity(floatingText);
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -50,6 +57,7 @@ public class Actor extends SpriteEntity {
 		this.world.addEntity(this);
 		// TODO Auto-generated constructor stub
 		/// XXX
+		// DELETEME
 	}
 
 	@Override
@@ -110,26 +118,47 @@ public class Actor extends SpriteEntity {
 		
 		Entity e = this;
 		final int _dx = dx, _dy = dy;
+		final int[] initialPos = {0, 0};
 		
-		actionQueue.enqueue(new SpriteAnimatedAction(sprite, getMoveDuration()) {
-			int initialX, initialY;
+		SpriteAnimatedAction tryMoveAction = new SpriteAnimatedAction(sprite, getMoveDuration()) {
 			
 			public boolean preAct() {
-				initialX = Math.round(e.getPosition().x);
-				initialY = Math.round(e.getPosition().y);
-				boolean canMove = world.requestMoveToNewTile(e, _dx + initialX, _dy + initialY);
+				initialPos[0] = Math.round(e.getPosition().x);
+				initialPos[1] = Math.round(e.getPosition().y);
+				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
 				
-				this.setFinalPosition(_dx + initialX, _dy + initialY);
+				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				
 				return canMove;
 				
 			}
 			
 			public void postAct() {
-				world.didLeaveTile(e, initialX, initialY);
+				world.didLeaveTile(e, initialPos[0], initialPos[1]);
 			}
 			
-		});
+		};
+
+		Action fail1 = new SpriteAnimatedAction(sprite, .1f) {
+			public boolean preAct() {
+				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
+				return true;
+			}
+		};
+		Action fail2 = new SpriteAnimatedAction(sprite, .1f) {
+			public boolean preAct() {
+				this.setFinalPosition(initialPos[0], initialPos[1]);
+				return true;
+			}
+		};
+		
+		Action moveFailAction = new SequentialActions(fail1, fail2);
+		
+		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
+	}
+	
+	public void addText(String text) {
+		this.floatingText.addLine(text);
 	}
 
 	
@@ -141,20 +170,10 @@ public class Actor extends SpriteEntity {
 	}
 
 	@Override
-	public String getName() {
-		return this.name;
-	}
-
-	@Override
 	public LuaValue getLuaValue() {
 		if(this.luaBinding == null)
 			this.luaBinding = LuaProxyFactory.getLuaValue(this);
 		return this.luaBinding;
-	}
-
-	@Override
-	public int getId() {
-		return this.id;
 	}
 
 	// Lua ScriptApi methods that are collected and bound to a LuaSandbox using runtime reflection
@@ -236,5 +255,19 @@ public class Actor extends SpriteEntity {
 	final public Varargs position() {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
+	}
+
+	@Bind
+	final public void say(Varargs args) {
+		String text = "";
+		
+		for(int i = 2; i <= args.narg(); i++) {
+			if(i > 2) {
+				text += " ";
+			}
+			text += args.tojstring(i);
+		}
+		
+		this.addText(text);
 	}
 }
