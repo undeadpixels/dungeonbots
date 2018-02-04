@@ -266,14 +266,16 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 				}
 			}
 		}
+		batch.end();
 
 		// draw each layer of entities
 		for(Layer layer : toLayers()) {
+			batch.begin();
 			for(Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
+			batch.end();
 		}
-		batch.end();
 	}
 
 	@Bind
@@ -336,9 +338,13 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 						TileType d = j >= 1   ? tileTypes[i][j-1] : null;
 
 						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j, current.isSolid());
+						
+						//System.out.print(current.isSolid() ? "#" : ".");
 						tiles[i][j] = t;
 					}
 				}
+				
+				System.out.println();
 			}
 			
 			tilesAreStale = false;
@@ -493,7 +499,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			System.out.println("Unable to move: x/y too big");
 			return false;
 		}
-		
+
 		if(tiles[x][y] != null && tiles[x][y].isSolid()) {
 			System.out.println("Unable to move: tile solid");
 			return false;
