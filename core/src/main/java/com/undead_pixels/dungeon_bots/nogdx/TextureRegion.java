@@ -82,4 +82,8 @@ public class TextureRegion {
 		this.h = h;
 	}
 	
+	public TextureRegion subregion(int x, int y, int w, int h) {
+		return new TextureRegion(tex, this.x+x, this.y+y, w, h);
+	}
+	
 }
