@@ -152,7 +152,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 */
 	public World(File luaScriptFile, String name) {
 		super();
-		
+		this.player = new Player(this, "player");
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
@@ -184,10 +184,14 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		System.out.println("A winner is you");
 	}
 
+	public void setPlayer(Player p) {
+		player = p;
+	}
+
 	@Bind(SecurityLevel.AUTHOR)
 	public void setPlayer(LuaValue luaPlayer) {
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
-		player = p;
+		setPlayer(p);
 	}
 
     // TODO - another constructor for specific resource paths
@@ -351,7 +355,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Bind
 	public Player getPlayer() {
-    	SecurityContext.getWhitelist().add(this.player);
     	return this.player;
 	}
 

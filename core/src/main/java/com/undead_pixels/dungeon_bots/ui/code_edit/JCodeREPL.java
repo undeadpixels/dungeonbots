@@ -347,9 +347,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			PrintStream originalOut = System.out;
 			try {
 
-				_RunningScript = world.getPlayer().getSandbox().script(executingCode);
-				_RunningScript.start();
-				_RunningScript.join(_milliseconds);
+				_RunningScript = world.getPlayer().getSandbox().init(executingCode).join(_milliseconds);
 
 				if (_RunningScript.getError() != null)
 					return _RunningScript.getError();
