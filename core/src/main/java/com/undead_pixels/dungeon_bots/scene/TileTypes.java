@@ -37,11 +37,11 @@ public class TileTypes implements GetLuaFacade {
 
 		// TODO - visually test these all at some point
 		Vector2[] offsetsWalls = new Vector2[] {
-				new Vector2(1, 1), // 0 default
+				new Vector2(0, 1), // 0 default
 				new Vector2(1, 0), // 1 only left
 				new Vector2(1, 0), // 2 only right
 				new Vector2(1, 0), // 3 only left+right
-				new Vector2(0, 1), // 4 only up
+				new Vector2(1, 1), // 4 only up
 				new Vector2(2, 2), // 5 only up+left
 				new Vector2(0, 2), // 6 only up+right
 				new Vector2(4, 2), // 7 no down
