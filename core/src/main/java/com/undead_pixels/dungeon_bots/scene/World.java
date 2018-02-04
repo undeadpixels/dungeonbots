@@ -243,8 +243,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		//cam.translate(w/2, h/2);
 		
 		// TODO - probably use a better background color once we have things stable
-		batch.glClearColor(new Color(.65f, .2f, 0, 1));
-		batch.glClear();
+		batch.setClearColor(new Color(.65f, .2f, 0, 1));
+		batch.clearContext();
 
 		// draw background image
 		batch.begin();
