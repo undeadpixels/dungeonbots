@@ -153,7 +153,7 @@ public class LuaScript {
 	 * 
 	 * @return An Optional containing results if they are present.
 	 */
-	public synchronized Optional<Varargs> getResults() {
+	public Optional<Varargs> getResults() {
 		return Optional.ofNullable(varargs);
 	}
 
