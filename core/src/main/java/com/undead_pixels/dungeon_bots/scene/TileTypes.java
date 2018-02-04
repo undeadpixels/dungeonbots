@@ -79,8 +79,8 @@ public class TileTypes implements GetLuaFacade {
 		// register some default tile types
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
-		registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
-		registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
+		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
+		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
 	}
 
 	@Bind @BindTo("new")

@@ -39,8 +39,6 @@ public abstract class SpriteEntity extends Entity {
 			sprite = new Sprite();
 		else {
 			sprite = new Sprite(tex);
-			sprite.setSize(1.0f, 1.0f);
-			sprite.setOrigin(.5f, .5f);
 		}
 		sprite.setPosition(x, y);
 	}

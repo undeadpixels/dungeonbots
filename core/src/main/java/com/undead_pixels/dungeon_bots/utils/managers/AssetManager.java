@@ -1,9 +1,11 @@
 package com.undead_pixels.dungeon_bots.utils.managers;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 
 public class AssetManager {
@@ -41,6 +43,15 @@ public class AssetManager {
 		}
 		catch (Exception e) { return Optional.empty(); }
 
+	}
+
+	public static Texture getTexture(String string) {
+		try {
+			return new Texture(string); // TODO - caching
+		} catch(IOException ex) {
+			ex.printStackTrace();
+			return null;
+		}
 	}
 
 }

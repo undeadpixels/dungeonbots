@@ -4,15 +4,22 @@ import java.awt.geom.AffineTransform;
 
 public class Sprite {
 	
-	private float x;
-	private float y;
+	private float x, y;
+	
+	private float scaleX, scaleY;
+	
+	private float rotation;
+	
+	private TextureRegion tex;
 
 	public Sprite(TextureRegion tex) {
-		// TODO Auto-generated constructor stub
+		this.tex = tex;
+
+		//setSize(1.0f, 1.0f);
+		//setOrigin(.5f, .5f);
 	}
 
 	public Sprite() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public void setX(float x) {
@@ -31,16 +38,6 @@ public class Sprite {
 		return y;
 	}
 
-	public void setSize(float sizeX, float sizeY) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setOrigin(float ox, float oy) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	public void setPosition(float x, float y) {
 		this.x = x;
 		this.y = y;
@@ -48,37 +45,43 @@ public class Sprite {
 	}
 
 	public TextureRegion getTexture() {
-		// TODO Auto-generated method stub
-		return null;
+		return tex;
 	}
 
 	public void draw(SpriteBatch batch) {
-		// TODO Auto-generated method stub
-	}
-
-	public float getScaleX() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public float getScaleY() {
-		// TODO Auto-generated method stub
-		return 0;
+		//AffineTransform xform = AffineTransform.getScaleInstance(1.0, 1.0);
+		AffineTransform xform = AffineTransform.getTranslateInstance(-.5 + x, -.5 + y);
+		// TODO - rotation
+		xform.scale(1.0 / tex.getW(), -1.0 / tex.getH());
+		batch.draw(tex, xform);
 	}
 
 	public void setScale(float sx, float sy) {
-		// TODO Auto-generated method stub
+		this.scaleX = sx;
+		this.scaleY = sy;
 		
 	}
+	public void setScale(float s) {
+		setScale(s, s);
+	}
+	
+	public float getScaleX() {
+		return scaleX;
+	}
 
-	public void setRotation(float lerp) {
-		// TODO Auto-generated method stub
-		
+	public float getScaleY() {
+		return scaleY;
+	}
+
+	/**
+	 * @param r	Rotation in radians
+	 */
+	public void setRotation(float r) {
+		this.rotation = r;
 	}
 
 	public float getRotation() {
-		// TODO Auto-generated method stub
-		return 0;
+		return rotation;
 	}
 
 }
