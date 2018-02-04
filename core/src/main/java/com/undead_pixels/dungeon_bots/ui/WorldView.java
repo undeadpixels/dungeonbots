@@ -11,9 +11,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.JComponent;
+import javax.swing.Timer;
 
 /**
  * The screen for the regular game
@@ -97,8 +100,22 @@ public class WorldView extends JComponent {
 		}
 		
 		
-		// TODO - this is basically a busy loop. Do with a timer instead.
-		this.repaint();
+		// TODO - this should live elsewhere, but it'll at least help cap fps for now.
+		long spareTime = 15_000_000 - (System.nanoTime() - lastTime);
+		int sleepTime = (int)(spareTime/1000_000);
+		System.out.println("DT = "+dt+",  sleep = "+sleepTime);
+		if(sleepTime > 0) {
+			Timer t = new Timer(sleepTime, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					repaint();
+				}
+			});
+			t.setRepeats(false);
+			t.start();
+		} else {
+			repaint();
+		}
 	}
 
 	public OrthographicCamera getCamera() {
