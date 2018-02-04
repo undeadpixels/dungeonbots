@@ -8,9 +8,9 @@ import com.undead_pixels.dungeon_bots.math.Vector2;
 
 public class OrthographicCamera {
 
-	public float zoom;
-	public Vector2 position;
-	public float viewportWidth, viewportHeight;
+	private float zoom, aspectRatio;
+	private Vector2 position;
+	private float viewportWidth, viewportHeight;
 
 	public OrthographicCamera(float w, float h) {
 		viewportWidth = w;
@@ -34,7 +34,7 @@ public class OrthographicCamera {
 	}
 
 	public AffineTransform getTransform() {
-		float size = Math.min(viewportWidth, viewportHeight);
+		float size = Math.min(viewportWidth / aspectRatio, viewportHeight);
 		float scale = size * zoom;
 		AffineTransform ret = AffineTransform.getScaleInstance(scale, -scale);
 		ret.translate(viewportWidth/2/scale - position.x, -viewportHeight/2/scale - position.y);
@@ -56,14 +56,20 @@ public class OrthographicCamera {
 
 	public void zoomFor(Vector2 size) {
 		
+		aspectRatio = size.x / size.y;
 		float ratioW = Math.max(viewportWidth / viewportHeight, 1) / size.x;
 		float ratioH = Math.max(viewportHeight / viewportWidth, 1) / size.y;
-		if(ratioW < ratioH) {
+		if(ratioW > ratioH) {
 			zoom = ratioW;
 		} else {
 			zoom = ratioH;
 		}
 		position = new Vector2(size.x/2, size.y/2);
+	}
+
+	public void setViewportSize(float w, float h) {
+		viewportWidth = w;
+		viewportHeight = h;
 	}
 
 }

@@ -1,34 +1,34 @@
 package com.undead_pixels.dungeon_bots.script;
 
-import org.luaj.vm2.LuaValue;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.Varargs;
 
+import java.util.function.Function;
+
 public class SandboxedValue {
-	private final LuaValue luaValue;
+	private final Varargs varargs;
 	private final LuaSandbox luaSandbox;
 
-	public SandboxedValue(LuaValue luaValue, LuaSandbox luaSandbox) {
-		this.luaValue = luaValue;
+	public SandboxedValue(Varargs varargs, LuaSandbox luaSandbox) {
+		this.varargs = varargs;
 		this.luaSandbox = luaSandbox;
 	}
 
-	public LuaValue getLuaValue() {
-		return luaValue;
+	public Varargs getResult() {
+		return varargs;
 	}
 
 	public LuaSandbox getLuaSandbox() {
 		return luaSandbox;
 	}
 
-	public Varargs invoke() {
-		return luaValue.invoke();
-	}
-
-	public Varargs invoke(LuaValue... vals) {
-		return luaValue.invoke(vals);
-	}
-
-	public Varargs invoke(Varargs varargs) {
-		return this.luaValue.invoke(varargs);
+	/**
+	 * Safely invokes the underlying LuaValue in its Sandbox Context.
+	 * @param fn
+	 * @return
+	 */
+	public SandboxedValue invoke(Function<Varargs,Varargs> fn) {
+		SecurityContext.set(luaSandbox);
+		return new SandboxedValue(fn.apply(varargs), luaSandbox);
 	}
 }

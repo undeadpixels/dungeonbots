@@ -23,11 +23,8 @@ public class GameplayScreen extends GDXandSwingScreen implements KeyListener, Mo
 	 */
 	private WorldView view;
 
-
-
 	public GameplayScreen() {
 		super();
-		
 		view = new WorldView();
 
 		view.addKeyListener(this);

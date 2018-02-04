@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -137,19 +138,15 @@ public class LuaReflection {
 	}
 
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
-		return flattenClass(clz)
-				.map(Class::getDeclaredMethods)
-				.flatMap(Stream::of);
+		return flattenClass(clz, Class::getDeclaredMethods);
 	}
 
 	private static Stream<Field> getAllFields(final Class<?> clz) {
-		return flattenClass(clz)
-				.map(Class::getDeclaredFields)
-				.flatMap(Stream::of).sequential();
+		return flattenClass(clz, Class::getDeclaredFields);
 	}
 
-	private static Stream<Class<?>> flattenClass(final Class<?> src) {
-		Collection<Class<?>> classes = new ArrayList<>();
+	private static Stream<Class<?>> collectClasses(final Class<?> src) {
+		final Collection<Class<?>> classes = new ArrayList<>();
 		Class<?> temp = src;
 		try {
 			while (temp != null) {
@@ -159,5 +156,12 @@ public class LuaReflection {
 		}
 		catch (Exception e) { }
 		return classes.stream().sequential();
+	}
+
+	private static <T extends Member> Stream<T> flattenClass(final Class<?> src, final Function<Class<?>,T[]> fn) {
+		return collectClasses(src)
+				.map(fn)
+				.flatMap(Stream::of)
+				.sequential();
 	}
 }

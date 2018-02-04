@@ -31,7 +31,8 @@ public class WorldView extends JComponent {
 	private long lastTime;
 	
 	public WorldView() {
-		world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
+		//world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
+		world = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
 		
 		this.setPreferredSize(new Dimension(9999, 9999));
 
@@ -85,8 +86,7 @@ public class WorldView extends JComponent {
 	    			didInitCam = true;
 			}
 
-			cam.viewportWidth = w;
-			cam.viewportHeight = h;
+			cam.setViewportSize(w, h);
 			
 			cam.update();
 			batch.setProjectionMatrix(cam);
