@@ -39,7 +39,8 @@ public class SpriteBatch {
 	}
 
 	public void draw(TextureRegion img, int x, int y) {
-		// TODO Auto-generated method stub
+		draw(img, AffineTransform.getTranslateInstance(x, y));
+		// TODO - this isn't acutally good enough
 	}
 	
 	public void draw(TextureRegion img, AffineTransform xform) {
@@ -48,13 +49,13 @@ public class SpriteBatch {
 		
 		g.setTransform(totalTransform);
 		
-		System.out.println("g.xform = "+projection);
-		System.out.println("sprite.xform = "+xform);
-		System.out.println("combined.xform = "+g.getTransform());
-		System.out.println("before -> "+g.getTransform().transform(new Point2D.Double(), null));
+		//System.out.println("g.xform = "+projection);
+		//System.out.println("sprite.xform = "+xform);
+		//System.out.println("combined.xform = "+g.getTransform());
+		//System.out.println("before -> "+g.getTransform().transform(new Point2D.Double(), null));
 		// TODO - draw
 		
-		System.out.println(g.getTransform().transform(new Point2D.Double(), null));
+		//System.out.println(g.getTransform().transform(new Point2D.Double(), null));
 		g.drawImage(img.getTex().getImg(), 0, 0, img.getW(), img.getH(),
 				img.getX(), img.getY(), img.getX2(), img.getY2(),
 				null);

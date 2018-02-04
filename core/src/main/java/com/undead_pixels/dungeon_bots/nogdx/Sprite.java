@@ -49,9 +49,14 @@ public class Sprite {
 	}
 
 	public void draw(SpriteBatch batch) {
-		//AffineTransform xform = AffineTransform.getScaleInstance(1.0, 1.0);
-		AffineTransform xform = AffineTransform.getTranslateInstance(-.5 + x, -.5 + y);
-		// TODO - rotation
+		AffineTransform xform;
+		if(rotation == 0) {
+			xform = AffineTransform.getTranslateInstance(-.5 + x, -.5 + y);
+		} else {
+			xform = AffineTransform.getTranslateInstance(x, y);
+			xform.rotate(rotation);
+			xform.translate(-.5, -.5);
+		}
 		xform.scale(1.0 / tex.getW(), -1.0 / tex.getH());
 		batch.draw(tex, xform);
 	}

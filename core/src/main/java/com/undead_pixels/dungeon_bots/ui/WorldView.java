@@ -73,14 +73,8 @@ public class WorldView extends JComponent {
 			if(!didInitCam) {
 				cam = new OrthographicCamera(w, h);
 				
-				float ratioW = w / world.getSize().x;
-				float ratioH = h / world.getSize().y;
-				if(ratioW < ratioH) {
-					cam.zoom = 1.0f / ratioW;
-				} else {
-					cam.zoom = 1.0f / ratioH;
-				}
-	    			cam.position = new Vector2(world.getSize().x/2, world.getSize().y/2);
+				cam.zoomFor(world.getSize());
+				
 	    			didInitCam = true;
 			}
 
