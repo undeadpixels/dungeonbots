@@ -21,9 +21,6 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.ui.Login;
@@ -69,14 +66,15 @@ public class DesktopLauncher {
 		
 		// create the GL canvas
 		JFrame frame = new JFrame("DungeonBots");
-		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
+		//LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
 		frame.setLayout(new BorderLayout(0, 0));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
 
 		
 		// Add everything to a window and show it
-		DungeonBotsMain.instance.setFrameAndCanvas(frame, canvas.getCanvas());
-		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
+		//DungeonBotsMain.instance.setFrameAndCanvas(frame, canvas.getCanvas());
+		DungeonBotsMain.instance.setFrame(frame);
+		//frame.add(canvas.getCanvas(), BorderLayout.CENTER);
 		frame.setSize(1024, 768);
 		frame.revalidate();
 		frame.setVisible(true);

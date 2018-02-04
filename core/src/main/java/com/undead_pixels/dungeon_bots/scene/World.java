@@ -1,16 +1,23 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
-import com.undead_pixels.dungeon_bots.scene.entities.*;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
+import java.util.stream.Stream;
+
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.Texture;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -60,7 +67,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	/**
 	 * A background image for this world
 	 */
-	private Texture backgroundImage;
+	private TextureRegion backgroundImage;
 	
 	/**
 	 * An array of tiles, in the bottom layer of this world
@@ -236,8 +243,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		//cam.translate(w/2, h/2);
 		
 		// TODO - probably use a better background color once we have things stable
-		Gdx.gl.glClearColor(.65f, .2f, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		batch.glClearColor(new Color(.65f, .2f, 0, 1));
+		batch.glClear();
 
 		// draw background image
 		batch.begin();

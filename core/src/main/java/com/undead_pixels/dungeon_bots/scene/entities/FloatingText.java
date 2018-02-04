@@ -1,31 +1,22 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 
 public class FloatingText extends ChildEntity {
 	
-	private static BitmapFont font;
-	private static final float fontSize;
-	
-	static {
-
-		if(Gdx.files == null) {
-			font = null;
-			fontSize = 0.0f;
-		} else {
-			font = new BitmapFont();
-			fontSize = font.getLineHeight();
-		}
-	}
+	private static Font font = new Font("Arial", Font.BOLD, 12);
+	private static final float fontSize = 12.0f;
 	
 	/**
 	 * Amount of time that the text will continue to float before disappearing
@@ -64,7 +55,7 @@ public class FloatingText extends ChildEntity {
 	@Override
 	public void render(SpriteBatch batch) {
 		Vector2 pos = getPosition();
-		pos = new Vector2(pos.x, pos.y + .2f);
+		pos = new Vector2(pos.x, pos.y + .4f);
 		for(Iterator<TextInfo> iter = lines.descendingIterator(); iter.hasNext(); ) {
 			pos = iter.next().render(batch, pos);
 		}
@@ -106,7 +97,7 @@ public class FloatingText extends ChildEntity {
 	
 	private class TextInfo {
 		private String text;
-		private Color color = Color.WHITE;
+		private Color color = Color.white;
 		
 		private float age;
 		
@@ -128,14 +119,23 @@ public class FloatingText extends ChildEntity {
 				fadeRatio = 1;
 			}
 			if(font != null) {
-				color.a = fadeRatio;
-				font.setColor(color);
-				font.setUseIntegerPositions(false);
-				font.getData().setScale(0.75f / fontSize);
-				GlyphLayout layout = new GlyphLayout(font, text);
+				
+				float scale = .75f / fontSize;
+				
+				Color c = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255*fadeRatio));
+				
+				FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
+				Rectangle2D bounds = font.getStringBounds(text, frc);
 
-				font.draw(batch, layout, pos.x - layout.width/2 + .5f, pos.y + layout.height + 1);
-				return new Vector2(pos.x, pos.y + font.getLineHeight());
+				
+				AffineTransform xform = AffineTransform.getScaleInstance(scale, -scale);
+				//xform.preConcatenate(AffineTransform.getTranslateInstance(bounds.getX() - bounds.getWidth()/2, 0));
+				xform.preConcatenate(AffineTransform.getTranslateInstance(bounds.getX()*scale - bounds.getWidth()/2*scale + .5f, -bounds.getY() * scale));
+				xform.preConcatenate(AffineTransform.getTranslateInstance(pos.x, pos.y));
+				
+				batch.drawString(text, font, c, xform);
+				
+				return new Vector2(pos.x, (float) (pos.y + bounds.getHeight()*scale));
 			} else {
 				return pos;
 			}

@@ -2,12 +2,12 @@ package com.undead_pixels.dungeon_bots.scene;
 
 import java.util.HashMap;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.Texture;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -79,13 +79,15 @@ public class TileTypes implements GetLuaFacade {
 		// register some default tile types
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
-		if(Gdx.files == null) {
-			registerTile("floor", null, TILESIZE, 0, 3, offsetsFloors, false, false);
-			registerTile("wall", null, TILESIZE, 0, 3, offsetsWalls, false, true);
-		} else {
-			registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
-			registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
-		}
+		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
+		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
+	}
+
+	@Bind @BindTo("new")
+	public static LuaValue generate() {
+		TileTypes tileTypes = new TileTypes();
+		SecurityContext.getWhitelist().add(tileTypes);
+		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 
 	/**
