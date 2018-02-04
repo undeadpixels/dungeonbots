@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.screens.GDXandSwingScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
+
+import jsyntaxpane.util.SwingUtils;
 
 /**
  * The main class. Basically, all it does is point to the screen that we are
@@ -29,7 +29,7 @@ import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
  * MainMenuScreen) And then it passes rendering (and technically input) events
  * to them.
  */
-public class DungeonBotsMain extends Game {
+public class DungeonBotsMain {
 
 	/**
 	 * Singleton instance
@@ -45,32 +45,34 @@ public class DungeonBotsMain extends Game {
 	 * The GDX canvas, stored here in case it is removed from the frame
 	 */
 	private Component glCanvas;
+	
+	private GDXandSwingScreen screen;
 
 	/**
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
+		setScreen(new MainMenuScreen());
 	}
 
-	@Override
-	public void setScreen(Screen screen) {
+	public void setScreen(GDXandSwingScreen screen) {
 
-		// Clear the current screen's frame.
-		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(null);
-		}
-
-		super.setScreen(screen);
-		Gdx.app.postRunnable(new Runnable() {
-			@Override
-			public void run() {
-				//frame.add(glCanvas, BorderLayout.CENTER);
+		// TODO - SwingUtilities.invokeLater(new Runnable() { ...
+		
+		if(frame != null) {
+			// Clear the current screen's frame.
+			if (this.screen != null && this.screen != screen) {
+				((GDXandSwingScreen) this.screen).attachScreenToFrame(null);
 			}
-		});
 
-		// Set the frame for the new screen.
-		if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
-			((GDXandSwingScreen) this.screen).attachScreenToFrame(frame);
+			this.screen = screen;
+
+			// Set the frame for the new screen.
+			if (this.screen != null && this.screen instanceof GDXandSwingScreen) {
+				((GDXandSwingScreen) this.screen).attachScreenToFrame(frame);
+			}
+		} else {
+			this.screen = screen;
 		}
 	}
 
@@ -80,16 +82,11 @@ public class DungeonBotsMain extends Game {
 	 * 
 	 * @param frame
 	 */
-	public void setFrameAndCanvas(JFrame frame, Component canvas) {
+	public void setFrame(JFrame frame) {
 		if (frame != null) {
 			this.frame = frame;
-			this.glCanvas = canvas;
+			setScreen(screen);
 		}
-	}
-
-	@Override
-	public void create() {
-		setScreen(new MainMenuScreen());
 	}
 
 	/*
