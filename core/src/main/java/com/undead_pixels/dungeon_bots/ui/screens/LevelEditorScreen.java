@@ -105,6 +105,7 @@ public class LevelEditorScreen extends GDXandSwingScreen implements MouseListene
 		int y = (int)gameSpace.y;
 		
 		state.tileRegionSection.add(new TileRegionSection.TileRegion(x, x, y, y, "wall"));
+		e.consume();
 	}
 
 
@@ -146,6 +147,7 @@ public class LevelEditorScreen extends GDXandSwingScreen implements MouseListene
 		int y = (int)gameSpace.y;
 		
 		state.tileRegionSection.add(new TileRegionSection.TileRegion(x, x, y, y, "wall"));
+		e.consume();
 	}
 
 

@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -66,6 +67,18 @@ public class SpriteBatch {
 		this.projection = cam.getTransform();
 		//System.out.println("Setting transform: "+cam.getTransform());
 		//g.transform(cam.getTransform());
+	}
+
+	public void drawString(String text, Font font, Color color, AffineTransform xform) {
+		AffineTransform totalTransform = new AffineTransform(xform);
+		totalTransform.preConcatenate(projection);
+		
+		g.setTransform(totalTransform);
+		g.setColor(color);
+		g.setFont(font);
+		
+		g.drawString(text, 0, 0);
+		
 	}
 
 }

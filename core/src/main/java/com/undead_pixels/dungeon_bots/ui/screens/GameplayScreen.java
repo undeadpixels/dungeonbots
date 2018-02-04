@@ -65,6 +65,7 @@ public class GameplayScreen extends GDXandSwingScreen implements KeyListener, Mo
 		}
 
 		System.out.println("Clicked entity "+ent+" at "+ gameSpace.x+", "+gameSpace.y+" (screen "+screenX+", "+screenY+")");
+		e.consume();
 	}
 
 	@Override

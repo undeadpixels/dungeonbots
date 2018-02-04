@@ -31,6 +31,9 @@ public class WorldView extends JComponent {
 		world = new World(new File("sample-level-packs/sample-pack-1/levels/level1.lua"));
 		
 		this.setPreferredSize(new Dimension(9999, 9999));
+
+		this.setFocusable(true);
+		this.requestFocusInWindow();
 	}
 		
 
