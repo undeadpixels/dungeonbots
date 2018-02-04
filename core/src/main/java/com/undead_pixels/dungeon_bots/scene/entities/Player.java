@@ -43,4 +43,9 @@ public class Player extends RpgActor {
 		return p;
 	}
 
+
+	@Bind
+	public void tryAgain() {
+		this.getWorld().reset();
+	}
 }

@@ -5,18 +5,18 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.stream.Stream;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -38,22 +38,20 @@ import org.luaj.vm2.*;
  * Need to figure out what parts.
  */
 public class World implements GetLuaFacade, GetLuaSandbox {
-	
+
+	private ReentrantLock renderLock = new ReentrantLock();
+
     /**
      * The script that defines this world
      */
     private LuaScript levelScript;
-    
-    /**
-     * A lazy-loaded LuaValue representation of this world
-     */
-    private LuaValue luaBinding;
-    
+
 	/**
-	 * The LuaFunction to call on every update
+	 * The LuaBindings to the World
+	 * Lazy initialized
 	 */
-	private LuaFunction mapUpdateFunc;
-	
+	private LuaValue luaValue;
+
 	/**
 	 * The sandbox that the levelScript runs inside of
 	 */
@@ -119,6 +117,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 */
 	private String defaultScript;
 
+	private Level level;
+
 	/**
 	 * Simple constructor
 	 */
@@ -167,11 +167,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			levelScript = mapSandbox.script(luaScriptFile).start().join();
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
-			LuaTable tbl = levelScript.getResults().get().checktable(1);
-			LuaFunction init = tbl.get("init").checkfunction();
-			LuaFunction mapUpdate = tbl.get("update").checkfunction();
-			mapUpdateFunc = mapUpdate;
-			init.invoke();
+			level = new Level(levelScript.getResults().get(), mapSandbox);
+			level.init();
 		}
 	}
 
@@ -182,12 +179,12 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
 		System.out.println("A winner is you");
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void setPlayer(LuaValue luaPlayer) {
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
 		player = p;
@@ -202,32 +199,33 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 * @param dt	Delta time
 	 */
 	public void update(float dt) {
-		
-		// update tiles from tileTypes, if dirty
-		refreshTiles();
+		renderLock.lock();
+		try {
+			// update tiles from tileTypes, if dirty
+			refreshTiles();
 
-		// update tiles
-		for(Tile[] ts : tiles) {
-			for(Tile t : ts) {
-				if(t != null) {
-					t.update(dt);
+			// update tiles
+			for(Tile[] ts : tiles) {
+				for(Tile t : ts) {
+					if(t != null) {
+						t.update(dt);
+					}
 				}
 			}
-		}
-		
-		// update entities
-		for(Entity e : entities) {
-			ActionQueue aq = e.getActionQueue();
-			playstyle.dequeueIfAllowed(aq);
-			e.update(dt);
-		}
-		playstyle.update();
 
-		// update level script
-		Whitelist temp = SecurityContext.getWhitelist();
-		if(mapUpdateFunc != null) {
-			SecurityContext.set(this.mapSandbox);
-			mapUpdateFunc.invoke(LuaValue.valueOf(dt));
+			// update entities
+			for(Entity e : entities) {
+				ActionQueue aq = e.getActionQueue();
+				playstyle.dequeueIfAllowed(aq);
+				e.update(dt);
+			}
+			playstyle.update();
+			// update level script
+			if(level != null)
+				level.update();
+		}
+		finally {
+			renderLock.unlock();
 		}
 	}
 	
@@ -345,7 +343,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		}
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
     	TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
     	setTile(x.checkint() - 1, y.checkint() - 1, tileType);
@@ -355,6 +353,15 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	public Player getPlayer() {
     	SecurityContext.getWhitelist().add(this.player);
     	return this.player;
+	}
+
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
+		final int x = lx.checkint() - 1;
+		final int y = ly.checkint() - 1;
+		final int w = tiles.length;
+		final int h = tiles[0].length;
+		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
 	}
 
 	/**
@@ -402,10 +409,10 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaBinding == null) {
-			this.luaBinding = LuaProxyFactory.getLuaValue(this);
+		if(this.luaValue == null) {
+			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		}
-		return this.luaBinding;
+		return this.luaValue;
 	}
 
 	@Override
@@ -510,8 +517,23 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		this.defaultScript = defaultScript;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void setLevelScript(LuaValue luaValue) {
 		setDefaultScript(luaValue.checkjstring());
+	}
+
+	public void reset() {
+		renderLock.lock();
+		try {
+			levelScript = null;
+			tiles = new Tile[0][0];
+			player = null;
+			entities.clear();
+			backgroundImage = null;
+			level.init();
+		}
+		finally {
+			renderLock.unlock();
+		}
 	}
 }

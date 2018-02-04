@@ -33,6 +33,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import com.undead_pixels.dungeon_bots.scene.World;
 import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.Varargs;
 
@@ -42,7 +43,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 
-	private LuaSandbox _Sandbox;
+	private World world;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
 	private final int MAX_HISTORY_COUNT = 100;
@@ -67,14 +68,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Creates a new REPL. All code will execute in a brand-new sandbox. */
 	public JCodeREPL() {
-		this(new LuaSandbox(SecurityLevel.DEBUG));
+		this(new World());
 	}
 
 	/** Creates a new REPL. All code will execute in the given sandbox. */
-	public JCodeREPL(LuaSandbox sandbox) {
+	public JCodeREPL(World w) {
 		super(new BorderLayout());
 
-		_Sandbox = sandbox;
+		world = w;
 
 		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
@@ -346,7 +347,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			PrintStream originalOut = System.out;
 			try {
 
-				_RunningScript = _Sandbox.script(executingCode);
+				_RunningScript = world.getPlayer().getSandbox().script(executingCode);
 				_RunningScript.start();
 				_RunningScript.join(_milliseconds);
 

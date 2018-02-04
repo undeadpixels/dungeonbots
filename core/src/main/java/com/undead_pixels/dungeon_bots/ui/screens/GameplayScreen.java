@@ -52,11 +52,10 @@ public class GameplayScreen extends GDXandSwingScreen implements KeyListener, Mo
 		int screenY = e.getY();
 		Vector2 gameSpace = view.getScreenToGameCoords(screenX, screenY);
 		Entity ent = view.getWorld().getEntityUnderLocation(gameSpace.x, gameSpace.y);
-		
 		if(ent instanceof Player) {
 			
 			
-			JPlayerEditor jpe = new JPlayerEditor((Player)ent);
+			JPlayerEditor jpe = new JPlayerEditor(view.getWorld());
 			this.addWindowFor(jpe,  "Player Editor");
 			
 		}
