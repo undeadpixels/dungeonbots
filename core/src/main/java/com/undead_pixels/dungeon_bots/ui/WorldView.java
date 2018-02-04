@@ -103,7 +103,7 @@ public class WorldView extends JComponent {
 		// TODO - this should live elsewhere, but it'll at least help cap fps for now.
 		long spareTime = 15_000_000 - (System.nanoTime() - lastTime);
 		int sleepTime = (int)(spareTime/1000_000);
-		System.out.println("DT = "+dt+",  sleep = "+sleepTime);
+		//System.out.println("DT = "+dt+",  sleep = "+sleepTime);
 		if(sleepTime > 0) {
 			Timer t = new Timer(sleepTime, new ActionListener() {
 				@Override
