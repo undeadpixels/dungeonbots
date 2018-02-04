@@ -354,7 +354,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Bind
 	public Player getPlayer() {
-    	return this.player;
+    	return this.player != null ? this.player : new Player(this, "player");
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
