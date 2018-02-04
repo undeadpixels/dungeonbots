@@ -4,35 +4,24 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.stream.Stream;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
-import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
-
-import org.luaj.vm2.LuaFunction;
-import org.luaj.vm2.LuaTable;
-import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.*;
 
 /**
  * The World of the game.
@@ -174,9 +163,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			LuaTable tbl = levelScript.getResults().get().checktable(1);
 			LuaFunction init = tbl.get("init").checkfunction();
 			LuaFunction mapUpdate = tbl.get("update").checkfunction();
-			
 			mapUpdateFunc = mapUpdate;
-			
 			init.invoke();
 		}
 	}
@@ -266,14 +253,16 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 				}
 			}
 		}
+		batch.end();
 
 		// draw each layer of entities
 		for(Layer layer : toLayers()) {
+			batch.begin();
 			for(Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
+			batch.end();
 		}
-		batch.end();
 	}
 
 	@Bind
@@ -325,8 +314,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			
 			int w = tiles.length;
 			int h = tiles[0].length;
-			for(int i = 0; i < tiles.length; i++) {
-				for(int j = 0; j < tiles.length; j++) {
+			for(int i = 0; i < w; i++) {
+				for(int j = 0; j < h; j++) {
 					TileType current = tileTypes[i][j];
 					
 					if(current != null) {
@@ -336,9 +325,13 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 						TileType d = j >= 1   ? tileTypes[i][j-1] : null;
 
 						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j, current.isSolid());
+						
+						//System.out.print(current.isSolid() ? "#" : ".");
 						tiles[i][j] = t;
 					}
 				}
+				
+				System.out.println();
 			}
 			
 			tilesAreStale = false;
@@ -413,60 +406,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		return this.hashCode();
 	}
 
-
-	/**
-	 * A class to represent a collection of actors at a given Z-value
-	 * Used to draw some things on top of other things.
-	 * 
-	 * TODO - refactor this somewhere better
-	 */
-	private static class Layer implements Comparable<Layer> {
-		/**
-		 * The z value
-		 */
-		private final float z;
-		
-		/**
-		 * Constructor
-		 * @param z
-		 */
-		public Layer(float z) {
-			super();
-			this.z = z;
-		}
-
-		/**
-		 * Internal storage
-		 */
-		private ArrayList<Entity> entities = new ArrayList<Entity>();
-
-		@Override
-		public int compareTo(Layer o) {
-			if(z == o.z) {
-				return 0;
-			} else if(z < o.z) {
-				return -1;
-			} else {
-				return 1;
-			}
-		}
-		
-		/**
-		 * @param e	The entity to add
-		 */
-		public void add(Entity e) {
-			entities.add(e);
-		}
-		
-		/**
-		 * @return	A list of all entities in this layer
-		 */
-		public ArrayList<Entity> getEntities() {
-			return entities;
-		}
-		
-	}
-
 	/**
 	 * Generates an id
 	 * @return	a new id
@@ -493,7 +432,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			System.out.println("Unable to move: x/y too big");
 			return false;
 		}
-		
+
 		if(tiles[x][y] != null && tiles[x][y].isSolid()) {
 			System.out.println("Unable to move: tile solid");
 			return false;

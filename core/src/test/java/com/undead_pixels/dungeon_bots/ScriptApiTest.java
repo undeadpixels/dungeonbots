@@ -362,7 +362,7 @@ public class ScriptApiTest {
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindable(new World("w"))
 				.addBindableClass(Player.class);
-		LuaScript script = se.init("return Player.new(w,1.0,1.0);").join();
+		LuaScript script = se.init("return Player.new(w,2.0,2.0);").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);
@@ -378,7 +378,7 @@ public class ScriptApiTest {
 				.addBindable(w)
 				.addBindableClass(Player.class);
 
-		LuaScript script = se.init("p = Player.new(world,1.0,1.0); return p;").join();
+		LuaScript script = se.init("p = Player.new(world,2.0,2.0); return p;").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		LuaTable t = script.getResults().get().arg(1).checktable();
 		Player p = (Player) t.get("this").checkuserdata(Player.class);

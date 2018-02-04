@@ -10,6 +10,10 @@ public final class SequentialActions implements Action {
 	 */
 	private Action[] innerActions;
 	
+	public SequentialActions(Action... actions) {
+		innerActions = actions;
+	}
+	
 	/**
 	 * Index of the child action currently being executed
 	 */

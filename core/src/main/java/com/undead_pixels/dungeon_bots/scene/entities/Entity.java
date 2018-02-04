@@ -118,5 +118,17 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public World getWorld() {
 		return world;
 	}
+	
+	@Override
+	public int getId() {
+		return this.id;
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	public abstract float getScale();
 
 }
