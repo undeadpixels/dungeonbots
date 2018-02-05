@@ -126,11 +126,8 @@ public class Actor extends SpriteEntity {
 				initialPos[0] = Math.round(e.getPosition().x);
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
-				
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
-				
 				return canMove;
-				
 			}
 			
 			public void postAct() {
@@ -151,9 +148,7 @@ public class Actor extends SpriteEntity {
 				return true;
 			}
 		};
-		
 		Action moveFailAction = new SequentialActions(fail1, fail2);
-		
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 	}
 	
@@ -254,20 +249,33 @@ public class Actor extends SpriteEntity {
 	@Bind
 	final public Varargs position() {
 		Vector2 pos = this.getPosition();
-		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
+		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
+	/**
+	 *
+	 * @param args
+	 */
 	@Bind
 	final public void say(Varargs args) {
 		String text = "";
 		
 		for(int i = 2; i <= args.narg(); i++) {
-			if(i > 2) {
+			if(i > 2)
 				text += " ";
-			}
 			text += args.tojstring(i);
 		}
-		
 		this.addText(text);
+	}
+
+	/**
+	 *
+	 * @param lx
+	 * @param ly
+	 * @return
+	 */
+	@Bind
+	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
+		return world.isBlocking(lx, ly);
 	}
 }

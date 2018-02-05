@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -43,9 +44,8 @@ public class Player extends RpgActor {
 		return p;
 	}
 
-
 	@Bind
 	public void tryAgain() {
-		this.getWorld().reset();
+		world.reset();
 	}
 }

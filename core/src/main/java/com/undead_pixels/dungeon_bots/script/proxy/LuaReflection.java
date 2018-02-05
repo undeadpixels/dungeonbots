@@ -83,8 +83,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of methods that have been annotated with <br>
-	 *     the @Bind annotation that are static.
+	 * A method that returns a stream of methods belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation that are static.
 	 * @param c The Class to collect Bindable methods for
 	 * @return A Stream of Methods
 	 */
@@ -97,8 +97,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of fields that have been annotated with <br>
-	 *     the @Bind annotation
+	 * A method that returns a stream of fields belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation
 	 * @param c The target Class to get the bindable fields of
 	 * @return A Stream of Fields
 	 */
@@ -111,8 +111,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of methods that have been annotated with <br>
-	 *     the @Bind annotation that are static.
+	 * A method that returns a stream of methods belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation that are static.
 	 * @param c The target Class to get the bindable static fields of
 	 * @return A Stream of Fields
 	 */
@@ -125,7 +125,7 @@ public class LuaReflection {
 	}
 
 	/**
-	 * Finds and possibly returns the first instance of a method beonging to the <br>
+	 * Finds and possibly returns the first instance of a method belonging to the <br>
 	 *     target object that has the specified name.
 	 * @param o The target object
 	 * @param name The name of the method to find

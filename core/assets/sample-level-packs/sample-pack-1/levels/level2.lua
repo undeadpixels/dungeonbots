@@ -4,6 +4,7 @@
 -- 2/3/2018
 
 local lvl = {}
+-- Example metadata attached to each level
 lvl.name = "Level 2"
 lvl.author = "Stewart Charles"
 lvl.init = function()

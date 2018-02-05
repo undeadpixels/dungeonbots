@@ -105,7 +105,9 @@ public class LuaProxyFactory {
 					catch (Exception e) { }
 				});
 		return new LuaBinding(
-				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class)).map(BindTo::value).orElse(src.getSimpleName()),
+				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
+						.map(BindTo::value)
+						.orElse(src.getSimpleName()),
 				t);
 	}
 

@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
@@ -26,7 +28,7 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 
@@ -39,7 +41,7 @@ import org.luaj.vm2.*;
  */
 public class World implements GetLuaFacade, GetLuaSandbox {
 
-	private ReentrantLock renderLock = new ReentrantLock();
+	private ReentrantLock updateLock = new ReentrantLock();
 
     /**
      * The script that defines this world
@@ -180,7 +182,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
-		System.out.println("A winner is you");
+		DungeonBotsMain.instance.setScreen(new MainMenuScreen());
 	}
 
 	public void setPlayer(Player p) {
@@ -202,7 +204,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	 * @param dt	Delta time
 	 */
 	public void update(float dt) {
-		renderLock.lock();
+		updateLock.lock();
 		try {
 			// update tiles from tileTypes, if dirty
 			refreshTiles();
@@ -228,7 +230,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 				level.update();
 		}
 		finally {
-			renderLock.unlock();
+			updateLock.unlock();
 		}
 	}
 	
@@ -524,8 +526,8 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		setDefaultScript(luaValue.checkjstring());
 	}
 
-	public void reset() {
-		renderLock.lock();
+	public synchronized void reset() {
+		updateLock.lock();
 		try {
 			levelScript = null;
 			tiles = new Tile[0][0];
@@ -535,7 +537,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			level.init();
 		}
 		finally {
-			renderLock.unlock();
+			updateLock.unlock();
 		}
 	}
 }
