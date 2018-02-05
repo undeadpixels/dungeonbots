@@ -18,10 +18,10 @@ public class JPlayerEditor extends JPanel {
 		
 		this.setPreferredSize(new Dimension(400,600));
 
-		//JCodeREPL repl = new JCodeREPL(player.getSandbox());				
-		//this.add(repl, BorderLayout.LINE_START);
+		
 		
 		JCodeEditor editor = new JCodeEditor();
+		//editor.setPreferredSize(new Dimension(300,300));
 		this.add(editor, BorderLayout.LINE_START);
 		
 	}

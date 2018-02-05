@@ -39,6 +39,7 @@ import org.luaj.vm2.Varargs;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 
@@ -113,8 +114,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
 
 		JPanel startStopPanel = new JPanel(new BorderLayout());
-		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
-		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
+		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
 		_ExecuteBttn.setFocusable(false);
 		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
@@ -169,14 +170,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				messageError("^Q");
 				Component parent = _EditorPane.getParent();
-				while (parent != null){
-					//System.out.println(parent.getClass().toString());
+				while (parent != null) {
+					// System.out.println(parent.getClass().toString());
 					parent = parent.getParent();
-					if (parent instanceof JDialog){
+					if (parent instanceof JDialog) {
 						JDialog dialog = (JDialog) parent;
 						dialog.setVisible(false);
 					}
-				}								
+				}
 			}
 
 		});
@@ -222,13 +223,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton cutBttn = makeButton("cutBttn.gif", "CUT",
+		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif", "CUT",
 				"Cut from the command line and move the text to the clipboard.", "Cut", this);
-		JButton copyBttn = makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.", "Copy",
+		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.",
+				"Copy", this);
+		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "PASTE",
+				"Paste from the clipboard to the command line.", "Paste", this);
+		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help",
 				this);
-		JButton pasteBttn = makeButton("pasteBttn.gif", "PASTE", "Paste from the clipboard to the command line.",
-				"Paste", this);
-		JButton helpBttn = makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help", this);
 
 		cutBttn.setFocusable(false);
 		copyBttn.setFocusable(false);
@@ -241,44 +243,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		result.add(helpBttn);
 
 		return result;
-	}
-
-	/**
-	 * Creates a button with the appearance described. Don't forget to set a
-	 * listener.
-	 * 
-	 * @param imageURL
-	 *            The image resource that will appear in the button.
-	 * @param actionCommand
-	 *            The command that the button will issue.
-	 * @param toolTipText
-	 *            The tip presented when hovering the mouse over the button.
-	 * @param altText
-	 *            Something-or-other...
-	 * @param l
-	 *            The listener.
-	 * @return Returns a JButton.
-	 */
-	public static JButton makeButton(String imageURL, String actionCommand, String toolTipText, String altText,
-			ActionListener l) {
-
-		JButton resultButton = new JButton();
-		resultButton.setActionCommand(actionCommand);
-		resultButton.setToolTipText(toolTipText);
-		resultButton.setToolTipText(toolTipText);
-
-		resultButton.addActionListener(l);
-
-		URL url = JCodeREPL.class.getResource(imageURL);
-		if (url != null) {
-			resultButton.setIcon(new ImageIcon(url, altText));
-		} else {
-			resultButton.setText(altText);
-			System.err.println("Resource was missing.  Attempted to created button with image at " + imageURL
-					+ ".  Using altText '" + altText + "' as image instead.");
-		}
-
-		return resultButton;
 	}
 
 	/*
@@ -358,7 +322,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					throw new Exception("Script did not execute.");
 				case COMPLETE:
 					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
-					//return interpret(_RunningScript.getResults());
+				// return interpret(_RunningScript.getResults());
 				case RUNNING:
 					throw new Exception("Script is still running.");
 				case TIMEOUT:
@@ -463,9 +427,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * suitable Java object.
 	 */
 	protected static Object interpret(Varargs result) {
-		return result instanceof LuaNil ?
-				"Ok" :
-				result.tojstring();
+		return result instanceof LuaNil ? "Ok" : result.tojstring();
 	}
 
 	/** Returns the code contents being edited in this REPL. */
