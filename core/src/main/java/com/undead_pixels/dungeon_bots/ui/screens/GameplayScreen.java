@@ -13,6 +13,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.File;
 import java.util.HashMap;
 
 import javax.swing.Box;
@@ -31,7 +32,9 @@ import javax.swing.KeyStroke;
 import javax.swing.JDialog;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
@@ -227,6 +230,8 @@ public class GameplayScreen extends Screen {
 		case "Stop":
 		case "Rewind":
 		case "Open":
+			File file = FileControl.openDialog(this);
+			World newWorld = World.fromFile(file);
 		case "Save":
 		case "Save As":
 		case "Exit To Main":

@@ -74,6 +74,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
 		super(new BorderLayout());
+		
+		if (sandbox == null) sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
 
