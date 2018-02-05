@@ -65,7 +65,13 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.name = name;
 		this.id = world.makeID();
 		this.sandbox.addBindable(this);
-		this.userScripts.add(new UserScript("onMyTurn", "print(\"My turn...\")",
+		this.userScripts.add(new UserScript("onMyTurn",
+				"--The default script:\n"
+						+ "print(\"This is a UserScript created during this entity's constructor.\")  \n"
+						+ "print(\"In the future, there could be many scripts that are run, scripts \") \n"
+						+ "print(\"which inherit from the UserScript class and have defineable \") \n"
+						+ "print(\"execution preconditions (things like a monster is close or whatever). \") \n"
+						+ "print(\"For now, this should always run every time through the game loop.\")",
 				UserScript.PLAYER_READ | UserScript.PLAYER_WRITE | UserScript.PLAYER_EXECUTE));
 	}
 

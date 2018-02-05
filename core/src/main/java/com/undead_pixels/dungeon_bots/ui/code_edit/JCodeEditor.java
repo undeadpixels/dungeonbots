@@ -77,6 +77,7 @@ public class JCodeEditor extends JPanel implements ActionListener {
 	 */
 
 	public void setCode(String code) {
+		_Editor.setText(code);
 		/*
 		 * this._Editable = editable;
 		 * 

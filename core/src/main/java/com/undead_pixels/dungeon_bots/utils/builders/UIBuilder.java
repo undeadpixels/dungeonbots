@@ -47,14 +47,12 @@ public class UIBuilder {
 
 		// Set the image if the resource can be found. If it can't set the
 		// contents of the button to the alternative text.
-		if (imageURL != null && !imageURL.equals("")) {
-			Image img = DungeonBotsMain.getImage(imageURL);
-			if (img == null)
-				resultButton.setText(altText);
-			else
-				//Proportionate probably makes sense most times.
-				resultButton.setIcon(new StretchIcon(img, true));
-		}
+		Image img = DungeonBotsMain.getImage(imageURL);
+		if (img == null)
+			resultButton.setText(altText);
+		else
+			//Proportionate probably makes sense most times.
+			resultButton.setIcon(new StretchIcon(img, true));
 
 		resultButton.setPreferredSize(new Dimension(50, 40));
 		return resultButton;
