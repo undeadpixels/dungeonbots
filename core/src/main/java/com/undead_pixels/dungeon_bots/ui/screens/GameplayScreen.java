@@ -34,7 +34,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.ui.JPlayerEditor;
+import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
@@ -204,7 +204,7 @@ public class GameplayScreen extends Screen {
 
 		if (entity instanceof Player) {
 
-			JPlayerEditor jpe = new JPlayerEditor((Player) entity);
+			JEntityEditor jpe = new JEntityEditor((Player) entity);
 			JDialog dialog = new JDialog(this, "Player editor", Dialog.ModalityType.DOCUMENT_MODAL);
 			dialog.add(jpe);
 			
