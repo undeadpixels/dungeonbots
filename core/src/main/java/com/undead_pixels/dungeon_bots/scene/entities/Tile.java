@@ -9,8 +9,9 @@ import org.luaj.vm2.LuaValue;
 /**
  * A tile in the terrain
  * 
- * NOTE - this might eventually have its hierarchy changed, as I'm not sure it needs to extend Entity.
- * If I get around to thinking about it more, I'll make some kind of github issue
+ * NOTE - this might eventually have its hierarchy changed, as I'm not sure it
+ * needs to extend Entity. If I get around to thinking about it more, I'll make
+ * some kind of github issue
  */
 public class Tile extends SpriteEntity {
 
@@ -18,19 +19,25 @@ public class Tile extends SpriteEntity {
 	 * Lazily-loaded LuaValue representing this tile
 	 */
 	private LuaValue luaValue;
-	
+
 	/**
 	 * True if this tile cannot be walked through
 	 */
 	private boolean solid;
 
 	/**
-	 * @param world		The world to contain this Actor
-	 * @param name		The name of this tile
-	 * @param tex		A texture for this Actor
-	 * @param x			Location X, in tiles
-	 * @param y			Location Y, in tiles
-	 * @param solid	True, if this tile cannot be walked through
+	 * @param world
+	 *            The world to contain this Actor
+	 * @param name
+	 *            The name of this tile
+	 * @param tex
+	 *            A texture for this Actor
+	 * @param x
+	 *            Location X, in tiles
+	 * @param y
+	 *            Location Y, in tiles
+	 * @param solid
+	 *            True, if this tile cannot be walked through
 	 */
 	public Tile(World world, String name, TextureRegion tex, float x, float y, boolean solid) {
 		super(world, name, tex, x, y);
@@ -55,7 +62,7 @@ public class Tile extends SpriteEntity {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null)
+		if (this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		return this.luaValue;
 	}
@@ -65,42 +72,35 @@ public class Tile extends SpriteEntity {
 		return id;
 	}
 
+	/**
+	 * Used exclusively for creating an exemplar tile to put in the Level
+	 * Editor's palette.
+	 */
+	public static Tile worldlessTile(String name, boolean solid) {
+		return null;
+	}
+
 	@Bind
 	@Deprecated
 	public static LuaValue Wall(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile(
-				(World)lworld.checktable().checkuserdata(World.class),
-				"wall",
-				null,
-				lx.tofloat(),
-				ly.tofloat(),
-				true);
+		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "wall", null, lx.tofloat(),
+				ly.tofloat(), true);
 		return LuaProxyFactory.getLuaValue(t);
 	}
 
 	@Bind
 	@Deprecated
 	public static LuaValue Floor(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile(
-				(World)lworld.checktable().checkuserdata(World.class),
-				"floor",
-				null,
-				lx.tofloat(),
-				ly.tofloat(),
-				false);
+		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "floor", null, lx.tofloat(),
+				ly.tofloat(), false);
 		return LuaProxyFactory.getLuaValue(t);
 	}
 
 	@Bind
 	@Deprecated
 	public static LuaValue Goal(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile(
-				(World)lworld.checktable().checkuserdata(World.class),
-				"goal",
-				null,
-				lx.tofloat(),
-				ly.tofloat(),
-				false);
+		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "goal", null, lx.tofloat(),
+				ly.tofloat(), false);
 		return LuaProxyFactory.getLuaValue(t);
 	}
 }

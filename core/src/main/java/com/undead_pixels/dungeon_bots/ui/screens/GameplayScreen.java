@@ -112,6 +112,7 @@ public class GameplayScreen extends Screen {
 			
 
 		};
+	
 	}
 
 	

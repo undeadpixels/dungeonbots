@@ -6,11 +6,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
@@ -22,16 +26,15 @@ import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
  */
 public class DungeonBotsMain {
 
-	
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
 	private World _World;
-	
-	/**Returns the world currently associated with this game.*/
-	public World getWorld(){
+	private Vector<Entity> _EntityPalette;
+
+	/** Returns the world currently associated with this game. */
+	public World getWorld() {
 		return _World;
 	}
-	
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
@@ -44,7 +47,41 @@ public class DungeonBotsMain {
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
+
+		// Set up the palettes. TODO: eventually, this data will not be
+		// populated in the constructor, but instead will come from a download
+		// or from specs in a LevelPack.
+		setupPalettes();
+
 	}
+
+	/**
+	 * Returns a references to the palette of entities associated with this
+	 * game.
+	 */
+	public Vector<Entity> getEntityPalette() {
+		return _EntityPalette;
+	}
+
+	private void setupPalettes() {
+		// Set up the bots available.
+		_EntityPalette = new Vector<Entity>();
+		//_EntityPalette.add(Player.worldlessPlayer());
+
+		// Set up the dynamic stuff available.
+		// Nothing right now.
+
+		// Set up the static stuff available.
+		//_EntityPalette.add(Tile.worldlessTile("floor", false));
+		//_EntityPalette.add(Tile.worldlessTile("wall", true));
+		//_EntityPalette.add(Tile.worldlessTile("goal", false));
+	}
+
+	/*
+	 * ================================================================
+	 * DungeonBotsMain GAME MANAGEMENT STUFF
+	 * ================================================================
+	 */
 
 	/**
 	 * Starts the game. Startup will require a login first, and then go to the
@@ -59,8 +96,8 @@ public class DungeonBotsMain {
 		// If there is no valid login, just return.
 		if (!requestLogin(3))
 			return;
-		
-		//Create a new world.
+
+		// Create a new world.
 		_World = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
 
 		// Fire up the main menu screen.
@@ -151,20 +188,18 @@ public class DungeonBotsMain {
 	 * ================================================================
 	 */
 
-	/**Gets an ImageIcon based on the image at the given location.*/
+	/** Gets an ImageIcon based on the image at the given location. */
 	public static Image getImage(String filename) {
 		String path = System.getProperty("user.dir") + "/images/" + filename;
 		BufferedImage img = null;
-		try{
-			img = ImageIO.read(new File(path));			
-		}
-		catch (IOException ioex){
+		try {
+			img = ImageIO.read(new File(path));
+		} catch (IOException ioex) {
 			System.err.println("System resource missing: " + path);
-		}
-		catch(Exception ex){
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		
+
 		return img;
 	}
 }
