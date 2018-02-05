@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -182,11 +181,12 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
-		DungeonBotsMain.instance.setScreen(new MainMenuScreen());
+		DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 	}
 
 	public void setPlayer(Player p) {
 		player = p;
+		entities.add(p);
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
@@ -531,7 +531,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		try {
 			levelScript = null;
 			tiles = new Tile[0][0];
-			player = null;
 			entities.clear();
 			backgroundImage = null;
 			level.init();

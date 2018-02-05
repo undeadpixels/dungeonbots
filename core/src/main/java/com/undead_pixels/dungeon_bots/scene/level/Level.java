@@ -13,7 +13,7 @@ public class Level {
 
 	public Level init() {
 		sandboxedValue.invoke(varargs ->
-			varargs.arg1().get("init").invoke());
+			varargs.checktable(1).get("init").invoke());
 		return this;
 	}
 

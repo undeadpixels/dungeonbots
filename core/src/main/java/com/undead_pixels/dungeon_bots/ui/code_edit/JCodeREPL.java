@@ -33,18 +33,16 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import com.undead_pixels.dungeon_bots.scene.World;
 import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 
-	private World world;
+	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
 	private final int MAX_HISTORY_COUNT = 100;
@@ -69,14 +67,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Creates a new REPL. All code will execute in a brand-new sandbox. */
 	public JCodeREPL() {
-		this(new World());
+		this(new LuaSandbox(SecurityLevel.DEBUG));
 	}
 
 	/** Creates a new REPL. All code will execute in the given sandbox. */
-	public JCodeREPL(World w) {
+	public JCodeREPL(LuaSandbox sandbox) {
 		super(new BorderLayout());
 
-		world = w;
+		_Sandbox = sandbox;
 
 		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
@@ -115,8 +113,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
 
 		JPanel startStopPanel = new JPanel(new BorderLayout());
-		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
-		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
+		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
 		_ExecuteBttn.setFocusable(false);
 		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
@@ -171,14 +169,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				messageError("^Q");
 				Component parent = _EditorPane.getParent();
-				while (parent != null) {
-					// System.out.println(parent.getClass().toString());
+				while (parent != null){
+					//System.out.println(parent.getClass().toString());
 					parent = parent.getParent();
-					if (parent instanceof JDialog) {
+					if (parent instanceof JDialog){
 						JDialog dialog = (JDialog) parent;
 						dialog.setVisible(false);
 					}
-				}
+				}								
 			}
 
 		});
@@ -224,14 +222,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif", "CUT",
+		JButton cutBttn = makeButton("cutBttn.gif", "CUT",
 				"Cut from the command line and move the text to the clipboard.", "Cut", this);
-		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.",
-				"Copy", this);
-		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "PASTE",
-				"Paste from the clipboard to the command line.", "Paste", this);
-		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help",
+		JButton copyBttn = makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.", "Copy",
 				this);
+		JButton pasteBttn = makeButton("pasteBttn.gif", "PASTE", "Paste from the clipboard to the command line.",
+				"Paste", this);
+		JButton helpBttn = makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help", this);
 
 		cutBttn.setFocusable(false);
 		copyBttn.setFocusable(false);
@@ -244,6 +241,44 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		result.add(helpBttn);
 
 		return result;
+	}
+
+	/**
+	 * Creates a button with the appearance described. Don't forget to set a
+	 * listener.
+	 * 
+	 * @param imageURL
+	 *            The image resource that will appear in the button.
+	 * @param actionCommand
+	 *            The command that the button will issue.
+	 * @param toolTipText
+	 *            The tip presented when hovering the mouse over the button.
+	 * @param altText
+	 *            Something-or-other...
+	 * @param l
+	 *            The listener.
+	 * @return Returns a JButton.
+	 */
+	public static JButton makeButton(String imageURL, String actionCommand, String toolTipText, String altText,
+			ActionListener l) {
+
+		JButton resultButton = new JButton();
+		resultButton.setActionCommand(actionCommand);
+		resultButton.setToolTipText(toolTipText);
+		resultButton.setToolTipText(toolTipText);
+
+		resultButton.addActionListener(l);
+
+		URL url = JCodeREPL.class.getResource(imageURL);
+		if (url != null) {
+			resultButton.setIcon(new ImageIcon(url, altText));
+		} else {
+			resultButton.setText(altText);
+			System.err.println("Resource was missing.  Attempted to created button with image at " + imageURL
+					+ ".  Using altText '" + altText + "' as image instead.");
+		}
+
+		return resultButton;
 	}
 
 	/*
@@ -311,7 +346,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			PrintStream originalOut = System.out;
 			try {
 
-				_RunningScript = world.getPlayer().getSandbox().init(executingCode).join(_milliseconds);
+				_RunningScript = _Sandbox.script(executingCode);
+				_RunningScript.start();
+				_RunningScript.join(_milliseconds);
 
 				if (_RunningScript.getError() != null)
 					return _RunningScript.getError();
@@ -321,7 +358,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					throw new Exception("Script did not execute.");
 				case COMPLETE:
 					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
-				// return interpret(_RunningScript.getResults());
+					//return interpret(_RunningScript.getResults());
 				case RUNNING:
 					throw new Exception("Script is still running.");
 				case TIMEOUT:
@@ -426,7 +463,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * suitable Java object.
 	 */
 	protected static Object interpret(Varargs result) {
-		return result instanceof LuaNil ? "Ok" : result.tojstring();
+		return result instanceof LuaNil ?
+				"Ok" :
+				result.tojstring();
 	}
 
 	/** Returns the code contents being edited in this REPL. */
