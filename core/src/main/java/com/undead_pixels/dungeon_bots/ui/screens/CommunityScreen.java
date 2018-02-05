@@ -2,10 +2,11 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.Container;
 
-/**
- * The screen that shows users how well they did on the challenge they were given
- */
-public class ResultsScreen extends Screen {
+public class CommunityScreen extends Screen {
+
+	public CommunityScreen() {
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	protected ScreenController makeController() {
@@ -16,7 +17,7 @@ public class ResultsScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

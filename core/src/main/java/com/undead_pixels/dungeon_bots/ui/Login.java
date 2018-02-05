@@ -37,10 +37,10 @@ public class Login extends JDialog {
 	 */
 
 	private User _User = null;
-	private int _Attempts = 0;
+	private int _Attempts;
 	private final int MAX_ATTEMPTS = 3;
 
-	private Login(Frame frame) {
+	private Login(Frame frame, int attempts) {
 
 		super(frame, "Welcome to DungeonBots", true);
 
@@ -109,22 +109,24 @@ public class Login extends JDialog {
 		setLocation((Toolkit.getDefaultToolkit().getScreenSize().width) / 2 - getWidth() / 2,
 				(Toolkit.getDefaultToolkit().getScreenSize().height) / 2 - getHeight() / 2);
 
+		_Attempts = attempts;
+
 		bttnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				char[] pswd = pswdField.getPassword();
 				pswdField.setText("");
-				_Attempts++;
+				_Attempts--;
 				String userName = txtUserName.getText();
 				_User = fetchUser(userName, pswd);
 				if (_User != null)
 					// Valid login.
 					dispose();
-				else if (_Attempts < MAX_ATTEMPTS) {
+				else if (_Attempts > 0) {
 					JOptionPane.showMessageDialog(Login.this, "Invalid user name or password.  You have "
 							+ (MAX_ATTEMPTS - _Attempts) + " attempts remaining.", "Login.", JOptionPane.ERROR_MESSAGE);
 					txtUserName.setText("");
 
-				} else {
+				} else { // _Attempts <= 0
 					JOptionPane.showMessageDialog(Login.this, "Invalid user name or password.  Max attempts reached.",
 							"Login.", JOptionPane.ERROR_MESSAGE);
 					dispose();
@@ -192,7 +194,8 @@ public class Login extends JDialog {
 			JOptionPane.showMessageDialog(this, "Error fetching user:\n" + ex.toString());
 			return null;
 		} finally {
-			// This procedure so passwords don't exist as garbage somewhere in
+			// This procedure so passwords attempts don't exist as garbage
+			// somewhere in
 			// memory:
 			for (int i = 0; i < password.length; i++)
 				password[i] = 0;
@@ -200,12 +203,12 @@ public class Login extends JDialog {
 
 	}
 
-	public static User challenge(String message) {
+	public static User challenge(String message, int attempts) {
 		JFrame loginFrame = new JFrame(message);
 		loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		loginFrame.setLayout(new FlowLayout());
 		loginFrame.setSize(300, 250);
-		Login login = new Login(loginFrame);
+		Login login = new Login(loginFrame, attempts);
 		login.setVisible(true);
 		User result = login._User;
 		loginFrame.dispose();
