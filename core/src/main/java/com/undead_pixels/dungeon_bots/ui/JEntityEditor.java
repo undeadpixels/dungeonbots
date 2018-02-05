@@ -115,9 +115,13 @@ public class JEntityEditor extends JPanel {
 		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
 		scriptPanel.add(_Editor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
+		
+		JCodeREPL repl = new JCodeREPL();
+		
 
 		JTabbedPane tabPane = new JTabbedPane();
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
+		tabPane.addTab("REPL",  null, repl, "Instantaneous script runner.");
 
 		this.add(tabPane, BorderLayout.LINE_START);
 
