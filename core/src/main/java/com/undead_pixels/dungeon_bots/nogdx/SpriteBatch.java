@@ -146,4 +146,18 @@ public class SpriteBatch {
 		
 	}
 
+	public void drawLine(float x1, float y1, float x2, float y2) {
+		g.setTransform(new AffineTransform());
+
+		Point2D t1 = projection.transform(new Point2D.Float(x1, y1), new Point2D.Float());
+		Point2D t2 = projection.transform(new Point2D.Float(x2, y2), new Point2D.Float());
+
+		int x1t = (int) t1.getX();
+		int y1t = (int) t1.getY();
+		int x2t = (int) t2.getX();
+		int y2t = (int) t2.getY();
+		
+		g.drawLine(x1t, y1t, x2t, y2t);
+	}
+
 }
