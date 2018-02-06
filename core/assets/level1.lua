@@ -55,7 +55,7 @@ tbl.update = function()
     local x, y = world:getPlayer():position()
     if x == 5 and y == 5 then
         world:win()
-    end
+    end    
 end
 
 return tbl

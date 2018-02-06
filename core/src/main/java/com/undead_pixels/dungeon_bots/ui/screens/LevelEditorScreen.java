@@ -93,13 +93,10 @@ public class LevelEditorScreen extends Screen {
 					Object selection = _PaletteSelector.getSelectedValue();
 					if (selection == null)
 						return;
-					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-					int x = (int) gamePosition.x;
-					int y = (int) gamePosition.y;
 					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(x, y);
-						world.setTile(x, y, drawType);
+						TileType currentTile = world.getTile(e.getX(), e.getY());
+						world.setTile(e.getX(), e.getY(), drawType);
 					}
 					e.consume();
 				}
@@ -113,13 +110,11 @@ public class LevelEditorScreen extends Screen {
 					Object selection = _PaletteSelector.getSelectedValue();
 					if (selection == null)
 						return;
-					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-					int x = (int) gamePosition.x;
-					int y = (int) gamePosition.y;
 					if (selection instanceof TileType) {
+						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(x, y);
-						world.setTile(x, y, drawType);
+						TileType currentTile = world.getTile(e.getX(), e.getY());
+						world.setTile(e.getX(), e.getY(), drawType);
 					}
 					e.consume();
 				}
@@ -135,7 +130,7 @@ public class LevelEditorScreen extends Screen {
 					file = FileControl.saveAsDialog(LevelEditorScreen.this);
 					if (file != null) {
 						String lua = world.getMapScript();
-						
+
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 							writer.write(lua);
 						} catch (IOException e1) {
@@ -181,7 +176,6 @@ public class LevelEditorScreen extends Screen {
 						}
 					}
 				}
-
 			}
 
 			@Override
@@ -286,7 +280,6 @@ public class LevelEditorScreen extends Screen {
 			} else
 				System.err.println("Unexpected component type returned in " + this.getClass().getName() + ":"
 						+ c.getClass().getName());
-
 			return c;
 		}
 	}
@@ -328,9 +321,9 @@ public class LevelEditorScreen extends Screen {
 		controlPanel.add(new JLabel("Associated lines of code:"));
 		controlPanel.add(new JLabel("Queue size:"));
 
-		// Create the top-of-screen menu
+		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
-		fileMenu.setPreferredSize(new Dimension(80, 30));
+		fileMenu.setPreferredSize(new Dimension(50, 25));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		fileMenu.add(UIBuilder.makeMenuItem("Open", KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_O, getController()));
@@ -346,30 +339,46 @@ public class LevelEditorScreen extends Screen {
 		fileMenu.add(UIBuilder.makeMenuItem("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_Q, getController()));
 
+		// Create the world menu.
 		JMenu worldMenu = new JMenu("World");
 		worldMenu.setMnemonic(KeyEvent.VK_B);
-		worldMenu.setPreferredSize(new Dimension(80, 30));
+		worldMenu.setPreferredSize(new Dimension(50, 25));
 		worldMenu.add(UIBuilder.makeMenuItem("Data", KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_D, getController()));
+		worldMenu.add(UIBuilder.makeMenuItem("Scripts", null, KeyEvent.VK_S, getController()));
 
+		// Create the publish menu.
 		JMenu publishMenu = new JMenu("Publish");
 		publishMenu.setMnemonic(KeyEvent.VK_P);
-		publishMenu.setPreferredSize(new Dimension(80, 30));
+		publishMenu.setPreferredSize(new Dimension(50, 25));
+		publishMenu.add(UIBuilder.makeMenuItem("Choose Stats", null, KeyEvent.VK_C, getController()));
 		publishMenu.add(UIBuilder.makeMenuItem("Audience", KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_A, getController()));
 		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_U, getController()));
 
+		// Create the help menu.
+		JMenu helpMenu = new JMenu("Help");
+		helpMenu.setMnemonic(KeyEvent.VK_H);
+		helpMenu.setPreferredSize(new Dimension(50, 30));
+		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
+
+		// Create the zoom slider.
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener(getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
+		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
+		menuBar.add(publishMenu);
+		menuBar.add(helpMenu);
 		menuBar.add(zoomSlider);
+		
 
+		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
