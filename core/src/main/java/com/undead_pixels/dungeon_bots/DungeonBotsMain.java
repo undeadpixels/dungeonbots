@@ -71,10 +71,6 @@ public class DungeonBotsMain {
 		if (_Screen != null)
 			throw new RuntimeException("Multiple instances of the game cannot be run.");
 
-		// If there is no valid login, just return.
-		if (!requestLogin(3))
-			return;
-
 		// Create a new world.
 		_World = new World(new File("level1.lua"));
 
@@ -97,6 +93,13 @@ public class DungeonBotsMain {
 		if (_Screen != null) {
 			_Screen.dispose();
 		}
+
+		// Sanity check.
+		assert newScreen != null;
+
+		// If there is no valid login, just return.
+		if (!(newScreen instanceof MainMenuScreen) && getUser() == null && !requestLogin(3))
+			return;
 
 		// Start the new screen.
 		_Screen = newScreen;
