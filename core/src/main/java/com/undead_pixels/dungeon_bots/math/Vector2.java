@@ -1,5 +1,11 @@
 package com.undead_pixels.dungeon_bots.math;
 
+import java.awt.geom.Point2D;
+
+/**
+ * Will be replaced with java.awt.geom.Point2D.Float
+ */
+@Deprecated
 public class Vector2 {
 	public final float x, y;
 

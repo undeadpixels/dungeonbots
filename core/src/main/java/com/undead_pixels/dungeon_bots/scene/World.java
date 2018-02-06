@@ -253,14 +253,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	public void render(SpriteBatch batch) {
 		refreshTiles();
-		// System.out.println("Rendering world");
-
-		// cam.translate(w/2, h/2);
-
-		// TODO - probably use a better background color once we have things
-		// stable
-		batch.glClearColor(new Color(.65f, .2f, 0, 1));
-		batch.glClear();
+		
+		//System.out.println("Rendering world");
+		
+		//cam.translate(w/2, h/2);
+		
+		// clear to black
+		batch.setClearColor(new Color(.0f, .0f, .0f, 1));
+		batch.clearContext();
 
 		// draw background image
 		batch.begin();
