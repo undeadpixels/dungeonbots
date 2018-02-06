@@ -4,59 +4,41 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.EventListener;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
-import java.util.function.Consumer;
+import java.awt.event.WindowEvent;
+import java.io.File;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
-import javax.swing.JWindow;
+
 import javax.swing.KeyStroke;
-import javax.swing.ListCellRenderer;
-import javax.swing.ListModel;
-import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
-import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
-import com.undead_pixels.dungeon_bots.ui.screens.Screen.ScreenController;
+
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 /**
@@ -65,6 +47,7 @@ import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
  * @author Wesley
  *
  */
+@SuppressWarnings("serial")
 public class LevelEditorScreen extends Screen {
 
 	/**
@@ -87,157 +70,182 @@ public class LevelEditorScreen extends Screen {
 		for (TileType t : world.getTileTypes())
 			lm.addElement(t);
 		_PaletteSelector.setModel(lm);
+		_PaletteSelector.validate();
 		// TODO: add other types of elements.
 
 		view.addMouseMotionListener(getController());
 	}
 
-	private class LevelEditorController extends ScreenController {
-
-		public Object drawingObject;
-		public int drawingStroke;
-
-		public static final int POINT = 1;
-		public static final int LINE = 2;
-		public static final int AREA = 3;
-
-		
-		
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (e.getSource() == view) {
-				if (world == null)
-					return;
-				Object selection = _PaletteSelector.getSelectedValue();
-				if (selection == null)
-					return;
-				Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-				int x = (int) gamePosition.x;
-				int y = (int) gamePosition.y;
-				if (selection instanceof TileType) {
-					TileType drawType = (TileType) selection;
-					TileType currentTile = world.getTile(x, y);
-					world.setTile(x, y, drawType);
-				}
-				e.consume();
-			}
-		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {			
-			if (e.getSource() == view) {				
-				if (world == null)
-					return;
-				Object selection = _PaletteSelector.getSelectedValue();
-				if (selection == null)
-					return;
-				Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-				int x = (int) gamePosition.x;
-				int y = (int) gamePosition.y;
-				if (selection instanceof TileType) {
-					TileType drawType = (TileType) selection;
-					TileType currentTile = world.getTile(x, y);
-					world.setTile(x, y, drawType);
-				}
-				e.consume();
-			}
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent arg0) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent arg0) {
-		}
-
-		@Override
-		public void mousePressed(MouseEvent arg0) {
-			System.out.println("Mouse pressed");
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent arg0) {
-		}
-
-		@Override
-		public void keyPressed(KeyEvent arg0) {
-
-		}
-
-		@Override
-		public void keyReleased(KeyEvent arg0) {
-		}
-
-		@Override
-		public void keyTyped(KeyEvent arg0) {
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent arg0) {
-
-		}
-
-		/** Tells the palette list how to draw the things inside the list. */
-		ListCellRenderer paletteItemRenderer = new ListCellRenderer();
-
-		@SuppressWarnings("serial")
-		private class ListCellRenderer extends DefaultListCellRenderer {
-
-			// As suggested by "SeniorJD",
-			// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
-			// Sep 19 2013
-
-			@Override
-			public Component getListCellRendererComponent(JList<? extends Object> list, Object item, int index,
-					boolean isSelected, boolean cellHasFocus) {
-				Component c = super.getListCellRendererComponent(list, item, index, isSelected, cellHasFocus);
-				if (c instanceof JLabel) { // it would work because
-											// DefaultListCellRenderer usually
-											// returns instance of JLabel
-					JLabel lbl = (JLabel) c;
-					if (item instanceof TileType) {
-						TileType tt = (TileType) item;
-						lbl.setText(tt.getName());
-					} else
-						lbl.setText(item.toString());
-				}
-
-				return c;
-			}
-		}
-
-		/*
-		 * ListSelectionListener paletteListener = new ListSelectionListener() {
-		 * 
-		 * @Override public void valueChanged( ListSelectionEvent e) { int idx =
-		 * e.getFirstIndex(); if (idx != e.getLastIndex()) throw new
-		 * IllegalStateException("Only one item can be selected at a time." );
-		 * 
-		 * @SuppressWarnings( "unchecked") JList<Object> list = (JList<Object>)
-		 * e.getSource();
-		 * 
-		 * drawingObject = list.getSelectedValue(); } };
-		 */
-	}
-
-	/**
-	 * Convenience method for getting the current controller as a
-	 * LevelEditorController.
-	 */
-	/** Returns the LevelEditorController. */
-	protected LevelEditorController getController() {
-		return (LevelEditorController) super.getController();
-	}
-
 	@Override
 	protected ScreenController makeController() {
-		return new LevelEditorController();
+		return new ScreenController() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getSource() == view) {
+					if (world == null)
+						return;
+					Object selection = _PaletteSelector.getSelectedValue();
+					if (selection == null)
+						return;
+					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					int x = (int) gamePosition.x;
+					int y = (int) gamePosition.y;
+					if (selection instanceof TileType) {
+						TileType drawType = (TileType) selection;
+						TileType currentTile = world.getTile(x, y);
+						world.setTile(x, y, drawType);
+					}
+					e.consume();
+				}
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if (e.getSource() == view) {
+					if (world == null)
+						return;
+					Object selection = _PaletteSelector.getSelectedValue();
+					if (selection == null)
+						return;
+					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					int x = (int) gamePosition.x;
+					int y = (int) gamePosition.y;
+					if (selection instanceof TileType) {
+						TileType drawType = (TileType) selection;
+						TileType currentTile = world.getTile(x, y);
+						world.setTile(x, y, drawType);
+					}
+					e.consume();
+				}
+			}
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				switch (e.getActionCommand()) {
+
+				case "Open":
+					File file = FileControl.openDialog(LevelEditorScreen.this);
+					// World newWorld = World.fromFile(file);
+					break;
+				case "Exit to Main":
+					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
+							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+					break;
+				case "Quit":
+
+				default:
+					System.out.println("Have not implemented the command: " + e.getActionCommand());
+					break;
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				System.out.println("Mouse pressed");
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+
+			}
+
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+			}
+
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent arg0) {
+
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		};
+	}
+
+	/** Handles the rendering of TileTypes in the TileType palette. */	
+	private class PaletteItemRenderer extends DefaultListCellRenderer {
+		// As suggested by "SeniorJD",
+		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
+		// Sep. 19, 2013
+
+		@Override
+		public Component getListCellRendererComponent(JList<? extends Object> list, Object item, int index,
+				boolean isSelected, boolean cellHasFocus) {
+			Component c = super.getListCellRendererComponent(list, item, index, isSelected, cellHasFocus);
+			if (c instanceof JLabel) {
+				// Are there any cases where a JLabel is not returned by
+				// DefaultListCellRenderer?
+				JLabel lbl = (JLabel) c;
+				if (item instanceof TileType) {
+					TileType tt = (TileType) item;
+					lbl.setText(tt.getName());
+				} else
+					lbl.setText(item.toString());
+			} else
+				System.err.println("Unexpected component type returned in " + this.getClass().getName() + ":"
+						+ c.getClass().getName());
+
+			return c;
+		}
 	}
 
 	@Override
@@ -263,7 +271,7 @@ public class LevelEditorScreen extends Screen {
 		// Create the palette, but don't add elements - there's no ref to world
 		// yet.
 		_PaletteSelector = new JList<Object>();
-		_PaletteSelector.setCellRenderer(getController().paletteItemRenderer);
+		_PaletteSelector.setCellRenderer(new PaletteItemRenderer());
 		_PaletteSelector.setPreferredSize(new Dimension(150, 300));
 		JScrollPane paletteScroller = new JScrollPane(_PaletteSelector);
 		paletteScroller.setBorder(BorderFactory.createTitledBorder("Current Tile"));
@@ -335,5 +343,4 @@ public class LevelEditorScreen extends Screen {
 
 	}
 
-	
 }

@@ -10,6 +10,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowListener;
 import java.util.HashMap;
 
 import javax.swing.JComponent;
@@ -18,6 +19,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
+import javax.swing.event.MouseInputListener;
 
 /**
  * Defines GUI and control interface. A protected GUI state can be stored.
@@ -80,7 +82,8 @@ public abstract class Screen extends JFrame {
 	 * Screen class. If a different controller is desired, it can be replaced.
 	 */
 	protected void setController(ScreenController controller) {		
-		_Controller = controller;		
+		_Controller = controller;	
+		
 	}
 
 	/**
@@ -89,7 +92,7 @@ public abstract class Screen extends JFrame {
 	 * must be extended in any class that inherits from Screen.
 	 */
 	protected abstract class ScreenController
-			implements MouseListener, KeyListener, MouseMotionListener, ActionListener {
+			implements MouseInputListener, KeyListener, ActionListener, WindowListener {
 	}
 
 	/*

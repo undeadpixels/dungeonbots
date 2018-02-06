@@ -30,7 +30,7 @@ public class DungeonBotsMain {
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
 	private World _World;
-	private Vector<Entity> _EntityPalette;
+	
 
 	/** Returns the world currently associated with this game. */
 	public World getWorld() {
@@ -49,29 +49,11 @@ public class DungeonBotsMain {
 	 */
 	private DungeonBotsMain() {
 
-		// Set up the palettes. TODO: eventually, this data will not be
-		// populated in the constructor, but instead will come from a download
-		// or from specs in a LevelPack.
-		setupPalettes();
+		
 
 	}
 
 	
-
-	private void setupPalettes() {
-		// Set up the bots available.
-		_EntityPalette = new Vector<Entity>();
-		//_EntityPalette.add(Player.worldlessPlayer());
-
-		// Set up the dynamic stuff available.
-		// Nothing right now.
-		
-
-		// Set up the static stuff available.
-		//_EntityPalette.add(Tile.worldlessTile("floor", false));
-		//_EntityPalette.add(Tile.worldlessTile("wall", true));
-		//_EntityPalette.add(Tile.worldlessTile("goal", false));
-	}
 
 	/*
 	 * ================================================================
