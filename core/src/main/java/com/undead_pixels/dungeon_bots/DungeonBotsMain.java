@@ -107,6 +107,7 @@ public class DungeonBotsMain {
 
 		// Start the new screen.
 		_Screen = newScreen;
+		//_Screen.pack();
 		_Screen.setVisible(true);
 	}
 

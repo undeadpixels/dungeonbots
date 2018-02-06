@@ -65,7 +65,7 @@ public class OrthographicCamera {
 	public void setViewportSize(float w, float h) {
 		viewportWidth = w;
 		viewportHeight = h;
-		setZoomFor(new Vector2(w * zoom, h * zoom));
+		//setZoomFor(new Vector2(w * zoom, h * zoom));
 	}
 
 	public Vector2 getViewportSize() {
