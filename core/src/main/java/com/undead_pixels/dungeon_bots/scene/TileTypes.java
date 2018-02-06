@@ -81,8 +81,9 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 		// register some default tile types
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
-		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
-		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
+		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
+		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
+		registerTile("goal", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 3, 5, null, false, false);
 	}
 
 	@Bind @BindTo("new")
@@ -119,12 +120,18 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	 * @param solid			True if this tile cannot be walked through
 	 */
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
-		int len = variations.length;
+		
+		int len = 1;
+		if(variations != null) {
+			len = variations.length;
+		}
 		TextureRegion[] regions = new TextureRegion[len];
 		for(int i = 0; i < len; i++) {
 			//regions[i] = new TextureRegion(new Texture("DawnLike/Objects/Floor.png"), ts*1, ts*4, ts, ts);
 			if(texture == null) {
 				regions[i] = null;
+			} else if(variations == null) {
+				regions[i] = new TextureRegion(texture, (int)(tilesize*x), (int)(tilesize*y), tilesize, tilesize);
 			} else {
 				regions[i] = new TextureRegion(texture, (int)(tilesize*(x+variations[i].x)), (int)(tilesize*(y+variations[i].y)), tilesize, tilesize);
 			}
