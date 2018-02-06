@@ -223,7 +223,6 @@ public class GameplayScreen extends Screen {
 							int newSlider = sldr.getValue();
 							cam.setZoom(cam.getZoom() + ((newSlider - priorZoomSlider) * 0.001f));
 							priorZoomSlider = newSlider;
-							System.out.println(cam.getZoom());
 						}
 					}
 				}

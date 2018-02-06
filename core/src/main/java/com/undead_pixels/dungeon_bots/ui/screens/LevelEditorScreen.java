@@ -28,7 +28,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-
+import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 
@@ -36,6 +36,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -143,6 +144,25 @@ public class LevelEditorScreen extends Screen {
 				}
 			}
 
+			int priorZoomSlider = 50;
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (e.getSource() instanceof JSlider) {
+					JSlider sldr = (JSlider) e.getSource();
+					if (sldr.getName().equals("zoomSlider")) {
+						OrthographicCamera cam = view.getCamera();
+						if (cam != null) {
+							// TODO: This is very hack-like. Work out the math.
+							int newSlider = sldr.getValue();
+							cam.setZoom(cam.getZoom() + ((newSlider - priorZoomSlider) * 0.001f));
+							priorZoomSlider = newSlider;
+						}
+					}
+				}
+
+			}
+
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
 			}
@@ -220,16 +240,10 @@ public class LevelEditorScreen extends Screen {
 
 			}
 
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
 		};
 	}
 
-	
-	/** Handles the rendering of TileTypes in the TileType palette. */	
+	/** Handles the rendering of TileTypes in the TileType palette. */
 	private class PaletteItemRenderer extends DefaultListCellRenderer {
 		// As suggested by "SeniorJD",
 		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
@@ -325,9 +339,15 @@ public class LevelEditorScreen extends Screen {
 		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_U, getController()));
 
+		JSlider zoomSlider = new JSlider();
+		zoomSlider.setName("zoomSlider");
+		zoomSlider.addChangeListener(getController());
+		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
+		menuBar.add(zoomSlider);
 
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);
