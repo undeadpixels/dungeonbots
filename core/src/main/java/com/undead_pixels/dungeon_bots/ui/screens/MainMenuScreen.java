@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -140,7 +141,12 @@ public class MainMenuScreen extends Screen {
 			DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
 			break;
 		case "COMMUNITY":
-			DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
+			//DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
+			try {
+				java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			break;
 		case "QUIT":
 			System.exit(0);
