@@ -54,7 +54,7 @@ tbl.init = function()
     end
     local player = Player.new(world, 2, 2)
     world:setPlayer(player)
-    world:setGoal(5,5)
+    world:setTile(5,5, tileTypes:getTile("goal"))
 end
 
 tbl.update = function(dt)

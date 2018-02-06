@@ -213,7 +213,7 @@ public class ResultsScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 		pane.add(statsList, BorderLayout.CENTER);
 		pane.add(bttnPanel, BorderLayout.PAGE_END);
-
+		DungeonBotsMain.instance.getWorld().reset();
 	}
 
 	@Override
