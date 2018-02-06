@@ -194,9 +194,8 @@ public class ResultsScreen extends Screen {
 		bttnPanel.add(bttnOK);
 		bttnPanel.add(UIBuilder.makeButton("", "Publish", "Publish", "Publish", getController()));
 
-		// Map<String, Object> endingState =
-		// DungeonBotsMain.instance.getWorld().getState();
-		Map<String, Object> endingState = new HashMap<String, Object>();
+		Map<String, Object> endingState = DungeonBotsMain.instance.getWorld().getState();
+		//Map<String, Object> endingState = new HashMap<String, Object>();
 		Vector<Entry<String, Object>> entries = new Vector<Entry<String, Object>>(endingState.entrySet());
 		JList<Entry<String, Object>> statsList = new JList<Entry<String, Object>>(entries);
 		statsList.setLayoutOrientation(JList.VERTICAL);
