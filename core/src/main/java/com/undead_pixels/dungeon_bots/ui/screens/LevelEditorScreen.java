@@ -160,7 +160,6 @@ public class LevelEditorScreen extends Screen {
 				}
 			}
 
-
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (e.getSource() instanceof JSlider) {
@@ -168,8 +167,7 @@ public class LevelEditorScreen extends Screen {
 					if (sldr.getName().equals("zoomSlider")) {
 						OrthographicCamera cam = view.getCamera();
 						if (cam != null) {
-							cam.setZoomOnMinMaxRange((float)(sldr.getValue())/sldr.getMaximum());
-							System.out.println(cam.getZoom());
+							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
 						}
 					}
 				}
@@ -373,7 +371,6 @@ public class LevelEditorScreen extends Screen {
 		menuBar.add(publishMenu);
 		menuBar.add(helpMenu);
 		menuBar.add(zoomSlider);
-		
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);

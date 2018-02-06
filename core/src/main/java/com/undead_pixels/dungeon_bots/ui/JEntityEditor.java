@@ -81,7 +81,7 @@ public class JEntityEditor extends JPanel {
 		super(new BorderLayout());
 		_Entity = entity;
 
-		this.setPreferredSize(new Dimension(800, 600));
+		//this.setPreferredSize(new Dimension(800, 600));
 
 		DefaultListModel<UserScript> listModel = new DefaultListModel<UserScript>();
 		for (UserScript u : entity.userScripts)
@@ -120,8 +120,9 @@ public class JEntityEditor extends JPanel {
 		
 
 		JTabbedPane tabPane = new JTabbedPane();
-		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
 		tabPane.addTab("REPL",  null, repl, "Instantaneous script runner.");
+		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
+		
 
 		this.add(tabPane, BorderLayout.LINE_START);
 

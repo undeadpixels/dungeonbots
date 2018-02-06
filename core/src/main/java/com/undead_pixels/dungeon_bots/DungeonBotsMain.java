@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots;
 
-
 import com.undead_pixels.dungeon_bots.ui.Login;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -25,18 +24,21 @@ public class DungeonBotsMain {
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
 	private World _World;
-	
 
 	/** Returns the world currently associated with this game. */
 	public World getWorld() {
 		return _World;
 	}
-	public void setWorld(World world){
+
+	public void setWorld(World world) {
 		_World = world;
-		
-		if (_Screen instanceof GameplayScreen) setCurrentScreen(new GameplayScreen());
-		else if (_Screen instanceof LevelEditorScreen) setCurrentScreen(new GameplayScreen());
-		else setCurrentScreen(new MainMenuScreen());
+
+		if (_Screen instanceof GameplayScreen)
+			setCurrentScreen(new GameplayScreen());
+		else if (_Screen instanceof LevelEditorScreen)
+			setCurrentScreen(new GameplayScreen());
+		else
+			setCurrentScreen(new MainMenuScreen());
 	}
 
 	/**
@@ -49,11 +51,9 @@ public class DungeonBotsMain {
 	/**
 	 * private constructor for singleton
 	 */
-	private DungeonBotsMain() {	
+	private DungeonBotsMain() {
 
 	}
-
-	
 
 	/*
 	 * ================================================================
@@ -100,7 +100,7 @@ public class DungeonBotsMain {
 
 		// Start the new screen.
 		_Screen = newScreen;
-		//_Screen.pack();
+		// _Screen.pack();
 		_Screen.setVisible(true);
 	}
 
@@ -169,12 +169,14 @@ public class DungeonBotsMain {
 
 	/** Gets an ImageIcon based on the image at the given location. */
 	public static Image getImage(String filename) {
+		if (filename == null || filename.equals(""))
+			return null;
 		String path = System.getProperty("user.dir") + "/images/" + filename;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(path));
 		} catch (IOException ioex) {
-			System.err.println("System resource missing: " + path);
+			System.err.println("Image resource missing: " + path);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
