@@ -385,6 +385,18 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	}
 
 	/**
+	 * Returns the tile at the given location. If outside the world boundaries,
+	 * returns null.
+	 */
+	public TileType getTile(int x, int y) {
+		if (x < 0 || x >= tileTypes.length)
+			return null;
+		if (y < 0 || y >= tileTypes[x].length)
+			return null;
+		return tileTypes[x][y];
+	}
+
+	/**
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -537,9 +549,4 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		setDefaultScript(luaValue.checkjstring());
 	}
 
-	/** Generates a world from the given file. */
-	public static World fromFile(File file) {
-		//if (file.)
-		return null;
-	}
 }

@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -16,7 +18,7 @@ import org.luaj.vm2.LuaValue;
 /**
  * A collection of TileType's
  */
-public class TileTypes implements GetLuaFacade {
+public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 	/**
 	 * Internal storage
@@ -158,5 +160,23 @@ public class TileTypes implements GetLuaFacade {
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		}
 		return this.luaValue;
+	}
+
+	@Override
+	public Iterator<TileType> iterator() {
+		return new Iterator<TileType>(){
+
+			private Iterator<Entry<String, TileType>> _hashMapIterator = typeMap.entrySet().iterator();
+			@Override
+			public boolean hasNext() {
+				return _hashMapIterator.hasNext();
+			}
+
+			@Override
+			public TileType next() {
+				return _hashMapIterator.next().getValue();
+			}
+			
+		};
 	}
 }

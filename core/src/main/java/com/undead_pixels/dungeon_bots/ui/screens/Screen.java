@@ -79,8 +79,8 @@ public abstract class Screen extends JFrame {
 	 * The default controller simply calls overrideable functions from the
 	 * Screen class. If a different controller is desired, it can be replaced.
 	 */
-	protected void setController(ScreenController controller) {
-		_Controller = controller;
+	protected void setController(ScreenController controller) {		
+		_Controller = controller;		
 	}
 
 	/**

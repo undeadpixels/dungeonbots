@@ -56,13 +56,7 @@ public class DungeonBotsMain {
 
 	}
 
-	/**
-	 * Returns a references to the palette of entities associated with this
-	 * game.
-	 */
-	public Vector<Entity> getEntityPalette() {
-		return _EntityPalette;
-	}
+	
 
 	private void setupPalettes() {
 		// Set up the bots available.

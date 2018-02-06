@@ -231,7 +231,7 @@ public class GameplayScreen extends Screen {
 		case "Rewind":
 		case "Open":
 			File file = FileControl.openDialog(this);
-			World newWorld = World.fromFile(file);
+			//World newWorld = World.fromFile(file);
 		case "Save":
 		case "Save As":
 		case "Exit To Main":
