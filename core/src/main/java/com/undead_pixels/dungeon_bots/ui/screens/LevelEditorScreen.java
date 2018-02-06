@@ -98,7 +98,8 @@ public class LevelEditorScreen extends Screen {
 					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
 						TileType currentTile = world.getTile(e.getX(), e.getY());
-						world.setTile(e.getX(), e.getY(), drawType);
+						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();
 				}
@@ -116,7 +117,8 @@ public class LevelEditorScreen extends Screen {
 						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
 						TileType currentTile = world.getTile(e.getX(), e.getY());
-						world.setTile(e.getX(), e.getY(), drawType);
+						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();
 				}
