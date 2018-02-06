@@ -21,8 +21,8 @@ public class GameEditorState {
 	public final PlayerInitSection playerInitSection; // TODO - make private?
 	public final World world;
 
-	public GameEditorState() {
-		world = new World();
+	public GameEditorState(World world) {
+		this.world = world;
 		
 		sections.put("world size",
 				worldSizeSection = new WorldSizeSection(world));
@@ -44,8 +44,8 @@ public class GameEditorState {
 				new FakeEditorStateSection(""));
 	}
 
-	public GameEditorState(String luaCode) throws ParseException {
-		this(); // init the defaults
+	public GameEditorState(World world, String luaCode) throws ParseException {
+		this(world); // init the defaults
 		
 		Scanner sc = new Scanner(luaCode);
 		
