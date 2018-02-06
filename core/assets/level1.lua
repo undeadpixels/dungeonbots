@@ -35,13 +35,7 @@ tileTypes
 local tbl = { }
 
 tbl.init = function()
-    local script = [[
-    moveUp = function(n)
-      -- Implement a function that moves the player up
-      -- 'n' spaces.
-    end
-    ]]
-    world:setLevelScript(script)
+
     world:setSize(16, 16)
     for i = 1,16 do
         for j = 1,16 do
@@ -54,13 +48,14 @@ tbl.init = function()
     end
     local player = Player.new(world, 2, 2)
     world:setPlayer(player)
+    world:setTile(3,3, tileTypes:getTile("goal"))
 end
 
-tbl.update = function(dt)
-    local x, y = world.getPlayer().position()
-    if x == 5 and y == 5 then
-        world.win()
-    end
+tbl.update = function()
+    local x, y = world:getPlayer():position()
+    if x == 3 and y == 3 then
+        world:win()
+    end    
 end
 
 return tbl

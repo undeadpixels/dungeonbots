@@ -2,11 +2,11 @@ package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
+
+import javax.swing.JOptionPane;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
@@ -103,6 +103,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
     @State
     private Player player;
 
+    private Integer[] goalPosition = new Integer[]{};
+
 	/**
 	 *
 	 */
@@ -179,6 +181,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
+			assert player != null;
+			player.getSandbox().addBindable(this);
 		}
 	}
 
@@ -397,6 +401,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
 		// TODO - more stuff here
+		if(tileType.getName().equals("goal"))
+			setGoal(x,y);
 		tilesAreStale = true;
 		tileTypes[x][y] = tileType;
 	}
@@ -580,5 +586,86 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return state;
 	}
 
+	@Override
+	public String getMapScript() {
+		String script = "tbl = {}\n" +
+				"tbl.init = function()\n%s\n\tend\n" +
+				"tbl.update = function(dt)\n%s\n\tend\n" +
+				"return tbl";
+		return String.format(script, createInit(), createUpdate());
+	}
 
+	private String put(String... a) {
+		return Stream.of(a).reduce("", (c,d) -> c + "\n" + d);
+	}
+
+	private String createUpdate() {
+		StringBuilder ans = new StringBuilder();
+		ans.append(put(
+				"\t\tlocal x, y = world:getPlayer():position()",
+				String.format("" +
+						"\t\tif x == %d and y == %d then", goalPosition[0] + 1, goalPosition[1] + 1),
+						"\t\t\tworld.win()",
+				"\t\tend"));
+		return ans.toString();
+	}
+
+	private String createInit() {
+		final StringBuilder ans = new StringBuilder();
+		final int width = tiles.length;
+		final int height = tiles[0].length;
+		ans.append(put(String.format("\t\tworld:setSize(%d,%d)", width, height)));
+		for (int i = 0; i < tiles.length; i++) {
+			for(int j = 0; j < tiles[i].length; j++) {
+				TileType t = tileTypes[i][j];
+				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
+			}
+		}
+		Vector2 pos = player.getPosition();
+		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
+		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
+		ans.append(put("\t\tworld:setPlayer(player)"));
+		return ans.toString();
+	}
+
+
+	public Integer[] goal() {
+		return goalPosition;
+	}
+
+
+	@Bind(SecurityLevel.AUTHOR) public void setGoal(LuaValue lx, LuaValue ly) {
+		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
+	}
+
+	@Bind(SecurityLevel.DEFAULT)
+	public Varargs getGoal() {
+		Integer[] goal = goal();
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]), LuaValue.valueOf(goal[1])});
+	}
+
+	public Integer[] getGoalPosition() {
+		return goalPosition;
+	}
+
+	public void setGoal(int x, int y) {
+		Integer[] newGoal = new Integer[] { x , y };
+		if(!Arrays.equals(newGoal, goalPosition) && goalPosition.length == 2) {
+			setTile(goalPosition[0], goalPosition[1], tileTypesCollection.getTile("floor"));
+		}
+		goalPosition = newGoal;
+
+	}
+	
+	public void showAlert(String alert, String title) {
+		Thread t = new Thread(() ->
+			JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE)
+		);
+		t.start();
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public void showAlert(LuaValue alert, LuaValue title) {
+		showAlert(alert.tojstring(), title.tojstring());
+	}
 }

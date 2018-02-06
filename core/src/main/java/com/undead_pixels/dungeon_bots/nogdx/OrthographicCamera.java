@@ -6,20 +6,17 @@ import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.math.Vector2;
 
-/**
- * A camera class that allows transformations and various other things
- */
 public class OrthographicCamera {
 
 	/**
 	 * Zoom factor (size of each tile compared to the viewport)
 	 */
-	private float zoom;
+	private float zoom = 1.0f;
 	
 	/**
-	 * Aspect ratio of the content
+	 * The size of map to always show
 	 */
-	private float aspectRatio;
+	private Point2D.Float mapSize;
 	
 	/**
 	 * Camera center position
@@ -31,12 +28,6 @@ public class OrthographicCamera {
 	 */
 	private float viewportWidth, viewportHeight;
 
-	/**
-	 * Constructor
-	 * 
-	 * @param w	The width of the viewport
-	 * @param h	The height of the viewport
-	 */
 	public OrthographicCamera(float w, float h) {
 		viewportWidth = w;
 		viewportHeight = h;
@@ -50,7 +41,6 @@ public class OrthographicCamera {
 
 	@Deprecated
 	public Vector2 unproject(Vector2 pt) {
-		
 		AffineTransform xform = getTransform();
 		Point2D.Float ret = new Point2D.Float();
 		try {
@@ -61,31 +51,13 @@ public class OrthographicCamera {
 		return new Vector2(ret.x, ret.y);
 	}
 
-	/**
-	 * Performs the inverse transform of this camera on the given point
-	 * 
-	 * @param pt		The point to un-project
-	 * @return		An un-projected point
-	 */
-	public Point2D.Float unproject(Point2D.Float pt) {
-		AffineTransform xform = getTransform();
-		Point2D.Float ret = new Point2D.Float();
-		try {
-			xform.inverseTransform(pt, ret);
-		} catch (NoninvertibleTransformException e) {
-			e.printStackTrace();
-		}
-		return ret;
-	}
-
-	/**
-	 * The only useful output of a camera
-	 * 
-	 * @return	The current transform of the camera
-	 */
 	public AffineTransform getTransform() {
-		float size = Math.min(viewportWidth / aspectRatio, viewportHeight);
-		float scale = size * zoom;
+		
+		float maxPixelsPerTileX = viewportWidth / mapSize.x;
+		float maxPixelsPerTileY = viewportHeight / mapSize.y;
+		float maxPixelsPerTile  = Math.min(maxPixelsPerTileX, maxPixelsPerTileY);
+		
+		float scale = maxPixelsPerTile * zoom;
 		AffineTransform ret = AffineTransform.getScaleInstance(scale, -scale);
 		ret.translate(viewportWidth/2/scale - position.x, -viewportHeight/2/scale - position.y);
 		//ret.translate(0, ty);
@@ -98,15 +70,10 @@ public class OrthographicCamera {
 	 * @param size	Size of a map
 	 */
 	public void zoomFor(Point2D.Float size) {
+		mapSize = size;
 		
-		aspectRatio = size.x / size.y;
-		float ratioW = Math.max(viewportWidth / viewportHeight, 1) / size.x;
-		float ratioH = Math.max(viewportHeight / viewportWidth, 1) / size.y;
-		if(ratioW > ratioH) {
-			zoom = ratioW;
-		} else {
-			zoom = ratioH;
-		}
+		zoom = 1f;
+		
 		position = new Point2D.Float(size.x/2, size.y/2);
 	}
 
@@ -115,15 +82,32 @@ public class OrthographicCamera {
 		zoomFor(new Point2D.Float(size.x, size.y));
 	}
 
-	/**
-	 * Notifies the camera of a new viewport size
-	 * 
-	 * @param w	Width
-	 * @param h	Height
-	 */
 	public void setViewportSize(float w, float h) {
 		viewportWidth = w;
 		viewportHeight = h;
+	}
+
+	public float getZoom() {
+		return zoom;
+	}
+	
+	public void setZoom(float newZoom){
+		zoom = newZoom;
+	}
+	
+	public void setZoomOnMinMaxRange(float newZoom) {
+		float leftThing = (float) Math.log(getMinZoom());
+		float rightThing = (float) Math.log(getMaxZoom());
+		float zoomT = leftThing*(1-newZoom) + rightThing*newZoom;
+		setZoom((float)Math.exp(zoomT));
+	}
+
+	public float getMinZoom() {
+		return 0.25f;
+	}
+
+	public float getMaxZoom() {
+		return 4.0f;
 	}
 
 }

@@ -19,6 +19,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
 
 /**
@@ -92,7 +93,7 @@ public abstract class Screen extends JFrame {
 	 * must be extended in any class that inherits from Screen.
 	 */
 	protected abstract class ScreenController
-			implements MouseInputListener, KeyListener, ActionListener, WindowListener {
+			implements MouseInputListener, KeyListener, ActionListener, WindowListener, ChangeListener {
 	}
 
 	/*

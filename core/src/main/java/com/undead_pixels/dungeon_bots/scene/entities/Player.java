@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -59,7 +60,7 @@ public class Player extends RpgActor {
 		return p;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	public void tryAgain() {
 		world.reset();
 	}
@@ -71,7 +72,7 @@ public class Player extends RpgActor {
 		return new Player(null, "A player");
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void setDefaultCode(LuaValue df) {
 		defaultCode = df.tojstring();
 	}

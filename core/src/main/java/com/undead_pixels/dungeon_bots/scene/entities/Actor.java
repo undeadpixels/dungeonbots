@@ -23,13 +23,14 @@ import static org.luaj.vm2.LuaValue.*;
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
-public class Actor extends SpriteEntity implements GetState {
+public class Actor extends SpriteEntity {
 
 	@State
 	protected int steps = 0;
 
 	@State
 	protected int bumps = 0;
+
 	private LuaValue luaBinding;
 	private FloatingText floatingText;
 
@@ -206,7 +207,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor up(Varargs amt) {
 		return moveAmt(amt, Direction.UP);
 	}
@@ -217,7 +218,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor down(Varargs amt) {
 		return moveAmt(amt, Direction.DOWN);
 	}
@@ -228,7 +229,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor left(Varargs amt) {
 		return moveAmt(amt, Direction.LEFT);
 	}
@@ -239,7 +240,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor right(Varargs amt) {
 		return moveAmt(amt, Direction.RIGHT);
 	}
@@ -253,7 +254,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Varargs position() {
 		Vector2 pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
@@ -263,7 +264,7 @@ public class Actor extends SpriteEntity implements GetState {
 	 *
 	 * @param args
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public void say(Varargs args) {
 		String text = "";
 		
@@ -275,22 +276,11 @@ public class Actor extends SpriteEntity implements GetState {
 		this.addText(text);
 	}
 
-	/**
-	 *
-	 * @param lx
-	 * @param ly
-	 * @return
-	 */
-	@Bind
-	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
-		return world.isBlocking(lx, ly);
-	}
-
-	@Bind public int steps() {
+	@Bind(SecurityLevel.DEFAULT) public int steps() {
 		return steps;
 	}
 
-	@Bind public int bumps() {
+	@Bind(SecurityLevel.DEFAULT) public int bumps() {
 		return bumps;
 	}
 

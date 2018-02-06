@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.TileType;
@@ -168,6 +169,12 @@ public class ResultsScreen extends Screen {
 
 			}
 
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
 		};
 	}
 
@@ -206,7 +213,7 @@ public class ResultsScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 		pane.add(statsList, BorderLayout.CENTER);
 		pane.add(bttnPanel, BorderLayout.PAGE_END);
-
+		DungeonBotsMain.instance.getWorld().reset();
 	}
 
 	@Override

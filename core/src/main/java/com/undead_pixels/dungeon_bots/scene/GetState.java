@@ -21,7 +21,7 @@ public interface GetState {
 				.filter(f -> f.getDeclaredAnnotation(State.class) != null).collect(Collectors.toList());
 
 		s.forEach(f -> {
-			Class<?> c = f.getType();
+			final Class<?> c = f.getType();
 			if (LuaReflection.collectClasses(c)
 					.map(Class::getInterfaces)
 					.flatMap(Stream::of)
@@ -34,4 +34,6 @@ public interface GetState {
 		});
 		return s;
 	}
+
+	String getMapScript();
 }

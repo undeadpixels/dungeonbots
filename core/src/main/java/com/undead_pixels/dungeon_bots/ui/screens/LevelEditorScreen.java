@@ -13,7 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -28,13 +31,15 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-
+import javax.swing.JSlider;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -80,6 +85,8 @@ public class LevelEditorScreen extends Screen {
 	protected ScreenController makeController() {
 		return new ScreenController() {
 
+			private File _CurrentFile = null;
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getSource() == view) {
@@ -88,13 +95,11 @@ public class LevelEditorScreen extends Screen {
 					Object selection = _PaletteSelector.getSelectedValue();
 					if (selection == null)
 						return;
-					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-					int x = (int) gamePosition.x;
-					int y = (int) gamePosition.y;
 					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(x, y);
-						world.setTile(x, y, drawType);
+						TileType currentTile = world.getTile(e.getX(), e.getY());
+						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();
 				}
@@ -108,13 +113,12 @@ public class LevelEditorScreen extends Screen {
 					Object selection = _PaletteSelector.getSelectedValue();
 					if (selection == null)
 						return;
-					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-					int x = (int) gamePosition.x;
-					int y = (int) gamePosition.y;
 					if (selection instanceof TileType) {
+						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(x, y);
-						world.setTile(x, y, drawType);
+						TileType currentTile = world.getTile(e.getX(), e.getY());
+						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();
 				}
@@ -123,11 +127,45 @@ public class LevelEditorScreen extends Screen {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+
 				switch (e.getActionCommand()) {
 
+				case "Save":
+					// If there is not a cached file, treat as a SaveAs instead.
+					if (_CurrentFile == null)
+						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (_CurrentFile != null) {
+						String lua = world.getMapScript();
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
+							writer.write(lua);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} else
+						System.out.println("Save cancelled.");
+					break;
+				case "Save As":
+					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (saveFile != null) {
+						String lua = world.getMapScript();
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
+							writer.write(lua);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						_CurrentFile = saveFile;
+					} else
+						System.out.println("SaveAs cancelled.");
+					break;
 				case "Open":
-					File file = FileControl.openDialog(LevelEditorScreen.this);
-					// World newWorld = World.fromFile(file);
+					File openFile = FileControl.openDialog(LevelEditorScreen.this);
+					if (openFile != null) {
+						World newWorld = new World(openFile);
+						DungeonBotsMain.instance.setWorld(newWorld);
+						_CurrentFile = openFile;
+					} else
+						System.out.println("Open cancelled.");
+
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
@@ -135,10 +173,41 @@ public class LevelEditorScreen extends Screen {
 						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 					break;
 				case "Quit":
+					int dialogResult = JOptionPane.showConfirmDialog(LevelEditorScreen.this,
+							"Would you like to save before quitting?", "Quit", JOptionPane.YES_NO_CANCEL_OPTION);
+					if (dialogResult == JOptionPane.YES_OPTION) {
+						if (_CurrentFile == null)
+							_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+						if (_CurrentFile != null) {
+							String lua = world.getMapScript();
+							try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
+								writer.write(lua);
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						} else
+							System.out.println("Save cancelled.");
+						System.exit(0);
+					} else if (dialogResult == JOptionPane.NO_OPTION)
+						System.exit(0);
 
+					break;
 				default:
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
 					break;
+				}
+			}
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (e.getSource() instanceof JSlider) {
+					JSlider sldr = (JSlider) e.getSource();
+					if (sldr.getName().equals("zoomSlider")) {
+						OrthographicCamera cam = view.getCamera();
+						if (cam != null) {
+							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
+						}
+					}
 				}
 			}
 
@@ -218,10 +287,11 @@ public class LevelEditorScreen extends Screen {
 				// TODO Auto-generated method stub
 
 			}
+
 		};
 	}
 
-	/** Handles the rendering of TileTypes in the TileType palette. */	
+	/** Handles the rendering of TileTypes in the TileType palette. */
 	private class PaletteItemRenderer extends DefaultListCellRenderer {
 		// As suggested by "SeniorJD",
 		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
@@ -243,7 +313,6 @@ public class LevelEditorScreen extends Screen {
 			} else
 				System.err.println("Unexpected component type returned in " + this.getClass().getName() + ":"
 						+ c.getClass().getName());
-
 			return c;
 		}
 	}
@@ -285,9 +354,9 @@ public class LevelEditorScreen extends Screen {
 		controlPanel.add(new JLabel("Associated lines of code:"));
 		controlPanel.add(new JLabel("Queue size:"));
 
-		// Create the top-of-screen menu
+		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
-		fileMenu.setPreferredSize(new Dimension(80, 30));
+		fileMenu.setPreferredSize(new Dimension(50, 25));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		fileMenu.add(UIBuilder.makeMenuItem("Open", KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_O, getController()));
@@ -303,24 +372,45 @@ public class LevelEditorScreen extends Screen {
 		fileMenu.add(UIBuilder.makeMenuItem("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_Q, getController()));
 
+		// Create the world menu.
 		JMenu worldMenu = new JMenu("World");
 		worldMenu.setMnemonic(KeyEvent.VK_B);
-		worldMenu.setPreferredSize(new Dimension(80, 30));
+		worldMenu.setPreferredSize(new Dimension(50, 25));
 		worldMenu.add(UIBuilder.makeMenuItem("Data", KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_D, getController()));
+		worldMenu.add(UIBuilder.makeMenuItem("Scripts", null, KeyEvent.VK_S, getController()));
 
+		// Create the publish menu.
 		JMenu publishMenu = new JMenu("Publish");
 		publishMenu.setMnemonic(KeyEvent.VK_P);
-		publishMenu.setPreferredSize(new Dimension(80, 30));
+		publishMenu.setPreferredSize(new Dimension(50, 25));
+		publishMenu.add(UIBuilder.makeMenuItem("Choose Stats", null, KeyEvent.VK_C, getController()));
 		publishMenu.add(UIBuilder.makeMenuItem("Audience", KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_A, getController()));
 		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_U, getController()));
 
+		// Create the help menu.
+		JMenu helpMenu = new JMenu("Help");
+		helpMenu.setMnemonic(KeyEvent.VK_H);
+		helpMenu.setPreferredSize(new Dimension(50, 30));
+		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
+
+		// Create the zoom slider.
+		JSlider zoomSlider = new JSlider();
+		zoomSlider.setName("zoomSlider");
+		zoomSlider.addChangeListener(getController());
+		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+
+		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
+		menuBar.add(publishMenu);
+		menuBar.add(helpMenu);
+		menuBar.add(zoomSlider);
 
+		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
