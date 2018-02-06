@@ -658,10 +658,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 	
 	public void showAlert(String alert, String title) {
-		JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE);
+		Thread t = new Thread(() ->
+			JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE)
+		);
+		t.start();
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
