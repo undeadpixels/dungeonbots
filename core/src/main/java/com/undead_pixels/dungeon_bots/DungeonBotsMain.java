@@ -65,7 +65,7 @@ public class DungeonBotsMain {
 
 	private void setupPalettes() {
 		// Set up the bots available.
-		_EntityPalette = new Vector<Entity>();
+		_EntityPalette = new Vector<>();
 		//_EntityPalette.add(Player.worldlessPlayer());
 
 		// Set up the dynamic stuff available.

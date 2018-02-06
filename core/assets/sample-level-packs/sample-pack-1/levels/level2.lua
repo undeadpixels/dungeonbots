@@ -40,6 +40,7 @@ lvl.init = function()
 
     -- Add player and goal
     local player = Player.new(world, 2, 2)
+    player:setDefaultCode("player:right()")
     player:setStats(1,2,3,4)
     world:setPlayer(player)
 end

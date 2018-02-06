@@ -18,6 +18,9 @@ import org.luaj.vm2.LuaValue;
  */
 public class Player extends RpgActor {
 
+
+	private String defaultCode;
+
 	/**
 	 * Constructor
 	 * 
@@ -63,6 +66,15 @@ public class Player extends RpgActor {
 	 */
 	public static Player worldlessPlayer() {
 		return new Player(null, "A player");
+	}
+
+	@Bind
+	public void setDefaultCode(LuaValue df) {
+		defaultCode = df.tojstring();
+	}
+
+	public String getDefaultCode() {
+		return defaultCode != null ? defaultCode : "";
 	}
 
 	public void setPosition(Vector2 v) {

@@ -529,10 +529,10 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	public synchronized void reset() {
 		updateLock.lock();
 		try {
-			levelScript = null;
-			tiles = new Tile[0][0];
-			entities.clear();
-			backgroundImage = null;
+			// levelScript = null;
+			// tiles = new Tile[0][0];
+			// entities.clear();
+			// backgroundImage = null;
 			level.init();
 		}
 		finally {
