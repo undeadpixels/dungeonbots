@@ -625,7 +625,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 
 	public Vector2 goal() {
-		return new Vector2(5,5);
+		return goalPosition;
+	}
+
+
+	@Bind(SecurityLevel.AUTHOR) public void setGoal(LuaValue lx, LuaValue ly) {
+		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
 	}
 
 	@Bind
@@ -634,8 +639,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal.x), LuaValue.valueOf(goal.y)});
 	}
 
-	@Bind public void setGoal(LuaValue lx, LuaValue ly) {
-		goalPosition = new Vector2(lx.tofloat(), ly.tofloat());
-		setTile(((int)goalPosition.x) - 1, ((int)goalPosition.y) - 1, tileTypesCollection.getTile("goal"));
+	public void setGoal(int x, int y) {
+		goalPosition = new Vector2(x, y);
+		setTile(x, y, tileTypesCollection.getTile("goal"));
 	}
 }
