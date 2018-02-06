@@ -20,6 +20,21 @@ public class UIBuilder {
 	}
 
 	/**
+	 * Generates a new button that uses the given image, size, tooltip text, and
+	 * alternative text. The given action command will be sent to the specified
+	 * action listener.
+	 * 
+	 * If the given image URL is not available, the alternative text will be
+	 * used for the button's image.
+	 */
+	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String altText,
+			String actionCommand, ActionListener listener) {
+		JButton ret = makeButton(imageURL, toolTipText, altText, actionCommand, listener);
+		ret.setPreferredSize(new Dimension(width, height));
+		return ret;
+	}
+
+	/**
 	 * Generates a new button that uses the given image, tooltip text, and
 	 * alternative text. The given action command will be sent to the specified
 	 * action listener.
@@ -51,7 +66,7 @@ public class UIBuilder {
 		if (img == null)
 			resultButton.setText(altText);
 		else
-			//Proportionate probably makes sense most times.
+			// Proportionate probably makes sense most times.
 			resultButton.setIcon(new StretchIcon(img, true));
 
 		resultButton.setPreferredSize(new Dimension(50, 40));

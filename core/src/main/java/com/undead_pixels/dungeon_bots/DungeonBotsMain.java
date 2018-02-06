@@ -183,7 +183,6 @@ public class DungeonBotsMain {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
 		return img;
 	}
 }
