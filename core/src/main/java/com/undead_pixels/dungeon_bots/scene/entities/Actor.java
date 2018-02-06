@@ -30,6 +30,7 @@ public class Actor extends SpriteEntity {
 
 	@State
 	protected int bumps = 0;
+
 	private LuaValue luaBinding;
 	private FloatingText floatingText;
 
