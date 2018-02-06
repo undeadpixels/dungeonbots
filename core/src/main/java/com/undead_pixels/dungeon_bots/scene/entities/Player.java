@@ -1,6 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -14,7 +17,10 @@ import org.luaj.vm2.LuaValue;
  * @author Stewart Charles
  * @version 1.0
  */
-public class Player extends Actor {
+public class Player extends RpgActor {
+
+
+	protected String defaultCode;
 
 	/**
 	 * Constructor
@@ -44,19 +50,43 @@ public class Player extends Actor {
 	@BindTo("new")
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
-		Player p = new Player(w, "player");
+		Player p = w.getPlayer();
 		SecurityContext.getWhitelist().add(p);
+		p.steps = 0;
+		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
 		p.sprite.setY((float) y.checkdouble() - 1.0f);
 		return p;
 	}
 
+	@Bind
+	public void tryAgain() {
+		world.reset();
+	}
 	/**
 	 * Used to create a non-useful player to display in the Level Editor's
 	 * palette.
 	 */
 	public static Player worldlessPlayer() {
 		return new Player(null, "A player");
+	}
+
+	@Bind
+	public void setDefaultCode(LuaValue df) {
+		defaultCode = df.tojstring();
+	}
+
+	public String getDefaultCode() {
+		return defaultCode != null ? defaultCode : "";
+	}
+
+	public void setPosition(Vector2 v) {
+		sprite.setX(v.x);
+		sprite.setY(v.y);
+	}
+
+	public int getSteps() {
+		return steps;
 	}
 
 }

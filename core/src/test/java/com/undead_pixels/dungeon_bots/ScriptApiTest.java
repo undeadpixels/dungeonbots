@@ -139,8 +139,8 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertEquals(0.0, ans.arg(1).todouble(), EPSILON);
-		Assert.assertEquals(0.0, ans.arg(2).todouble(), EPSILON);
+		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
 	}
 
     @Test public void testTwoArgFunction() {
@@ -389,8 +389,8 @@ public class ScriptApiTest {
 		script = se.init("return p:position();").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 		Varargs ans = script.getResults().get();
-		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
-		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(2).todouble(), EPSILON);
 	}
 
 	@Test

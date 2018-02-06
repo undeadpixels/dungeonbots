@@ -39,11 +39,11 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 		// TODO - visually test these all at some point
 		Vector2[] offsetsWalls = new Vector2[] {
-				new Vector2(1, 1), // 0 default
+				new Vector2(0, 1), // 0 default
 				new Vector2(1, 0), // 1 only left
 				new Vector2(1, 0), // 2 only right
 				new Vector2(1, 0), // 3 only left+right
-				new Vector2(0, 1), // 4 only up
+				new Vector2(1, 1), // 4 only up
 				new Vector2(2, 2), // 5 only up+left
 				new Vector2(0, 2), // 6 only up+right
 				new Vector2(4, 2), // 7 no down
@@ -121,7 +121,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
 		int len = variations.length;
 		TextureRegion[] regions = new TextureRegion[len];
-		
 		for(int i = 0; i < len; i++) {
 			//regions[i] = new TextureRegion(new Texture("DawnLike/Objects/Floor.png"), ts*1, ts*4, ts, ts);
 			if(texture == null) {
@@ -130,8 +129,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 				regions[i] = new TextureRegion(texture, (int)(tilesize*(x+variations[i].x)), (int)(tilesize*(y+variations[i].y)), tilesize, tilesize);
 			}
 		}
-		
-		
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
@@ -156,9 +153,8 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null) {
+		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
-		}
 		return this.luaValue;
 	}
 

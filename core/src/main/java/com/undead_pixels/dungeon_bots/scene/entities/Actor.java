@@ -3,6 +3,8 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
@@ -21,10 +23,13 @@ import static org.luaj.vm2.LuaValue.*;
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
-public class Actor extends SpriteEntity {
+public class Actor extends SpriteEntity implements GetState {
 
+	@State
+	protected int steps = 0;
+	@State
+	protected int bumps = 0;
 	private LuaValue luaBinding;
-	
 	private FloatingText floatingText;
 
 	/**
@@ -126,11 +131,9 @@ public class Actor extends SpriteEntity {
 				initialPos[0] = Math.round(e.getPosition().x);
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
-				
+				if(canMove) steps++; else bumps++;
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
-				
 				return canMove;
-				
 			}
 			
 			public void postAct() {
@@ -151,9 +154,7 @@ public class Actor extends SpriteEntity {
 				return true;
 			}
 		};
-		
 		Action moveFailAction = new SequentialActions(fail1, fail2);
-		
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 	}
 	
@@ -254,20 +255,42 @@ public class Actor extends SpriteEntity {
 	@Bind
 	final public Varargs position() {
 		Vector2 pos = this.getPosition();
-		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
+		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
+	/**
+	 *
+	 * @param args
+	 */
 	@Bind
 	final public void say(Varargs args) {
 		String text = "";
 		
 		for(int i = 2; i <= args.narg(); i++) {
-			if(i > 2) {
+			if(i > 2)
 				text += " ";
-			}
 			text += args.tojstring(i);
 		}
-		
 		this.addText(text);
 	}
+
+	/**
+	 *
+	 * @param lx
+	 * @param ly
+	 * @return
+	 */
+	@Bind
+	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
+		return world.isBlocking(lx, ly);
+	}
+
+	@Bind public int steps() {
+		return steps;
+	}
+
+	@Bind public int bumps() {
+		return bumps;
+	}
+
 }
