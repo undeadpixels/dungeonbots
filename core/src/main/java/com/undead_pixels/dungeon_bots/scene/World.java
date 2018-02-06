@@ -182,7 +182,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
-			System.out.println(getScript());
 		}
 	}
 
@@ -585,7 +584,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 	@Override
-	public String getScript() {
+	public String getMapScript() {
 		String script = "return {\n" +
 				"\tinit = function()\n%s\n\tend\n" +
 				"\tupdate = function(dt)\n%s\n\tend\n" +
@@ -637,6 +636,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	@Bind public void setGoal(LuaValue lx, LuaValue ly) {
 		goalPosition = new Vector2(lx.tofloat(), ly.tofloat());
-		setTile((int)goalPosition.x, (int)goalPosition.y, tileTypesCollection.getTile("goal"));
+		setTile(((int)goalPosition.x) - 1, ((int)goalPosition.y) - 1, tileTypesCollection.getTile("goal"));
 	}
 }

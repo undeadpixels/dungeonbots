@@ -35,5 +35,5 @@ public interface GetState {
 		return s;
 	}
 
-	String getScript();
+	String getMapScript();
 }
