@@ -7,8 +7,6 @@ import java.util.ArrayList;
 /**
  * A class to represent a collection of actors at a given Z-value
  * Used to draw some things on top of other things.
- *
- * TODO - refactor this somewhere better
  */
 public class Layer implements Comparable<Layer> {
 	/**

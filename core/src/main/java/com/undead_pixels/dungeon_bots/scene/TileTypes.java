@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -16,7 +18,7 @@ import org.luaj.vm2.LuaValue;
 /**
  * A collection of TileType's
  */
-public class TileTypes implements GetLuaFacade {
+public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 	/**
 	 * Internal storage
@@ -37,11 +39,11 @@ public class TileTypes implements GetLuaFacade {
 
 		// TODO - visually test these all at some point
 		Vector2[] offsetsWalls = new Vector2[] {
-				new Vector2(1, 1), // 0 default
+				new Vector2(0, 1), // 0 default
 				new Vector2(1, 0), // 1 only left
 				new Vector2(1, 0), // 2 only right
 				new Vector2(1, 0), // 3 only left+right
-				new Vector2(0, 1), // 4 only up
+				new Vector2(1, 1), // 4 only up
 				new Vector2(2, 2), // 5 only up+left
 				new Vector2(0, 2), // 6 only up+right
 				new Vector2(4, 2), // 7 no down
@@ -119,7 +121,6 @@ public class TileTypes implements GetLuaFacade {
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
 		int len = variations.length;
 		TextureRegion[] regions = new TextureRegion[len];
-		
 		for(int i = 0; i < len; i++) {
 			//regions[i] = new TextureRegion(new Texture("DawnLike/Objects/Floor.png"), ts*1, ts*4, ts, ts);
 			if(texture == null) {
@@ -128,8 +129,6 @@ public class TileTypes implements GetLuaFacade {
 				regions[i] = new TextureRegion(texture, (int)(tilesize*(x+variations[i].x)), (int)(tilesize*(y+variations[i].y)), tilesize, tilesize);
 			}
 		}
-		
-		
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
@@ -154,9 +153,26 @@ public class TileTypes implements GetLuaFacade {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null) {
+		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
-		}
 		return this.luaValue;
+	}
+
+	@Override
+	public Iterator<TileType> iterator() {
+		return new Iterator<TileType>(){
+
+			private Iterator<Entry<String, TileType>> _hashMapIterator = typeMap.entrySet().iterator();
+			@Override
+			public boolean hasNext() {
+				return _hashMapIterator.hasNext();
+			}
+
+			@Override
+			public TileType next() {
+				return _hashMapIterator.next().getValue();
+			}
+			
+		};
 	}
 }

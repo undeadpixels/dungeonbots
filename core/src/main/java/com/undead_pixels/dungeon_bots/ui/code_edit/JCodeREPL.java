@@ -3,34 +3,17 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -38,26 +21,19 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import org.luaj.vm2.LuaInteger;
 import org.luaj.vm2.LuaNil;
-import org.luaj.vm2.LuaString;
-import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -97,6 +73,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
 		super(new BorderLayout());
+		
+		if (sandbox == null) sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
 
@@ -381,7 +359,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				case READY:
 					throw new Exception("Script did not execute.");
 				case COMPLETE:
-					return Interpret(_RunningScript.getResults());
+					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
+					//return interpret(_RunningScript.getResults());
 				case RUNNING:
 					throw new Exception("Script is still running.");
 				case TIMEOUT:
@@ -462,8 +441,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// Send a message indicating the results.
 		if (result == null)
 			message("null", _SystemMessageStyle);
-		else if (result instanceof LuaNil)
-			message("null", _SystemMessageStyle);
 		else if (result instanceof Exception)
 			message(((Exception) result).getMessage(), _ErrorMessageStyle);
 		else
@@ -487,26 +464,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * Interprets the result of a LuaScript execution and converts it into a
 	 * suitable Java object.
 	 */
-	protected static Object Interpret(Optional<Varargs> rawResult) {
-		if (rawResult == null)
-			return null;
-		Varargs unpackedResult = rawResult.get();
-
-		if (unpackedResult instanceof LuaNil)
-			return unpackedResult;
-		else if (unpackedResult instanceof LuaInteger)
-			return ((LuaInteger) unpackedResult).toint();
-		else if (unpackedResult instanceof LuaString)
-			return ((LuaString) unpackedResult).toString();
-
-		else if (unpackedResult instanceof LuaValue) {
-			LuaValue lv = (LuaValue) unpackedResult;
-			if (lv.tojstring() == "none") // Void result.
-				return lv;
-
-		}
-		throw new ClassCastException("Error: Have not implemented Lua-to-Java interpretation of type "
-				+ unpackedResult.getClass().getName() + ".");
+	protected static Object interpret(Varargs result) {
+		return result instanceof LuaNil ?
+				"Ok" :
+				result.tojstring();
 	}
 
 	/** Returns the code contents being edited in this REPL. */
