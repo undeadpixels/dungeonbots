@@ -8,12 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface GetState {
-	default Map<String, Object> getState() {
-		return this.getFields().stream()
-				.collect(HashMap::new,
-						(m, f) -> m.put(f.getName(), f),
-						HashMap::putAll);
-	}
+	Map<String, Object> getState();
 
 	default List<Field> getFields() {
 		final List<Field> s = LuaReflection
