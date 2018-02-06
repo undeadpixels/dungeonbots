@@ -622,7 +622,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			}
 		}
 		Vector2 pos = player.getPosition();
-		ans.append(put(String.format("\t\tworld:setPlayer(Player.new(world, %d, %d))", (int)pos.x + 1, (int)pos.y + 1)));
+		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
+		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
+		ans.append(put("\t\tworld:setPlayer(player)"));
 		return ans.toString();
 	}
 
