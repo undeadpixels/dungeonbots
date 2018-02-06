@@ -39,9 +39,9 @@ public class JCodeEditor extends JPanel implements ActionListener {
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
-		JButton bttnCut = UIBuilder.makeButton("cut.jpg", "CUT", "Cut a highlighted section", "Cut", this);
-		JButton bttnCopy = UIBuilder.makeButton("copy.jpg", "COPY", "Copy a highlighted section", "Copy", this);
-		JButton bttnPaste = UIBuilder.makeButton("paste.jpg", "PASTE", "Paste at the cursor", "Paste", this);		
+		JButton bttnCut = UIBuilder.makeButton("cut.jpg", "Cut a highlighted section", "Cut", "CUT", this);
+		JButton bttnCopy = UIBuilder.makeButton("copy.jpg", "Copy a highlighted section", "Copy", "COPY", this);
+		JButton bttnPaste = UIBuilder.makeButton("paste.jpg", "Paste at the cursor", "Paste", "PASTE", this);
 		toolBar.add(bttnCut);
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);

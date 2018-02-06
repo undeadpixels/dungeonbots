@@ -105,10 +105,10 @@ public class GameplayScreen extends Screen {
 				case "Rewind":
 				case "Open":
 					File file = FileControl.openDialog(GameplayScreen.this);
-					if (file != null){
+					if (file != null) {
 						World newWorld = new World(file);
-						DungeonBotsMain.instance.setWorld(newWorld);	
-					}					
+						DungeonBotsMain.instance.setWorld(newWorld);
+					}
 					break;
 				case "Save":
 				case "Save As":
@@ -122,9 +122,7 @@ public class GameplayScreen extends Screen {
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 						DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen());
-
 					break;
-
 				case "Last Result":
 				case "Statistics":
 				case "Upload":
@@ -220,8 +218,7 @@ public class GameplayScreen extends Screen {
 					if (sldr.getName().equals("zoomSlider")) {
 						OrthographicCamera cam = view.getCamera();
 						if (cam != null) {
-							cam.setZoomOnMinMaxRange((float)(sldr.getValue())/sldr.getMaximum());
-							System.out.println(cam.getZoom());
+							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
 						}
 					}
 				}

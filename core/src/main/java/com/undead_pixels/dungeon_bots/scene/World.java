@@ -2,10 +2,7 @@ package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
@@ -106,7 +103,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
     @State
     private Player player;
 
-    private Vector2 goalPosition = new Vector2();
+    private Integer[] goalPosition = new Integer[]{};
 
 	/**
 	 *
@@ -402,6 +399,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
 		// TODO - more stuff here
+		if(tileType.getName().equals("goal"))
+			setGoal(x,y);
 		tilesAreStale = true;
 		tileTypes[x][y] = tileType;
 	}
@@ -603,7 +602,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		ans.append(put(
 				"\t\tlocal x, y = world:getPlayer():position()",
 				String.format("" +
-						"\t\tif x == %d and y == %d then", (int)goalPosition.x, (int)goalPosition.y),
+						"\t\tif x == %d and y == %d then", goalPosition[0] + 1, goalPosition[1] + 1),
 						"\t\t\tworld.win()",
 				"\t\tend"));
 		return ans.toString();
@@ -626,7 +625,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 
-	public Vector2 goal() {
+	public Integer[] goal() {
 		return goalPosition;
 	}
 
@@ -637,17 +636,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	@Bind
 	public Varargs getGoal() {
-		Vector2 goal = goal();
-		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal.x), LuaValue.valueOf(goal.y)});
+		Integer[] goal = goal();
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]), LuaValue.valueOf(goal[1])});
 	}
 
-	public Vector2 getGoalPosition() {
-		return new Vector2(goalPosition.x - 1, goalPosition.y - 1);
+	public Integer[] getGoalPosition() {
+		return goalPosition;
 	}
 
 	public void setGoal(int x, int y) {
-		goalPosition = new Vector2(x, y);
-		setTile(x, y, tileTypesCollection.getTile("goal"));
+		Integer[] newGoal = new Integer[] { x , y };
+		if(!Arrays.equals(newGoal, goalPosition) && goalPosition.length == 2) {
+			setTile(goalPosition[0], goalPosition[1], tileTypesCollection.getTile("floor"));
+		}
+		goalPosition = newGoal;
+
 	}
 	
 	public void showAlert(String alert, String title) {

@@ -145,7 +145,7 @@ public class Whitelist implements GetLuaFacade {
 	 * @return True if found on the whitelist
 	 */
 	public <T extends GetLuaFacade> boolean onWhitelist(final T caller, final Method m) {
-		return true; // onWhitelist(LuaReflection.genId(caller,m));
+		return onWhitelist(LuaReflection.genId(caller,m));
 	}
 
 	/**

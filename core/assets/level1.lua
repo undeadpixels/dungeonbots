@@ -48,14 +48,14 @@ tbl.init = function()
     end
     local player = Player.new(world, 2, 2)
     world:setPlayer(player)
-    world:setGoal(5,5)
+    world:setTile(3,3, tileTypes:getTile("goal"))
 end
 
 tbl.update = function()
     local x, y = world:getPlayer():position()
-    if x == 5 and y == 5 then
+    if x == 3 and y == 3 then
         world:win()
-    end
+    end    
 end
 
 return tbl
