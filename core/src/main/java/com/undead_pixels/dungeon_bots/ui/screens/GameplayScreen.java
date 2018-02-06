@@ -211,7 +211,6 @@ public class GameplayScreen extends Screen {
 
 			}
 
-			int priorZoomSlider = 50;
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (e.getSource() instanceof JSlider) {
@@ -219,10 +218,7 @@ public class GameplayScreen extends Screen {
 					if (sldr.getName().equals("zoomSlider")) {
 						OrthographicCamera cam = view.getCamera();
 						if (cam != null) {
-							//TODO:  This is very hack-like.  Work out the math.
-							int newSlider = sldr.getValue();
-							cam.setZoom(cam.getZoom() + ((newSlider - priorZoomSlider) * 0.001f));
-							priorZoomSlider = newSlider;
+							cam.setZoomOnMinMaxRange((float)(sldr.getValue())/sldr.getMaximum());
 							System.out.println(cam.getZoom());
 						}
 					}
