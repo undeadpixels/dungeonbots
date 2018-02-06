@@ -43,6 +43,7 @@ lvl.init = function()
     player:setDefaultCode("player:right()")
     player:setStats(1,2,3,4)
     world:setPlayer(player)
+    world:setGoal(19,11)
 end
 
 lvl.update = function()
