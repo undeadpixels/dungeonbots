@@ -13,7 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -125,11 +128,29 @@ public class LevelEditorScreen extends Screen {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+				File file = null;
 				switch (e.getActionCommand()) {
 
+				case "Save As":
+					file = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (file != null) {
+						String lua = world.getMapScript();
+						
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+							writer.write(lua);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+
+					}
+					break;
 				case "Open":
-					File file = FileControl.openDialog(LevelEditorScreen.this);
-					// World newWorld = World.fromFile(file);
+					file = FileControl.openDialog(LevelEditorScreen.this);
+					if (file != null) {
+						World newWorld = new World(file);
+						DungeonBotsMain.instance.setWorld(newWorld);
+					}
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
