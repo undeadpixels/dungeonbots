@@ -18,6 +18,8 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 
 /**
@@ -35,6 +37,13 @@ public class DungeonBotsMain {
 	/** Returns the world currently associated with this game. */
 	public World getWorld() {
 		return _World;
+	}
+	public void setWorld(World world){
+		_World = world;
+		
+		if (_Screen instanceof GameplayScreen) setCurrentScreen(new GameplayScreen());
+		else if (_Screen instanceof LevelEditorScreen) setCurrentScreen(new GameplayScreen());
+		else setCurrentScreen(new MainMenuScreen());
 	}
 
 	/**
