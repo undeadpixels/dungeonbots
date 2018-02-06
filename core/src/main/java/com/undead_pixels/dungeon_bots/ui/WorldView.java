@@ -74,42 +74,28 @@ public class WorldView extends JComponent {
 		try {
 			Graphics2D g2d = (Graphics2D) g;
 
-			float w, h;
+			float w = this.getWidth();
+			float h = this.getHeight();
+
+			SpriteBatch batch = new SpriteBatch(g2d, w, h);
 
 			if (!didInitCam) {
-
-				w = this.getWidth();
-				h = this.getHeight();
-				SpriteBatch batch = new SpriteBatch(g2d, w, h);
-
 				cam = new OrthographicCamera(w, h);
 
-				cam.setZoomFor(world.getSize());
+				cam.zoomFor(world.getSize());
 
 				didInitCam = true;
-				cam.setViewportSize(w, h);
-
-				//cam.update();
-				batch.setProjectionMatrix(cam);
-
-				if (world != null) {
-					world.render(batch);
-				}
-			} else {
-				w = cam.getViewportSize().x;
-				h = cam.getViewportSize().y;
-
-				SpriteBatch batch = new SpriteBatch(g2d, w, h);
-
-				//cam.update();
-				batch.setProjectionMatrix(cam);
-
-				if (world != null) {
-					world.render(batch);
-				}
 			}
 
+			cam.setViewportSize(w, h);
 
+			cam.update();
+			batch.setProjectionMatrix(cam);
+			// batch.setTransformMatrix(cam.view);
+
+			if (world != null) {
+				world.render(batch);
+			}
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
@@ -139,7 +125,7 @@ public class WorldView extends JComponent {
 	}
 
 	/** Returns the given screen coordinates, translated into game space. */
-	public Vector2 getScreenToGameCoords(int screenX, int screenY) {		
+	public Vector2 getScreenToGameCoords(int screenX, int screenY) {
 		Vector2 gameSpace = cam.unproject(new Vector2(screenX, screenY));
 		return new Vector2(gameSpace.x, gameSpace.y);
 	}

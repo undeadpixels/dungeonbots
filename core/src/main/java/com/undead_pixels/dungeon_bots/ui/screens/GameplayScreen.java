@@ -105,8 +105,10 @@ public class GameplayScreen extends Screen {
 				case "Rewind":
 				case "Open":
 					File file = FileControl.openDialog(GameplayScreen.this);
-					World newWorld = new World(file);
-					DungeonBotsMain.instance.setWorld(newWorld);
+					if (file != null){
+						World newWorld = new World(file);
+						DungeonBotsMain.instance.setWorld(newWorld);	
+					}					
 					break;
 				case "Save":
 				case "Save As":
@@ -223,7 +225,6 @@ public class GameplayScreen extends Screen {
 							int newSlider = sldr.getValue();
 							cam.setZoom(cam.getZoom() + ((newSlider - priorZoomSlider) * 0.001f));
 							priorZoomSlider = newSlider;
-							System.out.println(cam.getZoom());
 						}
 					}
 				}
