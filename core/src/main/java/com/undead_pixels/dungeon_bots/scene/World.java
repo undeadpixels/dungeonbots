@@ -585,10 +585,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	@Override
 	public String getMapScript() {
-		String script = "tbl = {};\n" +
-				"\ttbl.init = function()\n%s\n\tend;\n" +
-				"\ttbl.update = function(dt)\n%s\n\tend;\n" +
-				"return tbl;";
+		String script = "tbl = {}\n" +
+				"tbl.init = function()\n%s\n\tend\n" +
+				"tbl.update = function(dt)\n%s\n\tend\n" +
+				"return tbl";
 		return String.format(script, createInit(), createUpdate());
 	}
 
@@ -601,7 +601,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		ans.append(put(
 				"\t\tlocal x, y = world:getPlayer():position()",
 				String.format("" +
-						"\t\tif x == %d and y == %d then", (int)goalPosition.x, (int)goalPosition.y),
+						"\t\tif x == %d and y == %d then", (int)goalPosition.x + 1, (int)goalPosition.y + 1),
 						"\t\t\tworld.win()",
 				"\t\tend"));
 		return ans.toString();
@@ -615,7 +615,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		for (int i = 0; i < tiles.length; i++) {
 			for(int j = 0; j < tiles[i].length; j++) {
 				TileType t = tileTypes[i][j];
-				ans.append(put(String.format("\t\tworld:setTile(%d, %d, \"%s\")", i + 1, j + 1, t.getName())));
+				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
 			}
 		}
 		Vector2 pos = player.getPosition();
@@ -640,7 +640,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 	public Vector2 getGoalPosition() {
-		return new Vector2(goalPosition.x - 1, goalPosition.y - 1);
+		return new Vector2(goalPosition.x, goalPosition.y);
 	}
 
 	public void setGoal(int x, int y) {
