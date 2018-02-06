@@ -179,6 +179,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
+			assert player != null;
+			player.getSandbox().addBindable(this);
 		}
 	}
 
@@ -632,7 +634,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
 	}
 
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	public Varargs getGoal() {
 		Integer[] goal = goal();
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]), LuaValue.valueOf(goal[1])});

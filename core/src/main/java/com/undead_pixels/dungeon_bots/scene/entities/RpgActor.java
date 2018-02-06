@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import org.luaj.vm2.LuaValue;
@@ -57,7 +58,7 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	 * }</pre>
 	 * @return
 	 */
-	@Bind @BindTo("stats")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("stats")
 	public Varargs getStats() {
 		return  LuaValue.varargsOf(new LuaValue[] {
 				LuaValue.valueOf(stats[0]),
@@ -66,42 +67,42 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 				LuaValue.valueOf(stats[3])});
 	}
 
-	@Bind @BindTo("strength")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("strength")
 	public int getStrength() {
 		return stats[0];
 	}
 
-	@Bind @BindTo("dexterity")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("dexterity")
 	public int getDexterity() {
 		return stats[1];
 	}
 
-	@Bind @BindTo("intelligence")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("intelligence")
 	public int getIntelligence() {
 		return stats[2];
 	}
 
-	@Bind @BindTo("wisdom")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("wisdom")
 	public int getWisdom() {
 		return stats[3];
 	}
 
-	@Bind @BindTo("health")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("health")
 	public int getHealth() {
 		return health;
 	}
 
-	@Bind @BindTo("mana")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("mana")
 	public int getMana() {
 		return mana;
 	}
 
-	@Bind @BindTo("stamina")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("stamina")
 	public int getStamina() {
 		return stamina;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public RpgActor setStats(Varargs v) {
 		int start = v.arg1().isint() ? 1 : 2;
 		assert v.narg() >= 4;
@@ -110,19 +111,19 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 		return this;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public RpgActor setHealth(LuaValue h) {
 		this.health = h.checkint();
 		return this;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public RpgActor setMana(LuaValue m) {
 		this.mana = m.checkint();
 		return this;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public RpgActor setStamina(LuaValue s) {
 		this.stamina = s.checkint();
 		return this;
