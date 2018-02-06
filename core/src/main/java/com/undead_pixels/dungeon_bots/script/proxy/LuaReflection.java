@@ -145,7 +145,7 @@ public class LuaReflection {
 		return flattenClass(clz, Class::getDeclaredFields);
 	}
 
-	private static Stream<Class<?>> collectClasses(final Class<?> src) {
+	public static Stream<Class<?>> collectClasses(final Class<?> src) {
 		final Collection<Class<?>> classes = new ArrayList<>();
 		Class<?> temp = src;
 		try {
@@ -158,7 +158,7 @@ public class LuaReflection {
 		return classes.stream().sequential();
 	}
 
-	private static <T extends Member> Stream<T> flattenClass(final Class<?> src, final Function<Class<?>,T[]> fn) {
+	public static <T extends Member> Stream<T> flattenClass(final Class<?> src, final Function<Class<?>,T[]> fn) {
 		return collectClasses(src)
 				.map(fn)
 				.flatMap(Stream::of)

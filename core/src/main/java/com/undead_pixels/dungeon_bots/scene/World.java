@@ -27,7 +27,7 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 
@@ -38,7 +38,7 @@ import org.luaj.vm2.*;
  * TODO - some parts of this should persist between the resets/rebuilds, but some parts shouldn't.
  * Need to figure out what parts.
  */
-public class World implements GetLuaFacade, GetLuaSandbox {
+public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	private ReentrantLock updateLock = new ReentrantLock();
 
@@ -99,11 +99,13 @@ public class World implements GetLuaFacade, GetLuaSandbox {
     /**
      * The player object
      */
+    @State
     private Player player;
 
 	/**
 	 *
 	 */
+	@State
 	private int timesReset = 0;
     
     /**
@@ -184,7 +186,7 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
-		DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
 	}
 
 	public void setPlayer(Player p) {
@@ -530,4 +532,5 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 			updateLock.unlock();
 		}
 	}
+
 }

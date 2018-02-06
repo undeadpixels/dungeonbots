@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -24,8 +25,11 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 
 	// -- Skill resource attributes --
 	// -- The use of certain skills temporarily consumes their associated resources --
+	@State
 	protected int health = 10;
+	@State
 	protected int mana = 10;
+	@State
 	protected int stamina = 10;
 
 	// Skill stats determine the effectiveness and potency of associated skill abilities

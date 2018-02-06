@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;

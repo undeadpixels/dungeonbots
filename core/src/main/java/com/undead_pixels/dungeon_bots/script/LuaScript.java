@@ -17,7 +17,7 @@ import java.util.Optional;
  * @version 2/1/2018 A LuaScript is an asynchronous wrapper around an execution
  *          context for a sandbox that is invoked using a LuaSandbox.
  */
-public class LuaScript {
+public class LuaScript extends ScriptEvent {
 
 	private final LuaSandbox environment;
 	private final String script;
@@ -33,6 +33,7 @@ public class LuaScript {
 	 * @param script
 	 */
 	LuaScript(LuaSandbox env, String script) {
+		super(env);
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
 
@@ -183,5 +184,25 @@ public class LuaScript {
 
 	public Optional<SandboxedValue> getSandboxedValue() {
 		return getResults().map(val -> new SandboxedValue(val, environment));
+	}
+
+	@Override
+	public boolean startScript() {
+		return false;
+	}
+
+	@Override
+	public boolean preAct() {
+		return true;
+	}
+
+	@Override
+	public boolean act(float t) {
+		return true;
+	}
+
+	@Override
+	public void postAct() {
+
 	}
 }
