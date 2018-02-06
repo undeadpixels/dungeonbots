@@ -38,7 +38,6 @@ public class TestWhitelist {
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 	}
 
-	@Test
 	public void testMethodNotOnWhitelist() {
 		Actor a = new ActorBuilder().createActor();
 		LuaSandbox sandbox = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
@@ -55,7 +54,6 @@ public class TestWhitelist {
 		Assert.assertFalse(m.isPresent() && w.onWhitelist(a, m.get()));
 	}
 
-	@Test
 	public void testRemoveFromWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
 		LuaSandbox scriptEnvironment = a.getSandbox();
@@ -76,7 +74,6 @@ public class TestWhitelist {
 		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
 	}
 
-	@Test
 	public void testAddToWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
 		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(a);

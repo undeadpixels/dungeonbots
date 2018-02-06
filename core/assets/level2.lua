@@ -1,45 +1,49 @@
---
--- Created by IntelliJ IDEA.
--- User: stewartcharles
--- Date: 2/3/18
--- Time: 10:30 AM
--- To change this template use File | Settings | File Templates.
---
+-- Level 2
+-- Djikstra's Maze
+-- Created by Stewart Charles
+-- 2/3/2018
 
 local lvl = {}
-
+-- Example metadata attached to each level
+lvl.name = "Level 2"
+lvl.author = "Stewart Charles"
 lvl.init = function()
-    -- TODO: Create Maze Map
-    local t = true
-    local f = false
-    local base = {
-        {f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f},
-        {f,t,t,t,t,t,f,t,t,t,f,t,t,f,t,t,t,t,t,f},
-        {f,t,f,t,f,t,f,t,f,t,f,f,f,f,t,f,f,f,t,f},
-        {f,t,f,t,f,t,t,t,f,t,t,t,t,t,t,f,t,t,t,f},
-        {f,t,f,t,f,t,f,t,f,f,f,f,f,f,f,f,t,f,f,f},
-        {f,f,f,t,f,f,f,t,f,f,t,t,t,t,t,t,t,t,t,f},
-        {f,t,t,t,t,t,f,f,f,f,t,f,f,f,f,f,f,f,f,f},
-        {f,t,f,t,f,f,f,t,t,t,t,f,t,t,t,t,t,t,t,f},
-        {f,t,f,t,f,t,t,t,f,t,f,f,t,f,f,f,f,f,t,f},
-        {f,t,f,f,f,t,f,f,f,t,f,f,t,f,t,t,t,t,t,f},
-        {f,t,t,t,t,t,f,t,f,t,t,t,t,f,t,t,t,t,t,f},
-        {f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f},
-    }
+    -- Define map size
     local h = 12
     local w = 20
     world:setSize(w,h)
+
+    -- Create map
+    local F = tileTypes:getTile("floor")
+    local W = tileTypes:getTile("wall")
+    local base = {
+        { W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W },
+        { W, F, F, F, F, F, W, F, F, F, W, F, F, W, F, F, F, F, F, W },
+        { W, F, W, F, W, F, W, F, W, F, W, W, W, W, F, W, W, W, F, W },
+        { W, F, W, F, W, F, F, F, W, F, F, F, F, F, F, W, F, F, F, W },
+        { W, F, W, F, W, F, W, F, W, W, W, W, W, W, W, W, F, W, W, W },
+        { W, W, W, F, W, W, W, F, W, W, F, F, F, F, F, F, F, F, F, W },
+        { W, F, F, F, F, F, W, W, W, W, F, W, W, W, W, W, W, W, W, W },
+        { W, F, W, F, W, W, W, F, F, F, F, W, F, F, F, F, F, F, F, W },
+        { W, F, W, F, W, F, F, F, W, F, W, W, F, W, W, W, W, W, F, W },
+        { W, F, W, W, W, F, W, W, W, F, W, W, F, W, F, F, F, F, F, W },
+        { W, F, F, F, F, F, W, F, W, F, F, F, F, W, F, F, F, F, F, W },
+        { W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W, W },
+    }
+
+    -- Set Tiles
     for j = 1, h do
         for i = 1, w do
-            if base[j][i] then
-                world:setTile(i, j, tileTypes:getTile("floor"))
-            else
-                world:setTile(i, j, tileTypes:getTile("wall"))
-            end
+            world:setTile(i, j, base[j][i])
         end
     end
+
+    -- Add player and goal
     local player = Player.new(world, 2, 2)
+    player:setDefaultCode("player:right()")
+    player:setStats(1,2,3,4)
     world:setPlayer(player)
+    world:setGoal(19,11)
 end
 
 lvl.update = function()

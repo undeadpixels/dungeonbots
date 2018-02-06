@@ -54,6 +54,7 @@ tbl.init = function()
     end
     local player = Player.new(world, 2, 2)
     world:setPlayer(player)
+    world:setGoal(5,5)
 end
 
 tbl.update = function(dt)

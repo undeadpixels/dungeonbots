@@ -13,7 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -28,7 +31,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-
+import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 
@@ -36,6 +39,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -124,11 +128,29 @@ public class LevelEditorScreen extends Screen {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+				File file = null;
 				switch (e.getActionCommand()) {
 
+				case "Save As":
+					file = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (file != null) {
+						String lua = world.getMapScript();
+						
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+							writer.write(lua);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+
+					}
+					break;
 				case "Open":
-					File file = FileControl.openDialog(LevelEditorScreen.this);
-					// World newWorld = World.fromFile(file);
+					file = FileControl.openDialog(LevelEditorScreen.this);
+					if (file != null) {
+						World newWorld = new World(file);
+						DungeonBotsMain.instance.setWorld(newWorld);
+					}
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
@@ -141,6 +163,22 @@ public class LevelEditorScreen extends Screen {
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
 					break;
 				}
+			}
+
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (e.getSource() instanceof JSlider) {
+					JSlider sldr = (JSlider) e.getSource();
+					if (sldr.getName().equals("zoomSlider")) {
+						OrthographicCamera cam = view.getCamera();
+						if (cam != null) {
+							cam.setZoomOnMinMaxRange((float)(sldr.getValue())/sldr.getMaximum());
+							System.out.println(cam.getZoom());
+						}
+					}
+				}
+
 			}
 
 			@Override
@@ -220,16 +258,10 @@ public class LevelEditorScreen extends Screen {
 
 			}
 
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
 		};
 	}
 
-	
-	/** Handles the rendering of TileTypes in the TileType palette. */	
+	/** Handles the rendering of TileTypes in the TileType palette. */
 	private class PaletteItemRenderer extends DefaultListCellRenderer {
 		// As suggested by "SeniorJD",
 		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
@@ -325,9 +357,15 @@ public class LevelEditorScreen extends Screen {
 		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_U, getController()));
 
+		JSlider zoomSlider = new JSlider();
+		zoomSlider.setName("zoomSlider");
+		zoomSlider.addChangeListener(getController());
+		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
+		menuBar.add(zoomSlider);
 
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);

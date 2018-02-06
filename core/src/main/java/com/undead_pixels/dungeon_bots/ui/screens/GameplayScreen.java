@@ -105,8 +105,10 @@ public class GameplayScreen extends Screen {
 				case "Rewind":
 				case "Open":
 					File file = FileControl.openDialog(GameplayScreen.this);
-					World newWorld = new World(file);
-					DungeonBotsMain.instance.setWorld(newWorld);
+					if (file != null){
+						World newWorld = new World(file);
+						DungeonBotsMain.instance.setWorld(newWorld);	
+					}					
 					break;
 				case "Save":
 				case "Save As":

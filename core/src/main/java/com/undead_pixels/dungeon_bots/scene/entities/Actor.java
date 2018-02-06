@@ -23,13 +23,14 @@ import static org.luaj.vm2.LuaValue.*;
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
-public class Actor extends SpriteEntity implements GetState {
+public class Actor extends SpriteEntity {
 
 	@State
 	protected int steps = 0;
 
 	@State
 	protected int bumps = 0;
+
 	private LuaValue luaBinding;
 	private FloatingText floatingText;
 

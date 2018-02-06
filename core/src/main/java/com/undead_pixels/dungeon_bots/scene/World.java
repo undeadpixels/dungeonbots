@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
@@ -102,6 +103,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
      */
     @State
     private Player player;
+
+    private Vector2 goalPosition = new Vector2();
 
 	/**
 	 *
@@ -580,5 +583,68 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return state;
 	}
 
+	@Override
+	public String getMapScript() {
+		String script = "tbl = {}\n" +
+				"tbl.init = function()\n%s\n\tend\n" +
+				"tbl.update = function(dt)\n%s\n\tend\n" +
+				"return tbl";
+		return String.format(script, createInit(), createUpdate());
+	}
 
+	private String put(String... a) {
+		return Stream.of(a).reduce("", (c,d) -> c + "\n" + d);
+	}
+
+	private String createUpdate() {
+		StringBuilder ans = new StringBuilder();
+		ans.append(put(
+				"\t\tlocal x, y = world:getPlayer():position()",
+				String.format("" +
+						"\t\tif x == %d and y == %d then", (int)goalPosition.x, (int)goalPosition.y),
+						"\t\t\tworld.win()",
+				"\t\tend"));
+		return ans.toString();
+	}
+
+	private String createInit() {
+		final StringBuilder ans = new StringBuilder();
+		final int width = tiles.length;
+		final int height = tiles[0].length;
+		ans.append(put(String.format("\t\tworld:setSize(%d,%d)", width, height)));
+		for (int i = 0; i < tiles.length; i++) {
+			for(int j = 0; j < tiles[i].length; j++) {
+				TileType t = tileTypes[i][j];
+				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
+			}
+		}
+		Vector2 pos = player.getPosition();
+		ans.append(put(String.format("\t\tworld:setPlayer(Player.new(world, %d, %d))", (int)pos.x + 1, (int)pos.y + 1)));
+		return ans.toString();
+	}
+
+
+	public Vector2 goal() {
+		return goalPosition;
+	}
+
+
+	@Bind(SecurityLevel.AUTHOR) public void setGoal(LuaValue lx, LuaValue ly) {
+		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
+	}
+
+	@Bind
+	public Varargs getGoal() {
+		Vector2 goal = goal();
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal.x), LuaValue.valueOf(goal.y)});
+	}
+
+	public Vector2 getGoalPosition() {
+		return new Vector2(goalPosition.x - 1, goalPosition.y - 1);
+	}
+
+	public void setGoal(int x, int y) {
+		goalPosition = new Vector2(x, y);
+		setTile(x, y, tileTypesCollection.getTile("goal"));
+	}
 }
