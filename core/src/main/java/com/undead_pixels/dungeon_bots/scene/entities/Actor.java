@@ -27,6 +27,7 @@ public class Actor extends SpriteEntity implements GetState {
 
 	@State
 	protected int steps = 0;
+
 	@State
 	protected int bumps = 0;
 	private LuaValue luaBinding;
