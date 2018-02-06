@@ -25,6 +25,7 @@ public class WorldView extends JComponent {
 
 	private OrthographicCamera cam;
 	private boolean didInitCam = false;
+	private boolean showGrid = true;
 
 	private World world;
 
@@ -95,6 +96,19 @@ public class WorldView extends JComponent {
 
 			if (world != null) {
 				world.render(batch);
+			}
+			
+			if(showGrid) {
+				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
+				Vector2 size = world.getSize();
+				// draw Y lines
+				for(int i = 0; i <= size.y+.5f; i++) {
+					batch.drawLine(0, i, size.x, i);
+				}
+				// draw X lines
+				for(int j = 0; j <= size.x+.5f; j++) {
+					batch.drawLine(j, 0, j, size.y);
+				}
 			}
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();

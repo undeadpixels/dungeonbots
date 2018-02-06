@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+import javax.swing.JOptionPane;
+
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
@@ -651,5 +653,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 		goalPosition = newGoal;
 
+	}
+	
+	public void showAlert(String alert, String title) {
+		JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	@Bind
+	public void showAlert(LuaValue alert, LuaValue title) {
+		showAlert(alert.tojstring(), title.tojstring());
 	}
 }
