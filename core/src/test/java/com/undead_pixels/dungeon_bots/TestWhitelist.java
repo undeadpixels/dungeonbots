@@ -76,7 +76,7 @@ public class TestWhitelist {
 
 	@Test public void testAddToWhitelist() {
 		Actor a = new ActorBuilder().setName("test").createActor();
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(a);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
 
  		LuaScript luaScript = scriptEnvironment.init("test.up()").join();

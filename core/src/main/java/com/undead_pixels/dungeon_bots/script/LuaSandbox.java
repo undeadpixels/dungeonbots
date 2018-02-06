@@ -23,8 +23,7 @@ public class LuaSandbox {
 
     private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
-	private final SecurityLevel securityLevel;
-	private final ExecutorService scriptExecutor = Executors.newSingleThreadExecutor();
+	private SecurityLevel securityLevel;
 	private final List<Callable> scriptQueue = new LinkedList<>();
 
 	/**
@@ -33,6 +32,11 @@ public class LuaSandbox {
     public LuaSandbox() {
     	this(SecurityLevel.AUTHOR);
     }
+
+    public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
+    	this.securityLevel = securityLevel;
+    	return this;
+	}
 
     /**
      * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
@@ -164,9 +168,5 @@ public class LuaSandbox {
 		return securityLevel;
 	}
 
-	public void enqueueScript(String script) {
-		scriptQueue.add(() ->
-			init(script).join().getResults().orElse(LuaValue.NIL));
-	}
 
 }

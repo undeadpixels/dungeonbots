@@ -9,6 +9,7 @@ import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -25,7 +26,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected LuaSandbox sandbox = new LuaSandbox();
+	protected LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
 
 	/**
 	 * A string representing this Entity's script (if any)

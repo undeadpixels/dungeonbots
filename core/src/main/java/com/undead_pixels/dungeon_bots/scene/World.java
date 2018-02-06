@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
+import javax.swing.JOptionPane;
+
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
@@ -179,6 +181,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
+			assert player != null;
+			player.getSandbox().addBindable(this);
 		}
 	}
 
@@ -618,7 +622,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			}
 		}
 		Vector2 pos = player.getPosition();
-		ans.append(put(String.format("\t\tworld:setPlayer(Player.new(world, %d, %d))", (int)pos.x + 1, (int)pos.y + 1)));
+		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
+		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
+		ans.append(put("\t\tworld:setPlayer(player)"));
 		return ans.toString();
 	}
 
@@ -632,7 +638,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
 	}
 
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	public Varargs getGoal() {
 		Integer[] goal = goal();
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]), LuaValue.valueOf(goal[1])});
@@ -649,5 +655,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 		goalPosition = newGoal;
 
+	}
+	
+	public void showAlert(String alert, String title) {
+		Thread t = new Thread(() ->
+			JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE)
+		);
+		t.start();
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public void showAlert(LuaValue alert, LuaValue title) {
+		showAlert(alert.tojstring(), title.tojstring());
 	}
 }
