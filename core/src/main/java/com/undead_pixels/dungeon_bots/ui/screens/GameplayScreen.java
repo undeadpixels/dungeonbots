@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -31,6 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
@@ -100,18 +102,15 @@ public class GameplayScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				switch (e.getActionCommand()) {
-				case "Play":
-				case "Stop":
-				case "Rewind":
+
 				case "Open":
-					File file = FileControl.openDialog(GameplayScreen.this);
-					if (file != null) {
-						World newWorld = new World(file);
+					File openFile = FileControl.openDialog(GameplayScreen.this);
+					if (openFile != null) {
+						World newWorld = new World(openFile);
 						DungeonBotsMain.instance.setWorld(newWorld);
-					}
+					} else
+						System.out.println("Open cancelled.");
 					break;
-				case "Save":
-				case "Save As":
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
@@ -121,8 +120,13 @@ public class GameplayScreen extends Screen {
 				case "Quit":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-						DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen());
+						System.exit(0);
 					break;
+				case "Save":
+				case "Save As":
+				case "Play":
+				case "Stop":
+				case "Rewind":
 				case "Last Result":
 				case "Statistics":
 				case "Upload":
@@ -240,6 +244,7 @@ public class GameplayScreen extends Screen {
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
 
+		//Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
 		JButton playBttn = UIBuilder.makeButton("play.jpg", "Start the game", "Play", "PLAY", getController());
@@ -252,11 +257,32 @@ public class GameplayScreen extends Screen {
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener(getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		JPanel arrowPanel = new JPanel();
+		arrowPanel.setLayout(new GridLayout(3, 3));
+		arrowPanel.add(new JPanel());
+		arrowPanel.add(UIBuilder.makeButton("up_arrow.gif", 20, 20, "Move view up", "^", "PAN_UP", getController()));
+		arrowPanel.add(new JPanel());
+		arrowPanel.add(
+				UIBuilder.makeButton("left_arrow.gif", 20, 20, "Move view left", "<", "PAN_LEFT", getController()));
+		arrowPanel.add(new JPanel());
+		arrowPanel.add(
+				UIBuilder.makeButton("right_arrow.gif", 20, 20, "Move view right", ">", "PAN_RIGHT", getController()));
+		arrowPanel.add(new JPanel());
+		arrowPanel.add(
+				UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "V", "PAN_DOWN", getController()));
+		arrowPanel.add(new JPanel());
+		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
+		JToggleButton tglGrid = new JToggleButton(new ImageIcon(DungeonBotsMain.getImage("grid.gif")));
+		tglGrid.setActionCommand("TOGGLE_GRID");
+		tglGrid.addActionListener(getController());
+
 		playToolBar.add(playBttn);
 		playToolBar.add(stopBttn);
 		playToolBar.add(rewindBttn);
 		playToolBar.addSeparator();
 		playToolBar.add(zoomSlider);
+		playToolBar.add(arrowPanel);
+		playToolBar.add(tglGrid);
 
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(80, 30));

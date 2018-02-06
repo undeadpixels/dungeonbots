@@ -85,6 +85,8 @@ public class LevelEditorScreen extends Screen {
 	protected ScreenController makeController() {
 		return new ScreenController() {
 
+			private File _CurrentFile = null;
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getSource() == view) {
@@ -123,29 +125,45 @@ public class LevelEditorScreen extends Screen {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				File file = null;
+
 				switch (e.getActionCommand()) {
 
-				case "Save As":
-					file = FileControl.saveAsDialog(LevelEditorScreen.this);
-					if (file != null) {
+				case "Save":
+					// If there is not a cached file, treat as a SaveAs instead.
+					if (_CurrentFile == null)
+						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (_CurrentFile != null) {
 						String lua = world.getMapScript();
-
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
 							writer.write(lua);
 						} catch (IOException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
-
-					}
+					} else
+						System.out.println("Save cancelled.");
+					break;
+				case "Save As":
+					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+					if (saveFile != null) {
+						String lua = world.getMapScript();
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
+							writer.write(lua);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						_CurrentFile = saveFile;
+					} else
+						System.out.println("SaveAs cancelled.");
 					break;
 				case "Open":
-					file = FileControl.openDialog(LevelEditorScreen.this);
-					if (file != null) {
-						World newWorld = new World(file);
+					File openFile = FileControl.openDialog(LevelEditorScreen.this);
+					if (openFile != null) {
+						World newWorld = new World(openFile);
 						DungeonBotsMain.instance.setWorld(newWorld);
-					}
+						_CurrentFile = openFile;
+					} else
+						System.out.println("Open cancelled.");
+
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
@@ -153,7 +171,25 @@ public class LevelEditorScreen extends Screen {
 						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 					break;
 				case "Quit":
+					int dialogResult = JOptionPane.showConfirmDialog(LevelEditorScreen.this,
+							"Would you like to save before quitting?", "Quit", JOptionPane.YES_NO_CANCEL_OPTION);
+					if (dialogResult == JOptionPane.YES_OPTION) {
+						if (_CurrentFile == null)
+							_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+						if (_CurrentFile != null) {
+							String lua = world.getMapScript();
+							try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
+								writer.write(lua);
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						} else
+							System.out.println("Save cancelled.");
+						System.exit(0);
+					} else if (dialogResult == JOptionPane.NO_OPTION)
+						System.exit(0);
 
+					break;
 				default:
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
 					break;
