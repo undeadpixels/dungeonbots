@@ -6,6 +6,9 @@ package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.util.Optional;
 
@@ -30,6 +33,9 @@ public class LuaScript {
 	 * @param script
 	 */
 	LuaScript(LuaSandbox env, String script) {
+		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
+
 		this.environment = env;
 		this.script = script;
 		this.scriptStatus = ScriptStatus.READY;

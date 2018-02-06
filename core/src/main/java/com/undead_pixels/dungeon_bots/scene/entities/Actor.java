@@ -23,8 +23,9 @@ import static org.luaj.vm2.LuaValue.*;
  */
 public class Actor extends SpriteEntity {
 
+	protected int steps = 0;
+	protected int bumps = 0;
 	private LuaValue luaBinding;
-	
 	private FloatingText floatingText;
 
 	/**
@@ -126,6 +127,7 @@ public class Actor extends SpriteEntity {
 				initialPos[0] = Math.round(e.getPosition().x);
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
+				if(canMove) steps++; else bumps++;
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				return canMove;
 			}
@@ -278,4 +280,13 @@ public class Actor extends SpriteEntity {
 	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
 		return world.isBlocking(lx, ly);
 	}
+
+	@Bind public int steps() {
+		return steps;
+	}
+
+	@Bind public int bumps() {
+		return bumps;
+	}
+
 }

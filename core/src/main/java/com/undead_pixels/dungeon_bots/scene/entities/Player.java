@@ -19,7 +19,7 @@ import org.luaj.vm2.LuaValue;
 public class Player extends RpgActor {
 
 
-	private String defaultCode;
+	protected String defaultCode;
 
 	/**
 	 * Constructor
@@ -51,6 +51,8 @@ public class Player extends RpgActor {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
 		SecurityContext.getWhitelist().add(p);
+		p.steps = 0;
+		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
 		p.sprite.setY((float) y.checkdouble() - 1.0f);
 		return p;
@@ -80,6 +82,10 @@ public class Player extends RpgActor {
 	public void setPosition(Vector2 v) {
 		sprite.setX(v.x);
 		sprite.setY(v.y);
+	}
+
+	public int getSteps() {
+		return steps;
 	}
 
 }

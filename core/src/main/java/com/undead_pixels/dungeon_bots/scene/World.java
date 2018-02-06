@@ -100,6 +100,11 @@ public class World implements GetLuaFacade, GetLuaSandbox {
      * The player object
      */
     private Player player;
+
+	/**
+	 *
+	 */
+	private int timesReset = 0;
     
     /**
      * An id counter, used to hand out id's to entities
@@ -116,8 +121,6 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 	/**
 	 *
 	 */
-	private String defaultScript;
-
 	private Level level;
 
 	/**
@@ -513,22 +516,10 @@ public class World implements GetLuaFacade, GetLuaSandbox {
 		return tileTypesCollection;
 	}
 
-	public String getDefaultScript() {
-		return defaultScript != null ? defaultScript : "";
-	}
-
-	public void setDefaultScript(String defaultScript) {
-		this.defaultScript = defaultScript;
-	}
-
-	@Bind(SecurityLevel.AUTHOR)
-	public void setLevelScript(LuaValue luaValue) {
-		setDefaultScript(luaValue.checkjstring());
-	}
-
 	public synchronized void reset() {
 		updateLock.lock();
 		try {
+			timesReset++;
 			// levelScript = null;
 			// tiles = new Tile[0][0];
 			// entities.clear();
