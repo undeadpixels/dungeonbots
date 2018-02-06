@@ -585,10 +585,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	@Override
 	public String getMapScript() {
-		String script = "return {\n" +
-				"\tinit = function()\n%s\n\tend\n" +
-				"\tupdate = function(dt)\n%s\n\tend\n" +
-				"}";
+		String script = "tbl = {};\n" +
+				"\ttbl.init = function()\n%s\n\tend;\n" +
+				"\ttbl.update = function(dt)\n%s\n\tend;\n" +
+				"return tbl;";
 		return String.format(script, createInit(), createUpdate());
 	}
 
@@ -637,6 +637,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	public Varargs getGoal() {
 		Vector2 goal = goal();
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal.x), LuaValue.valueOf(goal.y)});
+	}
+
+	public Vector2 getGoalPosition() {
+		return new Vector2(goalPosition.x - 1, goalPosition.y - 1);
 	}
 
 	public void setGoal(int x, int y) {
