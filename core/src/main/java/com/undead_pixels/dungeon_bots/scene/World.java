@@ -601,7 +601,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		ans.append(put(
 				"\t\tlocal x, y = world:getPlayer():position()",
 				String.format("" +
-						"\t\tif x == %d and y == %d then", (int)goalPosition.x, (int)goalPosition.y),
+						"\t\tif x == %d and y == %d then", (int)goalPosition.x + 1, (int)goalPosition.y + 1),
 						"\t\t\tworld.win()",
 				"\t\tend"));
 		return ans.toString();
@@ -640,7 +640,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 	public Vector2 getGoalPosition() {
-		return new Vector2(goalPosition.x - 1, goalPosition.y - 1);
+		return new Vector2(goalPosition.x, goalPosition.y);
 	}
 
 	public void setGoal(int x, int y) {
