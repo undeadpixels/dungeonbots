@@ -82,8 +82,15 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
+		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
+		registerTile("tiles_big", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 5, 2, null, false, false);
+		registerTile("tiles_small", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 6, 2, null, false, false);
+		registerTile("tiles_diamond", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 2, null, false, false);
+		
 		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
 		registerTile("goal", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 3, 5, null, false, false);
+		registerTile("pit", AssetManager.getTexture("DawnLike/Objects/Trap1.png"), TILESIZE, 5, 2, null, false, true);
+		registerTile("door", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 0, 0, null, false, true);
 	}
 
 	@Bind @BindTo("new")
