@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
@@ -218,9 +219,16 @@ public class LevelEditorScreen extends Screen {
 				// TODO Auto-generated method stub
 
 			}
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
 		};
 	}
 
+	
 	/** Handles the rendering of TileTypes in the TileType palette. */	
 	private class PaletteItemRenderer extends DefaultListCellRenderer {
 		// As suggested by "SeniorJD",

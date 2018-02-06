@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
@@ -116,6 +117,12 @@ public class MainMenuScreen extends Screen {
 
 			@Override
 			public void windowOpened(WindowEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
 				// TODO Auto-generated method stub
 				
 			}

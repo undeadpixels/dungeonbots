@@ -17,6 +17,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.HashMap;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -29,13 +30,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
 import javax.swing.JDialog;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -102,7 +106,7 @@ public class GameplayScreen extends Screen {
 				case "Open":
 					File file = FileControl.openDialog(GameplayScreen.this);
 					World newWorld = new World(file);
-					//DungeonBotsMain.instance.setWorld(newWorld);
+					DungeonBotsMain.instance.setWorld(newWorld);
 					break;
 				case "Save":
 				case "Save As":
@@ -168,43 +172,62 @@ public class GameplayScreen extends Screen {
 			@Override
 			public void windowActivated(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowClosed(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowClosing(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowDeactivated(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowDeiconified(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowIconified(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowOpened(WindowEvent arg0) {
 				// TODO Auto-generated method stub
-				
+
+			}
+
+			int priorZoomSlider = 50;
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (e.getSource() instanceof JSlider) {
+					JSlider sldr = (JSlider) e.getSource();
+					if (sldr.getName().equals("zoomSlider")) {
+						OrthographicCamera cam = view.getCamera();
+						if (cam != null) {
+							//TODO:  This is very hack-like.  Work out the math.
+							int newSlider = sldr.getValue();
+							cam.setZoom(cam.getZoom() + ((newSlider - priorZoomSlider) * 0.001f));
+							priorZoomSlider = newSlider;
+							System.out.println(cam.getZoom());
+						}
+					}
+				}
+
 			}
 
 		};
@@ -230,9 +253,15 @@ public class GameplayScreen extends Screen {
 		stopBttn.setPreferredSize(new Dimension(50, 50));
 		JButton rewindBttn = UIBuilder.makeButton("rewind.jpg", "Rewind the game", "Rewind", "REWIND", getController());
 		rewindBttn.setPreferredSize(new Dimension(50, 50));
+		JSlider zoomSlider = new JSlider();
+		zoomSlider.setName("zoomSlider");
+		zoomSlider.addChangeListener(getController());
+		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 		playToolBar.add(playBttn);
 		playToolBar.add(stopBttn);
 		playToolBar.add(rewindBttn);
+		playToolBar.addSeparator();
+		playToolBar.add(zoomSlider);
 
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(80, 30));
@@ -283,7 +312,7 @@ public class GameplayScreen extends Screen {
 			this.setContentPane(new JLabel(new ImageIcon(img)));
 		}
 		this.setUndecorated(false);
-		this.setTitle("Create your world...");
+		this.setTitle("Play your world...");
 
 	}
 

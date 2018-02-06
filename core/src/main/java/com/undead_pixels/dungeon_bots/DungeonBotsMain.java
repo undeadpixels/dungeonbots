@@ -56,9 +56,7 @@ public class DungeonBotsMain {
 	/**
 	 * private constructor for singleton
 	 */
-	private DungeonBotsMain() {
-
-		
+	private DungeonBotsMain() {	
 
 	}
 
@@ -85,7 +83,7 @@ public class DungeonBotsMain {
 			return;
 
 		// Create a new world.
-		_World = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
+		_World = new World(new File("level1.lua"));
 
 		// Fire up the main menu screen.
 		setCurrentScreen(new MainMenuScreen());

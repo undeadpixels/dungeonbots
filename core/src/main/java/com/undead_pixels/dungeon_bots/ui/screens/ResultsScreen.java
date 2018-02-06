@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.TileType;
@@ -166,6 +167,12 @@ public class ResultsScreen extends Screen {
 			public void windowOpened(WindowEvent e) {
 				// TODO Auto-generated method stub
 
+			}
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 		};
