@@ -1,22 +1,18 @@
 package com.undead_pixels.dungeon_bots;
 
+
+import com.undead_pixels.dungeon_bots.ui.Login;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
 
 /**
@@ -29,11 +25,18 @@ public class DungeonBotsMain {
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
 	private World _World;
-	private Vector<Entity> _EntityPalette;
+	
 
 	/** Returns the world currently associated with this game. */
 	public World getWorld() {
 		return _World;
+	}
+	public void setWorld(World world){
+		_World = world;
+		
+		if (_Screen instanceof GameplayScreen) setCurrentScreen(new GameplayScreen());
+		else if (_Screen instanceof LevelEditorScreen) setCurrentScreen(new GameplayScreen());
+		else setCurrentScreen(new MainMenuScreen());
 	}
 
 	/**
@@ -48,34 +51,11 @@ public class DungeonBotsMain {
 	 */
 	private DungeonBotsMain() {
 
-		// Set up the palettes. TODO: eventually, this data will not be
-		// populated in the constructor, but instead will come from a download
-		// or from specs in a LevelPack.
-		setupPalettes();
+		
 
 	}
 
-	/**
-	 * Returns a references to the palette of entities associated with this
-	 * game.
-	 */
-	public Vector<Entity> getEntityPalette() {
-		return _EntityPalette;
-	}
-
-	private void setupPalettes() {
-		// Set up the bots available.
-		_EntityPalette = new Vector<>();
-		//_EntityPalette.add(Player.worldlessPlayer());
-
-		// Set up the dynamic stuff available.
-		// Nothing right now.
-
-		// Set up the static stuff available.
-		//_EntityPalette.add(Tile.worldlessTile("floor", false));
-		//_EntityPalette.add(Tile.worldlessTile("wall", true));
-		//_EntityPalette.add(Tile.worldlessTile("goal", false));
-	}
+	
 
 	/*
 	 * ================================================================

@@ -4,39 +4,41 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Image;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.EventListener;
+import java.awt.event.WindowEvent;
+import java.io.File;
 
-import javax.swing.Box;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
-import javax.swing.JWindow;
+
 import javax.swing.KeyStroke;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
-import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
 import com.undead_pixels.dungeon_bots.math.Vector2;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.TileType;
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
-import com.undead_pixels.dungeon_bots.ui.screens.Screen.ScreenController;
+
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 /**
@@ -45,17 +47,34 @@ import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
  * @author Wesley
  *
  */
+@SuppressWarnings("serial")
 public class LevelEditorScreen extends Screen {
 
 	/**
 	 * The view
 	 */
 	private WorldView view;
+	private World world;
+	private JList<Object> _PaletteSelector;
 
 	/**
 	 * Current state. Used to update the world and write to file.
 	 */
 	private GameEditorState state;
+
+	public LevelEditorScreen() {
+		super();
+		world = DungeonBotsMain.instance.getWorld();
+
+		DefaultListModel<Object> lm = new DefaultListModel<Object>();
+		for (TileType t : world.getTileTypes())
+			lm.addElement(t);
+		_PaletteSelector.setModel(lm);
+		_PaletteSelector.validate();
+		// TODO: add other types of elements.
+
+		view.addMouseMotionListener(getController());
+	}
 
 	@Override
 	protected ScreenController makeController() {
@@ -63,15 +82,64 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-				Entity gameEntity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
-				onGameClicked(gamePosition, e.getButton(), e.getClickCount(), gameEntity);
-				e.consume();
+				if (e.getSource() == view) {
+					if (world == null)
+						return;
+					Object selection = _PaletteSelector.getSelectedValue();
+					if (selection == null)
+						return;
+					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					int x = (int) gamePosition.x;
+					int y = (int) gamePosition.y;
+					if (selection instanceof TileType) {
+						TileType drawType = (TileType) selection;
+						TileType currentTile = world.getTile(x, y);
+						world.setTile(x, y, drawType);
+					}
+					e.consume();
+				}
 			}
-			
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if (e.getSource() == view) {
+					if (world == null)
+						return;
+					Object selection = _PaletteSelector.getSelectedValue();
+					if (selection == null)
+						return;
+					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					int x = (int) gamePosition.x;
+					int y = (int) gamePosition.y;
+					if (selection instanceof TileType) {
+						TileType drawType = (TileType) selection;
+						TileType currentTile = world.getTile(x, y);
+						world.setTile(x, y, drawType);
+					}
+					e.consume();
+				}
+			}
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onCommand(e.getActionCommand());				
+				// TODO Auto-generated method stub
+				switch (e.getActionCommand()) {
+
+				case "Open":
+					File file = FileControl.openDialog(LevelEditorScreen.this);
+					// World newWorld = World.fromFile(file);
+					break;
+				case "Exit to Main":
+					if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
+							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+					break;
+				case "Quit":
+
+				default:
+					System.out.println("Have not implemented the command: " + e.getActionCommand());
+					break;
+				}
 			}
 
 			@Override
@@ -84,6 +152,7 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mousePressed(MouseEvent arg0) {
+				System.out.println("Mouse pressed");
 			}
 
 			@Override
@@ -92,6 +161,7 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void keyPressed(KeyEvent arg0) {
+
 			}
 
 			@Override
@@ -103,20 +173,81 @@ public class LevelEditorScreen extends Screen {
 			}
 
 			@Override
-			public void mouseDragged(MouseEvent arg0) {
+			public void mouseMoved(MouseEvent arg0) {
+
 			}
 
 			@Override
-			public void mouseMoved(MouseEvent arg0) {
+			public void windowActivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
 			}
 
-			
+			@Override
+			public void windowClosed(WindowEvent e) {
+				// TODO Auto-generated method stub
 
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
 		};
-	
 	}
 
-	
+	/** Handles the rendering of TileTypes in the TileType palette. */	
+	private class PaletteItemRenderer extends DefaultListCellRenderer {
+		// As suggested by "SeniorJD",
+		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
+		// Sep. 19, 2013
+
+		@Override
+		public Component getListCellRendererComponent(JList<? extends Object> list, Object item, int index,
+				boolean isSelected, boolean cellHasFocus) {
+			Component c = super.getListCellRendererComponent(list, item, index, isSelected, cellHasFocus);
+			if (c instanceof JLabel) {
+				// Are there any cases where a JLabel is not returned by
+				// DefaultListCellRenderer?
+				JLabel lbl = (JLabel) c;
+				if (item instanceof TileType) {
+					TileType tt = (TileType) item;
+					lbl.setText(tt.getName());
+				} else
+					lbl.setText(item.toString());
+			} else
+				System.err.println("Unexpected component type returned in " + this.getClass().getName() + ":"
+						+ c.getClass().getName());
+
+			return c;
+		}
+	}
+
 	@Override
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
@@ -127,9 +258,32 @@ public class LevelEditorScreen extends Screen {
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
 
-		// Create the palette.
-		JList<Entity> paletteSelector = new JList<Entity>(DungeonBotsMain.instance.getEntityPalette());
-		JScrollPane paletteScroller = new JScrollPane(paletteSelector);
+		// The draw type combobox.
+		JComboBox<String> brushBox = new JComboBox<String>();
+		brushBox.addItem("Point");
+		brushBox.addItem("Line");
+		brushBox.addItem("Area");
+		JPanel brushBoxContainer = new JPanel(new FlowLayout());
+		brushBoxContainer.add(brushBox);
+		brushBoxContainer.setMaximumSize(new Dimension(9999, 100));
+		brushBoxContainer.setBorder(BorderFactory.createTitledBorder("Current draw mode"));
+
+		// Create the palette, but don't add elements - there's no ref to world
+		// yet.
+		_PaletteSelector = new JList<Object>();
+		_PaletteSelector.setCellRenderer(new PaletteItemRenderer());
+		_PaletteSelector.setPreferredSize(new Dimension(150, 300));
+		JScrollPane paletteScroller = new JScrollPane(_PaletteSelector);
+		paletteScroller.setBorder(BorderFactory.createTitledBorder("Current Tile"));
+
+		JPanel controlPanel = new JPanel();
+		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
+		controlPanel.add(paletteScroller);
+		controlPanel.add(brushBoxContainer);
+		controlPanel.add(new JLabel("Game position:"));
+		controlPanel.add(new JLabel("Associated World scripts:"));
+		controlPanel.add(new JLabel("Associated lines of code:"));
+		controlPanel.add(new JLabel("Queue size:"));
 
 		// Create the top-of-screen menu
 		JMenu fileMenu = new JMenu("File");
@@ -167,7 +321,7 @@ public class LevelEditorScreen extends Screen {
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
 
-		pane.add(paletteScroller, BorderLayout.LINE_START);
+		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
 
@@ -189,16 +343,4 @@ public class LevelEditorScreen extends Screen {
 
 	}
 
-	
-	protected void onGameClicked(Vector2 gamePosition, int button, int clickCount, Entity gameEntity) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	protected void onCommand(String actionCommand) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	
 }

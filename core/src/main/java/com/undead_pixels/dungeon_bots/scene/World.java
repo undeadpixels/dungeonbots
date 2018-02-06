@@ -34,11 +34,11 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 
 /**
- * The World of the game.
- * Controls pretty much everything in the entire level, but could get reset/rebuilt if the level is restarted.
+ * The World of the game. Controls pretty much everything in the entire level,
+ * but could get reset/rebuilt if the level is restarted.
  * 
- * TODO - some parts of this should persist between the resets/rebuilds, but some parts shouldn't.
- * Need to figure out what parts.
+ * TODO - some parts of this should persist between the resets/rebuilds, but
+ * some parts shouldn't. Need to figure out what parts.
  */
 public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
@@ -60,34 +60,34 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	private LuaSandbox mapSandbox;
 
-    /**
-     * The of this world (may be user-readable)
-     */
-    private String name = "world";
+	/**
+	 * The of this world (may be user-readable)
+	 */
+	private String name = "world";
 
 	/**
 	 * A background image for this world
 	 */
 	private TextureRegion backgroundImage;
-	
+
 	/**
-	 * An array of tiles, in the bottom layer of this world
-	 * This array is generated from the tileTypes array.
+	 * An array of tiles, in the bottom layer of this world This array is
+	 * generated from the tileTypes array.
 	 * 
 	 * TODO - probably fix that eventually.
 	 */
 	private Tile[][] tiles;
-	
+
 	/**
 	 * An array of TileType's. Used to generate the array of tiles.
 	 */
 	private TileType[][] tileTypes;
-	
+
 	/**
 	 * The collection of available TileType's
 	 */
 	private TileTypes tileTypesCollection;
-	
+
 	/**
 	 * Indication of if the tile array needs to be refreshed
 	 */
@@ -139,7 +139,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * Constructs this world from a lua script
 	 * 
-	 * @param luaScriptFile	The level script
+	 * @param luaScriptFile
+	 *            The level script
 	 */
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
@@ -148,17 +149,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * Constructs this world with a name
 	 * 
-	 * @param name	The name
+	 * @param name
+	 *            The name
 	 */
 	public World(String name) {
-			this(null, name);
+		this(null, name);
 	}
-	
+
 	/**
 	 * Constructs a world
 	 * 
-	 * @param luaScriptFile	The level script
-	 * @param name	The name
+	 * @param luaScriptFile
+	 *            The level script
+	 * @param name
+	 *            The name
 	 */
 	public World(File luaScriptFile, String name) {
 		super();
@@ -168,10 +172,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		
 		if(luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
-			
+
 			AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
 			AssetManager.finishLoading();
-			
+
 			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			levelScript = mapSandbox.script(luaScriptFile).start().join();
@@ -182,16 +186,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 	}
 
-	@Bind @BindTo("new")
-    public static LuaValue newWorld() {
-    		World w = new World();
-    		SecurityContext.getWhitelist().add(w);
+	@Bind
+	@BindTo("new")
+	public static LuaValue newWorld() {
+		World w = new World();
+		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
-		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
+		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen());
 	}
 
 	public void setPlayer(Player p) {
@@ -205,13 +210,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		setPlayer(p);
 	}
 
-    // TODO - another constructor for specific resource paths
-    
-    
+	// TODO - another constructor for specific resource paths
+
 	/**
 	 * Updates this world and all children
 	 * 
-	 * @param dt	Delta time
+	 * @param dt
+	 *            Delta time
 	 */
 	public void update(float dt) {
 		updateLock.lock();
@@ -243,32 +248,34 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			updateLock.unlock();
 		}
 	}
-	
+
 	/**
 	 * Render this world and all children
 	 * 
-	 * @param batch	a SpriteBatch
+	 * @param batch
+	 *            a SpriteBatch
 	 */
 	public void render(SpriteBatch batch) {
 		refreshTiles();
+		
 		//System.out.println("Rendering world");
 		
 		//cam.translate(w/2, h/2);
 		
-		// TODO - probably use a better background color once we have things stable
-		batch.glClearColor(new Color(.65f, .2f, 0, 1));
-		batch.glClear();
+		// clear to black
+		batch.setClearColor(new Color(.0f, .0f, .0f, 1));
+		batch.clearContext();
 
 		// draw background image
 		batch.begin();
-		if(backgroundImage != null) {
+		if (backgroundImage != null) {
 			batch.draw(backgroundImage, 0, 0);
 		}
 
 		// draw tiles
-		for(Tile[] ts : tiles) {
-			for(Tile t : ts) {
-				if(t != null) {
+		for (Tile[] ts : tiles) {
+			for (Tile t : ts) {
+				if (t != null) {
 					t.render(batch);
 				}
 			}
@@ -276,9 +283,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		batch.end();
 
 		// draw each layer of entities
-		for(Layer layer : toLayers()) {
+		for (Layer layer : toLayers()) {
 			batch.begin();
-			for(Entity e : layer.getEntities()) {
+			for (Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
 			batch.end();
@@ -287,31 +294,33 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	@Bind
 	public void addEntity(LuaValue v) {
-    	Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
-    	addEntity(e);
+		Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
+		addEntity(e);
 	}
 
 	/**
 	 * Adds an entity
 	 * 
-	 * @param e	The entity to add
+	 * @param e
+	 *            The entity to add
 	 */
 	public void addEntity(Entity e) {
 		entities.add(e);
 	}
 
-
 	@Bind
 	public void setSize(LuaValue w, LuaValue h) {
-    	setSize(w.checkint(), h.checkint());
+		setSize(w.checkint(), h.checkint());
 	}
 
 	/**
-	 * Sets this world's size
-	 * Calls to set tiles outside of the world's size (or before the world's size is set) may cause issues.
+	 * Sets this world's size Calls to set tiles outside of the world's size (or
+	 * before the world's size is set) may cause issues.
 	 * 
-	 * @param w	the width, in tiles
-	 * @param h	the height, in tiles
+	 * @param w
+	 *            the width, in tiles
+	 * @param h
+	 *            the height, in tiles
 	 */
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
@@ -320,7 +329,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 	/**
-	 * @return	The size of this world, in tiles
+	 * @return The size of this world, in tiles
 	 */
 	public Vector2 getSize() {
 		return new Vector2(tiles.length, tiles[0].length);
@@ -330,38 +339,39 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 * Update tile sprites, if they're stale
 	 */
 	public void refreshTiles() {
-		if(tilesAreStale) {
-			
+		if (tilesAreStale) {
+
 			int w = tiles.length;
 			int h = tiles[0].length;
-			for(int i = 0; i < w; i++) {
-				for(int j = 0; j < h; j++) {
+			for (int i = 0; i < w; i++) {
+				for (int j = 0; j < h; j++) {
 					TileType current = tileTypes[i][j];
-					
-					if(current != null) {
-						TileType l = i >= 1   ? tileTypes[i-1][j] : null;
-						TileType r = i <  w-1 ? tileTypes[i+1][j] : null;
-						TileType u = j <  h-1 ? tileTypes[i][j+1] : null;
-						TileType d = j >= 1   ? tileTypes[i][j-1] : null;
 
-						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j, current.isSolid());
-						
-						//System.out.print(current.isSolid() ? "#" : ".");
+					if (current != null) {
+						TileType l = i >= 1 ? tileTypes[i - 1][j] : null;
+						TileType r = i < w - 1 ? tileTypes[i + 1][j] : null;
+						TileType u = j < h - 1 ? tileTypes[i][j + 1] : null;
+						TileType d = j >= 1 ? tileTypes[i][j - 1] : null;
+
+						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j,
+								current.isSolid());
+
+						// System.out.print(current.isSolid() ? "#" : ".");
 						tiles[i][j] = t;
 					}
 				}
-				
+
 				System.out.println();
 			}
-			
+
 			tilesAreStale = false;
 		}
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
 	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
-    	TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
-    	setTile(x.checkint() - 1, y.checkint() - 1, tileType);
+		TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
+		setTile(x.checkint() - 1, y.checkint() - 1, tileType);
 	}
 
 	@Bind
@@ -381,9 +391,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * Sets a specific tile
 	 * 
-	 * @param x	The x location, in tiles
-	 * @param y	The y location, in tiles
-	 * @param tileType	The type of the tile
+	 * @param x
+	 *            The x location, in tiles
+	 * @param y
+	 *            The y location, in tiles
+	 * @param tileType
+	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
 		// TODO - bounds checking
@@ -391,28 +404,40 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		tilesAreStale = true;
 		tileTypes[x][y] = tileType;
 	}
-	
+
 	/**
-	 * @return	A list of layers, representing all actors
+	 * Returns the tile at the given location. If outside the world boundaries,
+	 * returns null.
+	 */
+	public TileType getTile(int x, int y) {
+		if (x < 0 || x >= tileTypes.length)
+			return null;
+		if (y < 0 || y >= tileTypes[x].length)
+			return null;
+		return tileTypes[x][y];
+	}
+
+	/**
+	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
 		HashMap<Float, Layer> layers = new HashMap<>();
-		
-		for(Entity e : entities) {
+
+		for (Entity e : entities) {
 			float z = e.getZ();
-			
+
 			Layer l = layers.get(z);
-			if(l == null) {
+			if (l == null) {
 				l = new Layer(z);
 				layers.put(z, l);
 			}
-			
+
 			l.add(e);
 		}
-		
+
 		ArrayList<Layer> ret = new ArrayList<Layer>(layers.values());
 		Collections.sort(ret);
-		
+
 		return ret;
 	}
 
@@ -436,75 +461,84 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	/**
 	 * Generates an id
-	 * @return	a new id
+	 * 
+	 * @return a new id
 	 */
 	public int makeID() {
 		return idCounter++;
 	}
-	
+
 	/**
-	 * Asks if an entity is allowed to move to a given tile.
-	 * Locks that tile to be owned by the given entity if it is allowed.
+	 * Asks if an entity is allowed to move to a given tile. Locks that tile to
+	 * be owned by the given entity if it is allowed.
 	 * 
-	 * @param e	The entity asking
-	 * @param x	Location X, in tiles
-	 * @param y	Location Y, in tiles
-	 * @return	True if the entity is allowed to move to this location
+	 * @param e
+	 *            The entity asking
+	 * @param x
+	 *            Location X, in tiles
+	 * @param y
+	 *            Location Y, in tiles
+	 * @return True if the entity is allowed to move to this location
 	 */
 	public boolean requestMoveToNewTile(Entity e, int x, int y) {
-		if(x < 0 || y < 0) {
+		if (x < 0 || y < 0) {
 			System.out.println("Unable to move: x/y too small");
 			return false;
 		}
-		if(x >= tiles.length || y >= tiles[0].length) {
+		if (x >= tiles.length || y >= tiles[0].length) {
 			System.out.println("Unable to move: x/y too big");
 			return false;
 		}
 
-		if(tiles[x][y] != null && tiles[x][y].isSolid()) {
+		if (tiles[x][y] != null && tiles[x][y].isSolid()) {
 			System.out.println("Unable to move: tile solid");
 			return false;
 		}
-		
+
 		// TODO - check if other entities own that spot
 		// TODO - tell the world that this entity owns that spot
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Used to release the lock that this entity previously owned on a tile
 	 * 
-	 * @param e	The entity releasing the tile
-	 * @param x	Location X, in tiles
-	 * @param y	Location Y, in tiles
+	 * @param e
+	 *            The entity releasing the tile
+	 * @param x
+	 *            Location X, in tiles
+	 * @param y
+	 *            Location Y, in tiles
 	 */
 	public void didLeaveTile(Entity e, int x, int y) {
 		// TODO
 	}
-	
+
 	/**
 	 * Gets what entity is occupying a given tile
 	 * 
-	 * @param x	Location X, in tiles
-	 * @param y	Location Y, in tiles
-	 * @return	The entity under the given location
+	 * @param x
+	 *            Location X, in tiles
+	 * @param y
+	 *            Location Y, in tiles
+	 * @return The entity under the given location
 	 */
 	public Entity getEntityUnderLocation(float x, float y) {
-		for(Entity e : entities) {
+		for (Entity e : entities) {
 			Vector2 p = e.getPosition();
-			
-			if(x < p.x || x > p.x+1) {
+
+			if (x < p.x || x > p.x + 1) {
 				continue;
 			}
 
-			if(y < p.y || y > p.y+1) {
+			if (y < p.y || y > p.y + 1) {
 				continue;
 			}
-			
+
 			return e;
 		}
-		
+
 		return null;
 	}
 
@@ -514,10 +548,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	}
 
 	/**
-	 * @return	The types of tiles available
+	 * @return The types of tiles available
 	 */
 	public TileTypes getTileTypes() {
-		if(tileTypesCollection == null) {
+		if (tileTypesCollection == null) {
 			tileTypesCollection = new TileTypes();
 		}
 		return tileTypesCollection;
