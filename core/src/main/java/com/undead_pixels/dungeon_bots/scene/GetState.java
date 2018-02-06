@@ -25,7 +25,7 @@ public interface GetState {
 			if (LuaReflection.collectClasses(c)
 					.map(Class::getInterfaces)
 					.flatMap(Stream::of)
-					.anyMatch(GetState.class::equals)) {
+					.anyMatch(GetState.class::isInstance)) {
 				try {
 					s.addAll(new ArrayList<>(GetState.class.cast(f.get(this)).getFields()));
 				} catch (Exception e) {

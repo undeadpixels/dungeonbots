@@ -568,17 +568,5 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 	}
 
-	@Override
-	public Map<String, Object> getState() {
-		final Map<String, Object> state = new HashMap<>();
-		state.put("Times Reset", timesReset);
-		state.put("Steps", player.steps());
-		state.put("Bumps", player.bumps());
-		state.put("Health", player.getHealth());
-		state.put("Mana", player.getMana());
-		state.put("Stamina", player.getStamina());
-		return state;
-	}
-
 
 }
