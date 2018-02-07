@@ -272,7 +272,8 @@ public class GameplayScreen extends Screen {
 				UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "V", "PAN_DOWN", getController()));
 		arrowPanel.add(new JPanel());
 		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
-		JToggleButton tglGrid = new JToggleButton(new ImageIcon(DungeonBotsMain.getImage("grid.gif")));
+		Image gridImage = DungeonBotsMain.getImage("grid.gif");
+		JToggleButton tglGrid = (gridImage == null) ? new JToggleButton("Grid") : new JToggleButton(new ImageIcon(gridImage));
 		tglGrid.setActionCommand("TOGGLE_GRID");
 		tglGrid.addActionListener(getController());
 
