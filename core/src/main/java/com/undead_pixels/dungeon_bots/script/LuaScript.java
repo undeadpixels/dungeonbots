@@ -6,6 +6,9 @@ package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.util.Optional;
 
@@ -14,7 +17,7 @@ import java.util.Optional;
  * @version 2/1/2018 A LuaScript is an asynchronous wrapper around an execution
  *          context for a sandbox that is invoked using a LuaSandbox.
  */
-public class LuaScript {
+public class LuaScript extends ScriptEvent {
 
 	private final LuaSandbox environment;
 	private final String script;
@@ -30,6 +33,10 @@ public class LuaScript {
 	 * @param script
 	 */
 	LuaScript(LuaSandbox env, String script) {
+		super(env);
+		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
+
 		this.environment = env;
 		this.script = script;
 		this.scriptStatus = ScriptStatus.READY;
@@ -41,13 +48,12 @@ public class LuaScript {
 
 	/** Starts execution of the sandbox on a separate thread. */
 	public synchronized LuaScript start() {
-		SecurityContext.set(this.environment);
 		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: sandbox should cache as much of itself as it can. Cache the
-		// chunk?
+		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
 		thread = ThreadWrapper.create(() -> {
+			SecurityContext.set(environment);
 			try {
 				scriptStatus = ScriptStatus.RUNNING;
 				LuaValue chunk = environment.getGlobals().load(this.script);
@@ -153,7 +159,7 @@ public class LuaScript {
 	 * 
 	 * @return An Optional containing results if they are present.
 	 */
-	public synchronized Optional<Varargs> getResults() {
+	public Optional<Varargs> getResults() {
 		return Optional.ofNullable(varargs);
 	}
 
@@ -175,5 +181,29 @@ public class LuaScript {
 	 */
 	public LuaError getError() {
 		return luaError;
+	}
+
+	public Optional<SandboxedValue> getSandboxedValue() {
+		return getResults().map(val -> new SandboxedValue(val, environment));
+	}
+
+	@Override
+	public boolean startScript() {
+		return false;
+	}
+
+	@Override
+	public boolean preAct() {
+		return true;
+	}
+
+	@Override
+	public boolean act(float t) {
+		return true;
+	}
+
+	@Override
+	public void postAct() {
+
 	}
 }

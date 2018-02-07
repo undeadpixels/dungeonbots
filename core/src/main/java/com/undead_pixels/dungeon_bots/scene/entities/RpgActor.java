@@ -1,10 +1,12 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import org.luaj.vm2.LuaValue;
@@ -22,14 +24,23 @@ import java.util.stream.Stream;
 public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	private final int STAT_COUNT = 4;
 
-	// Skill resource attributes
-	// The use of certain skills temporarily consumes their associated resources
-	protected int health;
-	protected int mana;
-	protected int stamina;
+	// -- Skill resource attributes --
+	// -- The use of certain skills temporarily consumes their associated resources --
+	@State
+	protected int health = 10;
+	@State
+	protected int mana = 10;
+	@State
+	protected int stamina = 10;
 
 	// Skill stats determine the effectiveness and potency of associated skill abilities
-	protected final int[] stats = new int[STAT_COUNT];
+	protected final int[] stats = new int[] { 5, 5, 5, 5 };
+
+	public RpgActor(World world, String name, TextureRegion tex, int[] s) {
+		super(world, name, tex);
+		assert s.length == STAT_COUNT;
+		System.arraycopy(s, 0, stats, 0, STAT_COUNT);
+	}
 
 	public RpgActor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
@@ -40,7 +51,6 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	}
 
 	/* -- LuaBindings -- */
-
 	/**
 	 * Returns the source players stats as a Varargs
 	 * <pre>{@code
@@ -48,43 +58,75 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	 * }</pre>
 	 * @return
 	 */
-	@Bind @BindTo("stats")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("stats")
 	public Varargs getStats() {
-		return LuaValue.varargsOf((LuaValue[])Stream.of(stats).map(CoerceJavaToLua::coerce).toArray());
+		return  LuaValue.varargsOf(new LuaValue[] {
+				LuaValue.valueOf(stats[0]),
+				LuaValue.valueOf(stats[1]),
+				LuaValue.valueOf(stats[2]),
+				LuaValue.valueOf(stats[3])});
 	}
 
-	@Bind @BindTo("strength")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("strength")
 	public int getStrength() {
 		return stats[0];
 	}
 
-	@Bind @BindTo("dexterity")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("dexterity")
 	public int getDexterity() {
 		return stats[1];
 	}
 
-	@Bind @BindTo("intelligence")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("intelligence")
 	public int getIntelligence() {
 		return stats[2];
 	}
 
-	@Bind @BindTo("wisdom")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("wisdom")
 	public int getWisdom() {
 		return stats[3];
 	}
 
-	@Bind @BindTo("health")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("health")
 	public int getHealth() {
 		return health;
 	}
 
-	@Bind @BindTo("mana")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("mana")
 	public int getMana() {
 		return mana;
 	}
 
-	@Bind @BindTo("stamina")
+	@Bind(SecurityLevel.DEFAULT) @BindTo("stamina")
 	public int getStamina() {
 		return stamina;
 	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public RpgActor setStats(Varargs v) {
+		int start = v.arg1().isint() ? 1 : 2;
+		assert v.narg() >= 4;
+		for(int i = 0; i < STAT_COUNT; i++)
+			this.stats[i] = v.arg(i + start).checkint();
+		return this;
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public RpgActor setHealth(LuaValue h) {
+		this.health = h.checkint();
+		return this;
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public RpgActor setMana(LuaValue m) {
+		this.mana = m.checkint();
+		return this;
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public RpgActor setStamina(LuaValue s) {
+		this.stamina = s.checkint();
+		return this;
+	}
+
 }

@@ -1,14 +1,15 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.Texture;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -17,7 +18,7 @@ import org.luaj.vm2.LuaValue;
 /**
  * A collection of TileType's
  */
-public class TileTypes implements GetLuaFacade {
+public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 	/**
 	 * Internal storage
@@ -38,11 +39,11 @@ public class TileTypes implements GetLuaFacade {
 
 		// TODO - visually test these all at some point
 		Vector2[] offsetsWalls = new Vector2[] {
-				new Vector2(1, 1), // 0 default
+				new Vector2(0, 1), // 0 default
 				new Vector2(1, 0), // 1 only left
 				new Vector2(1, 0), // 2 only right
 				new Vector2(1, 0), // 3 only left+right
-				new Vector2(0, 1), // 4 only up
+				new Vector2(1, 1), // 4 only up
 				new Vector2(2, 2), // 5 only up+left
 				new Vector2(0, 2), // 6 only up+right
 				new Vector2(4, 2), // 7 no down
@@ -80,14 +81,16 @@ public class TileTypes implements GetLuaFacade {
 		// register some default tile types
 		// TODO - how do we handle this if we're running 'headless' (for testing)
 
-		if(Gdx.files == null) {
-
-			registerTile("floor", null, TILESIZE, 0, 3, offsetsFloors, false, false);
-			registerTile("wall", null, TILESIZE, 0, 3, offsetsWalls, false, true);
-		} else {
-			registerTile("floor", new Texture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
-			registerTile("wall", new Texture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
-		}
+		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
+		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
+		registerTile("tiles_big", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 5, 2, null, false, false);
+		registerTile("tiles_small", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 6, 2, null, false, false);
+		registerTile("tiles_diamond", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 2, null, false, false);
+		
+		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
+		registerTile("goal", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 3, 5, null, false, false);
+		registerTile("pit", AssetManager.getTexture("DawnLike/Objects/Trap1.png"), TILESIZE, 5, 2, null, false, true);
+		registerTile("door", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 0, 0, null, false, true);
 	}
 
 	@Bind @BindTo("new")
@@ -124,19 +127,22 @@ public class TileTypes implements GetLuaFacade {
 	 * @param solid			True if this tile cannot be walked through
 	 */
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
-		int len = variations.length;
-		TextureRegion[] regions = new TextureRegion[len];
 		
+		int len = 1;
+		if(variations != null) {
+			len = variations.length;
+		}
+		TextureRegion[] regions = new TextureRegion[len];
 		for(int i = 0; i < len; i++) {
 			//regions[i] = new TextureRegion(new Texture("DawnLike/Objects/Floor.png"), ts*1, ts*4, ts, ts);
 			if(texture == null) {
 				regions[i] = null;
+			} else if(variations == null) {
+				regions[i] = new TextureRegion(texture, (int)(tilesize*x), (int)(tilesize*y), tilesize, tilesize);
 			} else {
 				regions[i] = new TextureRegion(texture, (int)(tilesize*(x+variations[i].x)), (int)(tilesize*(y+variations[i].y)), tilesize, tilesize);
 			}
 		}
-		
-		
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
@@ -161,9 +167,26 @@ public class TileTypes implements GetLuaFacade {
 
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null) {
+		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
-		}
 		return this.luaValue;
+	}
+
+	@Override
+	public Iterator<TileType> iterator() {
+		return new Iterator<TileType>(){
+
+			private Iterator<Entry<String, TileType>> _hashMapIterator = typeMap.entrySet().iterator();
+			@Override
+			public boolean hasNext() {
+				return _hashMapIterator.hasNext();
+			}
+
+			@Override
+			public TileType next() {
+				return _hashMapIterator.next().getValue();
+			}
+			
+		};
 	}
 }

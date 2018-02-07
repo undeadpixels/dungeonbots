@@ -1,45 +1,15 @@
 package com.undead_pixels.dungeon_bots.desktop;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
-import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.User;
-import com.undead_pixels.dungeon_bots.ui.Login;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeEditor;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
-
 import jsyntaxpane.DefaultSyntaxKit;
-import jsyntaxpane.SyntaxStyle;
-import jsyntaxpane.TokenType;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 import jsyntaxpane.util.Configuration;
 
 /**
- * The Launcher for this game.
- * Runs for a couple moments to initialize contexts and
- * start other things and then is unused once the application is running.
+ * The Launcher for this game. Runs for a couple moments to initialize contexts
+ * and start other things and then is unused once the application is running.
  * 
  * Unless we need something really specific (or we want to change more colors),
  * we shouldn't need to touch this class any more.
@@ -57,36 +27,20 @@ public class DesktopLauncher {
 		DefaultSyntaxKit.initKit();
 
 		// UI theming
-		if (forceNimbus) {
+		if (forceNimbus)
 			setDarkNimbus();
-		}
 
 		// Tell macOS to handle the main menu bar like most macOS apps do
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 
-		DungeonBotsMain game = DungeonBotsMain.instance;
-		
-		
-		// create the GL canvas
-		JFrame frame = new JFrame("DungeonBots");
-		LwjglAWTCanvas canvas = new LwjglAWTCanvas(DungeonBotsMain.instance);
-		frame.setLayout(new BorderLayout(0, 0));
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // TODO:re-examine
-
-		
-		// Add everything to a window and show it
-		DungeonBotsMain.instance.setFrame(frame);
-		frame.add(canvas.getCanvas(), BorderLayout.CENTER);
-		frame.setSize(1024, 768);
-		frame.revalidate();
-		frame.setVisible(true);
-
+		// Create and start the game.
+		DungeonBotsMain.instance.start();		
 	}
 
 	/**
 	 * Sets the swing "look-and-feel" (theme) to nimbus and then makes it dark.
 	 * 
-	 * Also changes the default config for the JSyntaxPane stuff. 
+	 * Also changes the default configuration for the JSyntaxPane stuff.
 	 */
 	private static void setDarkNimbus() {
 

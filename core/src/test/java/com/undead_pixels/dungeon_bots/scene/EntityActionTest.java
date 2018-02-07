@@ -3,7 +3,7 @@ package com.undead_pixels.dungeon_bots.scene;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.badlogic.gdx.math.Vector2;
+import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 

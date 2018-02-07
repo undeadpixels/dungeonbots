@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.google.gson.Gson;
+import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
@@ -23,8 +25,13 @@ import static org.luaj.vm2.LuaValue.*;
  */
 public class Actor extends SpriteEntity {
 
+	@State
+	protected int steps = 0;
+
+	@State
+	protected int bumps = 0;
+
 	private LuaValue luaBinding;
-	
 	private FloatingText floatingText;
 
 	/**
@@ -126,11 +133,9 @@ public class Actor extends SpriteEntity {
 				initialPos[0] = Math.round(e.getPosition().x);
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
-				
+				if(canMove) steps++; else bumps++;
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
-				
 				return canMove;
-				
 			}
 			
 			public void postAct() {
@@ -151,9 +156,7 @@ public class Actor extends SpriteEntity {
 				return true;
 			}
 		};
-		
 		Action moveFailAction = new SequentialActions(fail1, fail2);
-		
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 	}
 	
@@ -204,7 +207,7 @@ public class Actor extends SpriteEntity {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor up(Varargs amt) {
 		return moveAmt(amt, Direction.UP);
 	}
@@ -215,7 +218,7 @@ public class Actor extends SpriteEntity {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor down(Varargs amt) {
 		return moveAmt(amt, Direction.DOWN);
 	}
@@ -226,7 +229,7 @@ public class Actor extends SpriteEntity {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor left(Varargs amt) {
 		return moveAmt(amt, Direction.LEFT);
 	}
@@ -237,7 +240,7 @@ public class Actor extends SpriteEntity {
 	 * @since 1.0
 	 * @return The invoked Actor
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Actor right(Varargs amt) {
 		return moveAmt(amt, Direction.RIGHT);
 	}
@@ -251,23 +254,34 @@ public class Actor extends SpriteEntity {
 	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
-	@Bind
+	@Bind(SecurityLevel.DEFAULT)
 	final public Varargs position() {
 		Vector2 pos = this.getPosition();
-		return varargsOf(new LuaValue[] { valueOf(pos.x), valueOf(pos.y)});
+		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
-	@Bind
+	/**
+	 *
+	 * @param args
+	 */
+	@Bind(SecurityLevel.DEFAULT)
 	final public void say(Varargs args) {
 		String text = "";
 		
 		for(int i = 2; i <= args.narg(); i++) {
-			if(i > 2) {
+			if(i > 2)
 				text += " ";
-			}
 			text += args.tojstring(i);
 		}
-		
 		this.addText(text);
 	}
+
+	@Bind(SecurityLevel.DEFAULT) public int steps() {
+		return steps;
+	}
+
+	@Bind(SecurityLevel.DEFAULT) public int bumps() {
+		return bumps;
+	}
+
 }

@@ -4,7 +4,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
-import com.undead_pixels.dungeon_bots.utils.Exceptions.MethodNotOnWhitelistException;
+import com.undead_pixels.dungeon_bots.utils.exceptions.MethodNotOnWhitelistException;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
@@ -105,7 +105,9 @@ public class LuaProxyFactory {
 					catch (Exception e) { }
 				});
 		return new LuaBinding(
-				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class)).map(BindTo::value).orElse(src.getSimpleName()),
+				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
+						.map(BindTo::value)
+						.orElse(src.getSimpleName()),
 				t);
 	}
 
@@ -126,7 +128,7 @@ public class LuaProxyFactory {
 			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
 		if(whitelist.onWhitelist(caller, m))
 			if(returnType.isAssignableFrom(Varargs.class))
-				return (Varargs) m.invoke(caller, args);
+				return Varargs.class.cast(m.invoke(caller, args));
 			else if(returnType.isAssignableFrom(LuaValue.class))
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
 			else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))

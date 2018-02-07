@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -82,8 +83,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of methods that have been annotated with <br>
-	 *     the @Bind annotation that are static.
+	 * A method that returns a stream of methods belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation that are static.
 	 * @param c The Class to collect Bindable methods for
 	 * @return A Stream of Methods
 	 */
@@ -96,8 +97,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of fields that have been annotated with <br>
-	 *     the @Bind annotation
+	 * A method that returns a stream of fields belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation
 	 * @param c The target Class to get the bindable fields of
 	 * @return A Stream of Fields
 	 */
@@ -110,8 +111,8 @@ public class LuaReflection {
 	}
 
 	/**
-	 * A method that returns a stream of methods that have been annotated with <br>
-	 *     the @Bind annotation that are static.
+	 * A method that returns a stream of methods belonging to the target class<br>
+	 *     that have been annotated with the @Bind annotation that are static.
 	 * @param c The target Class to get the bindable static fields of
 	 * @return A Stream of Fields
 	 */
@@ -124,7 +125,7 @@ public class LuaReflection {
 	}
 
 	/**
-	 * Finds and possibly returns the first instance of a method beonging to the <br>
+	 * Finds and possibly returns the first instance of a method belonging to the <br>
 	 *     target object that has the specified name.
 	 * @param o The target object
 	 * @param name The name of the method to find
@@ -137,19 +138,15 @@ public class LuaReflection {
 	}
 
 	private static Stream<Method> getAllMethods(final Class<?> clz) {
-		return flattenClass(clz)
-				.map(Class::getDeclaredMethods)
-				.flatMap(Stream::of);
+		return flattenClass(clz, Class::getDeclaredMethods);
 	}
 
 	private static Stream<Field> getAllFields(final Class<?> clz) {
-		return flattenClass(clz)
-				.map(Class::getDeclaredFields)
-				.flatMap(Stream::of).sequential();
+		return flattenClass(clz, Class::getDeclaredFields);
 	}
 
-	private static Stream<Class<?>> flattenClass(final Class<?> src) {
-		Collection<Class<?>> classes = new ArrayList<>();
+	public static Stream<Class<?>> collectClasses(final Class<?> src) {
+		final Collection<Class<?>> classes = new ArrayList<>();
 		Class<?> temp = src;
 		try {
 			while (temp != null) {
@@ -159,5 +156,12 @@ public class LuaReflection {
 		}
 		catch (Exception e) { }
 		return classes.stream().sequential();
+	}
+
+	public static <T extends Member> Stream<T> flattenClass(final Class<?> src, final Function<Class<?>,T[]> fn) {
+		return collectClasses(src)
+				.map(fn)
+				.flatMap(Stream::of)
+				.sequential();
 	}
 }

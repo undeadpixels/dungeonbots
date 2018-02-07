@@ -13,19 +13,19 @@ public class SecurityContext {
 		activeSecurityLevel = sandbox.getSecurityLevel();
 	}
 
-	public static void set(Whitelist w) {
+	public synchronized static void set(Whitelist w) {
 		activeWhitelist = w;
 	}
 
-	public static void set(SecurityLevel _securityContext) {
+	public synchronized static void set(SecurityLevel _securityContext) {
 		activeSecurityLevel = _securityContext;
 	}
 
-	public static Whitelist getWhitelist() {
+	public synchronized static Whitelist getWhitelist() {
 		return activeWhitelist;
 	}
 
-	public static SecurityLevel getActiveSecurityLevel() {
+	public synchronized static SecurityLevel getActiveSecurityLevel() {
 		return activeSecurityLevel;
 	}
 }

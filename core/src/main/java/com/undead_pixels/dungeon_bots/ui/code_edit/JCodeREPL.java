@@ -3,33 +3,18 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
@@ -38,31 +23,26 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import org.luaj.vm2.LuaInteger;
 import org.luaj.vm2.LuaNil;
-import org.luaj.vm2.LuaString;
-import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 public class JCodeREPL extends JPanel implements ActionListener {
 
@@ -96,7 +76,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
-		super(new BorderLayout());
+
+		if (sandbox == null)
+			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
 
@@ -113,41 +95,48 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 	private void addComponents() {
-		if (!(getLayout() instanceof BorderLayout)) {
-			add(new JLabel("Wrong layout - must be a BorderLayout."));
-			return;
-		}
+		this.setLayout(new BorderLayout());
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
-		_EditorPane = new JEditorPane();
-		_EditorPane.setFocusable(true);
 
 		JToolBar toolBar = makeREPLToolBar();
 		add(toolBar, BorderLayout.PAGE_START);
 		toolBar.setFocusable(false);
 
 		_MessagePane = new JTextPane();
-		_MessageScroller = new JScrollPane(_MessagePane);
-
-		add(_MessageScroller, BorderLayout.CENTER);
 		_MessagePane.setFocusable(false);
 		_MessagePane.setText("");
+		_MessageScroller = new JScrollPane(_MessagePane);
 
-		JPanel executePanel = new JPanel(new BorderLayout());
-		this.add(executePanel, BorderLayout.PAGE_END);
-		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
+		_EditorPane = new JEditorPane();
+		_EditorPane.setFocusable(true);
+		JScrollPane editorScroller = new JScrollPane(_EditorPane);
+		_EditorPane.setContentType("text/lua");
 
-		JPanel startStopPanel = new JPanel(new BorderLayout());
-		_ExecuteBttn = makeButton("executeButton.gif", "EXECUTE", "Click to execute", ">", this);
-		_CancelBttn = makeButton("cancelButton.gif", "CANCEL", "Click to cancel", "X", this);
+		JPanel startStopPanel = new JPanel();
+		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
+		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "Click to execute", ">", "EXECUTE", this);
 		_ExecuteBttn.setFocusable(false);
+		_ExecuteBttn.setMinimumSize(new Dimension(50, 80));
+		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "Click to cancel", "X", "CANCEL", this);
 		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
-		startStopPanel.add(_ExecuteBttn, BorderLayout.CENTER);
-		startStopPanel.add(_CancelBttn, BorderLayout.PAGE_END);
+		_CancelBttn.setPreferredSize(new Dimension(30, 40));
+		JButton helpBttn = UIBuilder.makeButton("", "Get help", "?", "HELP", this);
+		startStopPanel.add(_ExecuteBttn);
+		startStopPanel.add(_CancelBttn);
+
+		JPanel executePanel = new JPanel(new BorderLayout());
+		executePanel.add(new JScrollPane(editorScroller), BorderLayout.CENTER);
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 
-		_EditorPane.requestFocusInWindow();
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _MessageScroller, executePanel);
+		splitPane.setContinuousLayout(true);
+		splitPane.setOneTouchExpandable(false);
+		splitPane.setDividerLocation(200);
+		splitPane.setDividerSize(20);
+		this.add(splitPane);
 
+		_EditorPane.requestFocusInWindow();
 	}
 
 	/** Binds the CTRL+Enter key to execute the code. */
@@ -193,14 +182,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				messageError("^Q");
 				Component parent = _EditorPane.getParent();
-				while (parent != null){
-					//System.out.println(parent.getClass().toString());
+				while (parent != null) {
+					// System.out.println(parent.getClass().toString());
 					parent = parent.getParent();
-					if (parent instanceof JDialog){
+					if (parent instanceof JDialog) {
 						JDialog dialog = (JDialog) parent;
 						dialog.setVisible(false);
 					}
-				}								
+				}
 			}
 
 		});
@@ -246,13 +235,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton cutBttn = makeButton("cutBttn.gif", "CUT",
-				"Cut from the command line and move the text to the clipboard.", "Cut", this);
-		JButton copyBttn = makeButton("copyBttn.gif", "COPY", "Copy from the command line to the clipboard.", "Copy",
+		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif",
+				"Cut from the command line and move the text to the clipboard.", "Cut", "CUT", this);
+		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "Copy from the command line to the clipboard.", "Copy",
+				"COPY", this);
+		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "Paste from the clipboard to the command line.",
+				"Paste", "PASTE", this);
+		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "Get help with the command line.", "Help", "HELP",
 				this);
-		JButton pasteBttn = makeButton("pasteBttn.gif", "PASTE", "Paste from the clipboard to the command line.",
-				"Paste", this);
-		JButton helpBttn = makeButton("helpBttn.gif", "HELP", "Get help with the command line.", "Help", this);
 
 		cutBttn.setFocusable(false);
 		copyBttn.setFocusable(false);
@@ -267,43 +257,25 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return result;
 	}
 
-	/**
-	 * Creates a button with the appearance described. Don't forget to set a
-	 * listener.
+	/*
+	 * public static JButton makeButton(String imageURL, String actionCommand,
+	 * String toolTipText, String altText, ActionListener l) {
 	 * 
-	 * @param imageURL
-	 *            The image resource that will appear in the button.
-	 * @param actionCommand
-	 *            The command that the button will issue.
-	 * @param toolTipText
-	 *            The tip presented when hovering the mouse over the button.
-	 * @param altText
-	 *            Something-or-other...
-	 * @param l
-	 *            The listener.
-	 * @return Returns a JButton.
+	 * JButton resultButton = new JButton();
+	 * resultButton.setActionCommand(actionCommand);
+	 * resultButton.setToolTipText(toolTipText);
+	 * resultButton.setToolTipText(toolTipText);
+	 * 
+	 * resultButton.addActionListener(l);
+	 * 
+	 * URL url = JCodeREPL.class.getResource(imageURL); if (url != null) {
+	 * resultButton.setIcon(new ImageIcon(url, altText)); } else {
+	 * resultButton.setText(altText); System.err.
+	 * println("Resource was missing.  Attempted to created button with image at "
+	 * + imageURL + ".  Using altText '" + altText + "' as image instead."); }
+	 * 
+	 * return resultButton; }
 	 */
-	public static JButton makeButton(String imageURL, String actionCommand, String toolTipText, String altText,
-			ActionListener l) {
-
-		JButton resultButton = new JButton();
-		resultButton.setActionCommand(actionCommand);
-		resultButton.setToolTipText(toolTipText);
-		resultButton.setToolTipText(toolTipText);
-
-		resultButton.addActionListener(l);
-
-		URL url = JCodeREPL.class.getResource(imageURL);
-		if (url != null) {
-			resultButton.setIcon(new ImageIcon(url, altText));
-		} else {
-			resultButton.setText(altText);
-			System.err.println("Resource was missing.  Attempted to created button with image at " + imageURL
-					+ ".  Using altText '" + altText + "' as image instead.");
-		}
-
-		return resultButton;
-	}
 
 	/*
 	 * ================================================================
@@ -381,7 +353,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				case READY:
 					throw new Exception("Script did not execute.");
 				case COMPLETE:
-					return Interpret(_RunningScript.getResults());
+					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
+				// return interpret(_RunningScript.getResults());
 				case RUNNING:
 					throw new Exception("Script is still running.");
 				case TIMEOUT:
@@ -462,8 +435,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// Send a message indicating the results.
 		if (result == null)
 			message("null", _SystemMessageStyle);
-		else if (result instanceof LuaNil)
-			message("null", _SystemMessageStyle);
 		else if (result instanceof Exception)
 			message(((Exception) result).getMessage(), _ErrorMessageStyle);
 		else
@@ -487,26 +458,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * Interprets the result of a LuaScript execution and converts it into a
 	 * suitable Java object.
 	 */
-	protected static Object Interpret(Optional<Varargs> rawResult) {
-		if (rawResult == null)
-			return null;
-		Varargs unpackedResult = rawResult.get();
-
-		if (unpackedResult instanceof LuaNil)
-			return unpackedResult;
-		else if (unpackedResult instanceof LuaInteger)
-			return ((LuaInteger) unpackedResult).toint();
-		else if (unpackedResult instanceof LuaString)
-			return ((LuaString) unpackedResult).toString();
-
-		else if (unpackedResult instanceof LuaValue) {
-			LuaValue lv = (LuaValue) unpackedResult;
-			if (lv.tojstring() == "none") // Void result.
-				return lv;
-
-		}
-		throw new ClassCastException("Error: Have not implemented Lua-to-Java interpretation of type "
-				+ unpackedResult.getClass().getName() + ".");
+	protected static Object interpret(Varargs result) {
+		return result instanceof LuaNil ? "Ok" : result.tojstring();
 	}
 
 	/** Returns the code contents being edited in this REPL. */

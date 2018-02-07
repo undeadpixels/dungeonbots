@@ -48,7 +48,7 @@ public class Serializer {
 	JsonSerializer<World> worldSerializer = new JsonSerializer<World>() {
 
 		@Override
-		public JsonElement serialize(World src, Type typeOfSrc, JsonSerializationContext context) {
+		public JsonElement serialize(World world, Type typeOfSrc, JsonSerializationContext context) {
 			//
 
 			JsonObject obj = new JsonObject();
