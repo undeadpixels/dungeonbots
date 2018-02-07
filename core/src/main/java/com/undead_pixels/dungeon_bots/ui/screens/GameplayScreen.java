@@ -122,11 +122,19 @@ public class GameplayScreen extends Screen {
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 						System.exit(0);
 					break;
+
+				case "REWIND":
+				case "Rewind":
+					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
+							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						DungeonBotsMain.instance.getWorld().reset();
+					}
+					break;
 				case "Save":
 				case "Save As":
 				case "Play":
 				case "Stop":
-				case "Rewind":
+
 				case "Last Result":
 				case "Statistics":
 				case "Upload":
@@ -244,7 +252,7 @@ public class GameplayScreen extends Screen {
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
 
-		//Set up the toolbar, which will be at the bottom of the screen
+		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
 		JButton playBttn = UIBuilder.makeButton("play.jpg", "Start the game", "Play", "PLAY", getController());
@@ -273,7 +281,8 @@ public class GameplayScreen extends Screen {
 		arrowPanel.add(new JPanel());
 		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
 		Image gridImage = DungeonBotsMain.getImage("grid.gif");
-		JToggleButton tglGrid = (gridImage == null) ? new JToggleButton("Grid") : new JToggleButton(new ImageIcon(gridImage));
+		JToggleButton tglGrid = (gridImage == null) ? new JToggleButton("Grid")
+				: new JToggleButton(new ImageIcon(gridImage));
 		tglGrid.setActionCommand("TOGGLE_GRID");
 		tglGrid.addActionListener(getController());
 

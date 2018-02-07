@@ -680,7 +680,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs getGoal() {
 		Integer[] goal = goal();
-		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]), LuaValue.valueOf(goal[1])});
+		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]+1), LuaValue.valueOf(goal[1]+1)});
 	}
 
 	/**
