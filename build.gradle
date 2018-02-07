@@ -1,5 +1,4 @@
 buildscript {
-    
 
     repositories {
         mavenLocal()
@@ -45,8 +44,6 @@ allprojects {
 
 project(":desktop") {
     apply plugin: "java"
-
-
     dependencies {
         testCompile 'junit:junit:4.12'
         compile project(":core")
