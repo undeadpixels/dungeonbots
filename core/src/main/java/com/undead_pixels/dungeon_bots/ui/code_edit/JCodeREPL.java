@@ -109,6 +109,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_EditorPane = new JEditorPane();
 		_EditorPane.setFocusable(true);
+		JScrollPane editorScroller = new JScrollPane(_EditorPane);
+		_EditorPane.setContentType("text/lua");
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
@@ -124,7 +126,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		startStopPanel.add(_CancelBttn);
 
 		JPanel executePanel = new JPanel(new BorderLayout());
-		executePanel.add(new JScrollPane(_EditorPane), BorderLayout.CENTER);
+		executePanel.add(new JScrollPane(editorScroller), BorderLayout.CENTER);
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _MessageScroller, executePanel);
