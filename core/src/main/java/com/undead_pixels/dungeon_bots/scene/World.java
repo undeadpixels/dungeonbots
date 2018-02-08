@@ -634,8 +634,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		StringBuilder ans = new StringBuilder();
 		ans.append(put(
 				"\t\tlocal x, y = world:getPlayer():position()",
-				String.format("" +
-						"\t\tif x == %d and y == %d then", goalPosition[0] + 1, goalPosition[1] + 1),
+				"\t\tlocal gx, gy = world:getGoal()",
+				String.format(
+						"\t\tif x == gx and y == gy then"),
 						"\t\t\tworld.win()",
 				"\t\tend"));
 		return ans.toString();
@@ -652,10 +653,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
 			}
 		}
+		ans.append("\n");
 		Vector2 pos = player.getPosition();
-		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
-		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
-		ans.append(put("\t\tworld:setPlayer(player)"));
+		ans.append(put(String.format("\t\tlocal player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1),
+				String.format("\t\tplayer.setDefaultCode(\"%s\")", player.getDefaultCode()),
+				"\t\tworld:setPlayer(player)"));
 		return ans.toString();
 	}
 
