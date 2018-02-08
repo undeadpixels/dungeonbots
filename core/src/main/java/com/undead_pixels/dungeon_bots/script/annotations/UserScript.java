@@ -1,6 +1,9 @@
 package com.undead_pixels.dungeon_bots.script.annotations;
 
+import com.undead_pixels.dungeon_bots.scene.IWorld;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.LuaScript;
 
 /**
  * A user script associates a Lua script with the information pertaining to how
@@ -31,16 +34,33 @@ public class UserScript {
 		this.accessLevel = accessLevel;
 	}
 
+	@Deprecated
 	/**
 	 * Determines whether or not this user script will execute on this pass
-	 * through the event loop.
+	 * through the game loop. Can be overridden in a derived class.
 	 */
-	public boolean execute(World world, long time) {
+	public boolean canExecute(World world, long time) {
+		return true;
+	}
+	
+
+	/**
+	 * Determines whether or not this user script will execute on this pass
+	 * through the game loop. Can be overridden in a derived class.
+	 */
+	public boolean canExecute(IWorld world, long time){
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "Script: " + name;
+	}
+
+	/**
+	 * Returns a LuaScript living in the given sandbox, from the contained code.
+	 */
+	public final LuaScript toLuaScript(LuaSandbox sandbox) {
+		return sandbox.script(code);
 	}
 }

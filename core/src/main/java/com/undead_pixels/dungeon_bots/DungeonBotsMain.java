@@ -36,7 +36,7 @@ public class DungeonBotsMain {
 		if (_Screen instanceof GameplayScreen)
 			setCurrentScreen(new GameplayScreen());
 		else if (_Screen instanceof LevelEditorScreen)
-			setCurrentScreen(new GameplayScreen());
+			setCurrentScreen(new LevelEditorScreen());
 		else
 			setCurrentScreen(new MainMenuScreen());
 	}
