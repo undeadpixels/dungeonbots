@@ -1,5 +1,4 @@
 package com.undead_pixels.dungeon_bots.script;
-import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
@@ -7,9 +6,6 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.*;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -24,7 +20,6 @@ public class LuaSandbox {
     private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
 	private SecurityLevel securityLevel;
-	private final List<Callable> scriptQueue = new LinkedList<>();
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -167,6 +162,5 @@ public class LuaSandbox {
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
 	}
-
 
 }

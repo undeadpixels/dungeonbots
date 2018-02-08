@@ -122,7 +122,6 @@ public class JEntityEditor extends JPanel {
 		JTabbedPane tabPane = new JTabbedPane();
 		tabPane.addTab("REPL",  null, repl, "Instantaneous script runner.");
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
-		
 
 		this.add(tabPane, BorderLayout.LINE_START);
 

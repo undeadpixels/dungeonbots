@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.script.security;
 
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -185,27 +187,14 @@ public class Whitelist implements GetLuaFacade {
 	 *     -- Whitelists all functions for the player entity
 	 *     whitelist.allow(player)
 	 *     }</pre>
-	 * @param varargs
+	 * @param obj
+	 * @param toAllow
 	 */
-	@Bind(SecurityLevel.AUTHOR)
-	public void allow(Varargs varargs) {
-		final int SIZE = varargs.narg();
-		assert SIZE > 0;
-		LuaTable tbl = varargs.checktable(1);
-		GetLuaFacade val = (GetLuaFacade) tbl.checkuserdata(1, GetLuaFacade.class);
-		if(SIZE == 1) {
-			addWhitelists(val.getWhitelist());
-		}
-		else {
-			List<String> methodNames = new ArrayList<>();
-			for(int i = 2; i < SIZE; i++) {
-				try { methodNames.add(varargs.arg(i).checkjstring()); }
-				catch (Exception e) { }
-			}
-			methodNames.forEach(name ->
-				LuaReflection.getMethodWithName(val, name)
-						.ifPresent(m -> whitelist.add(LuaReflection.genId(val, m))));
-		}
+	@Bind(SecurityLevel.DEFAULT)
+	public void allow(LuaValue obj, LuaValue toAllow) {
+		GetLuaFacade o = (GetLuaFacade) obj.checktable().get("this").checkuserdata(GetLuaFacade.class);
+		LuaReflection.getMethodWithName(o, toAllow.checkjstring())
+				.ifPresent(m -> add(o, m));
 	}
 
 	private Whitelist addWhitelists(Whitelist... w) {
