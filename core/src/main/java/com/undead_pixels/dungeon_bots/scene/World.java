@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -28,6 +30,7 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.ui.screens.CommunityScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
@@ -182,7 +185,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this);
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 		}
 	}
 
@@ -705,6 +708,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	}
 
+
+	@Bind(SecurityLevel.DEFAULT)
+	public void alert(LuaValue alert, LuaValue title) {
+		showAlert(alert.checkjstring(), title.checkjstring());
+	}
+
 	/**
 	 *
 	 * @param alert
@@ -715,6 +724,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE)
 		);
 		t.start();
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public void openBrowser(LuaValue lurl) {
+		try {
+			java.awt.Desktop.getDesktop().browse(new URI(lurl.checkjstring()));
+		} catch (Exception e1) {
+			throw  new LuaError("Invalid URL!");
+		}
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
