@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -28,6 +30,7 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.ui.screens.CommunityScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
@@ -182,11 +185,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this);
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 		}
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
 	public static LuaValue newWorld() {
 		World w = new World();
@@ -194,6 +197,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
+	/**
+	 *
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
 		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen());
@@ -204,6 +210,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		entities.add(p);
 	}
 
+	/**
+	 *
+	 * @param luaPlayer
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void setPlayer(LuaValue luaPlayer) {
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
@@ -368,12 +378,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 	}
 
+	/**
+	 *
+	 * @param x
+	 * @param y
+	 * @param tt
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
 		TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
 		setTile(x.checkint() - 1, y.checkint() - 1, tileType);
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Bind
 	public Player getPlayer() {
     	return this.player != null ? this.player : new Player(this, "player");
@@ -559,6 +579,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return tileTypesCollection;
 	}
 
+	/**
+	 *
+	 */
 	public synchronized void reset() {
 		updateLock.lock();
 		try {
@@ -574,6 +597,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		}
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Override
 	public Map<String, Object> getState() {
 		final Map<String, Object> state = new HashMap<>();
@@ -586,6 +613,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return state;
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Override
 	public String getMapScript() {
 		String script = "tbl = {}\n" +
@@ -628,26 +659,46 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		return ans.toString();
 	}
 
-
+	/**
+	 *
+	 * @return
+	 */
 	public Integer[] goal() {
 		return goalPosition;
 	}
 
-
+	/**
+	 *
+	 * @param lx
+	 * @param ly
+	 */
 	@Bind(SecurityLevel.AUTHOR) public void setGoal(LuaValue lx, LuaValue ly) {
 		setGoal(lx.checkint() - 1, ly.checkint() - 1 );
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs getGoal() {
 		Integer[] goal = goal();
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0]+1), LuaValue.valueOf(goal[1]+1)});
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public Integer[] getGoalPosition() {
 		return goalPosition;
 	}
 
+	/**
+	 *
+	 * @param x
+	 * @param y
+	 */
 	public void setGoal(int x, int y) {
 		Integer[] newGoal = new Integer[] { x , y };
 		if(!Arrays.equals(newGoal, goalPosition) && goalPosition.length == 2) {
@@ -656,12 +707,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		goalPosition = newGoal;
 
 	}
-	
+
+
+	@Bind(SecurityLevel.DEFAULT)
+	public void alert(LuaValue alert, LuaValue title) {
+		showAlert(alert.checkjstring(), title.checkjstring());
+	}
+
+	/**
+	 *
+	 * @param alert
+	 * @param title
+	 */
 	public void showAlert(String alert, String title) {
 		Thread t = new Thread(() ->
 			JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE)
 		);
 		t.start();
+	}
+
+	@Bind(SecurityLevel.AUTHOR)
+	public void openBrowser(LuaValue lurl) {
+		try {
+			java.awt.Desktop.getDesktop().browse(new URI(lurl.checkjstring()));
+		} catch (Exception e1) {
+			throw  new LuaError("Invalid URL!");
+		}
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
