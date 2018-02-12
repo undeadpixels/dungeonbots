@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -24,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -39,14 +41,25 @@ import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
+/**
+ * A GUI object whose purpose is to give users a way to change the contents of
+ * an entity, including any associated scripts.
+ */
 public final class JEntityEditor extends JPanel {
 
 	private static final HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
 
-	private Entity _Entity;
-	private JScriptEditor _Editor;
-	private Controller _Controller;
+	private final DefaultListModel<UserScript> _ScriptList;
+	private final Entity _Entity;
+	private final JScriptEditor _Editor;
+	private final Controller _Controller;
 
+	/**
+	 * Creates a new entity editor in a modeless dialog. Only one such dialog
+	 * per entity is allowed. If one is already open, that dialog will request
+	 * focus and the method returns null. Otherwise, returns the newly-created
+	 * editor.
+	 */
 	public static JEntityEditor create(java.awt.Window owner, Entity entity, SecurityLevel securityLevel,
 			String title) {
 
@@ -54,7 +67,6 @@ public final class JEntityEditor extends JPanel {
 			System.err.println("An editor is already open for this entity:  " + entity.toString());
 			JDialog dialog = _OpenEditors.get(entity);
 			dialog.requestFocus();
-			return null;
 		}
 
 		JEntityEditor jpe = new JEntityEditor(entity, securityLevel);
@@ -79,13 +91,11 @@ public final class JEntityEditor extends JPanel {
 
 		_Entity = entity;
 		_Controller = new Controller();
+		_ScriptList = new DefaultListModel<UserScript>();
 
-		// this.setPreferredSize(new Dimension(800, 600));
+		reset();
 
-		DefaultListModel<UserScript> listModel = new DefaultListModel<UserScript>();
-		for (UserScript u : entity.userScripts)
-			listModel.addElement(u);
-		JList<UserScript> scriptList = new JList<UserScript>(listModel);
+		JList<UserScript> scriptList = new JList<UserScript>(_ScriptList);
 		scriptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scriptList.setLayoutOrientation(JList.VERTICAL);
 		scriptList.setVisibleRowCount(-1);
@@ -97,11 +107,19 @@ public final class JEntityEditor extends JPanel {
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
 		JButton bttnReset = UIBuilder.makeButton("", "Reset the entity characteristics.", "RESET", _Controller);
-		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "APPROVE", _Controller);
+		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "SAVE", _Controller);
 		JButton bttnCancel = UIBuilder.makeButton("", "Cancel without saving changes.", "CANCEL", _Controller);
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
-		bttnPanel.add(bttnCancel);
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				if (getContainingDialog() != null)
+					bttnPanel.add(bttnCancel);
+			}
+
+		});
 
 		_Editor = new JScriptEditor(securityLevel);
 		_Editor.setPreferredSize(new Dimension(550, 500));
@@ -116,17 +134,58 @@ public final class JEntityEditor extends JPanel {
 		JCodeREPL repl = new JCodeREPL(entity.getSandbox());
 
 		JTabbedPane tabPane = new JTabbedPane();
-		tabPane.addTab("REPL", null, repl, "Instantaneous script runner.");
+		if (securityLevel.level >= SecurityLevel.AUTHOR.level)
+			tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
 
 		this.add(tabPane, BorderLayout.LINE_START);
 
 	}
 
+	/** Resets all characteristics of this entity to the original state. */
+	public void reset() {
+		_ScriptList.clear();
+		for (UserScript u : _Entity.userScripts)
+			_ScriptList.addElement(u.copy());
+	}
+
+	/**
+	 * Saves all characteristics to the Entity as they are presented in this
+	 * GUI.
+	 */
+	public void save() {
+		_Entity.userScripts.clear();
+		for (int i = 0; i < _ScriptList.getSize(); i++) {
+			_Entity.userScripts.add(_ScriptList.get(i).copy());
+		}
+	}
+
+	private JDialog getContainingDialog() {
+		Container parent = this.getParent();
+		while (parent != null) {
+			if (parent instanceof JDialog)
+				return (JDialog) parent;
+			parent = parent.getParent();
+		}
+		return null;
+	}
+
+	/** The controller for this editor. */
 	private class Controller implements ActionListener, ListSelectionListener {
 		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+		public void actionPerformed(ActionEvent e) {
+			switch (e.getActionCommand()) {
+			case "RESET":
+				reset();
+				break;
+			case "SAVE":
+				save();
+				break;
+			case "CANCEL":
+				JDialog dialog = getContainingDialog();
+				if (dialog != null)
+					dialog.dispose();
+			}
 
 		}
 

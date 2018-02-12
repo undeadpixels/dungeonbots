@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -21,7 +22,12 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  */
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
 
-	public List<UserScript> userScripts = new ArrayList<UserScript>();
+	/**
+	 * The script associated with this entity. Access to this collection is
+	 * thread-safe and synchronized (though I've never actually concurrency
+	 * tested the Collections.synchronizedList() function).
+	 */
+	public List<UserScript> userScripts = Collections.synchronizedList(new ArrayList<UserScript>());
 
 	/**
 	 * A user sandbox that is run on this object

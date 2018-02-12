@@ -20,7 +20,7 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
 public class UserScript {
 
 	
-	public final String code;	
+	public String code;	
 	public SecurityLevel level;
 	public String name;
 	public IntegerIntervalSet locks;
@@ -34,6 +34,13 @@ public class UserScript {
 		this.level = level;
 		this.locks = new IntegerIntervalSet(); 
 	}
+	
+	/**Returns a copy of this UserScript.*/
+	public UserScript copy(){
+		UserScript ret = new UserScript(this.name, this.code, this.level);
+		ret.locks = new IntegerIntervalSet(this.locks);
+		return ret;
+	}
 
 	@Deprecated
 	/**
@@ -43,6 +50,7 @@ public class UserScript {
 	public boolean canExecute(World world, long time) {
 		return true;
 	}
+	
 	
 
 	/**

@@ -102,7 +102,7 @@ public final class JScriptEditor extends JPanel {
 
 	public void setScript(UserScript script) {
 		_Script = script;
-		_Locked = (IntegerIntervalSet) script.locks.copy();
+		_Locked = new IntegerIntervalSet(script.locks);
 		_Editor.setText(script.code);
 		highlightLocks();
 	}

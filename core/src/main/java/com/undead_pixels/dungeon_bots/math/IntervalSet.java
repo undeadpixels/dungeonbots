@@ -12,11 +12,22 @@ import java.util.ArrayList;
  */
 public class IntervalSet<T extends Comparable<T>> {
 
-	private final ArrayList<Inflection> _Inflections = new ArrayList<Inflection>();
+	private final ArrayList<Inflection> _Inflections;
 
 	// ==============================================
 	// ====== IntervalSet CONTENT QUERIES ===========
 	// ==============================================
+
+	public IntervalSet() {
+		_Inflections = new ArrayList<Inflection>();
+	}
+
+	public IntervalSet(IntervalSet<T> other) {
+		this();
+		for (Inflection inf : other._Inflections) {
+			_Inflections.add(new Inflection(inf.value, inf.includesBefore, inf.includesValue, inf.includesAfter));
+		}
+	}
 
 	@Override
 	public final boolean equals(Object other) {
@@ -449,15 +460,6 @@ public class IntervalSet<T extends Comparable<T>> {
 
 	public final IntervalSet<T> xor(IntervalSet<T> other) {
 		throw new IllegalStateException("Have not implemented yet.");
-	}
-
-	public final IntervalSet<T> copy() {
-		IntervalSet<T> result = new IntervalSet<T>();
-		for (Inflection inf : _Inflections) {
-			result._Inflections
-					.add(new Inflection(inf.value, inf.includesBefore, inf.includesValue, inf.includesAfter));
-		}
-		return result;
 	}
 
 	/** Returns an empty set. */
