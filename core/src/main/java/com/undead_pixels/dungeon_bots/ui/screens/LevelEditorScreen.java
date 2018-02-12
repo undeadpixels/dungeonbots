@@ -89,20 +89,24 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getSource() == view) {
-					if (world == null)
-						return;
-					Object selection = _PaletteSelector.getSelectedValue();
-					if (selection == null)
-						return;
-					if (selection instanceof TileType) {
-						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(e.getX(), e.getY());
-						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
-						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
+				if (e.getClickCount()==1){
+					//Draw to the world?
+					if (e.getSource() == view) {
+						if (world == null)
+							return;
+						Object selection = _PaletteSelector.getSelectedValue();
+						if (selection == null)
+							return;
+						if (selection instanceof TileType) {
+							TileType drawType = (TileType) selection;
+							TileType currentTile = world.getTile(e.getX(), e.getY());
+							Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+							world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
+						}
+						e.consume();
 					}
-					e.consume();
 				}
+				
 			}
 
 			@Override

@@ -45,6 +45,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
@@ -73,29 +74,32 @@ public class GameplayScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-				Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
+				if (e.getClickCount()==2){
+					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 
-				if (_OpenEditors.containsKey(entity)) {
-					System.err.println("An editor is already open for this entity:  " + entity.toString());
-					return;
+					if (_OpenEditors.containsKey(entity)) {
+						System.err.println("An editor is already open for this entity:  " + entity.toString());
+						return;
+					}
+
+					if (entity instanceof Player) {
+
+						JEntityEditor jpe = new JEntityEditor( entity, SecurityLevel.DEFAULT);
+						JDialog dialog = new JDialog(GameplayScreen.this, "Player editor",
+								Dialog.ModalityType.DOCUMENT_MODAL);
+						dialog.add(jpe);
+
+						dialog.pack();
+						dialog.setVisible(true);						
+						_OpenEditors.put(entity,  dialog);
+
+					}
+					System.out.println("Clicked entity " + entity);
+
+					e.consume();
 				}
-
-				if (entity instanceof Player) {
-
-					JEntityEditor jpe = new JEntityEditor((Player) entity);
-					JDialog dialog = new JDialog(GameplayScreen.this, "Player editor",
-							Dialog.ModalityType.DOCUMENT_MODAL);
-					dialog.add(jpe);
-
-					dialog.pack();
-					dialog.setVisible(true);
-					// this.addWindowFor(jpe, "Player Editor");
-
-				}
-				System.out.println("Clicked entity " + entity);
-
-				e.consume();
+				
 			}
 
 			@Override
@@ -255,11 +259,11 @@ public class GameplayScreen extends Screen {
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
-		JButton playBttn = UIBuilder.makeButton("play.jpg", "Start the game", "Play", "PLAY", getController());
+		JButton playBttn = UIBuilder.makeButton("play.jpg", "Start the game", "PLAY", getController());
 		playBttn.setPreferredSize(new Dimension(50, 50));
-		JButton stopBttn = UIBuilder.makeButton("stop.jpg", "Stop the game", "Stop", "STOP", getController());
+		JButton stopBttn = UIBuilder.makeButton("stop.jpg", "Stop the game", "STOP", getController());
 		stopBttn.setPreferredSize(new Dimension(50, 50));
-		JButton rewindBttn = UIBuilder.makeButton("rewind.jpg", "Rewind the game", "Rewind", "REWIND", getController());
+		JButton rewindBttn = UIBuilder.makeButton("rewind.jpg", "Rewind the game", "REWIND", getController());
 		rewindBttn.setPreferredSize(new Dimension(50, 50));
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
@@ -268,16 +272,14 @@ public class GameplayScreen extends Screen {
 		JPanel arrowPanel = new JPanel();
 		arrowPanel.setLayout(new GridLayout(3, 3));
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.makeButton("up_arrow.gif", 20, 20, "Move view up", "^", "PAN_UP", getController()));
+		arrowPanel.add(UIBuilder.makeButton("up_arrow.gif", 20, 20, "Move view up", "PAN_UP", getController()));
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(
-				UIBuilder.makeButton("left_arrow.gif", 20, 20, "Move view left", "<", "PAN_LEFT", getController()));
+		arrowPanel.add(UIBuilder.makeButton("left_arrow.gif", 20, 20, "Move view left", "PAN_LEFT", getController()));
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(
-				UIBuilder.makeButton("right_arrow.gif", 20, 20, "Move view right", ">", "PAN_RIGHT", getController()));
+		arrowPanel
+				.add(UIBuilder.makeButton("right_arrow.gif", 20, 20, "Move view right", "PAN_RIGHT", getController()));
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(
-				UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "V", "PAN_DOWN", getController()));
+		arrowPanel.add(UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "PAN_DOWN", getController()));
 		arrowPanel.add(new JPanel());
 		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
 		Image gridImage = DungeonBotsMain.getImage("grid.gif");

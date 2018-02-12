@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script.annotations;
 
+import com.undead_pixels.dungeon_bots.math.IntegerIntervalSet;
 import com.undead_pixels.dungeon_bots.scene.IWorld;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -18,20 +19,20 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
  */
 public class UserScript {
 
-	public static final int PLAYER_READ = 1;
-	public static final int PLAYER_EXECUTE = 2;
-	public static final int PLAYER_WRITE = 4;
-	public static final int PlAYER_FULL_ACCESS = PLAYER_READ | PLAYER_EXECUTE | PLAYER_WRITE;
-
-	public String code;
-	public Object editability; // Still working on this.
-	public int accessLevel;
+	
+	public final String code;	
+	public SecurityLevel level;
 	public String name;
+	public IntegerIntervalSet locks;
 
-	public UserScript(String name, String code, int accessLevel) {
+	public UserScript(String name, String code) {
+		this(name, code, SecurityLevel.DEFAULT);
+	}
+	public UserScript(String name, String code, SecurityLevel level) {
 		this.name = name;
 		this.code = code;
-		this.accessLevel = accessLevel;
+		this.level = level;
+		this.locks = new IntegerIntervalSet(); 
 	}
 
 	@Deprecated

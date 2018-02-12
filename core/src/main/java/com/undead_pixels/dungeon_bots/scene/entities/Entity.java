@@ -73,7 +73,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 						+ "print(\"which inherit from the UserScript class and have defineable \") \n"
 						+ "print(\"execution preconditions (things like a monster is close or whatever). \") \n"
 						+ "print(\"For now, this should always run every time through the game loop.\")",
-				UserScript.PLAYER_READ | UserScript.PLAYER_WRITE | UserScript.PLAYER_EXECUTE));
+				SecurityLevel.DEFAULT));
 	}
 
 	@Override

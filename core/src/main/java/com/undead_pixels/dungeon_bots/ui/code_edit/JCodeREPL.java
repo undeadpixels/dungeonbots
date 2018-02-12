@@ -114,14 +114,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "Click to execute", ">", "EXECUTE", this);
+		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "Click to execute", "EXECUTE", this);
 		_ExecuteBttn.setFocusable(false);
 		_ExecuteBttn.setMinimumSize(new Dimension(50, 80));
-		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "Click to cancel", "X", "CANCEL", this);
+		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "Click to cancel", "CANCEL", this);
 		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
 		_CancelBttn.setPreferredSize(new Dimension(30, 40));
-		JButton helpBttn = UIBuilder.makeButton("", "Get help", "?", "HELP", this);
+		JButton helpBttn = UIBuilder.makeButton("", "Get help", "HELP", this);
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
@@ -236,13 +236,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JToolBar result = new JToolBar();
 		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif",
-				"Cut from the command line and move the text to the clipboard.", "Cut", "CUT", this);
-		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "Copy from the command line to the clipboard.", "Copy",
-				"COPY", this);
-		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "Paste from the clipboard to the command line.",
-				"Paste", "PASTE", this);
-		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "Get help with the command line.", "Help", "HELP",
+				"Cut from the command line and move the text to the clipboard.", "CUT", this);
+		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "Copy from the command line to the clipboard.", "COPY",
 				this);
+		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "Paste from the clipboard to the command line.",
+				"PASTE", this);
+		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "Get help with the command line.", "HELP", this);
 
 		cutBttn.setFocusable(false);
 		copyBttn.setFocusable(false);

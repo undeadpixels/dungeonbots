@@ -37,7 +37,7 @@ public class MainMenuScreen extends Screen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				buttonClicked(e);				
+				buttonClicked(e);
 			}
 
 			@Override
@@ -83,49 +83,49 @@ public class MainMenuScreen extends Screen {
 			@Override
 			public void windowActivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowClosed(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowClosing(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowDeactivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowDeiconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowIconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void windowOpened(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 		};
@@ -141,7 +141,7 @@ public class MainMenuScreen extends Screen {
 			DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
 			break;
 		case "COMMUNITY":
-			//DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
+			// DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
 			try {
 				java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
 			} catch (IOException e1) {
@@ -159,21 +159,19 @@ public class MainMenuScreen extends Screen {
 	protected void addComponents(Container pane) {
 
 		Insets insets = new Insets(10, 10, 10, 10);
-		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "Play", "PLAY",
-				getController());
+		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "PLAY", getController());
 		bttnPlay.setMargin(insets);
 		bttnPlay.setAlignmentX(CENTER_ALIGNMENT);
 		bttnPlay.requestFocus();
 
-		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "Create", "CREATE",
-				getController());
+		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "CREATE", getController());
 		bttnCreate.setMargin(insets);
 		bttnCreate.setAlignmentX(CENTER_ALIGNMENT);
-		JButton bttnCommunity = UIBuilder.makeButton("community.gif", "Go to the community.", "Community", "COMMUNITY",
+		JButton bttnCommunity = UIBuilder.makeButton("community.gif", "Go to the community.", "COMMUNITY",
 				getController());
 		bttnCommunity.setMargin(insets);
 		bttnCommunity.setAlignmentX(CENTER_ALIGNMENT);
-		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "Quit", "QUIT", getController());
+		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "QUIT", getController());
 		bttnQuit.setMargin(new Insets(5, 5, 5, 5));
 		bttnQuit.setAlignmentX(CENTER_ALIGNMENT);
 
@@ -198,7 +196,6 @@ public class MainMenuScreen extends Screen {
 
 	}
 
-	
 	@Override
 	protected void setDefaultLayout() {
 		this.setSize(640, 480);

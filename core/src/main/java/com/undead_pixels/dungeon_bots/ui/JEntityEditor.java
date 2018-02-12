@@ -26,15 +26,16 @@ import javax.swing.event.ListSelectionListener;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeEditor;
+import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 public class JEntityEditor extends JPanel {
 
 	private Entity _Entity;
-	private JCodeEditor _Editor;
+	private JScriptEditor _Editor;
 
 	private ActionListener _Controller = new ActionListener() {
 
@@ -59,7 +60,7 @@ public class JEntityEditor extends JPanel {
 
 			UserScript script = list.getSelectedValue();
 
-			_Editor.setCode(script.code);
+			_Editor.setScript(script);
 			_Editor.setBorder(BorderFactory.createTitledBorder(script.name));
 		}
 
@@ -77,11 +78,11 @@ public class JEntityEditor extends JPanel {
 	 * }
 	 */
 
-	public JEntityEditor(Entity entity) {
+	public JEntityEditor(Entity entity, SecurityLevel securityLevel) {
 		super(new BorderLayout());
 		_Entity = entity;
 
-		//this.setPreferredSize(new Dimension(800, 600));
+		// this.setPreferredSize(new Dimension(800, 600));
 
 		DefaultListModel<UserScript> listModel = new DefaultListModel<UserScript>();
 		for (UserScript u : entity.userScripts)
@@ -97,17 +98,15 @@ public class JEntityEditor extends JPanel {
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
-		JButton bttnReset = UIBuilder.makeButton("", "Reset the entity characteristics.", "Reset", "RESET",
-				_Controller);
-		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "OK", "APPROVE", _Controller);
-		JButton bttnCancel = UIBuilder.makeButton("", "Cancel without saving changes.", "Cancel", "CANCEL",
-				_Controller);
+		JButton bttnReset = UIBuilder.makeButton("", "Reset the entity characteristics.", "RESET", _Controller);
+		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "APPROVE", _Controller);
+		JButton bttnCancel = UIBuilder.makeButton("", "Cancel without saving changes.", "CANCEL", _Controller);
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		bttnPanel.add(bttnCancel);
 
-		_Editor = new JCodeEditor();
-		_Editor.setPreferredSize(new Dimension(550,500));
+		_Editor = new JScriptEditor(securityLevel);
+		_Editor.setPreferredSize(new Dimension(550, 500));
 		_Editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
 
 		JPanel scriptPanel = new JPanel();
@@ -115,17 +114,15 @@ public class JEntityEditor extends JPanel {
 		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
 		scriptPanel.add(_Editor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
-		
+
 		JCodeREPL repl = new JCodeREPL(entity.getSandbox());
-		
 
 		JTabbedPane tabPane = new JTabbedPane();
-		tabPane.addTab("REPL",  null, repl, "Instantaneous script runner.");
+		tabPane.addTab("REPL", null, repl, "Instantaneous script runner.");
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
 
 		this.add(tabPane, BorderLayout.LINE_START);
 
-		
 	}
 
 }

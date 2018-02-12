@@ -172,7 +172,7 @@ public class ResultsScreen extends Screen {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 		};
@@ -197,18 +197,16 @@ public class ResultsScreen extends Screen {
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new BoxLayout(bttnPanel, BoxLayout.LINE_AXIS));
-		JButton bttnOK = UIBuilder.makeButton("", "Quit to Main Menu", "OK", "OK", getController());
+		JButton bttnOK = UIBuilder.makeButton("", "Quit to Main Menu", "OK", getController());
 		bttnPanel.add(bttnOK);
-		bttnPanel.add(UIBuilder.makeButton("", "Publish", "Publish", "Publish", getController()));
+		bttnPanel.add(UIBuilder.makeButton("", "Publish", "PUBLISH", getController()));
 
 		Map<String, Object> endingState = DungeonBotsMain.instance.getWorld().getState();
-		//Map<String, Object> endingState = new HashMap<String, Object>();
+		// Map<String, Object> endingState = new HashMap<String, Object>();
 		Vector<Entry<String, Object>> entries = new Vector<Entry<String, Object>>(endingState.entrySet());
 		JList<Entry<String, Object>> statsList = new JList<Entry<String, Object>>(entries);
 		statsList.setLayoutOrientation(JList.VERTICAL);
 		statsList.setCellRenderer(new EntryRenderer());
-	
-		
 
 		pane.setLayout(new BorderLayout());
 		pane.add(statsList, BorderLayout.CENTER);

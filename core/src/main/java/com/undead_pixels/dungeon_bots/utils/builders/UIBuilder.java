@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
@@ -27,9 +28,9 @@ public class UIBuilder {
 	 * If the given image URL is not available, the alternative text will be
 	 * used for the button's image.
 	 */
-	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String altText,
-			String actionCommand, ActionListener listener) {
-		JButton ret = makeButton(imageURL, toolTipText, altText, actionCommand, listener);
+	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String actionCommand,
+			ActionListener listener) {
+		JButton ret = makeButton(imageURL, toolTipText, actionCommand, listener);
 		ret.setPreferredSize(new Dimension(width, height));
 		return ret;
 	}
@@ -42,10 +43,41 @@ public class UIBuilder {
 	 * If the given image URL is not available, the alternative text will be
 	 * used for the button's image.
 	 */
-	public static JButton makeButton(String imageURL, String toolTipText, String altText, String actionCommand,
+	public static JButton makeButton(String imageURL, String toolTipText, String actionCommand,
 			ActionListener listener) {
 
 		JButton resultButton = new JButton();
+		resultButton.setActionCommand(actionCommand);
+		if (toolTipText != null && !toolTipText.equals(""))
+			resultButton.setToolTipText(toolTipText);
+
+		// Wire up the listener, and make the button respond as clicked when it
+		// has focus and enter is pressed.
+		resultButton.addActionListener(listener);
+		resultButton.registerKeyboardAction(
+				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
+		resultButton.registerKeyboardAction(
+				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), JComponent.WHEN_FOCUSED);
+
+		// Set the image if the resource can be found. If it can't set the
+		// contents of the button to the alternative text.
+		Image img = DungeonBotsMain.getImage(imageURL);
+		if (img == null)
+			resultButton.setText(actionCommand);
+		else
+			// Proportionate probably makes sense most times.
+			resultButton.setIcon(new StretchIcon(img, true));
+
+		resultButton.setPreferredSize(new Dimension(50, 40));
+		return resultButton;
+	}
+
+	public static JToggleButton makeToggleButton(String imageURL, String toolTipText, String altText,
+			String actionCommand, ActionListener listener) {
+
+		JToggleButton resultButton = new JToggleButton();
 		resultButton.setActionCommand(actionCommand);
 		if (toolTipText != null && !toolTipText.equals(""))
 			resultButton.setToolTipText(toolTipText);
@@ -70,6 +102,7 @@ public class UIBuilder {
 			resultButton.setIcon(new StretchIcon(img, true));
 
 		resultButton.setPreferredSize(new Dimension(50, 40));
+
 		return resultButton;
 	}
 
