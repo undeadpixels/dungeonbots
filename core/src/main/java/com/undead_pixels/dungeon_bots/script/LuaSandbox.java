@@ -24,7 +24,8 @@ public class LuaSandbox {
     private final Globals globals;
     private final Whitelist whitelist = new Whitelist();
 	private SecurityLevel securityLevel;
-	private final List<Callable> scriptQueue = new LinkedList<>();
+	
+	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -166,6 +167,10 @@ public class LuaSandbox {
 	 */
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
+	}
+	
+	public ScriptEventQueue getQueue() {
+		return scriptQueue;
 	}
 
 
