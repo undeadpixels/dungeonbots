@@ -42,6 +42,9 @@ import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
@@ -89,8 +92,8 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount()==1){
-					//Draw to the world?
+				if (e.getClickCount() == 1) {
+					// Draw to the world?
 					if (e.getSource() == view) {
 						if (world == null)
 							return;
@@ -101,12 +104,21 @@ public class LevelEditorScreen extends Screen {
 							TileType drawType = (TileType) selection;
 							TileType currentTile = world.getTile(e.getX(), e.getY());
 							Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
-							world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
+							world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 						}
 						e.consume();
 					}
+				} else if (e.getClickCount() == 2) {
+					if (e.getClickCount() == 2) {
+						Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+						Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
+						if (entity == null)
+							return;
+						JEntityEditor.create(LevelEditorScreen.this, entity, SecurityLevel.AUTHOR, "Entity Editor");
+						e.consume();
+					}
 				}
-				
+
 			}
 
 			@Override
@@ -122,7 +134,7 @@ public class LevelEditorScreen extends Screen {
 						TileType drawType = (TileType) selection;
 						TileType currentTile = world.getTile(e.getX(), e.getY());
 						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
-						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
+						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
 					e.consume();
 				}

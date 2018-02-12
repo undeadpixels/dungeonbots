@@ -14,7 +14,10 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.io.File;
 import java.util.HashMap;
 
@@ -41,6 +44,7 @@ import javax.swing.JDialog;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -64,8 +68,10 @@ public class GameplayScreen extends Screen {
 	 * On closing the screen, each open editor will also need to be closed.
 	 * Additionally, it makes no sense to open an editor twice for the same
 	 * Entity. That's why the open editors are tracked.
-	 */
-	private HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
+	 *//*
+		 * private final HashMap<Entity, JDialog> _OpenEditors = new
+		 * HashMap<Entity, JDialog>();
+		 */
 
 	@Override
 	protected ScreenController makeController() {
@@ -74,32 +80,14 @@ public class GameplayScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount()==2){
+				if (e.getClickCount() == 2) {
 					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
 					Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
-
-					if (_OpenEditors.containsKey(entity)) {
-						System.err.println("An editor is already open for this entity:  " + entity.toString());
+					if (entity == null)
 						return;
-					}
-
-					if (entity instanceof Player) {
-
-						JEntityEditor jpe = new JEntityEditor( entity, SecurityLevel.DEFAULT);
-						JDialog dialog = new JDialog(GameplayScreen.this, "Player editor",
-								Dialog.ModalityType.DOCUMENT_MODAL);
-						dialog.add(jpe);
-
-						dialog.pack();
-						dialog.setVisible(true);						
-						_OpenEditors.put(entity,  dialog);
-
-					}
-					System.out.println("Clicked entity " + entity);
-
+					JEntityEditor.create(GameplayScreen.this, entity, SecurityLevel.DEFAULT, "Entity Editor");
 					e.consume();
 				}
-				
 			}
 
 			@Override
