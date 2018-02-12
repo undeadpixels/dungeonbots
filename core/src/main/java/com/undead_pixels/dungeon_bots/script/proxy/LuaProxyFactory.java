@@ -107,8 +107,7 @@ public class LuaProxyFactory {
 		return new LuaBinding(
 				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
 						.map(BindTo::value)
-						.orElse(src.getSimpleName()),
-				t);
+						.orElse(src.getSimpleName()), t);
 	}
 
 	private static Stream<Class<?>> getAllInterfaces(final Class<?> c) {
@@ -124,8 +123,7 @@ public class LuaProxyFactory {
 		return clzSet.stream();
 	}
 
-	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args)
-			throws MethodNotOnWhitelistException, InvocationTargetException, IllegalAccessException {
+	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args) throws Exception {
 		if(whitelist.onWhitelist(caller, m))
 			if(returnType.isAssignableFrom(Varargs.class))
 				return Varargs.class.cast(m.invoke(caller, args));
