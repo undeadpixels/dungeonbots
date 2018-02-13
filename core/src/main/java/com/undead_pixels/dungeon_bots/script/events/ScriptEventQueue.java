@@ -49,7 +49,9 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, ScriptEvent>
 			runLoopThread = new Thread(this);
 			runLoopThread.start();
 		} else {
-			runLoopThread.interrupt();
+			synchronized(this) {
+				this.notify();
+			}
 		}
 	}
 	
@@ -60,10 +62,11 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, ScriptEvent>
 			this.act(0.0f);
 			
 			if(this.isEmpty()) {
-				try {
-					Thread.sleep(100);
-				} catch(InterruptedException ex) {
-					// ok; we expect periodic interrupts
+				synchronized(this) {
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+					}
 				}
 			}
 		}

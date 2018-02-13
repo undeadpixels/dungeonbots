@@ -17,7 +17,7 @@ import java.util.Optional;
  * @version 2/1/2018 A LuaScript is an asynchronous wrapper around an execution
  *          context for a sandbox that is invoked using a LuaSandbox.
  */
-public class LuaScript extends ScriptEvent {
+public class LuaScript {
 
 	private final LuaSandbox environment;
 	private final String script;
@@ -33,7 +33,6 @@ public class LuaScript extends ScriptEvent {
 	 * @param script
 	 */
 	LuaScript(LuaSandbox env, String script) {
-		super(env);
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
 
@@ -53,23 +52,30 @@ public class LuaScript extends ScriptEvent {
 		// TODO: create the chunk and the thread upon setting/reseting the text?
 
 		thread = ThreadWrapper.create(() -> {
-			SecurityContext.set(environment);
-			try {
-				scriptStatus = ScriptStatus.RUNNING;
-				LuaValue chunk = environment.getGlobals().load(this.script);
-				varargs = chunk.invoke();
-				scriptStatus = ScriptStatus.COMPLETE;
-				luaError = null;
-			} catch (LuaError le) {
-				scriptStatus = ScriptStatus.LUA_ERROR;
-				luaError = le;
-			} catch (Exception e) {
-				scriptStatus = ScriptStatus.ERROR;
-			}
+			run();
 		});
 		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)
 			thread.start();
 		return this;
+	}
+	
+	/**
+	 * Executes this lua script in-line
+	 */
+	public void run() {
+		SecurityContext.set(environment);
+		try {
+			scriptStatus = ScriptStatus.RUNNING;
+			LuaValue chunk = environment.getGlobals().load(this.script);
+			varargs = chunk.invoke();
+			scriptStatus = ScriptStatus.COMPLETE;
+			luaError = null;
+		} catch (LuaError le) {
+			scriptStatus = ScriptStatus.LUA_ERROR;
+			luaError = le;
+		} catch (Exception e) {
+			scriptStatus = ScriptStatus.ERROR;
+		}
 	}
 
 	/**
@@ -185,25 +191,5 @@ public class LuaScript extends ScriptEvent {
 
 	public Optional<SandboxedValue> getSandboxedValue() {
 		return getResults().map(val -> new SandboxedValue(val, environment));
-	}
-
-	@Override
-	public boolean startScript() {
-		return false;
-	}
-
-	@Override
-	public boolean preAct() {
-		return true;
-	}
-
-	@Override
-	public boolean act(float t) {
-		return true;
-	}
-
-	@Override
-	public void postAct() {
-
 	}
 }
