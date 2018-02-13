@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  * Creates a Whitelist of allowed callable Methods that is unique to the caller
  * and the method.
  */
-public class Whitelist implements GetLuaFacade {
+public final class Whitelist implements GetLuaFacade {
 	private Set<String> whitelist;
 	private LuaValue luaValue;
 
@@ -51,7 +51,7 @@ public class Whitelist implements GetLuaFacade {
 	 * @param args A Stream of String ID's to add
 	 * @return The source Whitelist
 	 */
-	public  Whitelist addId(final Stream<String> args) {
+	public Whitelist addId(final Stream<String> args) {
 		whitelist.addAll(args.collect(Collectors.toList()));
 		return this;
 	}
@@ -182,10 +182,10 @@ public class Whitelist implements GetLuaFacade {
 	 * Binding to Lua code that allows Authors to add things to the whitelist.<br>
 	 * <pre>{@code
 	 *     -- Whitelists functions named up, down, left and right that belong to the player entity if found
-	 *     whitelist.allow(player, "up", "down", "left", "right")
+	 *     whitelist:allow(player, "up", "down", "left", "right")
 	 *
 	 *     -- Whitelists all functions for the player entity
-	 *     whitelist.allow(player)
+	 *     whitelist:allow(player)
 	 *     }</pre>
 	 * @param obj
 	 * @param toAllow

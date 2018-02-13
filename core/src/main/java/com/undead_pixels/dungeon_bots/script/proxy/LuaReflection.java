@@ -27,8 +27,8 @@ public class LuaReflection {
 	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addId(bindableMethods.filter(method ->
-						method.getDeclaredAnnotation(Bind.class) != null
+				.addId(bindableMethods
+						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null
 								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
 						.map(method ->genId(caller, method)));
 	}
@@ -41,8 +41,8 @@ public class LuaReflection {
 	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final SecurityLevel securityLevel) {
 		return new Whitelist()
-				.addId(bindableMethods.filter(method ->
-						method.getDeclaredAnnotation(Bind.class) != null
+				.addId(bindableMethods
+						.filter(method -> method.getDeclaredAnnotation(Bind.class) != null
 								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
 						.map(method ->genId(null, method)));
 	}
@@ -54,7 +54,9 @@ public class LuaReflection {
 	 * @return A String ID that specifically refers to the member of the specific object
 	 */
 	public static String genId(final Object o, final Member m) {
-		return Optional.ofNullable(o).map(val -> Integer.toString(val.hashCode())).orElse("")
+		return Optional.ofNullable(o)
+				.map(val -> Integer.toString(val.hashCode()))
+				.orElse("")
 				+ Integer.toString(m.hashCode());
 	}
 
@@ -73,6 +75,7 @@ public class LuaReflection {
 				.sequential()
 				.collect((Supplier<HashMap<String, Method>>) HashMap::new,
 						// Collect methods in order of most specific class to least
+						// Only keeping the first method associated with the given name
 						(map, method) -> {
 							String name = GetLuaFacade.bindTo(method);
 							if(!map.containsKey(name))
@@ -137,14 +140,11 @@ public class LuaReflection {
 				.findFirst();
 	}
 
-	private static Stream<Method> getAllMethods(final Class<?> clz) {
-		return flattenClass(clz, Class::getDeclaredMethods);
-	}
-
-	private static Stream<Field> getAllFields(final Class<?> clz) {
-		return flattenClass(clz, Class::getDeclaredFields);
-	}
-
+	/**
+	 *
+	 * @param src
+	 * @return
+	 */
 	public static Stream<Class<?>> collectClasses(final Class<?> src) {
 		final Collection<Class<?>> classes = new ArrayList<>();
 		Class<?> temp = src;
@@ -158,10 +158,26 @@ public class LuaReflection {
 		return classes.stream().sequential();
 	}
 
+	/**
+	 *
+	 * @param src
+	 * @param fn
+	 * @param <T>
+	 * @return
+	 */
 	public static <T extends Member> Stream<T> flattenClass(final Class<?> src, final Function<Class<?>,T[]> fn) {
 		return collectClasses(src)
 				.map(fn)
 				.flatMap(Stream::of)
 				.sequential();
 	}
+
+	private static Stream<Method> getAllMethods(final Class<?> clz) {
+		return flattenClass(clz, Class::getDeclaredMethods);
+	}
+
+	private static Stream<Field> getAllFields(final Class<?> clz) {
+		return flattenClass(clz, Class::getDeclaredFields);
+	}
+
 }

@@ -549,14 +549,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	public Entity getEntityUnderLocation(float x, float y) {
 		for (Entity e : entities) {
 			Vector2 p = e.getPosition();
-
-			if (x < p.x || x > p.x + 1) {
+			if (x < p.x || x > p.x + 1)
 				continue;
-			}
-
-			if (y < p.y || y > p.y + 1) {
+			if (y < p.y || y > p.y + 1)
 				continue;
-			}
 
 			return e;
 		}
@@ -582,7 +578,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 *
 	 */
-	public synchronized void reset() {
+	public void reset() {
 		updateLock.lock();
 		try {
 			timesReset++;
