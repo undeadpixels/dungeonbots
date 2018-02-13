@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -102,15 +103,16 @@ public class LevelEditorScreen extends Screen {
 							return;
 						if (selection instanceof TileType) {
 							TileType drawType = (TileType) selection;
-							TileType currentTile = world.getTile(e.getX(), e.getY());
-							Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+							// TileType currentTile = world.getTile(e.getX(),
+							// e.getY());
+							Point2D.Float gameCoords = view.getScreenToGameCoords(e.getX(), e.getY());
 							world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 						}
 						e.consume();
 					}
 				} else if (e.getClickCount() == 2) {
 					if (e.getClickCount() == 2) {
-						Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+						Point2D.Float gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
 						Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 						if (entity == null)
 							return;
@@ -133,7 +135,7 @@ public class LevelEditorScreen extends Screen {
 						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
 						TileType currentTile = world.getTile(e.getX(), e.getY());
-						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						Point2D.Float gameCoords = view.getCamera().unproject((float) e.getX(), (float) e.getY());
 						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
 					e.consume();

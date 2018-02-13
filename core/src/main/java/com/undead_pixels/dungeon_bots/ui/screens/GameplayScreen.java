@@ -18,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.HashMap;
 
@@ -81,7 +82,7 @@ public class GameplayScreen extends Screen {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+					Point2D.Float gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
 					Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 					if (entity == null)
 						return;
@@ -145,8 +146,12 @@ public class GameplayScreen extends Screen {
 			public void mouseExited(MouseEvent arg0) {
 			}
 
+			private int originX;
+			private int originY;
+
 			@Override
-			public void mousePressed(MouseEvent arg0) {
+			public void mousePressed(MouseEvent e) {
+
 			}
 
 			@Override

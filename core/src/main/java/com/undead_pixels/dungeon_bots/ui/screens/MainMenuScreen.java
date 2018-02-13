@@ -9,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -17,6 +19,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
@@ -37,7 +40,26 @@ public class MainMenuScreen extends Screen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				buttonClicked(e);
+				switch (e.getActionCommand()) {
+				case "PLAY":
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen());
+					break;
+				case "CREATE":
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
+					break;
+				case "COMMUNITY":
+					// DungeonBotsMain.instance.setCurrentScreen(new
+					// CommunityScreen());
+					try {
+						java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					break;
+				case "QUIT":
+					System.exit(0);
+					break;
+				}
 			}
 
 			@Override
@@ -131,47 +153,28 @@ public class MainMenuScreen extends Screen {
 		};
 	}
 
-	protected void buttonClicked(ActionEvent e) {
-
-		switch (e.getActionCommand()) {
-		case "PLAY":
-			DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen());
-			break;
-		case "CREATE":
-			DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
-			break;
-		case "COMMUNITY":
-			// DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
-			try {
-				java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			break;
-		case "QUIT":
-			System.exit(0);
-			break;
-		}
-
-	}
-
 	@Override
 	protected void addComponents(Container pane) {
 
 		Insets insets = new Insets(10, 10, 10, 10);
-		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "PLAY", getController());
+		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "PLAY", getController(),
+				KeyStroke.getKeyStroke(KeyEvent.VK_P, 0));
 		bttnPlay.setMargin(insets);
 		bttnPlay.setAlignmentX(CENTER_ALIGNMENT);
 		bttnPlay.requestFocus();
 
-		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "CREATE", getController());
+		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "CREATE", getController(),
+				KeyStroke.getKeyStroke(KeyEvent.VK_C, 0));
 		bttnCreate.setMargin(insets);
 		bttnCreate.setAlignmentX(CENTER_ALIGNMENT);
+
 		JButton bttnCommunity = UIBuilder.makeButton("community.gif", "Go to the community.", "COMMUNITY",
-				getController());
+				getController(), KeyStroke.getKeyStroke(KeyEvent.VK_U, 0));
 		bttnCommunity.setMargin(insets);
 		bttnCommunity.setAlignmentX(CENTER_ALIGNMENT);
-		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "QUIT", getController());
+
+		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "QUIT", getController(),
+				KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0));
 		bttnQuit.setMargin(new Insets(5, 5, 5, 5));
 		bttnQuit.setAlignmentX(CENTER_ALIGNMENT);
 
@@ -193,6 +196,9 @@ public class MainMenuScreen extends Screen {
 		pane.add(buttonPanel);
 		pane.add(Box.createVerticalGlue());
 		pane.add(Box.createHorizontalGlue());
+
+		// Some key bindings to make it easier.
+		JRootPane rootPane = this.getRootPane();
 
 	}
 

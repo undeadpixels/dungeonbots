@@ -107,7 +107,7 @@ public final class JScriptEditor extends JPanel {
 		highlightLocks();
 	}
 
-	/** Returns the code in this editor, including any markup flags. */
+	/** Returns the code in this editor. */
 	public String getCodeMarked() {
 		return _Editor.getText();
 	}
@@ -116,6 +116,7 @@ public final class JScriptEditor extends JPanel {
 
 		if (_Locked == null)
 			return;
+		System.out.println(_Editor.getHighlighter());
 	}
 
 	/** The controller class for the JScriptEditor. */
@@ -161,20 +162,21 @@ public final class JScriptEditor extends JPanel {
 		}
 
 		@Override
-		public void changedUpdate(DocumentEvent arg0) {
-			// TODO Auto-generated method stub
-			
+		public void changedUpdate(DocumentEvent arg0) {			
+			System.out.println("changedUpdate");
+			highlightLocks();
 		}
 
 		@Override
-		public void insertUpdate(DocumentEvent arg0) {
-			// TODO Auto-generated method stub
-			
+		public void insertUpdate(DocumentEvent e) {
+			System.out.println("insertUpdate");
+			highlightLocks();
 		}
 
 		@Override
-		public void removeUpdate(DocumentEvent arg0) {
-			// TODO Auto-generated method stub
+		public void removeUpdate(DocumentEvent e) {
+			System.out.println("removeUpdate");
+			highlightLocks();
 			
 		}
 	}

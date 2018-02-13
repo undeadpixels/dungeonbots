@@ -5,6 +5,7 @@ import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -53,7 +54,8 @@ public class UIBuilder {
 
 		// Wire up the listener, and make the button respond as clicked when it
 		// has focus and enter is pressed.
-		resultButton.addActionListener(listener);
+		if (listener != null)
+			resultButton.addActionListener(listener);
 		resultButton.registerKeyboardAction(
 				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
 				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
@@ -72,6 +74,28 @@ public class UIBuilder {
 
 		resultButton.setPreferredSize(new Dimension(50, 40));
 		return resultButton;
+	}
+
+	/**
+	 * Create a button with an associated hot key that will apply so long as the
+	 * button is in a focused window.
+	 */
+	public static JButton makeButton(String imageURL, String toolTipText, String actionCommand, ActionListener listener,
+			KeyStroke hotKey) {
+
+		JButton resultButton = makeButton(imageURL, toolTipText, actionCommand, listener);
+
+		resultButton.registerKeyboardAction(
+				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
+				KeyStroke.getKeyStroke(hotKey.getKeyCode(), hotKey.getModifiers(), false),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
+		resultButton.registerKeyboardAction(
+				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
+				KeyStroke.getKeyStroke(hotKey.getKeyCode(), hotKey.getModifiers(), true),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		return resultButton;
+
 	}
 
 	public static JToggleButton makeToggleButton(String imageURL, String toolTipText, String altText,

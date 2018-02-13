@@ -13,6 +13,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 
 import javax.swing.JComponent;
@@ -90,23 +91,23 @@ public class WorldView extends JComponent {
 
 			cam.setViewportSize(w, h);
 
-			cam.update();
+			// cam.update(); //Nothing in this function call.
 			batch.setProjectionMatrix(cam);
 			// batch.setTransformMatrix(cam.view);
 
 			if (world != null) {
 				world.render(batch);
 			}
-			
-			if(showGrid) {
+
+			if (showGrid) {
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
 				Vector2 size = world.getSize();
 				// draw Y lines
-				for(int i = 0; i <= size.y+.5f; i++) {
+				for (int i = 0; i <= size.y + .5f; i++) {
 					batch.drawLine(0, i, size.x, i);
 				}
 				// draw X lines
-				for(int j = 0; j <= size.x+.5f; j++) {
+				for (int j = 0; j <= size.x + .5f; j++) {
 					batch.drawLine(j, 0, j, size.y);
 				}
 			}
@@ -139,9 +140,8 @@ public class WorldView extends JComponent {
 	}
 
 	/** Returns the given screen coordinates, translated into game space. */
-	public Vector2 getScreenToGameCoords(int screenX, int screenY) {
-		Vector2 gameSpace = cam.unproject(new Vector2(screenX, screenY));
-		return new Vector2(gameSpace.x, gameSpace.y);
+	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
+		return cam.unproject((float) screenX, (float) screenY);		
 	}
 
 	/** Returns the world currently being viewed. */

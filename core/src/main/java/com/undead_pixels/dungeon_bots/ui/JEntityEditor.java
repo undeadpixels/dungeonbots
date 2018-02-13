@@ -67,6 +67,7 @@ public final class JEntityEditor extends JPanel {
 			System.err.println("An editor is already open for this entity:  " + entity.toString());
 			JDialog dialog = _OpenEditors.get(entity);
 			dialog.requestFocus();
+			return null;
 		}
 
 		JEntityEditor jpe = new JEntityEditor(entity, securityLevel);
@@ -112,7 +113,10 @@ public final class JEntityEditor extends JPanel {
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		SwingUtilities.invokeLater(new Runnable() {
-
+			/**
+			 * Invoke later because there will be no containing parent at
+			 * construction time.
+			 */
 			@Override
 			public void run() {
 				if (getContainingDialog() != null)
@@ -130,6 +134,10 @@ public final class JEntityEditor extends JPanel {
 		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
 		scriptPanel.add(_Editor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
+		
+		JPanel propertiesPanel = new JPanel();
+		propertiesPanel.setLayout(new BorderLayout());
+		propertiesPanel.add(new JLabel("To be determined..."), BorderLayout.CENTER);
 
 		JCodeREPL repl = new JCodeREPL(entity.getSandbox());
 
@@ -137,6 +145,7 @@ public final class JEntityEditor extends JPanel {
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level)
 			tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
+		tabPane.addTab("Properties", propertiesPanel);
 
 		this.add(tabPane, BorderLayout.LINE_START);
 
@@ -160,6 +169,11 @@ public final class JEntityEditor extends JPanel {
 		}
 	}
 
+	/**
+	 * Used to find the containing dialog parent, if there is one. A
+	 * JEntityEditor GUI that exists within a JDialog behaves differently from
+	 * one who doesn't.
+	 */
 	private JDialog getContainingDialog() {
 		Container parent = this.getParent();
 		while (parent != null) {
@@ -189,6 +203,7 @@ public final class JEntityEditor extends JPanel {
 
 		}
 
+		/**Called when the script selection list changes its selection.*/
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			int idx = e.getFirstIndex();
