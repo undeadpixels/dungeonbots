@@ -69,7 +69,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * @param t	A new action
 	 */
 	public void enqueue(T t) {
-		queue.add(t);
+		enqueue(t, null);
 	}
 	
 	/**
@@ -79,23 +79,27 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * @param group A coaelescing group
 	 */
 	public <A extends T> void enqueue(A t, CoalescingGroup<A> group) {
-		T otherT = coalescingGroupMap.get(group);
-		
-		if(otherT == null) {
-			// not yet in queue; so make maps and enqueue
-			coalescingGroupMap.put(group, t);
-			invCoalescingGroupMap.put(t, group);
-
+		if(group == null) {
 			queue.add(t);
 		} else {
-			// try to coalesce now
-			try {
-				@SuppressWarnings("unchecked")
-				A otherA = (A) otherT;
-				
-				group.coalesce(otherA, t);
-			} catch (ClassCastException e) {
-				throw new RuntimeException("Invalid coalescing group for object.");
+			T otherT = coalescingGroupMap.get(group);
+
+			if(otherT == null) {
+				// not yet in queue; so make maps and enqueue
+				coalescingGroupMap.put(group, t);
+				invCoalescingGroupMap.put(t, group);
+
+				queue.add(t);
+			} else {
+				// try to coalesce now
+				try {
+					@SuppressWarnings("unchecked")
+					A otherA = (A) otherT;
+
+					group.coalesce(otherA, t);
+				} catch (ClassCastException e) {
+					throw new RuntimeException("Invalid coalescing group for object.");
+				}
 			}
 		}
 		
