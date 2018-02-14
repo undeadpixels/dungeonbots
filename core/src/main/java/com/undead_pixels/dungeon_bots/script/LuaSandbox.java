@@ -108,34 +108,6 @@ public class LuaSandbox {
         return add(Stream.of(bindings));
     }
 
-    /**
-     * Initializes a LuaScript using a file as the source sandbox to run.
-     * @param file A file that corresponds to the source sandbox.
-     * @return A LuaScript that is invoked using the current LuaSandbox
-     */
-	@Deprecated
-    public LuaInvocation script(File file) {
-    	try {
-			// May need to append newline to left string argument in accumulator function.
-			return script(new BufferedReader(new FileReader(file)).lines()
-					.reduce("", (a, b) -> a + "\n" + b));
-		}
-		catch (FileNotFoundException fileNotFound) {
-    		// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
-    		return script("");
-		}
-    }
-
-    /**
-     * Creates a new LuaScript using the argument string as the source sandbox to run.
-     * @param script The source sandbox to invoke
-     * @return A LuaScript that is invoked using the current LuaSandbox
-     */
-	@Deprecated
-    public LuaInvocation script(String script) {
-        return new LuaInvocation(this, script);
-    }
-
 	/**
 	 * @param script
 	 * @return
@@ -269,11 +241,21 @@ public class LuaSandbox {
 		 * @return					The event that was enqueued
 		 */
 		public LuaInvocation enqueueCodeBlock(File codeBlock, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
-			LuaInvocation event = script(codeBlock);
+			LuaInvocation script;
+			try {
+				// May need to append newline to left string argument in accumulator function.
+				script = new LuaInvocation(this,
+						new BufferedReader(new FileReader(codeBlock)).lines()
+						.reduce("", (a, b) -> a + "\n" + b));
+			}
+			catch (FileNotFoundException fileNotFound) {
+				// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
+				script = new LuaInvocation(this, "");
+			}
 			
-			scriptQueue.enqueue(event, coalescingGroup, listeners);
+			scriptQueue.enqueue(script, coalescingGroup, listeners);
 			
-			return event;
+			return script;
 	}
 
 }

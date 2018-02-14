@@ -20,8 +20,8 @@ public class ScriptApiTest {
         Player player = new Player(new World(), "player");
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.addBindable(player);
-        LuaInvocation luaScript = se.script("player:up();");
-        luaScript.start().join();
+        LuaInvocation luaScript = se.init("player:up();");
+        luaScript.join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		player.getWorld().setSize(16,16);
 		player.getWorld().update(1.f);
@@ -56,8 +56,8 @@ public class ScriptApiTest {
 
 		OneArg player = new OneArg( "player");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
-		LuaInvocation luaScript = se.script("return player:greeting('Hello');");
-		luaScript.start().join();
+		LuaInvocation luaScript = se.init("return player:greeting('Hello');");
+		luaScript.join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
 				&& luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
@@ -93,8 +93,8 @@ public class ScriptApiTest {
         DebugError player = new DebugError( "player");
 		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
         LuaSandbox se = new LuaSandbox(SecurityLevel.AUTHOR).addBindable(player);
-        LuaInvocation luaScript = se.script("return player:error();");
-        luaScript.start().join();
+        LuaInvocation luaScript = se.init("return player:error();");
+        luaScript.join();
         Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
     }
 
@@ -134,8 +134,8 @@ public class ScriptApiTest {
 		Actor player = new ActorBuilder().setName("player").createActor();
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
 
-		LuaInvocation luaScript = se.script("return player.position();");
-		luaScript.start().join();
+		LuaInvocation luaScript = se.init("return player.position();");
+		luaScript.join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();

@@ -82,6 +82,10 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * Executes this lua script in-line
 	 */
 	public void run() {
+		if(scriptStatus == ScriptStatus.LUA_ERROR) {
+			return;
+		}
+		
 		SecurityContext.set(environment);
 		try {
 			scriptStatus = ScriptStatus.RUNNING;
@@ -153,7 +157,16 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		
 		this.environment.getQueue().update(0.0f);
 		
-		while(scriptStatus == ScriptStatus.RUNNING || scriptStatus == ScriptStatus.READY); // XXX - busy wait = bad
+		long startTime = System.currentTimeMillis();
+		
+		while(scriptStatus == ScriptStatus.RUNNING || scriptStatus == ScriptStatus.READY) { // XXX - busy wait = bad
+			if(wait <= 0) {
+				continue;
+			}
+			if(System.currentTimeMillis() - startTime > wait) {
+				return this;
+			}
+		}
 
 		return this;
 	}
