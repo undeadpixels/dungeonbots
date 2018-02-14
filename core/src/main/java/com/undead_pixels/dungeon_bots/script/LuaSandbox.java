@@ -141,7 +141,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public LuaInvocation init(String script) {
-		LuaInvocation ret = this.script(script);
+		LuaInvocation ret = this.enqueueCodeBlock(script);
 		scriptQueue.update(0.f);
 		try {
 			Thread.sleep(50); // XXX
@@ -158,7 +158,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public LuaInvocation init(File scriptFile) {
-		LuaInvocation ret = this.script(scriptFile);
+		LuaInvocation ret = this.enqueueCodeBlock(scriptFile);
 		scriptQueue.update(0.f);
 		try {
 			Thread.sleep(50); // XXX
@@ -219,6 +219,15 @@ public class LuaSandbox {
 	public LuaInvocation enqueueCodeBlock(String codeBlock, ScriptEventStatusListener... listeners) {
 		return enqueueCodeBlock(codeBlock, null, listeners);
 	}
+
+	/**
+	 * @param codeBlock			A block of lua code to execute
+	 * @param listeners			Things that might want to listen to the status of this event (if any)
+	 * @return					The event that was enqueued
+	 */
+	public LuaInvocation enqueueCodeBlock(File codeBlock, ScriptEventStatusListener... listeners) {
+		return enqueueCodeBlock(codeBlock, null, listeners);
+	}
 	
 	/**
 	 * Enqueues a lua function call
@@ -249,6 +258,22 @@ public class LuaSandbox {
 		scriptQueue.enqueue(event, coalescingGroup, listeners);
 		
 		return event;
+	}
+		
+
+		
+		/**
+		 * @param codeBlock			A block of lua code to execute
+		 * @param coalescingGroup	A group to coalesce events into
+		 * @param listeners			Things that might want to listen to the status of this event (if any)
+		 * @return					The event that was enqueued
+		 */
+		public LuaInvocation enqueueCodeBlock(File codeBlock, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
+			LuaInvocation event = script(codeBlock);
+			
+			scriptQueue.enqueue(event, coalescingGroup, listeners);
+			
+			return event;
 	}
 
 }

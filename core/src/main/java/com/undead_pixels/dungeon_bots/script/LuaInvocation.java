@@ -151,7 +151,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	public synchronized LuaInvocation join(long wait) {
 		assert scriptStatus != ScriptStatus.STOPPED;
 		
-		while(scriptStatus == ScriptStatus.RUNNING); // XXX - busy wait = bad
+		this.environment.getQueue().update(0.0f);
+		
+		while(scriptStatus == ScriptStatus.RUNNING || scriptStatus == ScriptStatus.READY); // XXX - busy wait = bad
 
 		return this;
 	}
