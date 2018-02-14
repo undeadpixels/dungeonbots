@@ -31,8 +31,8 @@ public class LuaJTest {
     @Test
     public void testLuaScriptResult() {
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
-        LuaScript script = scriptEnv.script("x = 1 + 2;");
-        Optional<Varargs> results = script.start().join().getResults();
+        LuaInvocation script = scriptEnv.init("x = 1 + 2;");
+        Optional<Varargs> results = script.join().getResults();
         Assert.assertTrue(
                 "ScriptStatus is not marked COMPLETE",
                 script.getStatus() == ScriptStatus.COMPLETE);
@@ -40,8 +40,8 @@ public class LuaJTest {
                 "'x = 1 + 2;' does not return the expected result.",
                 results.isPresent() && results.get().narg() == 0);
 
-        script = scriptEnv.script("return x;");
-        results = script.start().join().getResults();
+        script = scriptEnv.init("return x;");
+        results = script.join().getResults();
         Assert.assertTrue(
                 "ScriptStatus is not marked COMPLETE",
                 script.getStatus() == ScriptStatus.COMPLETE);
@@ -57,15 +57,15 @@ public class LuaJTest {
     @Test
     public void testNoResults() {
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
-        LuaScript script = scriptEnv.script("x = 1 + 2;");
+        LuaInvocation script = scriptEnv.enqueueCodeBlock("x = 1 + 2;");
         Assert.assertFalse("Script results should not be present", script.getResults().isPresent());
     }
 
     @Test
     public void testLuaScriptTimeout() {
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
-        LuaScript script = scriptEnv.script("while true do\nend\n");
-        script.start().join(1000);
+        LuaInvocation script = scriptEnv.init("while true do\nend\n");
+        script.join(1000);
         Assert.assertTrue(
                 "The executed LuaScript should throw an Error after the timeout.",
                 script.getStatus() == ScriptStatus.TIMEOUT);
@@ -77,17 +77,17 @@ public class LuaJTest {
         LuaSandbox scriptEnv = new LuaSandbox(globals);
         LuaTestMethod testMethod = new LuaTestMethod();
         scriptEnv.add(new LuaBinding("addNum", CoerceJavaToLua.coerce(testMethod)));
-        List<LuaScript> scripts = new ArrayList<>();
+        List<LuaInvocation> scripts = new ArrayList<>();
         for(int i = 0; i < 100; i++)
-            scripts.add(scriptEnv.script(String.format("return addNum(%d);", i + 1)));
-        scripts.forEach(script -> {
-            Assert.assertTrue(
-                    "ScriptStatus is not set to READY",
-                    script.getStatus() == ScriptStatus.READY);
-            script.start();
-        });
+            scripts.add(scriptEnv.init(String.format("return addNum(%d);", i + 1)));
+        //scripts.forEach(script -> {
+        //    Assert.assertTrue(
+        //            "ScriptStatus is not set to READY",
+        //            script.getStatus() == ScriptStatus.READY);
+        //    script.start();
+        //});
         for(int i = 0; i < 100; i++) {
-            LuaScript script = scripts.get(i).join();
+            LuaInvocation script = scripts.get(i).join();
             Assert.assertTrue(
                     "ScriptStatus is not marked COMPLETE",
                     script.getStatus() == ScriptStatus.COMPLETE);
@@ -100,8 +100,8 @@ public class LuaJTest {
     @Test
     public void testStopScript() {
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
-        LuaScript script = scriptEnv.script("while true do\nend\n");
-        script.start().stop();
+        LuaInvocation script = scriptEnv.init("while true do\nend\n");
+        script.stop();
         Assert.assertTrue(
                 "The executed LuaScript should be stopped.",
                 script.getStatus() == ScriptStatus.STOPPED);
@@ -111,8 +111,8 @@ public class LuaJTest {
     public void testLuaError() {
     	//This sandbox is being made of bad Lua.  It should generate an error.
         LuaSandbox scriptEnv = new LuaSandbox(SecurityLevel.DEBUG);
-        LuaScript script = scriptEnv.script("if = 2");
-        script.start().join();
+        LuaInvocation script = scriptEnv.init("if = 2");
+        script.join();
         Assert.assertTrue(
                 "ScriptStatus should report a Lua Error",
                 script.getStatus() == ScriptStatus.LUA_ERROR);

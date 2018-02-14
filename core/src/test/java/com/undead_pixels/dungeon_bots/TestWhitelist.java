@@ -62,7 +62,7 @@ public class TestWhitelist {
 		Optional<Method> m = getMethodWithName(a, "up");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 
-		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
+		LuaInvocation luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		a.getWorld().setSize(16,16);
 		a.getWorld().update(1.0f);
@@ -79,7 +79,7 @@ public class TestWhitelist {
 		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
 
- 		LuaScript luaScript = scriptEnvironment.init("test.up()").join();
+ 		LuaInvocation luaScript = scriptEnvironment.init("test.up()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
 		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
 
