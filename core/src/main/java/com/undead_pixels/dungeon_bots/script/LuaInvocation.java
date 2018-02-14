@@ -164,6 +164,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				continue;
 			}
 			if(System.currentTimeMillis() - startTime > wait) {
+				this.stop();
 				return this;
 			}
 		}
