@@ -33,9 +33,6 @@ public class LuaScript {
 	 * @param script
 	 */
 	LuaScript(LuaSandbox env, String script) {
-		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
-
 		this.environment = env;
 		this.script = script;
 		this.scriptStatus = ScriptStatus.READY;

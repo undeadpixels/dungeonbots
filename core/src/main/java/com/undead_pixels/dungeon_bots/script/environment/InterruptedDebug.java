@@ -3,7 +3,6 @@ import org.luaj.vm2.Varargs;
 import org.luaj.vm2.lib.DebugLib;
 
 import java.util.concurrent.Semaphore;
-
 /**
  * Code derived from Stackoverflow response to handling 'terminating' Lua scripts<br>
  * <a>https://stackoverflow.com/questions/17496868/lua-java-luaj-handling-or-interrupting-infinite-loops-and-threads?noredirect=1&lq=1</a>
