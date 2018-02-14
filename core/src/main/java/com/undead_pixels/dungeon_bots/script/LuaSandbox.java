@@ -113,6 +113,7 @@ public class LuaSandbox {
      * @param file A file that corresponds to the source sandbox.
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
+	@Deprecated
     public LuaInvocation script(File file) {
     	try {
 			// May need to append newline to left string argument in accumulator function.
@@ -130,12 +131,34 @@ public class LuaSandbox {
      * @param script The source sandbox to invoke
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
+	@Deprecated
     public LuaInvocation script(String script) {
         return new LuaInvocation(this, script);
     }
 
+	/**
+	 * @param script
+	 * @return
+	 */
 	public LuaInvocation init(String script) {
 		LuaInvocation ret = this.script(script);
+		scriptQueue.update(0.f);
+		try {
+			Thread.sleep(50); // XXX
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+
+	/**
+	 * @param script
+	 * @return
+	 */
+	public LuaInvocation init(File scriptFile) {
+		LuaInvocation ret = this.script(scriptFile);
 		scriptQueue.update(0.f);
 		try {
 			Thread.sleep(50); // XXX

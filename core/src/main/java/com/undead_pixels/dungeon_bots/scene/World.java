@@ -180,7 +180,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			levelScript = mapSandbox.script(luaScriptFile).start().join();
+			levelScript = mapSandbox.init(luaScriptFile).join();
 			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
