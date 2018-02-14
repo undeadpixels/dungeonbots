@@ -40,7 +40,7 @@ import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
@@ -58,7 +58,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JButton _ExecuteBttn;
 	private boolean _IsExecuting;
 
-	private LuaScript _RunningScript = null;
+	private LuaInvocation _RunningScript = null;
 
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
 	private int _CommandHistoryIndex = 0;
@@ -304,7 +304,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Stops any running script by forcing an interrupt. */
 	public void stop() {
-		LuaScript toBeCancelled = _RunningScript;
+		LuaInvocation toBeCancelled = _RunningScript;
 		if (toBeCancelled == null)
 			return;
 		toBeCancelled.stop();
@@ -332,7 +332,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 
 		/** Returns the currently operating script, if there is one. */
-		public LuaScript getScript() {
+		public LuaInvocation getScript() {
 			return _RunningScript;
 		}
 

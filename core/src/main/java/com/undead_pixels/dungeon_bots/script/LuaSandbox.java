@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
@@ -112,7 +113,7 @@ public class LuaSandbox {
      * @param file A file that corresponds to the source sandbox.
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
-    public LuaScript script(File file) {
+    public LuaInvocation script(File file) {
     	try {
 			// May need to append newline to left string argument in accumulator function.
 			return script(new BufferedReader(new FileReader(file)).lines()
@@ -129,19 +130,23 @@ public class LuaSandbox {
      * @param script The source sandbox to invoke
      * @return A LuaScript that is invoked using the current LuaSandbox
      */
-    public LuaScript script(String script) {
-        return new LuaScript(this, script);
+    public LuaInvocation script(String script) {
+        return new LuaInvocation(this, script);
     }
 
-    /**
-     * Creates a new LuaScript using the argument string as the sandbox source, and starts the LuaScript
-     * @param script The source sandbox to invoke
-     * @return A LuaScript that has been started with .start()
-     */
-    public LuaScript init(String script) {
-        return this.script(script).start();
-    }
-
+	public LuaInvocation init(String script) {
+		LuaInvocation ret = this.script(script);
+		scriptQueue.update(0.f);
+		try {
+			Thread.sleep(50); // XXX
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
     /**
      * Accessor for the Globals for the LuaSandbox
      * @return The Globals for the LuaSandbox
@@ -168,6 +173,59 @@ public class LuaSandbox {
 	
 	public ScriptEventQueue getQueue() {
 		return scriptQueue;
+	}
+
+	
+	/**
+	 * Enqueues a lua function call
+	 * 
+	 * @param functionName	Name of the function to call
+	 * @param args			Args to pass the function
+	 * @param listeners		Things that might want to listen to the status of this event (if any)
+	 * @return				The event that was enqueued
+	 */
+	public LuaInvocation enqueueFunctionCall(String functionName, LuaValue[] args, ScriptEventStatusListener... listeners) {
+		return enqueueFunctionCall(functionName, args, null, listeners);
+	}
+
+	/**
+	 * @param codeBlock			A block of lua code to execute
+	 * @param listeners			Things that might want to listen to the status of this event (if any)
+	 * @return					The event that was enqueued
+	 */
+	public LuaInvocation enqueueCodeBlock(String codeBlock, ScriptEventStatusListener... listeners) {
+		return enqueueCodeBlock(codeBlock, null, listeners);
+	}
+	
+	/**
+	 * Enqueues a lua function call
+	 * 
+	 * @param functionName		Name of the function to call
+	 * @param args				Args to pass the function
+	 * @param coalescingGroup	A group to coalesce events into
+	 * @param listeners			Things that might want to listen to the status of this event (if any)
+	 * @return				The event that was enqueued
+	 */
+	public LuaInvocation enqueueFunctionCall(String functionName, LuaValue[] args, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
+		LuaInvocation event = new LuaInvocation(this, functionName, args);
+		
+		scriptQueue.enqueue(event, coalescingGroup, listeners);
+		
+		return event;
+	}
+	
+	/**
+	 * @param codeBlock			A block of lua code to execute
+	 * @param coalescingGroup	A group to coalesce events into
+	 * @param listeners			Things that might want to listen to the status of this event (if any)
+	 * @return					The event that was enqueued
+	 */
+	public LuaInvocation enqueueCodeBlock(String codeBlock, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
+		LuaInvocation event = new LuaInvocation(this, codeBlock);
+		
+		scriptQueue.enqueue(event, coalescingGroup, listeners);
+		
+		return event;
 	}
 
 }

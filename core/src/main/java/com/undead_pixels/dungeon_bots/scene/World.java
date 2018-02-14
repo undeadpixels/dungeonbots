@@ -49,7 +49,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
     /**
      * The script that defines this world
      */
-    private LuaScript levelScript;
+    private LuaInvocation levelScript;
 
 	/**
 	 * The LuaBindings to the World

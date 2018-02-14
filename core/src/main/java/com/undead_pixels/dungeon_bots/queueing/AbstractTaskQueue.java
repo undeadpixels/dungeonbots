@@ -108,7 +108,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	/**
 	 * @return	The current task. May be null.
 	 */
-	protected T getCurrent() {
+	public T getCurrent() {
 		return current;
 	}
 

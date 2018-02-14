@@ -1,9 +1,9 @@
 package com.undead_pixels.dungeon_bots.script.events;
 
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
-import com.undead_pixels.dungeon_bots.script.FunctionCallScriptEvent;
+import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 
-public class UpdateCoalescer extends CoalescingGroup<FunctionCallScriptEvent> {
+public class UpdateCoalescer extends CoalescingGroup<LuaInvocation> {
 	
 	public static final UpdateCoalescer instance = new UpdateCoalescer();
 	
@@ -28,8 +28,8 @@ public class UpdateCoalescer extends CoalescingGroup<FunctionCallScriptEvent> {
 	}
 
 	@Override
-	public void coalesce(FunctionCallScriptEvent otherT, FunctionCallScriptEvent t) {
-		t.args[0].add(otherT.args[0]);
+	public void coalesce(LuaInvocation otherT, LuaInvocation t) {
+		t.getArgs()[0].add(otherT.getArgs()[0]);
 	}
  
 }

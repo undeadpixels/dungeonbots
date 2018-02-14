@@ -4,12 +4,14 @@
 
 package com.undead_pixels.dungeon_bots.script;
 
+import com.undead_pixels.dungeon_bots.queueing.Taskable;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Optional;
 
 /**
@@ -17,14 +19,16 @@ import java.util.Optional;
  * @version 2/1/2018 A LuaScript is an asynchronous wrapper around an execution
  *          context for a sandbox that is invoked using a LuaSandbox.
  */
-public class LuaScript {
+public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	private final LuaSandbox environment;
 	private final String script;
+	private final LuaValue chunk;
+	private final LuaValue[] args;
 	private volatile Varargs varargs;
 	private volatile ScriptStatus scriptStatus;
 	private volatile LuaError luaError;
-	private Thread thread;
+	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
@@ -32,32 +36,47 @@ public class LuaScript {
 	 * @param env
 	 * @param script
 	 */
-	LuaScript(LuaSandbox env, String script) {
+	LuaInvocation(LuaSandbox env, String script) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
 
 		this.environment = env;
 		this.script = script;
-		this.scriptStatus = ScriptStatus.READY;
+		this.args = new LuaValue[] {};
+
+		LuaValue chunk;// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
+		try {
+			chunk = environment.getGlobals().load(this.script);
+			this.scriptStatus = ScriptStatus.READY;
+		} catch (LuaError le) {
+			// TODO - should we just duck this exception?
+			chunk = null;
+			scriptStatus = ScriptStatus.LUA_ERROR;
+		}
+		this.chunk = chunk;
 	}
 
-	public LuaScript toFile(File f) {
+	public LuaInvocation(LuaSandbox env, String functionName, LuaValue[] args) {
+		this.environment = env;
+		this.script = "";
+		this.args = new LuaValue[] {};
+
+		LuaValue chunk;
+		try {
+			chunk = environment.getGlobals().get(functionName);
+			this.scriptStatus = ScriptStatus.READY;
+		} catch (LuaError le) {
+			// TODO - should we just duck this exception?
+			chunk = null;
+			scriptStatus = ScriptStatus.LUA_ERROR;
+		}
+		this.chunk = chunk;
+	}
+
+	public LuaInvocation toFile(File f) {
 		throw new RuntimeException("Not Implemented");
 	}
 
-	/** Starts execution of the sandbox on a separate thread. */
-	public synchronized LuaScript start() {
-		// TODO: creating threads is expensive. Make a pool of threads?
-		// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
-		// TODO: create the chunk and the thread upon setting/reseting the text?
-
-		thread = ThreadWrapper.create(() -> {
-			run();
-		});
-		if (scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.COMPLETE)
-			thread.start();
-		return this;
-	}
 	
 	/**
 	 * Executes this lua script in-line
@@ -66,7 +85,6 @@ public class LuaScript {
 		SecurityContext.set(environment);
 		try {
 			scriptStatus = ScriptStatus.RUNNING;
-			LuaValue chunk = environment.getGlobals().load(this.script);
 			varargs = chunk.invoke();
 			scriptStatus = ScriptStatus.COMPLETE;
 			luaError = null;
@@ -86,7 +104,10 @@ public class LuaScript {
 	 * 
 	 * @return The source LuaScript
 	 */
-	public synchronized LuaScript stop() {
+	public synchronized LuaInvocation stop() {
+		// TODO - tell the DebugLib to die
+		
+		/*
 		if (thread == null)
 			return this;
 		thread.interrupt();
@@ -95,7 +116,7 @@ public class LuaScript {
 			thread.join();
 		} catch (Throwable ie) {
 		}
-		scriptStatus = ScriptStatus.STOPPED;
+		scriptStatus = ScriptStatus.STOPPED;*/
 		return this;
 	}
 
@@ -110,28 +131,11 @@ public class LuaScript {
 	}
 
 	/**
-	 *
-	 * @return
-	 */
-	@Deprecated
-	public synchronized LuaScript resume() {
-		throw new RuntimeException("Not Implemented");
-	}
-
-	/**
-	 * @return Returns the invoked Script
-	 */
-	@Deprecated
-	public synchronized LuaScript pause() {
-		throw new RuntimeException("Not Implemented");
-	}
-
-	/**
 	 * Calls join on the contained thread, waiting indefinitely for completion.
 	 * 
 	 * @return The invoked LuaScript
 	 */
-	public synchronized LuaScript join() {
+	public synchronized LuaInvocation join() {
 		// TODO: the Script should manage its thread internally, but expose a
 		// reset()
 		return join(0);
@@ -144,20 +148,12 @@ public class LuaScript {
 	 *            The amount of time to wait for the join
 	 * @return The invoked LuaScript
 	 */
-	public synchronized LuaScript join(long wait) {
+	public synchronized LuaInvocation join(long wait) {
 		assert scriptStatus != ScriptStatus.STOPPED;
+		
+		while(scriptStatus == ScriptStatus.RUNNING); // XXX - busy wait = bad
 
-		// TODO: the Script should manage its thread internally, but expose a
-		// reset()
-		try {
-			thread.join(wait);
-			if (thread.isAlive())
-				scriptStatus = ScriptStatus.TIMEOUT;
-			return this;
-		} catch (Exception e) {
-			scriptStatus = ScriptStatus.ERROR;
-			return this;
-		}
+		return this;
 	}
 
 	/**
@@ -191,5 +187,38 @@ public class LuaScript {
 
 	public Optional<SandboxedValue> getSandboxedValue() {
 		return getResults().map(val -> new SandboxedValue(val, environment));
+	}
+
+	@Override
+	public boolean act(float dt) {
+		run();
+		
+		return true;
+	}
+
+	public LuaValue[] getArgs() {
+		return args;
+	}
+	
+
+	@Override
+	public boolean preAct() {
+		for(ScriptEventStatusListener l: listeners) {
+			l.scriptEventStarted(this, ScriptStatus.RUNNING);
+		}
+		return true;
+	}
+
+	
+	@Override
+	public void postAct() {
+		for(ScriptEventStatusListener l: listeners) {
+			l.scriptEventFinished(this, getStatus());
+		}
+	}
+
+	
+	public void addListener(ScriptEventStatusListener listener) {
+		listeners.add(listener);
 	}
 }
