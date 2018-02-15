@@ -7,6 +7,8 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.jse.JsePlatform;
+
 import java.io.*;
 import java.util.stream.*;
 /**
@@ -20,6 +22,7 @@ import java.util.stream.*;
 public class LuaSandbox {
 
     private final Globals globals;
+    final Globals invokerGlobals = JsePlatform.debugGlobals();
     private final Whitelist whitelist = new Whitelist();
 	private SecurityLevel securityLevel;
 	
@@ -31,11 +34,6 @@ public class LuaSandbox {
     public LuaSandbox() {
     	this(SecurityLevel.AUTHOR);
     }
-
-    public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
-    	this.securityLevel = securityLevel;
-    	return this;
-	}
 
     /**
      * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
@@ -69,6 +67,12 @@ public class LuaSandbox {
 				globals.set(binding.bindTo, binding.luaValue));
         return this;
     }
+
+
+	public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
+		this.securityLevel = securityLevel;
+		return this;
+	}
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
@@ -126,7 +130,7 @@ public class LuaSandbox {
 	}
 
 	/**
-	 * @param script
+	 * @param scriptFile
 	 * @return
 	 */
 	public LuaInvocation init(File scriptFile) {
@@ -252,7 +256,6 @@ public class LuaSandbox {
 				// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
 				script = new LuaInvocation(this, "");
 			}
-			
 			scriptQueue.enqueue(script, coalescingGroup, listeners);
 			
 			return script;

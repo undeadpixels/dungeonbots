@@ -5,8 +5,11 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.queueing.Taskable;
+import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.DebugLib;
+import org.luaj.vm2.lib.ZeroArgFunction;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -23,12 +26,13 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	private final LuaSandbox environment;
 	private final String script;
-	private final LuaValue chunk;
 	private final LuaValue[] args;
 	private volatile Varargs varargs;
 	private volatile ScriptStatus scriptStatus;
 	private volatile LuaError luaError;
 	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
+	private final int MAX_INSTRUCTIONS = 250;
+	private final HookFunction hookFunction = new HookFunction();
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
@@ -37,40 +41,15 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @param script
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
-		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-		ScriptEngine se = scriptEngineManager.getEngineByName("lua");
-
 		this.environment = env;
 		this.script = script;
 		this.args = new LuaValue[] {};
-
-		LuaValue chunk;// TODO: sandbox should cache as much of itself as it can. Cache the chunk?
-		try {
-			chunk = environment.getGlobals().load(this.script);
-			this.scriptStatus = ScriptStatus.READY;
-		} catch (LuaError le) {
-			// TODO - should we just duck this exception?
-			chunk = null;
-			scriptStatus = ScriptStatus.LUA_ERROR;
-		}
-		this.chunk = chunk;
 	}
 
 	public LuaInvocation(LuaSandbox env, String functionName, LuaValue[] args) {
 		this.environment = env;
 		this.script = "";
 		this.args = new LuaValue[] {};
-
-		LuaValue chunk;
-		try {
-			chunk = environment.getGlobals().get(functionName);
-			this.scriptStatus = ScriptStatus.READY;
-		} catch (LuaError le) {
-			// TODO - should we just duck this exception?
-			chunk = null;
-			scriptStatus = ScriptStatus.LUA_ERROR;
-		}
-		this.chunk = chunk;
 	}
 
 	public LuaInvocation toFile(File f) {
@@ -89,13 +68,35 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		SecurityContext.set(environment);
 		try {
 			scriptStatus = ScriptStatus.RUNNING;
-			varargs = chunk.invoke();
-			scriptStatus = ScriptStatus.COMPLETE;
-			luaError = null;
-		} catch (LuaError le) {
+			environment.getGlobals().load(new DebugLib());
+			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
+			environment.getGlobals().set("debug", LuaValue.NIL);
+			LuaValue chunk = environment.invokerGlobals.load(this.script, "main", environment.getGlobals());
+			LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
+			setHook.invoke(LuaValue.varargsOf(new LuaValue[]{
+					thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)}));
+
+			// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
+			// Instead the varargs returns with a false boolean as the first result.
+			Varargs ans = thread.resume(LuaValue.NIL);
+			varargs = ans.subargs(2);
+			if(ans.arg1().checkboolean()) {
+				scriptStatus = ScriptStatus.COMPLETE;
+				luaError = null;
+			}
+			else {
+				scriptStatus = ScriptStatus.LUA_ERROR;
+				luaError = new LuaError(ans.arg(2).checkjstring());
+			}
+		}
+		catch(LuaError le ) {
 			scriptStatus = ScriptStatus.LUA_ERROR;
 			luaError = le;
-		} catch (Exception e) {
+		}
+		catch (InstructionHook.ScriptInterruptException si) {
+			scriptStatus = ScriptStatus.TIMEOUT;
+		}
+		catch (Exception e) {
 			scriptStatus = ScriptStatus.ERROR;
 		}
 	}
@@ -121,6 +122,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		} catch (Throwable ie) {
 		}
 		scriptStatus = ScriptStatus.STOPPED;*/
+		hookFunction.kill();
+		scriptStatus = ScriptStatus.STOPPED;
 		return this;
 	}
 
@@ -165,6 +168,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			}
 			if(System.currentTimeMillis() - startTime > wait) {
 				this.stop();
+				scriptStatus = ScriptStatus.TIMEOUT;
 				return this;
 			}
 		}

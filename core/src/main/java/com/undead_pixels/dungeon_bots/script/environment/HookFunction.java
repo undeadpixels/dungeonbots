@@ -3,19 +3,26 @@ package com.undead_pixels.dungeon_bots.script.environment;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.ZeroArgFunction;
 
-import java.util.concurrent.*;
-
+/**
+ * Example hook function derived from
+ * <a>http://www.luaj.org/luaj/3.0/examples/jse/SampleSandboxed.java</a>
+ */
 public class HookFunction extends ZeroArgFunction {
 
 	private boolean isKilled = false;
-	private final Semaphore semaphore;
 
-	public HookFunction(final Semaphore semaphore) {
-		this.semaphore = semaphore;
-	}
+	public HookFunction() { }
 
 	public LuaValue call() {
 		if(isKilled) { throw new ScriptInterruptException(); }
+		synchronized (this) {
+			try {
+				this.wait();
+			}
+			catch (InterruptedException ie) {
+				throw new ScriptInterruptException();
+			}
+		}
 		return LuaValue.NIL;
 	}
 
