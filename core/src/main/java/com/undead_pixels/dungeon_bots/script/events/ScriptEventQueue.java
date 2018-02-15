@@ -37,7 +37,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 	 */
 	public void update(float dt) {
 		//owner.enqueueFunctionCall("update", new LuaValue[] {LuaValue.valueOf(dt)}, UpdateCoalescer.instance);
-		
+
 		if(runLoopThread == null) {
 			runLoopThread = new Thread(this);
 			runLoopThread.start();
@@ -86,7 +86,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 		for(ScriptEventStatusListener listener : listeners) {
 			event.addListener(listener);
 		}
-		System.out.println("Enqueueing "+event);
+		//System.out.println("Enqueueing "+event);
 		this.enqueue(event, coalescingGroup);
 	}
 }

@@ -8,21 +8,18 @@ import java.util.concurrent.Semaphore;
  * <a>https://stackoverflow.com/questions/17496868/lua-java-luaj-handling-or-interrupting-infinite-loops-and-threads?noredirect=1&lq=1</a>
  */
 public class InterruptedDebug extends DebugLib {
-	public boolean interrupted = false;
-	public final Semaphore yeildLock = new Semaphore(1, true);
+	private boolean interrupted = false;
 	@Override
 	public void onInstruction(int pc, Varargs v, int top) {
-		try {
-			yeildLock.acquire();
-		}
-		catch (InterruptedException ie) {
-			throw new ScriptInterruptException();
-		}
-		if (interrupted) {
-			throw new ScriptInterruptException();
+		synchronized(this) {
+			if (interrupted) {
+				throw new HookFunction.ScriptInterruptException();
+			}
 		}
 		super.onInstruction(pc, v, top);
 	}
 
-	public static class ScriptInterruptException extends RuntimeException {}
+	public synchronized void kill() {
+		interrupted = true;
+	}
 }

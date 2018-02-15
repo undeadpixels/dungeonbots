@@ -19,7 +19,8 @@ public class JCodeREPLTest {
         assertFalse(editor.getMessages().contains("3"));      
         
         editor.executeSynchronized(100);
-        assertTrue(editor.getMessages().contains("3"));
+        String message = editor.getMessages();
+        assertTrue(message.contains("3"));
 
 	}
 

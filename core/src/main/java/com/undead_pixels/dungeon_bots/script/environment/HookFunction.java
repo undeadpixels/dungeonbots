@@ -8,22 +8,25 @@ import org.luaj.vm2.lib.ZeroArgFunction;
  * <a>http://www.luaj.org/luaj/3.0/examples/jse/SampleSandboxed.java</a>
  */
 public class HookFunction extends ZeroArgFunction {
-
 	private boolean isKilled = false;
 
 	public HookFunction() { }
 
 	public LuaValue call() {
-		if(isKilled) { throw new ScriptInterruptException(); }
 		synchronized (this) {
+			if(isKilled) {
+				System.out.println("Lua Script STOPPED!");
+				throw new ScriptInterruptException();
+			}
+			/*
 			try {
 				this.wait();
 			}
 			catch (InterruptedException ie) {
 				throw new ScriptInterruptException();
-			}
+			}*/
 		}
-		return LuaValue.NIL;
+		return this;
 	}
 
 	public synchronized void kill() {
