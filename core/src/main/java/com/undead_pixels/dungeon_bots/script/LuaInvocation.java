@@ -9,10 +9,8 @@ import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import org.luaj.vm2.*;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Stewart Charles
@@ -28,9 +26,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	private volatile ScriptStatus scriptStatus;
 	private volatile LuaError luaError;
 	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
-	private final int MAX_INSTRUCTIONS = 1000;
+	private final static int MAX_INSTRUCTIONS = 1000;
 	private HookFunction hookFunction;
-	private InterruptedDebug interruptedDebug;
+	private InterruptedDebug scriptInterrupt;
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
@@ -66,9 +64,12 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		SecurityContext.set(environment);
 		try {
 			scriptStatus = ScriptStatus.RUNNING;
+
+			/* Initialize new HookFunction and InterruptedDebug every time run() is called */
 			hookFunction = new HookFunction();
-			interruptedDebug = new InterruptedDebug();
-			environment.getGlobals().load(interruptedDebug);
+			scriptInterrupt = new InterruptedDebug();
+
+			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
 			LuaValue chunk = environment.invokerGlobals.load(this.script, "main", environment.getGlobals());
@@ -126,7 +127,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		} catch (Throwable ie) {
 		}
 		scriptStatus = ScriptStatus.STOPPED;*/
-		interruptedDebug.kill();
+		scriptInterrupt.kill();
 		//hookFunction.kill();
 		try { this.wait(); }
 		catch (InterruptedException ie) { }
@@ -217,9 +218,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	@Override
 	public boolean act(float dt) {
-		preAct();
 		run();
-		postAct();
 		
 		return true;
 	}
