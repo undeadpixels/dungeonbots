@@ -72,10 +72,12 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
+			environment.getGlobals().set("print", environment.getPrintFunction());
+			environment.getGlobals().set("printf", environment.getPrintfFunction());
 			LuaValue chunk = environment.invokerGlobals.load(this.script, "main", environment.getGlobals());
 			LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
 			setHook.invoke(LuaValue.varargsOf(new LuaValue[]{
-					thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)}));
+					thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)} ));
 
 			// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
 			// Instead the varargs returns with a false boolean as the first result.
@@ -90,7 +92,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 						ScriptStatus.STOPPED :
 						ScriptStatus.LUA_ERROR;
 				luaError = new LuaError(ans.arg(2).checkjstring());
-				synchronized (this) { this.notify(); }
+				synchronized (this) { this.notifyAll(); }
 			}
 		}
 		catch(LuaError le ) {
@@ -99,7 +101,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		}
 		catch (InstructionHook.ScriptInterruptException si) {
 			scriptStatus = ScriptStatus.STOPPED;
-			synchronized (this) { this.notify(); }
+			synchronized (this) { this.notifyAll(); }
 		}
 		catch (Exception e) {
 			scriptStatus = ScriptStatus.ERROR;
