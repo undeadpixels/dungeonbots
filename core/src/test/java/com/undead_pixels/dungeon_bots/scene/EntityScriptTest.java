@@ -16,7 +16,7 @@ public class EntityScriptTest {
 		World w = new World();
 		Player p = new Player(w, "player");
 		w.setSize(16,16);
-		LuaInvocation luaScript = p.getSandbox().init("player:up()").join();
+		LuaInvocation luaScript = p.getSandbox().init("player:queueUp()").join();
 		assertTrue(luaScript.getStatus() == COMPLETE);
 		w.update(1.f);
 		w.update(1.f);

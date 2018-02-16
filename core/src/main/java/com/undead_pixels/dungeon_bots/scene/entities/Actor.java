@@ -159,7 +159,7 @@ public class Actor extends SpriteEntity {
 		};
 		Action moveFailAction = new SequentialActions(fail1, fail2);
 		
-		while(!actionQueue.isEmpty()) {
+		while(blocking && !actionQueue.isEmpty()) {
 			try {
 				Thread.sleep(1);//FIXME
 			} catch (InterruptedException e1) {
@@ -169,7 +169,7 @@ public class Actor extends SpriteEntity {
 		}
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 
-		while(!actionQueue.isEmpty()) {
+		while(blocking && !actionQueue.isEmpty()) {
 			try {
 				Thread.sleep(1);//FIXME
 			} catch (InterruptedException e1) {
