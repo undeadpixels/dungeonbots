@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.queueing.AbstractTaskQueue;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 
 /**
@@ -45,6 +46,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 		
 		if(runLoopThread == null) {
 			runLoopThread = new Thread(this);
+			SandboxManager.register(runLoopThread, owner);
 			runLoopThread.start();
 		} else {
 			synchronized(this) {
