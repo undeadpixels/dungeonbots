@@ -9,8 +9,8 @@ import java.util.function.Consumer;
  * @param <T> The result type.
  */
 public final class ResultWrapper<T> {
-	private Optional<T> val = Optional.empty();
-	private Optional<Throwable> throwable = Optional.empty();
+	private transient Optional<T> val = Optional.empty();
+	private transient Optional<Throwable> throwable = Optional.empty();
 
 	public interface ThrowableSupplier<U> {
 		U get() throws Throwable;

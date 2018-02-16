@@ -69,11 +69,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	/** Creates a new REPL. All code will execute in a brand-new sandbox. */
-	public JCodeREPL() {
-		this(new LuaSandbox(SecurityLevel.DEBUG));
-	}
-
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
 
@@ -342,7 +337,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			PrintStream originalOut = System.out;
 			try {
 
-				_RunningScript = _Sandbox.enqueueCodeBlock(executingCode);
+				_RunningScript = _Sandbox.init(executingCode);
 				_RunningScript.join(_milliseconds);
 
 				if (_RunningScript.getError() != null)

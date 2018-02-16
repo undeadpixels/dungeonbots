@@ -7,7 +7,14 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.VarArgFunction;
+import org.luaj.vm2.lib.jse.JsePlatform;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -20,10 +27,13 @@ import java.util.stream.*;
 public class LuaSandbox {
 
     private final Globals globals;
+    final Globals invokerGlobals = JsePlatform.debugGlobals();
     private final Whitelist whitelist = new Whitelist();
 	private SecurityLevel securityLevel;
-	
+	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	private final BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
+	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -31,11 +41,6 @@ public class LuaSandbox {
     public LuaSandbox() {
     	this(SecurityLevel.AUTHOR);
     }
-
-    public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
-    	this.securityLevel = securityLevel;
-    	return this;
-	}
 
     /**
      * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
@@ -69,6 +74,12 @@ public class LuaSandbox {
 				globals.set(binding.bindTo, binding.luaValue));
         return this;
     }
+
+
+	public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
+		this.securityLevel = securityLevel;
+		return this;
+	}
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
@@ -112,8 +123,8 @@ public class LuaSandbox {
 	 * @param script
 	 * @return
 	 */
-	public LuaInvocation init(String script) {
-		LuaInvocation ret = this.enqueueCodeBlock(script);
+	public LuaInvocation init(String script, ScriptEventStatusListener... listeners) {
+		LuaInvocation ret = this.enqueueCodeBlock(script, listeners);
 		scriptQueue.update(0.f);
 		try {
 			Thread.sleep(50); // XXX
@@ -126,11 +137,11 @@ public class LuaSandbox {
 	}
 
 	/**
-	 * @param script
+	 * @param scriptFile
 	 * @return
 	 */
-	public LuaInvocation init(File scriptFile) {
-		LuaInvocation ret = this.enqueueCodeBlock(scriptFile);
+	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
+		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
 		scriptQueue.update(0.f);
 		try {
 			Thread.sleep(50); // XXX
@@ -252,10 +263,51 @@ public class LuaSandbox {
 				// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
 				script = new LuaInvocation(this, "");
 			}
-			
 			scriptQueue.enqueue(script, coalescingGroup, listeners);
 			
 			return script;
 	}
 
+	public void addOutputEventListener(Consumer<String> fn) {
+			outputEventListeners.add(fn);
+	}
+
+	public String getOutput() {
+		try { bufferedOutputStream.flush(); }
+		catch (IOException io) { }
+		return outputStream.toString();
+	}
+
+	public class PrintfFunction extends VarArgFunction {
+		@Override public LuaValue invoke(Varargs v) {
+			String tofmt = v.arg1().checkjstring();
+			List<Object> args = new ArrayList<>();
+			for(int i = 2; i <= v.narg(); i++) {
+				args.add(v.arg(i).tojstring());
+			}
+			String fmt = String.format(tofmt, args.toArray());
+			try { bufferedOutputStream.write(fmt.getBytes()); }
+			catch (IOException io) { }
+			outputEventListeners.forEach(cn -> cn.accept(fmt));
+			return LuaValue.NIL;
+		}
+	}
+
+	public class PrintFunction extends VarArgFunction {
+		@Override public LuaValue invoke(Varargs v) {
+			String ans = v.tojstring();
+			try { bufferedOutputStream.write(ans.getBytes()); }
+			catch (IOException io) { }
+			outputEventListeners.forEach(cn -> cn.accept(ans));
+			return LuaValue.NIL;
+		}
+	}
+
+	public PrintfFunction getPrintfFunction() {
+		return new PrintfFunction();
+	}
+
+	public PrintFunction getPrintFunction() {
+		return new PrintFunction();
+	}
 }

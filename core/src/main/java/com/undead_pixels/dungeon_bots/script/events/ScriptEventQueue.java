@@ -1,7 +1,5 @@
 package com.undead_pixels.dungeon_bots.script.events;
 
-import org.luaj.vm2.LuaValue;
-
 import com.undead_pixels.dungeon_bots.queueing.AbstractTaskQueue;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
@@ -43,7 +41,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 	 */
 	public void update(float dt) {
 		//owner.enqueueFunctionCall("update", new LuaValue[] {LuaValue.valueOf(dt)}, UpdateCoalescer.instance);
-		
+
 		if(runLoopThread == null) {
 			runLoopThread = new Thread(this);
 			SandboxManager.register(runLoopThread, owner);
@@ -93,7 +91,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 		for(ScriptEventStatusListener listener : listeners) {
 			event.addListener(listener);
 		}
-		System.out.println("Enqueueing "+event);
+		//System.out.println("Enqueueing "+event);
 		this.enqueue(event, coalescingGroup);
 	}
 }
