@@ -264,6 +264,51 @@ public class Actor extends SpriteEntity {
 		return moveAmt(amt, Direction.RIGHT, true);
 	}
 
+
+	/**
+	 * Moves the player UP
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueUp(Varargs amt) {
+		return moveAmt(amt, Direction.UP, false);
+	}
+
+	/**
+	 * Moves the player DOWN
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueDown(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN, false);
+	}
+
+	/**
+	 * Moves the player LEFT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueLeft(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT, false);
+	}
+
+	/**
+	 * Moves the player RIGHT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueRight(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT, false);
+	}
+
 	/**
 	 * @author Stewart Charles
 	 * @since 1.0

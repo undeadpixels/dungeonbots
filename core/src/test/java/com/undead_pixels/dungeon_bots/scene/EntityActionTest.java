@@ -23,10 +23,10 @@ public class EntityActionTest {
     		world.setSize(16, 16);
     		Player p = new Player(world, "player");
 
-    		p.queueMoveSlowly(Direction.UP);
-    		p.queueMoveSlowly(Direction.RIGHT);
-    		p.queueMoveSlowly(Direction.DOWN);
-    		p.queueMoveSlowly(Direction.LEFT);
+    		p.queueMoveSlowly(Direction.UP, false);
+    		p.queueMoveSlowly(Direction.RIGHT, false);
+    		p.queueMoveSlowly(Direction.DOWN, false);
+    		p.queueMoveSlowly(Direction.LEFT, false);
     		assertEquals("", new Vector2(0, 0), p.getPosition(), 0.01f);
     		
     		Vector2[] expected = {
