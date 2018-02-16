@@ -144,7 +144,7 @@ public class Actor extends SpriteEntity {
 			
 		};
 
-		Action fail1 = new SpriteAnimatedAction(sprite, .1f) {
+		Action fail1 = new SpriteAnimatedAction(sprite, .2f) {
 			public boolean preAct() {
 				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
 				return true;

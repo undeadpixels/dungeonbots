@@ -78,6 +78,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
+		
+		_Sandbox.addOutputEventListener((str) -> this.message(str));
+		
 
 		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
@@ -312,15 +315,16 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * background thread.
 	 */
 	public LuaInvocation execute(long executionTime) {
-		if (_RunningScript != null) {
-			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-			return null;
-		}
+		//if (_RunningScript != null) {
+		//	messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
+		//	return null;
+		//}
 		setIsExecuting(true);
 		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
 
 			@Override
 			public void scriptEventFinished(LuaInvocation script, ScriptStatus status) {
+				System.out.println("Script "+script+" is "+script.getStatus() +", thinks "+status);
 				if(_RunningScript == script) {
 					_RunningScript = null;
 				}
@@ -331,25 +335,31 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					switch (script.getStatus()) {
 					case READY:
 						onExecutionComplete(script, new Exception("Script did not execute."));
+						break;
 					case COMPLETE:
 						onExecutionComplete(script, script.getResults().map(result -> interpret(result)).orElse("Ok"));
+						break;
 					case RUNNING:
 						onExecutionComplete(script, new Exception("Script is still running."));
+						break;
 					case TIMEOUT:
 						onExecutionComplete(script, new Exception("Script timed out."));
+						break;
 					case STOPPED:
 						onExecutionComplete(script, new Exception("Script has been interrupted."));
+						break;
 					case LUA_ERROR:
 						onExecutionComplete(script, new Exception("Lua error."));
+						break;
 					case ERROR:
 						onExecutionComplete(script, new Exception("Threading error."));
+						break;
 					case PAUSED:
 						onExecutionComplete(script, new Exception("Script has been paused."));
+						break;
 					default:
 					}
 				}
-					
-				onExecutionComplete(script, script.getResults().map(result -> interpret(result)).orElse("Ok"));
 			}
 
 			@Override
@@ -397,8 +407,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Sets the GUI to correctly reflect the execution status. */
 	private void setIsExecuting(boolean value) {
-		if (_IsExecuting == value)
-			throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
+		//if (_IsExecuting == value)
+		//	throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
 		_IsExecuting = value;
 		_CancelBttn.setEnabled(value);
 		_ExecuteBttn.setEnabled(!value);

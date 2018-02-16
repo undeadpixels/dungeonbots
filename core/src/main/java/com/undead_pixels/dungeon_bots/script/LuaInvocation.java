@@ -169,28 +169,21 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public LuaInvocation join(long timeout) {
 		assert scriptStatus != ScriptStatus.STOPPED;
-		System.out.println("Begin Join: "+scriptStatus+", "+this);
 
 		try {
 			synchronized(joinNotificationObj) {
-				System.out.println("j1");
 				if(scriptStatus == ScriptStatus.READY ||
 						scriptStatus == ScriptStatus.RUNNING) {
 					this.environment.update(0.0f);
-					System.out.println("j2");
 					if(timeout > 0) {
-						System.out.println("j3 "+System.currentTimeMillis());
 						joinNotificationObj.wait(timeout);
-						System.out.println("jq "+System.currentTimeMillis());
 
 						if(scriptStatus == ScriptStatus.READY ||
 								scriptStatus == ScriptStatus.RUNNING) {
 							scriptInterrupt.kill();
 							scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
 						}
-						System.out.println("j4");
 					} else {
-						System.out.println("jj");
 						joinNotificationObj.wait();
 					}
 
@@ -201,7 +194,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println("End of Join: "+scriptStatus);
 
 		return this;
 	}
@@ -266,9 +258,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			l.scriptEventFinished(this, getStatus());
 		}
 
-		System.out.println("About to NotifyAll "+this);
 		synchronized(joinNotificationObj) {
-			System.out.println("NotifyAll "+this);
 			joinNotificationObj.notifyAll();
 		}
 	}
