@@ -126,12 +126,6 @@ public class LuaSandbox {
 	public LuaInvocation init(String script, ScriptEventStatusListener... listeners) {
 		LuaInvocation ret = this.enqueueCodeBlock(script, listeners);
 		scriptQueue.update(0.f);
-		try {
-			Thread.sleep(50); // XXX
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		return ret;
 	}
@@ -309,5 +303,9 @@ public class LuaSandbox {
 
 	public PrintFunction getPrintFunction() {
 		return new PrintFunction();
+	}
+
+	public void update(float dt) {
+		scriptQueue.update(dt);
 	}
 }

@@ -40,6 +40,8 @@ import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
@@ -306,99 +308,60 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 	/**
-	 * The reason for the ScriptExecutionWorker is to make the Lua script run to
-	 * its completion but not lock up the GUI.
-	 */
-	private class ScriptExecutionWorker extends SwingWorker<Object, String> {
-
-		public String executingCode = "";
-		private long _milliseconds = MAX_EXECUTION_TIME;
-
-		public ScriptExecutionWorker(String code, long executionTime) {
-			executingCode = code;
-			_milliseconds = executionTime;
-		}
-
-		// Cannot override execute()
-
-		/** Does the work in the calling thread. Useful for testing purposes. */
-		public Object doSynchronized() {
-			return doInBackground();
-		}
-
-		/** Returns the currently operating script, if there is one. */
-		public LuaInvocation getScript() {
-			return _RunningScript;
-		}
-
-		@Override
-		protected Object doInBackground() {
-
-			PrintStream originalOut = System.out;
-			try {
-
-				_RunningScript = _Sandbox.init(executingCode);
-				_RunningScript.join(_milliseconds);
-
-				if (_RunningScript.getError() != null)
-					return _RunningScript.getError();
-
-				switch (_RunningScript.getStatus()) {
-				case READY:
-					throw new Exception("Script did not execute.");
-				case COMPLETE:
-					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
-				// return interpret(_RunningScript.getResults());
-				case RUNNING:
-					throw new Exception("Script is still running.");
-				case TIMEOUT:
-					throw new Exception("Script timed out.");
-				case STOPPED:
-					throw new Exception("Script has been interrupted.");
-				case LUA_ERROR:
-					throw new Exception("Lua error.");
-				case ERROR:
-					throw new Exception("Threading error.");
-				case PAUSED:
-					throw new Exception("Script has been paused.");
-				default:
-					throw new Exception("Unrecognized status: " + _RunningScript.getStatus() + ".");
-				}
-			} catch (Exception ex) {
-				return ex;
-			} finally {
-				System.setOut(originalOut);
-			}
-		}
-
-		@Override
-		protected void done() {
-			try {
-				Object result = get();
-				_RunningScript = null;
-				onExecutionComplete(this, result);
-			} catch (Exception e) {
-				onExecutionComplete(this, e);
-			}
-		}
-	}
-
-	/**
 	 * Starts execution of the code contained in the code editor, on a
 	 * background thread.
 	 */
-	public void execute(long executionTime) {
-
+	public LuaInvocation execute(long executionTime) {
 		if (_RunningScript != null) {
 			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-			return;
+			return null;
 		}
-
 		setIsExecuting(true);
-		String code = getCode();
-		message(">>> " + code, _EchoMessageStyle);
-		ScriptExecutionWorker worker = new ScriptExecutionWorker(code, executionTime);
-		worker.execute();
+		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
+
+			@Override
+			public void scriptEventFinished(LuaInvocation script, ScriptStatus status) {
+				if(_RunningScript == script) {
+					_RunningScript = null;
+				}
+
+				if (script.getError() != null) {
+					onExecutionComplete(script, script.getError());
+				} else {
+					switch (script.getStatus()) {
+					case READY:
+						onExecutionComplete(script, new Exception("Script did not execute."));
+					case COMPLETE:
+						onExecutionComplete(script, script.getResults().map(result -> interpret(result)).orElse("Ok"));
+					case RUNNING:
+						onExecutionComplete(script, new Exception("Script is still running."));
+					case TIMEOUT:
+						onExecutionComplete(script, new Exception("Script timed out."));
+					case STOPPED:
+						onExecutionComplete(script, new Exception("Script has been interrupted."));
+					case LUA_ERROR:
+						onExecutionComplete(script, new Exception("Lua error."));
+					case ERROR:
+						onExecutionComplete(script, new Exception("Threading error."));
+					case PAUSED:
+						onExecutionComplete(script, new Exception("Script has been paused."));
+					default:
+					}
+				}
+					
+				onExecutionComplete(script, script.getResults().map(result -> interpret(result)).orElse("Ok"));
+			}
+
+			@Override
+			public void scriptEventStarted(LuaInvocation script, ScriptStatus status) {
+			}
+			
+		};
+
+		message(">>> " + getCode(), _EchoMessageStyle);
+		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		
+		return _RunningScript;
 	}
 
 	/**
@@ -406,23 +369,17 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * testing purposes.
 	 */
 	public void executeSynchronized(long executionTime) {
-		if (_RunningScript != null) {
-			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-			return;
-		}
-		setIsExecuting(true);
-		ScriptExecutionWorker worker = new ScriptExecutionWorker(getCode(), executionTime);
-		_RunningScript = null;
-		onExecutionComplete(worker, worker.doSynchronized());
+		LuaInvocation inv = execute(executionTime);
+		inv.join(executionTime);
 	}
 
-	private void onExecutionComplete(ScriptExecutionWorker sender, Object result) {
+	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
 
 		// Update the command history records.
 		if (_CommandHistory.size() == 0
-				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.executingCode))
-			_CommandHistory.add(sender.executingCode);
+				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
+			_CommandHistory.add(sender.getScript());
 		_CommandHistoryIndex = _CommandHistory.size();
 		_EditorPane.setText("");
 

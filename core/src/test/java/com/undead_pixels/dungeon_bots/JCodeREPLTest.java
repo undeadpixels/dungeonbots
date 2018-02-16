@@ -16,14 +16,15 @@ public class JCodeREPLTest {
 	@Test
 	public void testExecution() {
 		LuaSandbox luaSandbox = new LuaSandbox();
-        JCodeREPL editor = new JCodeREPL(luaSandbox);
-        editor.setCode("x = 2 + 1; return x;");
-        assertFalse(editor.getMessages().contains("3"));      
-        
-        editor.executeSynchronized(100);
-        luaSandbox.getQueue().update(0.0f);
-        String message = editor.getMessages();
-        assertTrue(message.contains("3"));
+		JCodeREPL editor = new JCodeREPL(luaSandbox);
+		editor.setCode("x = 2 + 1; return x;");
+		assertFalse(editor.getMessages().contains("3"));      
+
+		editor.executeSynchronized(100);
+		luaSandbox.getQueue().update(0.0f);
+		String message = editor.getMessages();
+		System.out.println("Message = "+message);
+		assertTrue(message.contains("3"));
 
 	}
 

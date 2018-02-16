@@ -28,7 +28,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
 	private final static int MAX_INSTRUCTIONS = 1000;
 	private HookFunction hookFunction;
-	private InterruptedDebug scriptInterrupt;
+	private InterruptedDebug scriptInterrupt = new InterruptedDebug();
+	
+	private final Object joinNotificationObj = new Object();
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
@@ -40,12 +42,16 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		this.environment = env;
 		this.script = script;
 		this.args = new LuaValue[] {};
+		scriptStatus = ScriptStatus.READY;
 	}
 
 	public LuaInvocation(LuaSandbox env, String functionName, LuaValue[] args) {
 		this.environment = env;
 		this.script = "";
 		this.args = new LuaValue[] {};
+		// TODO - look up correct function
+		scriptStatus = ScriptStatus.READY;
+		throw new RuntimeException("Not implemented");
 	}
 
 	public LuaInvocation toFile(File f) {
@@ -63,11 +69,10 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		
 		SecurityContext.set(environment);
 		try {
-			scriptStatus = ScriptStatus.RUNNING;
+			setStatus(ScriptStatus.RUNNING);
 
 			/* Initialize new HookFunction and InterruptedDebug every time run() is called */
 			hookFunction = new HookFunction();
-			scriptInterrupt = new InterruptedDebug();
 
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
@@ -84,27 +89,28 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			Varargs ans = thread.resume(LuaValue.NIL);
 			varargs = ans.subargs(2);
 			if(ans.arg1().checkboolean()) {
-				scriptStatus = ScriptStatus.COMPLETE;
+				setStatus(ScriptStatus.COMPLETE);
 				luaError = null;
 			}
 			else {
-				scriptStatus = ans.arg(2).checkjstring().contains("ScriptInterruptException") ?
+				setStatus(ans.arg(2).checkjstring().contains("ScriptInterruptException") ?
 						ScriptStatus.STOPPED :
-						ScriptStatus.LUA_ERROR;
+						ScriptStatus.LUA_ERROR);
 				luaError = new LuaError(ans.arg(2).checkjstring());
 				synchronized (this) { this.notifyAll(); }
 			}
 		}
 		catch(LuaError le ) {
-			scriptStatus = ScriptStatus.LUA_ERROR;
+			setStatus(ScriptStatus.LUA_ERROR);
 			luaError = le;
 		}
 		catch (InstructionHook.ScriptInterruptException si) {
-			scriptStatus = ScriptStatus.STOPPED;
+			if(getStatus() != ScriptStatus.TIMEOUT)
+				setStatus(ScriptStatus.STOPPED);
 			synchronized (this) { this.notifyAll(); }
 		}
 		catch (Exception e) {
-			scriptStatus = ScriptStatus.ERROR;
+			setStatus(ScriptStatus.ERROR);
 		}
 	}
 
@@ -118,17 +124,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public synchronized LuaInvocation stop() {
 		// TODO - tell the DebugLib to die
-		
-		/*
-		if (thread == null)
-			return this;
-		thread.interrupt();
-		thread.stop();
-		try {
-			thread.join();
-		} catch (Throwable ie) {
-		}
-		scriptStatus = ScriptStatus.STOPPED;*/
 		scriptInterrupt.kill();
 		//hookFunction.kill();
 		try { this.wait(); }
@@ -143,7 +138,15 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return Returns the status of this sandbox.
 	 */
 	public synchronized ScriptStatus getStatus() {
-		return scriptStatus;
+		synchronized(joinNotificationObj) {
+			return scriptStatus;
+		}
+	}
+
+	private synchronized void setStatus(ScriptStatus newStatus) {
+		synchronized(joinNotificationObj) {
+			scriptStatus = newStatus;
+		}
 	}
 
 	/**
@@ -151,10 +154,10 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return The invoked LuaScript
 	 */
-	public synchronized LuaInvocation join() {
+	public LuaInvocation join() {
 		// TODO: the Script should manage its thread internally, but expose a
 		// reset()
-		return join(0);
+		return join(-1);
 	}
 
 	/**
@@ -164,23 +167,41 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 *            The amount of time to wait for the join
 	 * @return The invoked LuaScript
 	 */
-	public synchronized LuaInvocation join(long wait) {
+	public LuaInvocation join(long timeout) {
 		assert scriptStatus != ScriptStatus.STOPPED;
-		
-		this.environment.getQueue().update(0.0f);
-		
-		long startTime = System.currentTimeMillis();
-		
-		while(scriptStatus == ScriptStatus.RUNNING || scriptStatus == ScriptStatus.READY) { // XXX - busy wait = bad
-			if(wait <= 0) {
-				continue;
+		System.out.println("Begin Join: "+scriptStatus+", "+this);
+
+		try {
+			synchronized(joinNotificationObj) {
+				System.out.println("j1");
+				if(scriptStatus == ScriptStatus.READY ||
+						scriptStatus == ScriptStatus.RUNNING) {
+					this.environment.update(0.0f);
+					System.out.println("j2");
+					if(timeout > 0) {
+						System.out.println("j3 "+System.currentTimeMillis());
+						joinNotificationObj.wait(timeout);
+						System.out.println("jq "+System.currentTimeMillis());
+
+						if(scriptStatus == ScriptStatus.READY ||
+								scriptStatus == ScriptStatus.RUNNING) {
+							scriptInterrupt.kill();
+							scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
+						}
+						System.out.println("j4");
+					} else {
+						System.out.println("jj");
+						joinNotificationObj.wait();
+					}
+
+				} else {
+					// already finished
+				}
 			}
-			if(System.currentTimeMillis() - startTime > wait) {
-				this.stop();
-				scriptStatus = ScriptStatus.TIMEOUT;
-				return this;
-			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+		System.out.println("End of Join: "+scriptStatus);
 
 		return this;
 	}
@@ -202,7 +223,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		join(maxWait);
 		varargs = null;
 		this.luaError = null;
-		this.scriptStatus = ScriptStatus.READY;
+		setStatus(ScriptStatus.READY);
 	}
 
 	/**
@@ -244,10 +265,20 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		for(ScriptEventStatusListener l: listeners) {
 			l.scriptEventFinished(this, getStatus());
 		}
+
+		System.out.println("About to NotifyAll "+this);
+		synchronized(joinNotificationObj) {
+			System.out.println("NotifyAll "+this);
+			joinNotificationObj.notifyAll();
+		}
 	}
 
 	
 	public void addListener(ScriptEventStatusListener listener) {
 		listeners.add(listener);
+	}
+
+	public String getScript() {
+		return this.script;
 	}
 }

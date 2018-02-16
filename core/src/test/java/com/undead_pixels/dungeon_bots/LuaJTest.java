@@ -87,10 +87,10 @@ public class LuaJTest {
         //    script.start();
         //});
         for(int i = 0; i < 100; i++) {
-            LuaInvocation script = scripts.get(i).join();
-            Assert.assertTrue(
+            LuaInvocation script = scripts.get(i).join(100);
+            Assert.assertEquals(
                     "ScriptStatus is not marked COMPLETE",
-                    script.getStatus() == ScriptStatus.COMPLETE);
+                    ScriptStatus.COMPLETE, script.getStatus());
             Assert.assertTrue(
                     "Script did not return the expected result.",
                     script.getResults().isPresent() && script.getResults().get().toint(1) == i);
