@@ -296,6 +296,20 @@ public class LuaSandbox {
 			return LuaValue.NIL;
 		}
 	}
+	
+	public class SleepFunction extends VarArgFunction {
+		@Override public LuaValue invoke(Varargs v) {
+			double sleeptime = v.optdouble(1, 1.0);
+			
+			try {
+				Thread.sleep((long)(1000 * sleeptime));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			return LuaValue.NIL;
+		}
+	}
 
 	public PrintfFunction getPrintfFunction() {
 		return new PrintfFunction();
@@ -303,6 +317,10 @@ public class LuaSandbox {
 
 	public PrintFunction getPrintFunction() {
 		return new PrintFunction();
+	}
+
+	public LuaValue getSleepFunction() {
+		return new SleepFunction();
 	}
 
 	public void update(float dt) {
