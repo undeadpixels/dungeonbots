@@ -1,12 +1,15 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -20,7 +23,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable {
 
 	/**
 	 * The script associated with this entity. Access to this collection is
@@ -32,7 +35,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
 
 	/**
 	 * A string representing this Entity's script (if any)
@@ -42,7 +45,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * The queue of actions this Entity is going to take
 	 */
-	protected ActionQueue actionQueue = new ActionQueue(this);
+	protected transient ActionQueue actionQueue = new ActionQueue(this);
 
 	/**
 	 * The world of which this Entity is a part
@@ -91,6 +94,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
+		sandbox.update(dt);
 	}
 
 	/**
@@ -115,7 +119,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * @return This Entity's position in tile space
 	 */
-	public abstract Vector2 getPosition();
+	public abstract Point2D.Float getPosition();
 
 	/**
 	 * @return If this object disallows movement through it
@@ -157,4 +161,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	public abstract float getScale();
 
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+		actionQueue = new ActionQueue(this);
+	}
 }

@@ -1,8 +1,11 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,14 +14,13 @@ import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -30,7 +32,6 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.ui.screens.CommunityScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
@@ -42,25 +43,25 @@ import org.luaj.vm2.*;
  * TODO - some parts of this should persist between the resets/rebuilds, but
  * some parts shouldn't. Need to figure out what parts.
  */
-public class World implements GetLuaFacade, GetLuaSandbox, GetState {
+public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
 
-	private ReentrantLock updateLock = new ReentrantLock();
+	private transient ReentrantLock updateLock = new ReentrantLock();
 
     /**
      * The script that defines this world
      */
-    private LuaScript levelScript;
+    private String levelScript;
 
 	/**
 	 * The LuaBindings to the World
 	 * Lazy initialized
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 
 	/**
 	 * The sandbox that the levelScript runs inside of
 	 */
-	private LuaSandbox mapSandbox;
+	private transient LuaSandbox mapSandbox;
 
 	/**
 	 * The of this world (may be user-readable)
@@ -73,17 +74,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	private TextureRegion backgroundImage;
 
 	/**
-	 * An array of tiles, in the bottom layer of this world This array is
+	 * An array of tiles, in the bottom layer of this world. This array is
 	 * generated from the tileTypes array.
-	 * 
-	 * TODO - probably fix that eventually.
 	 */
 	private Tile[][] tiles;
-
-	/**
-	 * An array of TileType's. Used to generate the array of tiles.
-	 */
-	private TileType[][] tileTypes;
 
 	/**
 	 * The collection of available TileType's
@@ -93,7 +87,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * Indication of if the tile array needs to be refreshed
 	 */
-	private boolean tilesAreStale = false;
+	private transient boolean tilesAreStale = true;
 	
     /**
      * Collection of all entities in this world
@@ -124,18 +118,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
      * The playstyle of this world
      * TODO - add a lua binding to be able to configure this from the level script
      */
-    private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
+    private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
 	/**
 	 *
 	 */
-	private Level level;
+	private transient Level level;
 
 	/**
 	 * Simple constructor
 	 */
 	public World() {
 		this(null, "world");
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -146,6 +141,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -156,6 +152,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	public World(String name) {
 		this(null, name);
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -167,7 +164,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 *            The name
 	 */
 	public World(File luaScriptFile, String name) {
-		super();
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
@@ -180,13 +176,31 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			levelScript = mapSandbox.script(luaScriptFile).start().join();
-			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
-			level = new Level(levelScript.getResults().get(), mapSandbox);
+			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
+			levelScript = initScript.getScript();
+			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
+			level = new Level(initScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
 			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 		}
+	}
+	
+	private void worldSomewhatInit() {
+		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
+		AssetManager.finishLoading();
+		
+		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+		System.out.println(this+",     "+ tileTypesCollection+",     "+ this.getWhitelist());
+		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+		LuaInvocation initScript = mapSandbox.init(levelScript).join();
+		System.out.println(initScript.getStatus());
+		assert initScript.getStatus() == ScriptStatus.COMPLETE;
+		assert initScript.getResults().isPresent();
+		level = new Level(initScript.getResults().get(), mapSandbox);
+		level.init();
+		assert player != null;
+		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
@@ -220,7 +234,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		setPlayer(p);
 	}
 
-	// TODO - another constructor for specific resource paths
+	// TODO - another constructor for specific resource paths?
 
 	/**
 	 * Updates this world and all children
@@ -335,14 +349,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
-		tileTypes = new TileType[w][h];
 	}
 
 	/**
 	 * @return The size of this world, in tiles
 	 */
-	public Vector2 getSize() {
-		return new Vector2(tiles.length, tiles[0].length);
+	public Point2D.Float getSize() {
+		return new Point2D.Float(tiles.length, tiles[0].length);
 	}
 
 	/**
@@ -355,23 +368,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			int h = tiles[0].length;
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
-					TileType current = tileTypes[i][j];
+					Tile current = tiles[i][j];
 
 					if (current != null) {
-						TileType l = i >= 1 ? tileTypes[i - 1][j] : null;
-						TileType r = i < w - 1 ? tileTypes[i + 1][j] : null;
-						TileType u = j < h - 1 ? tileTypes[i][j + 1] : null;
-						TileType d = j >= 1 ? tileTypes[i][j - 1] : null;
+						Tile l = i >= 1 ? tiles[i - 1][j] : null;
+						Tile r = i < w - 1 ? tiles[i + 1][j] : null;
+						Tile u = j < h - 1 ? tiles[i][j + 1] : null;
+						Tile d = j >= 1 ? tiles[i][j - 1] : null;
 
-						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j,
-								current.isSolid());
-
-						// System.out.print(current.isSolid() ? "#" : ".");
-						tiles[i][j] = t;
+						current.updateTexture(l, r, u, d);
 					}
 				}
 
-				System.out.println();
+				//System.out.println();
 			}
 
 			tilesAreStale = false;
@@ -419,24 +428,33 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
-		// TODO - bounds checking
 		// TODO - more stuff here
+		
+		if(x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
+			return; // out of bounds; TODO - should something else happen?
+		}
+		
 		if(tileType.getName().equals("goal"))
 			setGoal(x,y);
 		tilesAreStale = true;
-		tileTypes[x][y] = tileType;
+		
+		if(tiles[x][y] == null) {
+			tiles[x][y] = new Tile(this, tileType, x, y);
+		} else {
+			tiles[x][y].setType(tileType);
+		}
 	}
 
 	/**
 	 * Returns the tile at the given location. If outside the world boundaries,
 	 * returns null.
 	 */
-	public TileType getTile(int x, int y) {
-		if (x < 0 || x >= tileTypes.length)
+	public Tile getTile(int x, int y) {
+		if (x < 0 || x >= tiles.length)
 			return null;
-		if (y < 0 || y >= tileTypes[x].length)
+		if (y < 0 || y >= tiles[x].length)
 			return null;
-		return tileTypes[x][y];
+		return tiles[x][y];
 	}
 
 	/**
@@ -548,7 +566,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	public Entity getEntityUnderLocation(float x, float y) {
 		for (Entity e : entities) {
-			Vector2 p = e.getPosition();
+			Point2D.Float p = e.getPosition();
 
 			if (x < p.x || x > p.x + 1) {
 				continue;
@@ -648,11 +666,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		ans.append(put(String.format("\t\tworld:setSize(%d,%d)", width, height)));
 		for (int i = 0; i < tiles.length; i++) {
 			for(int j = 0; j < tiles[i].length; j++) {
-				TileType t = tileTypes[i][j];
+				Tile t = tiles[i][j];
 				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
 			}
 		}
-		Vector2 pos = player.getPosition();
+		Point2D.Float pos = player.getPosition();
 		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
 		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
 		ans.append(put("\t\tworld:setPlayer(player)"));
@@ -738,5 +756,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
+	}
+
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		this.worldSomewhatInit();
 	}
 }

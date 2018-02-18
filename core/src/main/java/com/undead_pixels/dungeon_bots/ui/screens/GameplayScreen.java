@@ -44,8 +44,6 @@ import javax.swing.JDialog;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
-import com.undead_pixels.dungeon_bots.math.Vector2;
-import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;

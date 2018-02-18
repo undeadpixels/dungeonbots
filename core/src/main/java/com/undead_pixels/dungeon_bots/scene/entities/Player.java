@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
@@ -9,6 +8,9 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+
+import java.awt.geom.Point2D;
+
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -81,7 +83,7 @@ public class Player extends RpgActor {
 		return defaultCode != null ? defaultCode : "";
 	}
 
-	public void setPosition(Vector2 v) {
+	public void setPosition(Point2D.Float v) {
 		sprite.setX(v.x);
 		sprite.setY(v.y);
 	}

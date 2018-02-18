@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
@@ -101,7 +100,7 @@ public class WorldView extends JComponent {
 
 			if (showGrid) {
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
-				Vector2 size = world.getSize();
+				Point2D.Float size = world.getSize();
 				// draw Y lines
 				for (int i = 0; i <= size.y + .5f; i++) {
 					batch.drawLine(0, i, size.x, i);

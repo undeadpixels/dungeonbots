@@ -1,9 +1,11 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
+import java.io.Serializable;
+
 /**
  * A region of a Texture
  */
-public class TextureRegion {
+public class TextureRegion implements Serializable {
 	
 	/**
 	 * The internal Texture

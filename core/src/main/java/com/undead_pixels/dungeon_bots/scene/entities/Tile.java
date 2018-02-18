@@ -1,9 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -18,30 +17,23 @@ public class Tile extends SpriteEntity {
 	/**
 	 * Lazily-loaded LuaValue representing this tile
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 
 	/**
-	 * True if this tile cannot be walked through
+	 * The type of this tile
 	 */
-	private boolean solid;
+	private TileType type;
 
 	/**
-	 * @param world
-	 *            The world to contain this Actor
-	 * @param name
-	 *            The name of this tile
-	 * @param tex
-	 *            A texture for this Actor
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
-	 * @param solid
-	 *            True, if this tile cannot be walked through
+	 * @param world		The world that contains this tile
+	 * @param tileType	The (initial) type of tile
+	 * @param x			Location X, in tiles
+	 * @param y			Location Y, in tiles
 	 */
-	public Tile(World world, String name, TextureRegion tex, float x, float y, boolean solid) {
-		super(world, name, tex, x, y);
-		this.solid = solid;
+	public Tile(World world, TileType tileType, int x, int y) {
+		super(world, tileType.getName(), tileType.getTexture(), x, y);
+		this.type = tileType;
+		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -52,7 +44,7 @@ public class Tile extends SpriteEntity {
 
 	@Override
 	public boolean isSolid() {
-		return solid;
+		return type.isSolid();
 	}
 
 	@Override
@@ -80,6 +72,7 @@ public class Tile extends SpriteEntity {
 		return null;
 	}
 
+	/*
 	@Bind
 	@Deprecated
 	public static LuaValue Wall(LuaValue lworld, LuaValue lx, LuaValue ly) {
@@ -102,5 +95,18 @@ public class Tile extends SpriteEntity {
 		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "goal", null, lx.tofloat(),
 				ly.tofloat(), false);
 		return LuaProxyFactory.getLuaValue(t);
+	}
+	*/
+
+	public void setType(TileType tileType) {
+		this.type = tileType;
+	}
+
+	public TileType getType() {
+		return type;
+	}
+
+	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
+		this.sprite.setTexture(type.getTexture(l, r, u, d));
 	}
 }

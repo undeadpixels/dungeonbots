@@ -1,6 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
+import java.awt.geom.Point2D;
 
 public abstract class ChildEntity extends Entity {
 	
@@ -16,7 +16,7 @@ public abstract class ChildEntity extends Entity {
 	}
 
 	@Override
-	public Vector2 getPosition() {
+	public Point2D.Float getPosition() {
 		return parent.getPosition();
 	}
 

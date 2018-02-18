@@ -1,7 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.annotations;
 
-import com.undead_pixels.dungeon_bots.math.IntegerIntervalSet;
-import com.undead_pixels.dungeon_bots.scene.IWorld;
+import java.io.Serializable;
+
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.LuaScript;
@@ -17,7 +17,7 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
  * When we implement the onStart script, the player's onBotNear script, etc., we
  * will inherit from this and add to the entity's collection of scripts.
  */
-public class UserScript {
+public class UserScript implements Serializable {
 
 	public String code;
 	public SecurityLevel level;

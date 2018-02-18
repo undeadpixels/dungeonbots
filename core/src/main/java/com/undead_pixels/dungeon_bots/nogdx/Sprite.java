@@ -1,11 +1,14 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.Serializable;
+
 
 /**
  * A texture along with transform information
  */
-public class Sprite {
+public class Sprite implements Serializable {
 	
 	/**
 	 * Location of the bottom-left corner
@@ -96,6 +99,13 @@ public class Sprite {
 	}
 
 	/**
+	 * @param texture	The new texture
+	 */
+	public void setTexture(TextureRegion texture) {
+		this.tex = texture;
+	}
+
+	/**
 	 * Draws this sprite into a given SpriteBatch
 	 * 
 	 * @param batch	A SpriteBatch object to draw into
@@ -161,6 +171,10 @@ public class Sprite {
 	 */
 	public float getRotation() {
 		return rotation;
+	}
+
+	public Point2D.Float getPosition() {
+		return new Point2D.Float(x, y);
 	}
 
 }
