@@ -52,14 +52,14 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	/**
 	 * @return	If this queue is empty or not
 	 */
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		return current == null && queue.isEmpty();
 	}
 	
 	/**
 	 * @return	the size of the queue
 	 */
-	public int size() {
+	public synchronized int size() {
 		return (current != null ? 1 : 0) + queue.size();
 	}
 
@@ -68,7 +68,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * 
 	 * @param t	A new action
 	 */
-	public void enqueue(T t) {
+	public synchronized void enqueue(T t) {
 		enqueue(t, null);
 	}
 	
@@ -78,7 +78,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * @param t	A new action
 	 * @param group A coaelescing group
 	 */
-	public <A extends T> void enqueue(A t, CoalescingGroup<A> group) {
+	public synchronized <A extends T> void enqueue(A t, CoalescingGroup<A> group) {
 		if(group == null) {
 			queue.add(t);
 		} else {
@@ -108,19 +108,19 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	/**
 	 * @return	The current task. May be null.
 	 */
-	public T getCurrent() {
+	public synchronized T getCurrent() {
 		return current;
 	}
 
 	/**
 	 * @return	The current task. May be null.
 	 */
-	public boolean hasCurrent() {
+	public synchronized boolean hasCurrent() {
 		return current != null;
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		String others = "";
 		
 		for(T t : queue) {
@@ -138,7 +138,7 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * If current is null and there are remaining elements in the queue,
 	 * pops until a valid one is found and sets current to that. 
 	 */
-	public boolean dequeueIfIdle() {
+	public synchronized boolean dequeueIfIdle() {
 		if(current != null) {
 			return false;
 		}
@@ -147,8 +147,6 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 			T t = queue.removeFirst();
 			CoalescingGroup<? extends T> group = invCoalescingGroupMap.remove(t);
 			coalescingGroupMap.remove(group);
-			
-			System.out.println("Dequeueing task "+t);
 			
 			boolean ok = t.preAct();
 			
@@ -170,15 +168,20 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 * @return		True if this queue is done with its current event
 	 */
 	public boolean act(float dt) {
-		T c = current;
-		if(c == null) {
-			return true;
+		T c;
+		synchronized(this) {
+			c = current;
+			if(c == null) {
+				return true;
+			}
 		}
 		boolean isDone = c.act(dt);
-		
+
 		if(isDone) {
 			c.postAct();
-			current = null;
+			synchronized(this) {
+				current = null;
+			} 
 		}
 		return isDone;
 	}
