@@ -10,9 +10,14 @@ import java.util.ArrayList;
  */
 public class Layer implements Comparable<Layer> {
 	/**
-	 * The z value
+	 * The z value (lower z values render under higher z values)
 	 */
 	private final float z;
+
+	/**
+	 * Internal storage
+	 */
+	private ArrayList<Entity> entities = new ArrayList<Entity>();
 
 	/**
 	 * Constructor
@@ -22,11 +27,6 @@ public class Layer implements Comparable<Layer> {
 		super();
 		this.z = z;
 	}
-
-	/**
-	 * Internal storage
-	 */
-	private ArrayList<Entity> entities = new ArrayList<Entity>();
 
 	@Override
 	public int compareTo(Layer o) {

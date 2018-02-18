@@ -1,11 +1,11 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -110,7 +110,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * @return This Entity's position in tile space
 	 */
-	public abstract Vector2 getPosition();
+	public abstract Point2D.Float getPosition();
 
 	/**
 	 * @return If this object disallows movement through it

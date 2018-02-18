@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,7 +13,6 @@ import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
@@ -42,9 +43,9 @@ import org.luaj.vm2.*;
  * TODO - some parts of this should persist between the resets/rebuilds, but
  * some parts shouldn't. Need to figure out what parts.
  */
-public class World implements GetLuaFacade, GetLuaSandbox, GetState {
+public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
 
-	private ReentrantLock updateLock = new ReentrantLock();
+	private transient ReentrantLock updateLock = new ReentrantLock();
 
     /**
      * The script that defines this world
@@ -55,12 +56,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 * The LuaBindings to the World
 	 * Lazy initialized
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 
 	/**
 	 * The sandbox that the levelScript runs inside of
 	 */
-	private LuaSandbox mapSandbox;
+	private transient LuaSandbox mapSandbox;
 
 	/**
 	 * The of this world (may be user-readable)
@@ -73,12 +74,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	private TextureRegion backgroundImage;
 
 	/**
-	 * An array of tiles, in the bottom layer of this world This array is
+	 * An array of tiles, in the bottom layer of this world. This array is
 	 * generated from the tileTypes array.
 	 * 
 	 * TODO - probably fix that eventually.
 	 */
-	private Tile[][] tiles;
+	private transient Tile[][] tiles;
 
 	/**
 	 * An array of TileType's. Used to generate the array of tiles.
@@ -93,7 +94,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * Indication of if the tile array needs to be refreshed
 	 */
-	private boolean tilesAreStale = false;
+	private transient boolean tilesAreStale = true;
 	
     /**
      * Collection of all entities in this world
@@ -341,8 +342,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	/**
 	 * @return The size of this world, in tiles
 	 */
-	public Vector2 getSize() {
-		return new Vector2(tiles.length, tiles[0].length);
+	public Point2D.Float getSize() {
+		return new Point2D.Float(tiles.length, tiles[0].length);
 	}
 
 	/**
@@ -368,10 +369,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 						// System.out.print(current.isSolid() ? "#" : ".");
 						tiles[i][j] = t;
+					} else {
+						tiles[i][j] = null;
 					}
 				}
 
-				System.out.println();
+				//System.out.println();
 			}
 
 			tilesAreStale = false;
@@ -548,7 +551,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	 */
 	public Entity getEntityUnderLocation(float x, float y) {
 		for (Entity e : entities) {
-			Vector2 p = e.getPosition();
+			Point2D.Float p = e.getPosition();
 
 			if (x < p.x || x > p.x + 1) {
 				continue;
@@ -652,7 +655,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
 			}
 		}
-		Vector2 pos = player.getPosition();
+		Point2D.Float pos = player.getPosition();
 		ans.append(String.format("local player = Player.new(world, %d, %d)", (int)pos.x + 1, (int)pos.y + 1));
 		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
 		ans.append(put("\t\tworld:setPlayer(player)"));

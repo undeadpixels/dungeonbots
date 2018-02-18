@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+
 
 /**
  * A texture along with transform information
@@ -161,6 +163,10 @@ public class Sprite {
 	 */
 	public float getRotation() {
 		return rotation;
+	}
+
+	public Point2D.Float getPosition() {
+		return new Point2D.Float(x, y);
 	}
 
 }

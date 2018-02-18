@@ -27,7 +27,7 @@ public class TileType implements GetLuaFacade {
 	/**
 	 * Lazily-loaded LuaValue representing this tile
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 	
 	/**
 	 * True if this tile cannot be walked through
