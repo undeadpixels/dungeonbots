@@ -62,16 +62,22 @@ public class EditorSaveTest {
 	@Test
 	public void simpleJavaSerializeDeserializeTest() throws ParseException, IOException, ClassNotFoundException {
 		
-		World w = new World();
+		World w = new World(new File("level1.lua"));
 
 		PipedInputStream in_ = new PipedInputStream();
 		PipedOutputStream out_ = new PipedOutputStream(in_);
 		ObjectOutputStream out = new ObjectOutputStream(out_);
 		ObjectInputStream in = new ObjectInputStream(in_);
 		
-		//out.writeObject(w);
+		new Thread( () -> {
+			try {
+				out.writeObject(w);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} ).start();
 
-		//World w2 = (World) in.readObject();
+		World w2 = (World) in.readObject();
 		
 		out.close();
 	}

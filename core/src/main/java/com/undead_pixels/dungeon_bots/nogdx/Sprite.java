@@ -2,12 +2,13 @@ package com.undead_pixels.dungeon_bots.nogdx;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
 
 /**
  * A texture along with transform information
  */
-public class Sprite {
+public class Sprite implements Serializable {
 	
 	/**
 	 * Location of the bottom-left corner

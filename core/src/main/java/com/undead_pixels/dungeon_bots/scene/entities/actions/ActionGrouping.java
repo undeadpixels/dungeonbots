@@ -1,5 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 
 /**
@@ -7,7 +11,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
  * 
  * This can be used to implement an RTS-like or turn-based game.
  */
-public abstract interface ActionGrouping {
+public abstract interface ActionGrouping extends Serializable {
 	
 	/**
 	 * Checks if this queue is allowed to start new tasks
@@ -65,7 +69,7 @@ public abstract interface ActionGrouping {
 		/**
 		 * A lock that waits for all actions of a team to finish before allowing the next team to start.
 		 */
-		private ActionGroupLock currentTeamLock = new ActionGroupLock();
+		private transient ActionGroupLock currentTeamLock = new ActionGroupLock();
 		
 		/**
 		 * The current team
@@ -110,6 +114,12 @@ public abstract interface ActionGrouping {
 			}
 		}
 		
+
+		private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+			inputStream.defaultReadObject();
+			currentTeamLock = new ActionGroupLock();
+		}
+		
 	}
 	
 	/**
@@ -122,7 +132,7 @@ public abstract interface ActionGrouping {
 		/**
 		 * A lock for all of the entities in the World
 		 */
-		ActionGroupLock everything = new ActionGroupLock();
+		private transient ActionGroupLock everything = new ActionGroupLock();
 		
 		
 		public boolean allowsDequeueAction(ActionQueue q) {
@@ -136,6 +146,11 @@ public abstract interface ActionGrouping {
 		}
 		@Override
 		public void update() {
+		}
+
+		private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+			inputStream.defaultReadObject();
+			everything = new ActionGroupLock();
 		}
 	}
 }

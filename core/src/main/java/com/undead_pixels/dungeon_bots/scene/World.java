@@ -130,6 +130,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public World() {
 		this(null, "world");
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -140,6 +141,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -150,6 +152,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public World(String name) {
 		this(null, name);
+		tileTypesCollection = new TileTypes();
 	}
 
 	/**
@@ -161,7 +164,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The name
 	 */
 	public World(File luaScriptFile, String name) {
-		super();
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
@@ -185,10 +187,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 	
 	private void worldSomewhatInit() {
+		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
+		AssetManager.finishLoading();
+		
 		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+		System.out.println(this+",     "+ tileTypesCollection+",     "+ this.getWhitelist());
 		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 		LuaInvocation initScript = mapSandbox.init(levelScript).join();
-		assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
+		System.out.println(initScript.getStatus());
+		assert initScript.getStatus() == ScriptStatus.COMPLETE;
+		assert initScript.getResults().isPresent();
 		level = new Level(initScript.getResults().get(), mapSandbox);
 		level.init();
 		assert player != null;
