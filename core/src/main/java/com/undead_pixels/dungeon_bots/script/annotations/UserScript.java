@@ -19,26 +19,27 @@ import com.undead_pixels.dungeon_bots.script.LuaScript;
  */
 public class UserScript {
 
-	
-	public String code;	
+	public String code;
 	public SecurityLevel level;
 	public String name;
+	// public IntegerIntervalSet locks;
 	public IntegerIntervalSet locks;
 
 	public UserScript(String name, String code) {
 		this(name, code, SecurityLevel.DEFAULT);
 	}
+
 	public UserScript(String name, String code, SecurityLevel level) {
 		this.name = name;
 		this.code = code;
 		this.level = level;
-		this.locks = new IntegerIntervalSet(); 
+		// this.locks = new IntegerIntervalSet();
 	}
-	
-	/**Returns a copy of this UserScript.*/
-	public UserScript copy(){
+
+	/** Returns a copy of this UserScript. */
+	public UserScript copy() {
 		UserScript ret = new UserScript(this.name, this.code, this.level);
-		ret.locks = new IntegerIntervalSet(this.locks);
+		// ret.locks = new IntegerIntervalSet(this.locks);
 		return ret;
 	}
 
@@ -50,14 +51,12 @@ public class UserScript {
 	public boolean canExecute(World world, long time) {
 		return true;
 	}
-	
-	
 
 	/**
 	 * Determines whether or not this user script will execute on this pass
 	 * through the game loop. Can be overridden in a derived class.
 	 */
-	public boolean canExecute(IWorld world, long time){
+	public boolean canExecute(IWorld world, long time) {
 		return true;
 	}
 

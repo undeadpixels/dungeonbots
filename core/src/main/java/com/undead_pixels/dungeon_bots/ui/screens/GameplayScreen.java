@@ -220,6 +220,7 @@ public class GameplayScreen extends Screen {
 
 			}
 
+			/** Called when the zoom slider's state changes. */
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (e.getSource() instanceof JSlider) {
@@ -231,7 +232,6 @@ public class GameplayScreen extends Screen {
 						}
 					}
 				}
-
 			}
 
 		};

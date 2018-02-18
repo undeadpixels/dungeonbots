@@ -70,9 +70,9 @@ public final class JEntityEditor extends JPanel {
 			return null;
 		}
 
-		JEntityEditor jpe = new JEntityEditor(entity, securityLevel);
+		JEntityEditor jee = new JEntityEditor(entity, securityLevel);		
 		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
-		dialog.add(jpe);
+		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
 			@Override
@@ -84,7 +84,7 @@ public final class JEntityEditor extends JPanel {
 		});
 		dialog.setVisible(true);
 		_OpenEditors.put(entity, dialog);
-		return jpe;
+		return jee;
 	}
 
 	private JEntityEditor(Entity entity, SecurityLevel securityLevel) {
@@ -113,16 +113,13 @@ public final class JEntityEditor extends JPanel {
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		SwingUtilities.invokeLater(new Runnable() {
-			/**
-			 * Invoke later because there will be no containing parent at
-			 * construction time.
-			 */
 			@Override
 			public void run() {
+				// Invoke later because there will be no containing parent at
+				// construction time.
 				if (getContainingDialog() != null)
 					bttnPanel.add(bttnCancel);
 			}
-
 		});
 
 		_Editor = new JScriptEditor(securityLevel);
@@ -134,7 +131,7 @@ public final class JEntityEditor extends JPanel {
 		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
 		scriptPanel.add(_Editor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
-		
+
 		JPanel propertiesPanel = new JPanel();
 		propertiesPanel.setLayout(new BorderLayout());
 		propertiesPanel.add(new JLabel("To be determined..."), BorderLayout.CENTER);
@@ -203,7 +200,7 @@ public final class JEntityEditor extends JPanel {
 
 		}
 
-		/**Called when the script selection list changes its selection.*/
+		/** Called when the script selection list changes its selection. */
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			int idx = e.getFirstIndex();
