@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT); // TODO - regen on deserialize
+	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
 
 	/**
 	 * A string representing this Entity's script (if any)
@@ -37,7 +39,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * The queue of actions this Entity is going to take
 	 */
-	protected transient ActionQueue actionQueue = new ActionQueue(this); // TODO - regen on deserialize
+	protected transient ActionQueue actionQueue = new ActionQueue(this);
 
 	/**
 	 * The world of which this Entity is a part
@@ -153,4 +155,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	public abstract float getScale();
 
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+		actionQueue = new ActionQueue(this);
+	}
 }

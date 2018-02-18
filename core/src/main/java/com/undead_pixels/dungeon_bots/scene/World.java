@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
@@ -75,8 +76,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * An array of tiles, in the bottom layer of this world. This array is
 	 * generated from the tileTypes array.
-	 * 
-	 * TODO - probably fix that eventually.
 	 */
 	private Tile[][] tiles;
 
@@ -124,7 +123,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 *
 	 */
-	private transient Level level; // TODO - this type cannot be serialized, but it is needed...
+	private transient Level level;
 
 	/**
 	 * Simple constructor
@@ -173,9 +172,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
 			AssetManager.finishLoading();
 
-			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG); // TODO - this needs to be created upon deserialization, too
+			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join(); // TODO - parts of this will need to be re-=run upon deserialization
+			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
 			levelScript = initScript.getScript();
 			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
 			level = new Level(initScript.getResults().get(), mapSandbox);
@@ -183,6 +182,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			assert player != null;
 			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 		}
+	}
+	
+	private void worldSomewhatInit() {
+		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+		LuaInvocation initScript = mapSandbox.init(levelScript).join();
+		assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
+		level = new Level(initScript.getResults().get(), mapSandbox);
+		level.init();
+		assert player != null;
+		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
@@ -410,8 +420,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
-		// TODO - bounds checking
 		// TODO - more stuff here
+		
+		if(x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
+			return; // out of bounds; TODO - should something else happen?
+		}
+		
 		if(tileType.getName().equals("goal"))
 			setGoal(x,y);
 		tilesAreStale = true;
@@ -734,5 +748,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
+	}
+
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		this.worldSomewhatInit();
 	}
 }
