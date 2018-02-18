@@ -3,8 +3,9 @@ package com.undead_pixels.dungeon_bots.nogdx;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
-public class OrthographicCamera {
+public class OrthographicCamera implements Serializable {
 
 	/**
 	 * Zoom factor (size of each tile compared to the viewport)

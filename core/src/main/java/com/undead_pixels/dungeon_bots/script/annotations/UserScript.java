@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.annotations;
 
+import java.io.Serializable;
+
 import com.undead_pixels.dungeon_bots.scene.World;
 
 /**
@@ -13,7 +15,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
  * When we implement the onStart script, the player's onBotNear script, etc., we
  * will inherit from this and add to the entity's collection of scripts.
  */
-public class UserScript {
+public class UserScript implements Serializable {
 
 	public static final int PLAYER_READ = 1;
 	public static final int PLAYER_EXECUTE = 2;

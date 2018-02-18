@@ -4,12 +4,15 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+
+import java.io.Serializable;
+
 import org.luaj.vm2.LuaValue;
 
 /**
  * A layer of abstraction beyond regular tiles. These can be different textures depending on what's around them.
  */
-public class TileType implements GetLuaFacade {
+public class TileType implements GetLuaFacade, Serializable {
 	
 	/**
 	 * Possible textures

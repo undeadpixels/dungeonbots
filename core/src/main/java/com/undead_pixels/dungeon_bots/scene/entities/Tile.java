@@ -1,10 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -19,7 +17,7 @@ public class Tile extends SpriteEntity {
 	/**
 	 * Lazily-loaded LuaValue representing this tile
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 
 	/**
 	 * The type of this tile

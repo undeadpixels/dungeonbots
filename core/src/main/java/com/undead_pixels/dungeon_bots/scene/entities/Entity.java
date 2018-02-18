@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,14 +20,14 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable {
 
 	public List<UserScript> userScripts = new ArrayList<UserScript>();
 
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT); // TODO - regen on deserialize
 
 	/**
 	 * A string representing this Entity's script (if any)
@@ -36,7 +37,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * The queue of actions this Entity is going to take
 	 */
-	protected ActionQueue actionQueue = new ActionQueue(this);
+	protected transient ActionQueue actionQueue = new ActionQueue(this); // TODO - regen on deserialize
 
 	/**
 	 * The world of which this Entity is a part

@@ -19,7 +19,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -49,7 +49,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
     /**
      * The script that defines this world
      */
-    private LuaInvocation levelScript;
+    private String levelScript;
 
 	/**
 	 * The LuaBindings to the World
@@ -119,12 +119,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
      * The playstyle of this world
      * TODO - add a lua binding to be able to configure this from the level script
      */
-    private ActionGroupings playstyle = new ActionGroupings.RTSGrouping();
+    private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
 	/**
 	 *
 	 */
-	private Level level;
+	private transient Level level; // TODO - this type cannot be serialized, but it is needed...
 
 	/**
 	 * Simple constructor
@@ -173,11 +173,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
 			AssetManager.finishLoading();
 
-			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG); // TODO - this needs to be created upon deserialization, too
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			levelScript = mapSandbox.init(luaScriptFile).join();
-			assert levelScript.getStatus() == ScriptStatus.COMPLETE && levelScript.getResults().isPresent();
-			level = new Level(levelScript.getResults().get(), mapSandbox);
+			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join(); // TODO - parts of this will need to be re-=run upon deserialization
+			levelScript = initScript.getScript();
+			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
+			level = new Level(initScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
 			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
@@ -215,7 +216,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		setPlayer(p);
 	}
 
-	// TODO - another constructor for specific resource paths
+	// TODO - another constructor for specific resource paths?
 
 	/**
 	 * Updates this world and all children

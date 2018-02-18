@@ -17,6 +17,7 @@ import org.luaj.vm2.*;
 import static org.luaj.vm2.LuaValue.*;
 
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
 /**
  * @author Kevin Parker
@@ -32,7 +33,7 @@ public class Actor extends SpriteEntity {
 	@State
 	protected int bumps = 0;
 
-	private LuaValue luaBinding;
+	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
 	/**
