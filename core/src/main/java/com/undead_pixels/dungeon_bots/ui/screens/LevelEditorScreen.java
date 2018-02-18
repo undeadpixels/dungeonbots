@@ -97,7 +97,7 @@ public class LevelEditorScreen extends Screen {
 						return;
 					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(e.getX(), e.getY());
+						//TileType currentTile = world.getTile(e.getX(), e.getY());
 						Point2D.Float gameCoords = view.getCamera().unproject(new Point2D.Float(e.getX(), e.getY()));
 						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
@@ -116,7 +116,7 @@ public class LevelEditorScreen extends Screen {
 					if (selection instanceof TileType) {
 						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(e.getX(), e.getY());
+						//TileType currentTile = world.getTile(e.getX(), e.getY());
 						Point2D.Float gameCoords = view.getCamera().unproject(new Point2D.Float(e.getX(), e.getY()));
 						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}

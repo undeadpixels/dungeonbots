@@ -98,6 +98,13 @@ public class Sprite {
 	}
 
 	/**
+	 * @param texture	The new texture
+	 */
+	public void setTexture(TextureRegion texture) {
+		this.tex = texture;
+	}
+
+	/**
 	 * Draws this sprite into a given SpriteBatch
 	 * 
 	 * @param batch	A SpriteBatch object to draw into

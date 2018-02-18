@@ -31,7 +31,6 @@ import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.ui.screens.CommunityScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
@@ -79,12 +78,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * 
 	 * TODO - probably fix that eventually.
 	 */
-	private transient Tile[][] tiles;
-
-	/**
-	 * An array of TileType's. Used to generate the array of tiles.
-	 */
-	private TileType[][] tileTypes;
+	private Tile[][] tiles;
 
 	/**
 	 * The collection of available TileType's
@@ -336,7 +330,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
-		tileTypes = new TileType[w][h];
 	}
 
 	/**
@@ -356,21 +349,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			int h = tiles[0].length;
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
-					TileType current = tileTypes[i][j];
+					Tile current = tiles[i][j];
 
 					if (current != null) {
-						TileType l = i >= 1 ? tileTypes[i - 1][j] : null;
-						TileType r = i < w - 1 ? tileTypes[i + 1][j] : null;
-						TileType u = j < h - 1 ? tileTypes[i][j + 1] : null;
-						TileType d = j >= 1 ? tileTypes[i][j - 1] : null;
+						Tile l = i >= 1 ? tiles[i - 1][j] : null;
+						Tile r = i < w - 1 ? tiles[i + 1][j] : null;
+						Tile u = j < h - 1 ? tiles[i][j + 1] : null;
+						Tile d = j >= 1 ? tiles[i][j - 1] : null;
 
-						Tile t = new Tile(this, current.getName(), current.getTexture(l, r, u, d), i, j,
-								current.isSolid());
-
-						// System.out.print(current.isSolid() ? "#" : ".");
-						tiles[i][j] = t;
-					} else {
-						tiles[i][j] = null;
+						current.updateTexture(l, r, u, d);
 					}
 				}
 
@@ -427,19 +414,24 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if(tileType.getName().equals("goal"))
 			setGoal(x,y);
 		tilesAreStale = true;
-		tileTypes[x][y] = tileType;
+		
+		if(tiles[x][y] == null) {
+			tiles[x][y] = new Tile(this, tileType, x, y);
+		} else {
+			tiles[x][y].setType(tileType);
+		}
 	}
 
 	/**
 	 * Returns the tile at the given location. If outside the world boundaries,
 	 * returns null.
 	 */
-	public TileType getTile(int x, int y) {
-		if (x < 0 || x >= tileTypes.length)
+	public Tile getTile(int x, int y) {
+		if (x < 0 || x >= tiles.length)
 			return null;
-		if (y < 0 || y >= tileTypes[x].length)
+		if (y < 0 || y >= tiles[x].length)
 			return null;
-		return tileTypes[x][y];
+		return tiles[x][y];
 	}
 
 	/**
@@ -651,7 +643,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		ans.append(put(String.format("\t\tworld:setSize(%d,%d)", width, height)));
 		for (int i = 0; i < tiles.length; i++) {
 			for(int j = 0; j < tiles[i].length; j++) {
-				TileType t = tileTypes[i][j];
+				Tile t = tiles[i][j];
 				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1, t.getName())));
 			}
 		}
