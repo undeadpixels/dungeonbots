@@ -370,6 +370,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		message(">>> " + getCode(), _EchoMessageStyle);
 		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		_EditorPane.setText("");
 		
 		return _RunningScript;
 	}
@@ -391,7 +392,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
 			_CommandHistory.add(sender.getScript());
 		_CommandHistoryIndex = _CommandHistory.size();
-		_EditorPane.setText("");
 
 		// Send a message indicating the results.
 		if (result == null)
