@@ -108,7 +108,8 @@ public class UIBuilder {
 
 		// Wire up the listener, and make the button respond as clicked when it
 		// has focus and enter is pressed.
-		resultButton.addActionListener(listener);
+		if (listener != null)
+			resultButton.addActionListener(listener);
 		resultButton.registerKeyboardAction(
 				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
 				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);

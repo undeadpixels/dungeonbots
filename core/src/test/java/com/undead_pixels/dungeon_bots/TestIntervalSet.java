@@ -4,14 +4,14 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.undead_pixels.dungeon_bots.math.IntegerIntervalSet;
+import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.math.IntervalSet;
 
 public class TestIntervalSet {
 
 	@Test
 	public void testInclude_nonInfinite() {
-		IntervalSet<Integer> set = new IntegerIntervalSet();
+		IntervalSet<Integer> set = new IntegerSet();
 		assertTrue(set.getIntervalsCount() == 0);
 		for (int i = 0; i <= 10; i++)
 			assertFalse(set.includes(i));

@@ -6,16 +6,12 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyListener;
-import java.awt.event.WindowListener;
-import java.util.EventListener;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -23,27 +19,24 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.MouseInputListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.LayeredHighlighter;
 import javax.swing.text.Position;
 import javax.swing.text.View;
 
-import com.undead_pixels.dungeon_bots.math.IntegerIntervalSet;
-import com.undead_pixels.dungeon_bots.math.IntervalSet;
+import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
-
-import jsyntaxpane.SyntaxDocument;
 
 /**
  * @author Wesley
@@ -55,14 +48,8 @@ public final class JScriptEditor extends JPanel {
 	/** The script being edited. */
 	private UserScript _Script = null;
 	private final JEditorPane _Editor;
-	private final JScrollPane _EditorScroller;
-	private final JToggleButton _LockButton;
 	private SecurityLevel _SecurityLevel;
 	private Controller _Controller;
-
-	private int _SelectionStart = -1;
-	private int _SelectionEnd = -1;
-	IntegerIntervalSet _Locks = null;
 
 	/*
 	 * ================================================================
@@ -71,9 +58,9 @@ public final class JScriptEditor extends JPanel {
 	 */
 
 	public JScriptEditor(SecurityLevel securityLevel) {
+
 		_Controller = new Controller();
 		_SecurityLevel = securityLevel;
-		_Locks = new IntegerIntervalSet();
 
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 		setLayout(new BorderLayout());
@@ -84,31 +71,32 @@ public final class JScriptEditor extends JPanel {
 		JButton bttnCopy = UIBuilder.makeButton("copy.jpg", "Copy a highlighted section", "COPY", _Controller);
 		JButton bttnPaste = UIBuilder.makeButton("paste.jpg", "Paste at the cursor", "PASTE", _Controller);
 
-		toolBar.add(bttnCut);
-		toolBar.add(bttnCopy);
-		toolBar.add(bttnPaste);
-		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
-			_LockButton = UIBuilder.makeToggleButton("lock.jpg", "Lock selected text", "Lock", "TOGGLE_LOCK",
-					_Controller);
-			_LockButton.setEnabled(false);
-			toolBar.add(_LockButton);
-		} else
-			_LockButton = null;
-
-		add(toolBar, BorderLayout.PAGE_START);
-
 		_Editor = new JEditorPane();
-		_EditorScroller = new JScrollPane(_Editor);
-		add(_EditorScroller, BorderLayout.CENTER);
+		JScrollPane editorScroller = new JScrollPane(_Editor);
+		add(editorScroller, BorderLayout.CENTER);
 		_Editor.setEditable(true);
 		_Editor.setFocusable(true);
 		_Editor.setContentType("text/lua");
 		_Editor.addCaretListener(_Controller);
-		SyntaxDocument doc = (SyntaxDocument) _Editor.getDocument();
-		doc.addDocumentListener(_Controller);
+		_Editor.setHighlighter(_Controller._Highlighter);
 
-		_LockController = new LockController(Color.blue);
-		_Editor.setHighlighter(_LockController);
+		toolBar.add(bttnCut);
+		toolBar.add(bttnCopy);
+		toolBar.add(bttnPaste);
+		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
+			JToggleButton lockButton = UIBuilder.makeToggleButton("lock.jpg", "Lock selected text", "Lock",
+					"TOGGLE_LOCK", _Controller);
+			toolBar.add(lockButton);
+			_Controller.setLockButton(lockButton);
+			_Controller.setLockColor(Color.blue);
+		}
+
+		add(toolBar, BorderLayout.PAGE_START);
+	}
+
+	/** Returns a reference to the script currently being edited. */
+	public UserScript getScript() {
+		return _Script;
 	}
 
 	/**
@@ -117,97 +105,291 @@ public final class JScriptEditor extends JPanel {
 	 * getScript() call.
 	 */
 	public void setScript(UserScript script) {
+
+		// Ensure that the text's lock filter cannot interfere with printing the
+		// text for the first time.
+		_Controller.setFiltering(false);
+
 		_Script = script;
+		setLiveEditing(true);
 		_Editor.setText(script.code);
-		_LockController.removeAllHighlights();
-		_Locks = new IntegerIntervalSet();
-		_LockController.lock(_Locks);
+		_Controller.resetLocks();
+
+		// Restore filtering.
+		_Controller.setFiltering(true);
 	}
 
-	/** Returns a new script from the current contents of the editor. */
-	public UserScript getScript() {
-		UserScript result = new UserScript(_Script.name, _Editor.getText(), _Script.level);
-		int highlightCount = _LockController.getHighlights().length;
-		for (int i = 0; i < highlightCount; i++) {
-			Highlighter.Highlight h = _LockController.getHighlights()[i];
-			throw new IllegalStateException("Not implemented yet.");
-		}
-		return result;
+	/**
+	 * Overwrites the current script with the contents of this editor.
+	 */
+	public void saveScript() {
+		if (_Script == null)
+			return;
+		_Script.code = _Editor.getText();
+		_Script.locks.clear();
+		for (IntegerSet.Interval interval : _Controller.getHighlightIntervals())
+			_Script.locks.add(interval);
+	}
+
+	public void setLiveEditing(boolean value) {
+		if (_Controller._LockFilter != null)
+			_Controller._LockFilter.setLive(value);
 	}
 
 	/*
 	 * ================================================================
-	 * JScriptEditor CODE LOCK MEMBERS
+	 * JScriptEditor CONTROLLER
 	 * ================================================================
 	 */
+	/** The controller class for the JScriptEditor. */
+	private class Controller implements CaretListener, ActionListener {
 
-	/**
-	 * This object handles code lock control by maintaining the list of
-	 * highlighted areas.
-	 */
-	LockController _LockController;
+		private DefaultHighlighter _Highlighter;
+		protected UnderlinePainter _Painter;
+		private JToggleButton _LockButton = null;
+		private LockFilter _LockFilter;
 
-	private class LockController extends DefaultHighlighter {
-		// From:
-		// http://www.java2s.com/Tutorials/Java/Swing_How_to/JTextPane/Highlight_Word_in_JTextPane.htm
-		// by unnamed, downloaded 2/14/18
+		private int _SelectionStart = -1;
+		private int _SelectionEnd = -1;
 
-		protected Highlighter.HighlightPainter _Painter;
-
-		public LockController(Color color) {
-			if (color == null)
-				throw new IllegalStateException("Color cannot be null.");
-			_Painter = new LockHighlightPainter(color);
+		public Controller() {
+			this._Painter = new UnderlinePainter(Color.blue);
+			this._Highlighter = new DefaultHighlighter();
+			_Highlighter.setDrawsLayeredHighlights(true);
 		}
 
-		/**
-		 * Locks every included item.
-		 */
-		public void lock(IntegerIntervalSet locks) {
-			for (IntervalSet<Integer>.Interval interval : locks) {
-				_Locks.add(interval);
+		/** Called when buttons are hit. */
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			switch (e.getActionCommand()) {
+			case "TOGGLE_LOCK":
+				if (_LockButton != null && _SecurityLevel.level >= SecurityLevel.AUTHOR.level) {
+					if (!lock())
+						unlock();
+				}
+				break;
+			case "CUT":
+				_Editor.cut();
+				break;
+			case "COPY":
+				_Editor.copy();
+				break;
+			case "PASTE":
+				_Editor.paste();
+				break;
 			}
+
+		}
+
+		/** Called when selection changes. */
+		@Override
+		public void caretUpdate(CaretEvent e) {
+			_SelectionStart = e.getMark();
+			_SelectionEnd = e.getDot();
+
+			// Prohibit editing if in a locked region.
+			if (_LockFilter != null) {
+				if (_SecurityLevel.level < SecurityLevel.AUTHOR.level)
+					_LockFilter.setLive(!getHighlightIntervals().includes(_SelectionStart));
+				else
+					_LockFilter.setLive(true);
+
+			}
+
+			updateButton();
+		}
+
+		/*
+		 * ================================================================
+		 * JScriptEditor.Controller CODE LOCK MEMBERS
+		 * ================================================================
+		 */
+
+		/** Determine whether the controller should be lock-filtering or not. */
+		public void setFiltering(boolean value) {
+			AbstractDocument doc = (AbstractDocument) _Editor.getDocument();
+			if (value)
+				doc.setDocumentFilter(_LockFilter = new LockFilter());
+			else
+				doc.setDocumentFilter(null);
+
+		}
+
+		/** Sets the button that will control locking for this controller. */
+		public void setLockButton(JToggleButton button) {
+			this._LockButton = button;
+		}
+
+		/** Sets the lock color for this controller. */
+		public void setLockColor(Color color) {
+			_Painter._Color = color;
+
+		}
+
+		private IntegerSet getHighlightIntervals() {
+			IntegerSet result = new IntegerSet();
+			for (DefaultHighlighter.Highlight h : _Highlighter.getHighlights())
+				result.add(h.getStartOffset(), h.getEndOffset() - 1);
+			return result;
+		}
+
+		/** Removes all locks. */
+		public void clearLocks() {
+			_Editor.setHighlighter(_Highlighter);
+			if (_Highlighter == null)
+				return;
+			_Highlighter.removeAllHighlights();
+			updateButton();
 		}
 
 		/**
 		 * Locks everything from the selection start to the selection end,
-		 * inclusive.
+		 * exclusive.
 		 */
-		public void lock() {
-			lock(_SelectionStart, _SelectionEnd);
+		public boolean lock() {
+			return lock(_SelectionStart, _SelectionEnd - 1);
 		}
 
 		/**
 		 * Locks everything from the indicated start to the indicated end,
 		 * inclusive.
 		 */
-		public void lock(int from, int to) {
-			_Locks.add(from, to);
+		private boolean lock(int start, int end) {
+			if (start < 0 || end < 0)
+				return false;
+			if (start > end)
+				return false;
+			IntegerSet locks = getHighlightIntervals();
+			if (locks.includes(start, end))
+				return false;
+
+			locks.add(start, end);
+			_Highlighter.removeAllHighlights();
+			try {
+				for (IntegerSet.Interval interval : locks)
+					_Highlighter.addHighlight(interval.start, interval.end + 1, _Painter);
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+			updateButton();
+			return true;
 		}
 
 		/**
-		 * Returns whether this controller has all the code locked from the
-		 * indicated start to end.
+		 * Sets all locks as specified in the original UserScript. Note that the
+		 * code may have changed since then, so an error may be thrown.
 		 */
-		public boolean isLocked(int from, int to) {
-			return _Locks.includes(from, to);
+		public void resetLocks() {
+			clearLocks();
+			IntegerSet set = new IntegerSet();
+			for (IntegerSet.Interval i : _Script.locks) {
+				set.add(i.start, i.end);
+			}
+			for (IntegerSet.Interval i : set)
+				try {
+					_Highlighter.addHighlight(i.start, i.end + 1, _Painter);
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+			updateButton();
 		}
 
-		@Override
-		public void setDrawsLayeredHighlights(boolean newValue) {
-			super.setDrawsLayeredHighlights(true);
+		/**
+		 * Unlocks everything from the selection start to the selection end,
+		 * exclusive.
+		 */
+		public boolean unlock() {
+			return unlock(_SelectionStart, _SelectionEnd - 1);
 		}
 
-		private class LockHighlightPainter extends LayeredHighlighter.LayerPainter {
+		/**
+		 * Unlocks everything from the indicated start to the indicated end,
+		 * inclusive.
+		 */
+		public boolean unlock(int start, int end) {
+			if (start < 0 || end < 0)
+				return false;
+			if (start > end)
+				return false;
+			IntegerSet locks = getHighlightIntervals();
+			if (!locks.any(start, end))
+				return false;
+			locks.remove(start, end);
+			_Highlighter.removeAllHighlights();
+			try {
+				for (IntegerSet.Interval interval : locks)
+					_Highlighter.addHighlight(interval.start, interval.end + 1, _Painter);
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+			updateButton();
+			return true;
+		}
+
+		/** Updates the status of the GUI locking button. */
+		public void updateButton() {
+			if (_LockButton == null)
+				return;
+
+			if (_SelectionStart >= _SelectionEnd) {
+				_LockButton.setSelected(false);
+				_LockButton.setEnabled(false);
+			} else if (getHighlightIntervals().includes(_SelectionStart, _SelectionEnd - 1)) {
+				_LockButton.setEnabled(true);
+				_LockButton.setSelected(false);
+			} else {
+				_LockButton.setEnabled(true);
+				_LockButton.setSelected(false);
+			}
+		}
+
+		/** Can turn text editing on or off. */
+		private class LockFilter extends DocumentFilter {
+			private boolean _Live = true;
+
+			/**
+			 * Determine whether the filter will allow editing of the attached
+			 * document.
+			 */
+			public void setLive(boolean value) {
+				_Live = value;
+			}
+
+			@Override
+			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
+					throws BadLocationException {
+				if (_Live)
+					super.insertString(fb, offset, text, attr);
+			}
+
+			@Override
+			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+					throws BadLocationException {
+				if (_Live)
+					super.replace(fb, offset, length, text, attrs);
+
+			}
+
+			@Override
+			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+				if (_Live)
+					super.remove(fb, offset, length);
+			}
+		}
+
+		private class UnderlinePainter extends LayeredHighlighter.LayerPainter {
 
 			// From:
 			// http://www.java2s.com/Tutorials/Java/Swing_How_to/JTextPane/Highlight_Word_in_JTextPane.htm
 			// by unnamed, downloaded 2/14/18
 
-			protected Color color;
+			private Color _Color;
 
-			public LockHighlightPainter(Color color) {
-				this.color = color;
+			public UnderlinePainter(Color color) {
+				if (color == null)
+					throw new IllegalStateException("Color cannot be null.");
+				this._Color = color;
+
 			}
 
 			@Override
@@ -217,7 +399,7 @@ public final class JScriptEditor extends JPanel {
 
 			@Override
 			public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c, View view) {
-				g.setColor(color == null ? c.getSelectionColor() : color);
+				g.setColor(_Color);
 				Rectangle rect = null;
 				if (offs0 == view.getStartOffset() && offs1 == view.getEndOffset()) {
 					if (bounds instanceof Rectangle) {
@@ -242,65 +424,6 @@ public final class JScriptEditor extends JPanel {
 			}
 		}
 
-	}
-
-	/*
-	 * ================================================================
-	 * JScriptEditor CONTROLLER
-	 * ================================================================
-	 */
-	/** The controller class for the JScriptEditor. */
-	private class Controller implements CaretListener, ActionListener, DocumentListener {
-
-		/** Called when buttons are hit. */
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			switch (e.getActionCommand()) {
-
-			case "TOGGLE_LOCK":
-				if (_SecurityLevel.level >= SecurityLevel.AUTHOR.level) {
-					_LockController.lock();
-				}
-				break;
-			case "CUT":
-				_Editor.cut();
-				break;
-			case "COPY":
-				_Editor.copy();
-				break;
-			case "PASTE":
-				_Editor.paste();
-				break;
-			}
-
-		}
-
-		/** Called when selection changes. */
-		@Override
-		public void caretUpdate(CaretEvent e) {
-			_SelectionStart = e.getMark();
-			_SelectionEnd = e.getDot();
-			if (_SecurityLevel.level >= SecurityLevel.AUTHOR.level) {
-				boolean selectionExists = _SelectionStart < _SelectionEnd;
-				_LockButton.setEnabled(selectionExists);
-				if (selectionExists) {
-					_LockButton.setSelected(_LockController.isLocked(_SelectionStart, _SelectionEnd));
-				}
-
-			}
-		}
-
-		@Override
-		public void changedUpdate(DocumentEvent arg0) {
-		}
-
-		@Override
-		public void insertUpdate(DocumentEvent e) {
-		}
-
-		@Override
-		public void removeUpdate(DocumentEvent e) {
-		}
 	}
 
 }

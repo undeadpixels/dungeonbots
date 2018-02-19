@@ -29,7 +29,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -70,15 +69,18 @@ public final class JEntityEditor extends JPanel {
 			return null;
 		}
 
-		JEntityEditor jee = new JEntityEditor(entity, securityLevel);		
+		JEntityEditor jee = new JEntityEditor(entity, securityLevel);
 		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
 		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
 			@Override
 			protected void event(WindowEvent e) {
-				if (e.getID() != WindowEvent.WINDOW_CLOSING)
-					return;
+				//System.out.println("Event:" + e.getID());
+				//System.out.println("WINDOW_CLOSING:" + WindowEvent.WINDOW_CLOSING);
+				//System.out.println("WINDOW_CLOSED:" + WindowEvent.WINDOW_CLOSED);
+				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+					return;				
 				_OpenEditors.remove(entity);
 			}
 		});
@@ -161,8 +163,10 @@ public final class JEntityEditor extends JPanel {
 	 */
 	public void save() {
 		_Entity.userScripts.clear();
-		for (int i = 0; i < _ScriptList.getSize(); i++) {
-			_Entity.userScripts.add(_ScriptList.get(i).copy());
+		_Editor.saveScript();
+		for (int i = 0; i < _ScriptList.getSize(); i++) {		
+			UserScript script = _ScriptList.get(i);
+			_Entity.userScripts.add(script);
 		}
 	}
 
@@ -212,6 +216,7 @@ public final class JEntityEditor extends JPanel {
 
 			UserScript script = list.getSelectedValue();
 
+			_Editor.saveScript();
 			_Editor.setScript(script);
 			_Editor.setBorder(BorderFactory.createTitledBorder(script.name));
 		}

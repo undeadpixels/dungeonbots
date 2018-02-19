@@ -1,10 +1,12 @@
 package com.undead_pixels.dungeon_bots.script.annotations;
 
+import java.awt.List;
 import java.io.Serializable;
+import java.util.ArrayList;
 
+import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
 
 /**
  * A user script associates a Lua script with the information pertaining to how
@@ -22,8 +24,7 @@ public class UserScript implements Serializable {
 	public String code;
 	public SecurityLevel level;
 	public String name;
-	// public IntegerIntervalSet locks;
-	public IntegerIntervalSet locks;
+	public ArrayList<IntegerSet.Interval> locks;
 
 	public UserScript(String name, String code) {
 		this(name, code, SecurityLevel.DEFAULT);
@@ -33,12 +34,14 @@ public class UserScript implements Serializable {
 		this.name = name;
 		this.code = code;
 		this.level = level;
-		// this.locks = new IntegerIntervalSet();
+		this.locks = new ArrayList<IntegerSet.Interval>();
 	}
 
 	/** Returns a copy of this UserScript. */
 	public UserScript copy() {
 		UserScript ret = new UserScript(this.name, this.code, this.level);
+		for (IntegerSet.Interval lock : this.locks)
+			ret.locks.add(new IntegerSet.Interval(lock.start, lock.end));
 		// ret.locks = new IntegerIntervalSet(this.locks);
 		return ret;
 	}
@@ -52,23 +55,9 @@ public class UserScript implements Serializable {
 		return true;
 	}
 
-	/**
-	 * Determines whether or not this user script will execute on this pass
-	 * through the game loop. Can be overridden in a derived class.
-	 */
-	public boolean canExecute(IWorld world, long time) {
-		return true;
-	}
-
 	@Override
 	public String toString() {
 		return "Script: " + name;
 	}
 
-	/**
-	 * Returns a LuaScript living in the given sandbox, from the contained code.
-	 */
-	public final LuaScript toLuaScript(LuaSandbox sandbox) {
-		return sandbox.script(code);
-	}
 }

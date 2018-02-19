@@ -361,6 +361,53 @@ public class IntervalSet<T extends Comparable<T>> {
 	// ===================================================
 	// ===================================================
 
+	public final boolean any(T from, T to) {
+
+		int fromIdx = getBracketingIntervalIndex(from);
+		int toIdx = getBracketingIntervalIndex(to, Math.max(fromIdx, 0), intervals.size() - 1);
+		int c;
+
+		if (toIdx < 0)
+			// Here, the interval entirely precedes all intervals in the set.
+			// Return true if and only if negative infinity is included.
+			return _NegativeInfinite;
+		if ((c = toIdx - fromIdx) > 1)
+			// An interval is entirely spanned - of course there's at least one
+			// inclusion.
+			return true;
+		else if (c == 1) {
+
+			// The 'from' and 'to' come from adjacent intervals. Only return
+			// true if the 'from' snags the lower interval, or the 'to' snags
+			// the upper.
+			if ((c = from.compareTo(intervals.get(fromIdx).end)) < 0)
+				return true;
+			else if (c == 0 && intervals.get(fromIdx).includesEnd)
+				return true;
+			else if ((c = to.compareTo(intervals.get(toIdx).start)) > 0)
+				return true;
+			else if (c == 0 && intervals.get(toIdx).includesStart)
+				return true;
+			else
+				return false;
+		} else if (c == 0) {
+
+			// The 'from' and 'to' are in the same interval. Only return true if
+			// the 'from' snags the lower interval, or if we're at the last
+			// interval and positive infinity is included.
+			if ((c = from.compareTo(intervals.get(fromIdx).end)) < 0)
+				return true;
+			else if (c == 0 && intervals.get(fromIdx).includesEnd)
+				return true;
+			else if (fromIdx == intervals.size() - 1 && _PositiveInfinite)
+				return true;
+			else
+				return false;
+		}
+
+		throw new IllegalStateException("Sanity check.");
+	}
+
 	/**
 	 * Returns true if the given items are consecutive. Default behavior is to
 	 * always return false. Override this function in a derived class to add
@@ -515,7 +562,7 @@ public class IntervalSet<T extends Comparable<T>> {
 	}
 
 	/** Data structure which internally maintains a single inclusion set. */
-	public final class Interval {
+	protected final class Interval {
 		public boolean includesStart;
 		public T start;
 		public T end;
