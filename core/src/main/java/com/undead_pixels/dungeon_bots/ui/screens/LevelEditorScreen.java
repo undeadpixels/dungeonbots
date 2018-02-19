@@ -38,6 +38,7 @@ import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
+import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
@@ -82,6 +83,7 @@ public class LevelEditorScreen extends Screen {
 		// TODO: add other types of elements.
 
 		view.addMouseMotionListener(getController());
+
 	}
 
 	@Override
@@ -133,7 +135,8 @@ public class LevelEditorScreen extends Screen {
 					if (selection instanceof TileType) {
 						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						//TileType currentTile = world.getTile(e.getX(), e.getY());
+						// TileType currentTile = world.getTile(e.getX(),
+						// e.getY());
 						Point2D.Float gameCoords = view.getCamera().unproject((float) e.getX(), (float) e.getY());
 						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
@@ -208,6 +211,9 @@ public class LevelEditorScreen extends Screen {
 					} else if (dialogResult == JOptionPane.NO_OPTION)
 						System.exit(0);
 
+					break;
+				case "Export":
+					export();
 					break;
 				default:
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
@@ -308,6 +314,13 @@ public class LevelEditorScreen extends Screen {
 		};
 	}
 
+	protected void export() {
+		System.out.println("Serializing...");
+		Serializer s = new Serializer();		
+		String json = s.Serialize(world);
+		System.out.println(json);
+	}
+
 	/** Handles the rendering of TileTypes in the TileType palette. */
 	private class PaletteItemRenderer extends DefaultListCellRenderer {
 		// As suggested by "SeniorJD",
@@ -382,6 +395,10 @@ public class LevelEditorScreen extends Screen {
 				KeyEvent.VK_S, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Save As",
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK), 0,
+				getController()));
+		fileMenu.addSeparator();
+		fileMenu.add(UIBuilder.makeMenuItem("Export",
+				KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK), KeyEvent.VK_E,
 				getController()));
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Exit to Main",

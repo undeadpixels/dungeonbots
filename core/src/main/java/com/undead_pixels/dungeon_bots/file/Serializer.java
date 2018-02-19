@@ -11,8 +11,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 
 /**
  * An object which can function to either serialize an object into a JSON
@@ -37,6 +40,14 @@ public class Serializer {
 
 	/** Serialize the given world. */
 	public String Serialize(World world) {
+		UserScript u = new UserScript("script's name", "script's code", SecurityLevel.AUTHOR);
+		u.locks.add(new IntegerSet.Interval(10,15));
+		u.locks.add(new IntegerSet.Interval(20, 25));
+		String test = _GsonSerialize.toJson(u);
+		System.out.println("Done.\n" + test);
+		
+		UserScript v = _GsonDeserialize.fromJson(test, UserScript.class);
+		System.out.println("Deserialized.");
 		return _GsonSerialize.toJson(world);
 	}
 
