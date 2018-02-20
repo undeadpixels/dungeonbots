@@ -35,8 +35,7 @@ public class ResultsScreen extends Screen {
 	private World _World;
 	
 	public ResultsScreen(World world) {
-		super();
-		this._World = world;
+		super(world);
 		this.addWindowListener(getController());
 
 	}

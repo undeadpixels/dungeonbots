@@ -34,7 +34,7 @@ public class Texture implements Serializable {
 	 * @param string		A file path
 	 * @throws IOException	If the image cannot be loaded
 	 */
-	public Texture(String string) throws IOException {
+	public Texture(String string) throws IOException {		
 		img = ImageIO.read(new File(string));
 	}
 	

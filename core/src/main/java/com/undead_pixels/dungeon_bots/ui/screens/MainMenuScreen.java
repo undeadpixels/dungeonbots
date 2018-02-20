@@ -19,6 +19,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
@@ -26,6 +27,11 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  */
 @SuppressWarnings("serial")
 public class MainMenuScreen extends Screen {
+
+	public MainMenuScreen() {
+		super(null);
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	protected ScreenController makeController() {

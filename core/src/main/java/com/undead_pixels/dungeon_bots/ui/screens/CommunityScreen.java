@@ -4,8 +4,12 @@ import java.awt.Container;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import com.undead_pixels.dungeon_bots.scene.World;
+
 @SuppressWarnings("serial")
 public class CommunityScreen extends Screen {
+
+	
 
 	public static final URI homeURI;
 	
@@ -19,10 +23,13 @@ public class CommunityScreen extends Screen {
 		}
 		homeURI = homeURItmp;
 	}
-
-	public CommunityScreen() {
+	
+	protected CommunityScreen(World world) {
+		super(world);
 		// TODO Auto-generated constructor stub
 	}
+
+	
 
 	@Override
 	protected ScreenController makeController() {

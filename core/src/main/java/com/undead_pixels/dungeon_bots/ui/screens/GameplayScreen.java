@@ -44,14 +44,10 @@ public class GameplayScreen extends Screen {
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
-	
-	private World _World;
 
 	
 	public GameplayScreen(World world) {
-		super();
-		
-		this._World = world;
+		super(world);		
 	}
 
 	/**
@@ -109,7 +105,7 @@ public class GameplayScreen extends Screen {
 				case "Rewind":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-						_World.reset();
+						world.reset();
 					}
 					break;
 				case "Save":
@@ -230,7 +226,7 @@ public class GameplayScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// At the world at the bottom layer.
-		view = new WorldView(_World);
+		view = new WorldView(world);
 		view.addMouseListener(getController());
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);

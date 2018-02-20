@@ -6,14 +6,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.text.ParseException;
+import java.util.HashSet;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
-import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 
 public class EditorSaveTest {
 
@@ -21,7 +23,7 @@ public class EditorSaveTest {
 	public void simpleTest() {
 		GameEditorState s = new GameEditorState(new World());
 		Assert.assertNotEquals("", s.toLua());
-		System.out.println(s.toLua());
+		// System.out.println(s.toLua());
 	}
 
 	@Test
@@ -33,11 +35,11 @@ public class EditorSaveTest {
 		s.tileRegionSection.add(new TileRegionSection.TileRegion(2, 2, 3, 3, "wall"));
 		s.playerInitSection.px = 8;
 		s.playerInitSection.py = 9;
-		
+
 		Assert.assertNotEquals("", s.toLua());
-		System.out.println(s.toLua());
+		// System.out.println(s.toLua());
 	}
-	
+
 	@Test
 	public void actualSerializeDeserializeTest() throws ParseException {
 		GameEditorState s = new GameEditorState(new World());
@@ -47,41 +49,188 @@ public class EditorSaveTest {
 		s.tileRegionSection.add(new TileRegionSection.TileRegion(2, 2, 3, 3, "wall"));
 		s.playerInitSection.px = 8;
 		s.playerInitSection.py = 9;
-		
+
 		String luaOut = s.toLua();
-		System.out.println("1.\n"+luaOut);
-		
+		System.out.println("1.\n" + luaOut);
+
 		GameEditorState s2 = new GameEditorState(new World(), luaOut);
 
 		String luaOut2 = s2.toLua();
-		System.out.println("2.\n"+luaOut2);
-		
+		System.out.println("2.\n" + luaOut2);
+
 		Assert.assertEquals("Check if serialize->deserialize->serialize is consistent", s.toLua(), luaOut2);
 	}
 
-
 	@Test
-	public void simpleJavaSerializeDeserializeTest() throws ParseException, IOException, ClassNotFoundException {
-		
-		World w = new World(new File("level1.lua"));
+	public void testSerializeWorld() throws ParseException, IOException, ClassNotFoundException {
+
+		System.out.println("starting...");
+		World w1 = new World(new File("level1.lua"));
 
 		PipedInputStream in_ = new PipedInputStream();
 		PipedOutputStream out_ = new PipedOutputStream(in_);
 		ObjectOutputStream out = new ObjectOutputStream(out_);
 		ObjectInputStream in = new ObjectInputStream(in_);
-		
-		new Thread( () -> {
+
+		new Thread(() -> {
 			try {
-				out.writeObject(w);
+				out.writeObject(w1);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} ).start();
+		}).start();
 
 		World w2 = (World) in.readObject();
-		
-		LevelEditorScreen editor = new LevelEditorScreen(w2);
-		
+
 		out.close();
+
+		/*
+		 * System.out.println(Modifier.ABSTRACT);
+		 * System.out.println(Modifier.FINAL);
+		 * System.out.println(Modifier.INTERFACE);
+		 * System.out.println(Modifier.NATIVE);
+		 */
+		System.out.println(Modifier.PRIVATE);
+		/*
+		 * System.out.println(Modifier.PROTECTED);
+		 * System.out.println(Modifier.PUBLIC);
+		 * System.out.println(Modifier.STATIC);
+		 * System.out.println(Modifier.STRICT);
+		 * System.out.println(Modifier.SYNCHRONIZED);
+		 * System.out.println(Modifier.TRANSIENT);
+		 * System.out.println(Modifier.VOLATILE);
+		 */
+
+		validateReflectedEquality(w1, w2, "world", false, true);
+	}
+
+	/**
+	 * This method uses reflection to determine actual equality of two objects
+	 * without the need to implement an equals() method for the objects' class.
+	 */
+	private static void validateReflectedEquality(Object a, Object b, String itemName, boolean testTransients,
+			boolean testFinals) {
+		HashSet<String> matched = new HashSet<String>();
+		HashSet<String> unmatched = new HashSet<String>();
+		HashSet<String> undetermined = new HashSet<String>();
+		Class<?> classA = a.getClass(), classB = b.getClass();
+
+		if (!classA.equals(classB))
+			throw new RuntimeException("Unequal classes for two objects.");
+
+		Field[] fields = classA.getDeclaredFields();
+		for (Field field : fields) {
+			int mods = field.getModifiers();
+			if (!testTransients && Modifier.isTransient(mods))
+				continue;
+			if (!testFinals && Modifier.isFinal(mods))
+				continue;
+			String fieldName = itemName + "." + field.getName();
+
+			// If the values couldn't be read for whatever reason, then throw
+			// them on the "undetermined" pile.
+			Object valA = null, valB = null;
+			boolean originalAccessible = field.isAccessible();
+			field.setAccessible(true);
+			try {
+				valA = field.get(a);
+				valB = field.get(b);
+			} catch (IllegalArgumentException e) {
+				System.out.println(fieldName + ": " + e.getMessage());
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				continue;
+			} catch (IllegalAccessException e) {
+				System.out.println(itemName + "." + field.getName() + ": " + e.getMessage());
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				continue;
+			}
+			field.setAccessible(originalAccessible);
+
+			// If the field specifies a boolean or a value-type, then just
+			// determine their equality and move on.
+			Class<?> fieldType = field.getType();
+			if (fieldType == boolean.class) {
+				if (((boolean) valA) == ((boolean) valB))
+					matched.add(fieldName);
+				else
+					unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
+							+ valB.toString());
+				continue;
+			} else if (fieldType.isPrimitive()) {
+				if (((Number) valA).equals((Number) valB))
+					matched.add(fieldName);
+				else
+					unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
+							+ valB.toString());
+				continue;
+			}
+
+			// Otherwise, the field specifies a reference type, so handle
+			// possible nulls.
+			else if (valA == null && valB == null) {
+				matched.add(fieldName);
+				continue;
+			} else if (valA == null || valB == null) {
+				unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
+						+ valB.toString());
+				continue;
+			}
+
+			// If two objects are designed to be equal(), return that.
+			else if (valA.equals(valB)) {
+				matched.add(fieldName);
+				continue;
+			}
+
+			// Finally, we're dealing with a reference type, so recursively test
+			// equality.
+			else
+				validateReflectedEquality(valA, valB, fieldName, testTransients, testFinals);
+		}
+
+		// At this point, if anything is on the "undetermined" or "unmatched"
+		// pile, throw an exception.
+		if (undetermined.size() > 0) {
+			System.out.println("Undetermined:\n" + undetermined.toString());
+			throw new RuntimeException("Items exist whose equality could not be determined.");
+		}
+
+		if (unmatched.size() > 0) {
+			System.out.println("Unmatched:\n" + unmatched.toString());
+			throw new RuntimeException("Unmatched items exist.");
+		}
+
+	}
+
+	private static String getStringModifiers(int mod) {
+		String str = "";
+		if (Modifier.isAbstract(mod))
+			str += " | abstract" + Modifier.ABSTRACT;
+		if (Modifier.isFinal(mod))
+			str += " | final" + Modifier.FINAL;
+		if (Modifier.isInterface(mod))
+			str += " | interface" + Modifier.INTERFACE;
+		if (Modifier.isNative(mod))
+			str += " | native" + Modifier.NATIVE;
+		if (Modifier.isPrivate(mod))
+			str += " | private" + Modifier.PRIVATE;
+		if (Modifier.isProtected(mod))
+			str += " | protected" + Modifier.PROTECTED;
+		if (Modifier.isPublic(mod))
+			str += " | public" + Modifier.PUBLIC;
+		if (Modifier.isStatic(mod))
+			str += " | static" + Modifier.STATIC;
+		if (Modifier.isStrict(mod))
+			str += " | strict" + Modifier.STRICT;
+		if (Modifier.isSynchronized(mod))
+			str += " | synchronized" + Modifier.SYNCHRONIZED;
+		if (Modifier.isTransient(mod))
+			str += " | transient" + Modifier.TRANSIENT;
+		if (Modifier.isVolatile(mod))
+			str += " | volatile" + Modifier.VOLATILE;
+
+		if (str.equals(""))
+			return "( unknown" + mod + " )";
+		return "( " + str + " )";
 	}
 }

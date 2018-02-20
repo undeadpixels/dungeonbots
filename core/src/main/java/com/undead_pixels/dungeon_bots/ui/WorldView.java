@@ -31,7 +31,7 @@ public class WorldView extends JComponent {
 
 	private long lastTime;
 
-	@Deprecated
+	/*@Deprecated
 	public WorldView() {
 		// world = new World(new
 		// File("sample-level-packs/sample-pack-1/levels/level1.lua"));
@@ -41,7 +41,7 @@ public class WorldView extends JComponent {
 
 		this.setFocusable(true);
 		this.requestFocusInWindow();
-	}
+	}*/
 
 	public WorldView(World world) {
 		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);

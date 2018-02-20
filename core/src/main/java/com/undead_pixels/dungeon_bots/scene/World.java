@@ -115,9 +115,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * An id counter, used to hand out id's to entities TODO - see if this
-	 * conflicts with anything Stewart is doing
+	 * conflicts with anything Stewart is doing.
+	 * WO:  for now, this can be transient?
 	 */
-	private int idCounter = 0;
+	private transient int idCounter = 0;
 
 	/**
 	 * The playstyle of this world TODO - add a lua binding to be able to
@@ -228,7 +229,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void setPlayer(Player p) {
 		player = p;
-		entities.add(p);
+		//entities.add(p);
 	}
 
 	/**

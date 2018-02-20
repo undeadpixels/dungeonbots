@@ -8,7 +8,7 @@ import java.util.Optional;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 
-/**TODO:  I can't find any references to this - is it being used?*/
+
 public class AssetManager {
 	private static final int DIM = 16;
 

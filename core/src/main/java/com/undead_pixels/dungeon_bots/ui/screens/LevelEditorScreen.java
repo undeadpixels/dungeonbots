@@ -58,29 +58,20 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 @SuppressWarnings("serial")
 public class LevelEditorScreen extends Screen {
 
-	/**
-	 * The view
-	 */
+	/**The view*/
 	private WorldView _View;
-	private World _World;
-	private JList<Object> _PaletteSelector;
 
-	/**
-	 * Current state. Used to update the world and write to file.
-	 */
-	//private GameEditorState state;
+	/** The list of tiles available for drawing in the editor. */
+	private JList<Object> _TilePalette;
 
 	public LevelEditorScreen(World world) {
-		super();
-		// world = DungeonBotsMain.instance.getWorld();
-		this._World = world;
+		super(world);
 
 		DefaultListModel<Object> lm = new DefaultListModel<Object>();
 		for (TileType t : world.getTileTypes())
 			lm.addElement(t);
-		_PaletteSelector.setModel(lm);
-		_PaletteSelector.validate();
-		// TODO: add other types of elements.
+		_TilePalette.setModel(lm);
+		_TilePalette.validate();
 
 		_View.addMouseMotionListener(getController());
 
@@ -97,9 +88,9 @@ public class LevelEditorScreen extends Screen {
 				if (e.getClickCount() == 1) {
 					// Draw to the world?
 					if (e.getSource() == _View) {
-						if (_World == null)
+						if (world == null)
 							return;
-						Object selection = _PaletteSelector.getSelectedValue();
+						Object selection = _TilePalette.getSelectedValue();
 						if (selection == null)
 							return;
 						if (selection instanceof TileType) {
@@ -107,7 +98,7 @@ public class LevelEditorScreen extends Screen {
 							// TileType currentTile = world.getTile(e.getX(),
 							// e.getY());
 							Point2D.Float gameCoords = _View.getScreenToGameCoords(e.getX(), e.getY());
-							_World.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
+							world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 						}
 						e.consume();
 					}
@@ -127,9 +118,9 @@ public class LevelEditorScreen extends Screen {
 			@Override
 			public void mouseDragged(MouseEvent e) {
 				if (e.getSource() == _View) {
-					if (_World == null)
+					if (world == null)
 						return;
-					Object selection = _PaletteSelector.getSelectedValue();
+					Object selection = _TilePalette.getSelectedValue();
 					if (selection == null)
 						return;
 					if (selection instanceof TileType) {
@@ -138,7 +129,7 @@ public class LevelEditorScreen extends Screen {
 						// TileType currentTile = world.getTile(e.getX(),
 						// e.getY());
 						Point2D.Float gameCoords = _View.getCamera().unproject((float) e.getX(), (float) e.getY());
-						_World.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
+						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
 					e.consume();
 				}
@@ -155,7 +146,7 @@ public class LevelEditorScreen extends Screen {
 					if (_CurrentFile == null)
 						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 					if (_CurrentFile != null) {
-						String lua = _World.getMapScript();
+						String lua = world.getMapScript();
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
 							writer.write(lua);
 						} catch (IOException e1) {
@@ -167,7 +158,7 @@ public class LevelEditorScreen extends Screen {
 				case "Save As":
 					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 					if (saveFile != null) {
-						String lua = _World.getMapScript();
+						String lua = world.getMapScript();
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
 							writer.write(lua);
 						} catch (IOException e1) {
@@ -199,7 +190,7 @@ public class LevelEditorScreen extends Screen {
 						if (_CurrentFile == null)
 							_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 						if (_CurrentFile != null) {
-							String lua = _World.getMapScript();
+							String lua = world.getMapScript();
 							try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
 								writer.write(lua);
 							} catch (IOException e1) {
@@ -317,7 +308,7 @@ public class LevelEditorScreen extends Screen {
 	protected void export() {
 		System.out.println("Serializing...");
 		Serializer s = new Serializer();
-		String json = s.Serialize(_World);
+		String json = s.Serialize(world);
 		System.out.println(json);
 	}
 
@@ -352,7 +343,7 @@ public class LevelEditorScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
-		_View = new WorldView(_World);
+		_View = new WorldView(world);
 		_View.addMouseListener(getController());
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
@@ -367,12 +358,11 @@ public class LevelEditorScreen extends Screen {
 		brushBoxContainer.setMaximumSize(new Dimension(9999, 100));
 		brushBoxContainer.setBorder(BorderFactory.createTitledBorder("Current draw mode"));
 
-		// Create the palette, but don't add elements - there's no ref to world
-		// yet.
-		_PaletteSelector = new JList<Object>();
-		_PaletteSelector.setCellRenderer(new PaletteItemRenderer());
-		_PaletteSelector.setPreferredSize(new Dimension(150, 300));
-		JScrollPane paletteScroller = new JScrollPane(_PaletteSelector);
+		// Create the palette, but don't add elements - this is done elsewhere.
+		_TilePalette = new JList<Object>();
+		_TilePalette.setCellRenderer(new PaletteItemRenderer());
+		_TilePalette.setPreferredSize(new Dimension(150, 300));
+		JScrollPane paletteScroller = new JScrollPane(_TilePalette);
 		paletteScroller.setBorder(BorderFactory.createTitledBorder("Current Tile"));
 
 		JPanel controlPanel = new JPanel();
