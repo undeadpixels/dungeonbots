@@ -62,10 +62,14 @@ public class EditorSaveTest {
 	}
 
 	@Test
-	public void testSerializeWorld() throws ParseException, IOException, ClassNotFoundException {
+	public void testSerializeWorld() throws IOException, ClassNotFoundException {
+		testWorldFileScript("level1.lua");
+		testWorldFileScript("level2.lua");
+	}
 
-		System.out.println("starting...");
-		World w1 = new World(new File("level1.lua"));
+	private static void testWorldFileScript(String filename) throws IOException, ClassNotFoundException {
+
+		World w1 = new World(new File(filename));
 
 		PipedInputStream in_ = new PipedInputStream();
 		PipedOutputStream out_ = new PipedOutputStream(in_);
@@ -84,31 +88,34 @@ public class EditorSaveTest {
 
 		out.close();
 
-		/*
-		 * System.out.println(Modifier.ABSTRACT);
-		 * System.out.println(Modifier.FINAL);
-		 * System.out.println(Modifier.INTERFACE);
-		 * System.out.println(Modifier.NATIVE);
-		 */
-		System.out.println(Modifier.PRIVATE);
-		/*
-		 * System.out.println(Modifier.PROTECTED);
-		 * System.out.println(Modifier.PUBLIC);
-		 * System.out.println(Modifier.STATIC);
-		 * System.out.println(Modifier.STRICT);
-		 * System.out.println(Modifier.SYNCHRONIZED);
-		 * System.out.println(Modifier.TRANSIENT);
-		 * System.out.println(Modifier.VOLATILE);
-		 */
+		validateReflectedEquality(w1, w2, filename + " world", false, true);
 
-		validateReflectedEquality(w1, w2, "world", false, true);
 	}
 
 	/**
 	 * This method uses reflection to determine actual equality of two objects
 	 * without the need to implement an equals() method for the objects' class.
+	 * 
+	 * @param a
+	 *            The first object to compare.
+	 * @param b
+	 *            The second object to compare.
+	 * @param itemName
+	 *            This is the name of the item, for help in debugging. It will
+	 *            constitute the first item in a fully qualified field name.
+	 * @param testTransiants
+	 *            Whether to include transient fields in the test. For
+	 *            serialization testing, this should be false, because one would
+	 *            expect that transients aren't going to be equal before and
+	 *            after serialization anyway.
+	 * @param testFinals
+	 *            Whether to include final members in the test. There may be
+	 *            points where this is useless to test.
+	 * @throws RuntimeException
+	 *             An exception will be thrown if it can be shown that the two
+	 *             objects are not deep-field equal.
 	 */
-	private static void validateReflectedEquality(Object a, Object b, String itemName, boolean testTransients,
+	public static void validateReflectedEquality(Object a, Object b, String itemName, boolean testTransients,
 			boolean testFinals) {
 		HashSet<String> matched = new HashSet<String>();
 		HashSet<String> unmatched = new HashSet<String>();
@@ -121,6 +128,8 @@ public class EditorSaveTest {
 		Field[] fields = classA.getDeclaredFields();
 		for (Field field : fields) {
 			int mods = field.getModifiers();
+
+			// Skip for uninteresting conditions.
 			if (!testTransients && Modifier.isTransient(mods))
 				continue;
 			if (!testFinals && Modifier.isFinal(mods))
@@ -188,8 +197,8 @@ public class EditorSaveTest {
 				validateReflectedEquality(valA, valB, fieldName, testTransients, testFinals);
 		}
 
-		// At this point, if anything is on the "undetermined" or "unmatched"
-		// pile, throw an exception.
+		// Having tested all the fields, if anything is on the "undetermined" or
+		// "unmatched" pile, throw an exception.
 		if (undetermined.size() > 0) {
 			System.out.println("Undetermined:\n" + undetermined.toString());
 			throw new RuntimeException("Items exist whose equality could not be determined.");
