@@ -4,7 +4,7 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxedValue;
 import org.luaj.vm2.Varargs;
 
-public class Level {
+public final class Level {
 	private final SandboxedValue sandboxedValue;
 
 	public Level(Varargs varargs, LuaSandbox luaSandbox) {

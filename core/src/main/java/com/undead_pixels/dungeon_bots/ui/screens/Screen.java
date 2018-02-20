@@ -1,24 +1,12 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowListener;
 import java.util.HashMap;
 
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JWindow;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
 

@@ -3,7 +3,6 @@ package com.undead_pixels.dungeon_bots.math;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.undead_pixels.dungeon_bots.math.IntervalSet.Interval;
 
 public class IntervalSet<T extends Comparable<T>> {
 
@@ -664,7 +663,7 @@ public class IntervalSet<T extends Comparable<T>> {
 		 * be combined (either because they do not overlap at all or because
 		 * they are non-consecutive), returns null.
 		 */
-		private final Interval combine(T from, T to) {
+		public final Interval combine(T from, T to) {
 
 			int c = from.compareTo(to);
 			// 'to' and 'from' are in the wrong order?

@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.math;
 
 import java.util.Iterator;
 
+
 /**
  * An IntervalSet which represents a collection of integers, but which only
  * maintains a simple list of inflection points as to whether a range of integer
@@ -52,10 +53,15 @@ public class IntegerSet extends IntervalSet<Integer> implements Iterable<Integer
 			this.start = start;
 			this.end = end;
 		}
-		
+
 		@Override
-		public String toString(){
+		public String toString() {
 			return "[ " + start + " ] .. [ " + end + " ]";
+		}
+
+		/**Returns a copy of this interval.*/
+		public Interval copy() {
+			return new Interval(start, end);
 		}
 	}
 

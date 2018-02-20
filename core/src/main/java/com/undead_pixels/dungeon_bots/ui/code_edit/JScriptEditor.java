@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AbstractDocument;
@@ -27,7 +26,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.DocumentFilter;
-import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.LayeredHighlighter;
 import javax.swing.text.Position;
@@ -36,7 +34,7 @@ import javax.swing.text.View;
 import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * @author Wesley
@@ -125,10 +123,13 @@ public final class JScriptEditor extends JPanel {
 	public void saveScript() {
 		if (_Script == null)
 			return;
-		_Script.code = _Editor.getText();
-		_Script.locks.clear();
-		for (IntegerSet.Interval interval : _Controller.getHighlightIntervals())
-			_Script.locks.add(interval);
+		try {
+			_Script.code = _Editor.getText();
+			_Script.setLocks(_Controller.getHighlightIntervals());
+		} catch (BadLocationException blex) {
+			System.err.println("Could not save locks to code. " + blex.getMessage());
+		}
+
 	}
 
 	public void setLiveEditing(boolean value) {

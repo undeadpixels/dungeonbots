@@ -2,8 +2,6 @@ package com.undead_pixels.dungeon_bots;
 
 import static org.junit.Assert.*;
 
-import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import org.junit.Test;
 

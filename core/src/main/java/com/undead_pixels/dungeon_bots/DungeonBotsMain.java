@@ -2,13 +2,10 @@ package com.undead_pixels.dungeon_bots;
 
 import com.undead_pixels.dungeon_bots.ui.Login;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
 import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
@@ -23,20 +20,29 @@ public class DungeonBotsMain {
 
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
+
+	/** The World that is currently the focus of displayed screens. */
 	private World _World;
 
-	/** Returns the world currently associated with this game. */
-	public World getWorld() {
-		return _World;
-	}
+	/** The LevelPack from which the current world is drawn. */
+	private LevelPack _LevelPack;
 
+	/** Returns the world currently associated with this game. */
+	// public World getWorld() {
+	// return _World;
+	// }
+
+	/**
+	 * Sets the current world focus for the game. If a screen is currently being
+	 * shown, rebuilds and displays the screen with the new world.
+	 */
 	public void setWorld(World world) {
 		_World = world;
 
 		if (_Screen instanceof GameplayScreen)
-			setCurrentScreen(new GameplayScreen());
+			setCurrentScreen(new GameplayScreen(_World));
 		else if (_Screen instanceof LevelEditorScreen)
-			setCurrentScreen(new LevelEditorScreen());
+			setCurrentScreen(new LevelEditorScreen(_World));
 		else
 			setCurrentScreen(new MainMenuScreen());
 	}
@@ -107,6 +113,25 @@ public class DungeonBotsMain {
 		_Screen.setVisible(true);
 	}
 
+	/**
+	 * Sets the current screen to a GameplayScreen to play the current world.
+	 */
+	public void setGameplayScreen() {
+		setCurrentScreen(new GameplayScreen(_World));
+	}
+
+	/**
+	 * Sets the current screen to a LevelEditorScreen to edit the current world.
+	 */
+	public void setLevelEditorScreen() {
+		setCurrentScreen(new LevelEditorScreen(_World));
+	}
+
+	/** Returns the current level pack. */
+	public LevelPack getLevelPack() {
+		return _LevelPack;
+	}
+
 	/*
 	 * ================================================================
 	 * DungeonBotsMain USER IDENTIFICATION AND SECURITY STUFF
@@ -164,25 +189,11 @@ public class DungeonBotsMain {
 			_Screen.dispose();
 	}
 
-	/*
-	 * ================================================================
-	 * DungeonBotsMain RESOURCE CONTROL
-	 * ================================================================
-	 */
-
-	/** Gets an ImageIcon based on the image at the given location. */
+	@Deprecated
 	public static Image getImage(String filename) {
-		if (filename == null || filename.equals(""))
-			return null;
-		String path = System.getProperty("user.dir") + "/images/" + filename;
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(new File(path));
-		} catch (IOException ioex) {
-			System.err.println("Image resource missing: " + path);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return img;
+		// TODO: can this be deleted?
+		throw new IllegalStateException(
+				"Don't call DungeonBotsMain.getImage... use UIBuilder.getImage instead, it caches images already loaded.");
 	}
+
 }

@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.file;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
@@ -11,11 +13,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 
 /**
  * An object which can function to either serialize an object into a JSON
@@ -28,26 +26,41 @@ public class Serializer {
 
 	public Serializer() {
 		GsonBuilder builder = new GsonBuilder();
+		builder.setPrettyPrinting();
+		
 		builder.serializeNulls();
 		builder.registerTypeAdapter(World.class, worldSerializer);
 		_GsonSerialize = builder.create();
 
 		builder = new GsonBuilder();
 		builder.serializeNulls();
+		
 		builder.registerTypeAdapter(World.class, worldDeserializer);
 		_GsonDeserialize = builder.create();
 	}
 
+	public void writeToFile(String fileName, String json) {
+		
+		FileWriter writer = null;
+		try {
+			writer = new FileWriter(fileName);
+			writer.write(json);
+			writer.flush();
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
 	/** Serialize the given world. */
 	public String Serialize(World world) {
-		UserScript u = new UserScript("script's name", "script's code", SecurityLevel.AUTHOR);
-		u.locks.add(new IntegerSet.Interval(10,15));
-		u.locks.add(new IntegerSet.Interval(20, 25));
-		String test = _GsonSerialize.toJson(u);
-		System.out.println("Done.\n" + test);
-		
-		UserScript v = _GsonDeserialize.fromJson(test, UserScript.class);
-		System.out.println("Deserialized.");
+
+		/*String worldJSON = _GsonSerialize.toJson(world);
+		Tile[][] tiles = world.getTiles();
+		String tilesJSON = _GsonSerialize.toJson(tiles);
+		writeToFile("experiment.json", tilesJSON);
+*/
 		return _GsonSerialize.toJson(world);
 	}
 
@@ -62,7 +75,7 @@ public class Serializer {
 		public JsonElement serialize(World world, Type typeOfSrc, JsonSerializationContext context) {
 			//
 
-			JsonObject obj = new JsonObject();
+			//JsonObject obj = new JsonObject();
 
 			return null;
 		}
@@ -74,7 +87,7 @@ public class Serializer {
 		@Override
 		public World deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
-			JsonObject obj = json.getAsJsonObject();
+			//JsonObject obj = json.getAsJsonObject();
 
 			// TODO Auto-generated method stub
 			return null;

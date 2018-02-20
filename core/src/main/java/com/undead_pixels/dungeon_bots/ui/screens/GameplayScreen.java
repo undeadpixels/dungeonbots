@@ -1,67 +1,58 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowStateListener;
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.util.HashMap;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
-import javax.swing.JDialog;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 /**
  * A screen for gameplay
  */
+@SuppressWarnings("serial")
 public class GameplayScreen extends Screen {
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
+	
+	private World _World;
 
-	private boolean _Changed = false;
+	
+	public GameplayScreen(World world) {
+		super();
+		
+		this._World = world;
+	}
 
 	/**
 	 * On closing the screen, each open editor will also need to be closed.
@@ -118,7 +109,7 @@ public class GameplayScreen extends Screen {
 				case "Rewind":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-						DungeonBotsMain.instance.getWorld().reset();
+						_World.reset();
 					}
 					break;
 				case "Save":
@@ -143,9 +134,6 @@ public class GameplayScreen extends Screen {
 			@Override
 			public void mouseExited(MouseEvent arg0) {
 			}
-
-			private int originX;
-			private int originY;
 
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -242,7 +230,7 @@ public class GameplayScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// At the world at the bottom layer.
-		view = new WorldView(DungeonBotsMain.instance.getWorld());
+		view = new WorldView(_World);
 		view.addMouseListener(getController());
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
@@ -273,7 +261,7 @@ public class GameplayScreen extends Screen {
 		arrowPanel.add(UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "PAN_DOWN", getController()));
 		arrowPanel.add(new JPanel());
 		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
-		Image gridImage = DungeonBotsMain.getImage("grid.gif");
+		Image gridImage = UIBuilder.getImage("grid.gif");
 		JToggleButton tglGrid = (gridImage == null) ? new JToggleButton("Grid")
 				: new JToggleButton(new ImageIcon(gridImage));
 		tglGrid.setActionCommand("TOGGLE_GRID");
@@ -328,7 +316,7 @@ public class GameplayScreen extends Screen {
 	protected void setDefaultLayout() {
 		this.setSize(1024, 768);
 		this.setLocationRelativeTo(null);
-		Image img = DungeonBotsMain.getImage("GamePlayScreen_background.jpg");
+		Image img = UIBuilder.getImage("GamePlayScreen_background.jpg");
 
 		if (img != null) {
 			img = img.getScaledInstance(this.getSize().width, this.getSize().height, Image.SCALE_SMOOTH);

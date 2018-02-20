@@ -1,18 +1,21 @@
-package com.undead_pixels.dungeon_bots.utils.builders;
+package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 
-import javax.swing.Action;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
-import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.libraries.StretchIcon;
 
 public class UIBuilder {
@@ -65,7 +68,7 @@ public class UIBuilder {
 
 		// Set the image if the resource can be found. If it can't set the
 		// contents of the button to the alternative text.
-		Image img = DungeonBotsMain.getImage(imageURL);
+		Image img = UIBuilder.getImage(imageURL);
 		if (img == null)
 			resultButton.setText(actionCommand);
 		else
@@ -119,7 +122,7 @@ public class UIBuilder {
 
 		// Set the image if the resource can be found. If it can't set the
 		// contents of the button to the alternative text.
-		Image img = DungeonBotsMain.getImage(imageURL);
+		Image img = UIBuilder.getImage(imageURL);
 		if (img == null)
 			resultButton.setText(altText);
 		else
@@ -152,5 +155,35 @@ public class UIBuilder {
 
 		return result;
 
+	}
+
+	/**The cached GUI images.*/
+	private static HashMap<String, Image> _Images = new HashMap<String, Image>();
+
+	/**
+	 * Gets an Image based on the image at the given location. Also, caches
+	 * loaded images so that a call to the same image resource will not load it
+	 * twice.
+	 */
+	public static Image getImage(String filename) {
+		if (filename == null || filename.equals(""))
+			return null;
+
+		if (_Images.containsKey(filename))
+			return _Images.get(filename);
+
+		String path = System.getProperty("user.dir") + "/images/" + filename;
+		BufferedImage img = null;
+		try {
+			img = ImageIO.read(new File(path));
+		} catch (IOException ioex) {
+			System.err.println("Image resource missing: " + path);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		_Images.put(filename, img);
+		
+		return img;
 	}
 }

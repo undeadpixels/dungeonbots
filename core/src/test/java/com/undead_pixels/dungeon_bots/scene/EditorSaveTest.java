@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
+import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 
 public class EditorSaveTest {
 
@@ -78,6 +79,8 @@ public class EditorSaveTest {
 		} ).start();
 
 		World w2 = (World) in.readObject();
+		
+		LevelEditorScreen editor = new LevelEditorScreen(w2);
 		
 		out.close();
 	}

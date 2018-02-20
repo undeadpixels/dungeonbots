@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.DefaultListModel;
-
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -23,19 +21,23 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
+@SuppressWarnings("serial")
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable {
 
 	/**
 	 * The script associated with this entity. Access to this collection is
-	 * thread-safe and synchronized (though I've never actually concurrency
+	 * thread-safe and synchronized (though I've never actually concurrency-
 	 * tested the Collections.synchronizedList() function).
 	 */
-	public List<UserScript> userScripts = Collections.synchronizedList(new ArrayList<UserScript>());
+	public List<UserScript> eventScripts = Collections.synchronizedList(new ArrayList<UserScript>());
 
 	/**
 	 * A user sandbox that is run on this object
 	 */
 	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+
+	// TODO: WO - a separate sandbox for players' events to run in?
+	protected transient LuaSandbox player_accessible_sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
 
 	/**
 	 * A string representing this Entity's script (if any)
@@ -75,21 +77,19 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.name = name;
 		this.id = world.makeID();
 		this.sandbox.addBindable(this);
-		this.userScripts.add(new UserScript("onMyTurn",
-				"--The default script:\n"
-						+ "print(\"This is a UserScript created during this entity's constructor.\")  \n"
-						+ "print(\"In the future, there could be many scripts that are run, scripts \") \n"
-						+ "print(\"which inherit from the UserScript class and have defineable \") \n"
-						+ "print(\"execution preconditions (things like a monster is close or whatever). \") \n"
-						+ "print(\"For now, this should always run every time through the game loop.\")",
-				SecurityLevel.DEFAULT));
+		this.eventScripts.add(new UserScript("onMyTurn", "--Do nothing", SecurityLevel.DEFAULT));
 	}
 
+	/**
+	 * Returns the Lua sandbox wherein this entity's scripts will execute. WO: a
+	 * distinct sandbox implemented for the player's scripts?
+	 */
 	@Override
 	public LuaSandbox getSandbox() {
 		return sandbox;
 	}
 
+	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
 		// TODO - sandbox.resume();
@@ -122,7 +122,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public abstract Point2D.Float getPosition();
 
 	/**
-	 * @return If this object disallows movement through it
+	 * Derived classes must implement.
+	 * 
+	 * @return If this object disallows movement through it.
 	 */
 	public abstract boolean isSolid();
 
@@ -149,18 +151,25 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return world;
 	}
 
-	@Override
-	public int getId() {
+	/**
+	 * Returns an ID number associated with this entity. The ID number should
+	 * not be user-facing.
+	 */
+	public final int getId() {
 		return this.id;
 	}
 
-	@Override
-	public String getName() {
+	/** Returns the name of this entity. */
+	public final String getName() {
 		return this.name;
 	}
 
+	// WO: is this used by anything? I think view scaling was implemented at
+	// world level.
+	@Deprecated
 	public abstract float getScale();
 
+	// WO: a part of serialization?
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		sandbox = new LuaSandbox(SecurityLevel.DEFAULT);

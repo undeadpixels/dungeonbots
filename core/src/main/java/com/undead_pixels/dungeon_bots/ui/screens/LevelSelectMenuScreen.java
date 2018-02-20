@@ -5,6 +5,7 @@ import java.awt.Container;
 /**
  * The screen where a user selects what level/pack they want to play
  */
+@SuppressWarnings("serial")
 public class LevelSelectMenuScreen extends Screen {
 
 	@Override

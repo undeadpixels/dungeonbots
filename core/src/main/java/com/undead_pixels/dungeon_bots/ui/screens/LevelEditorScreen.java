@@ -39,16 +39,15 @@ import javax.swing.event.ChangeEvent;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
-import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
+//import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
-
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 /**
  * The screen for the level editor
@@ -62,18 +61,19 @@ public class LevelEditorScreen extends Screen {
 	/**
 	 * The view
 	 */
-	private WorldView view;
-	private World world;
+	private WorldView _View;
+	private World _World;
 	private JList<Object> _PaletteSelector;
 
 	/**
 	 * Current state. Used to update the world and write to file.
 	 */
-	private GameEditorState state;
+	//private GameEditorState state;
 
-	public LevelEditorScreen() {
+	public LevelEditorScreen(World world) {
 		super();
-		world = DungeonBotsMain.instance.getWorld();
+		// world = DungeonBotsMain.instance.getWorld();
+		this._World = world;
 
 		DefaultListModel<Object> lm = new DefaultListModel<Object>();
 		for (TileType t : world.getTileTypes())
@@ -82,7 +82,7 @@ public class LevelEditorScreen extends Screen {
 		_PaletteSelector.validate();
 		// TODO: add other types of elements.
 
-		view.addMouseMotionListener(getController());
+		_View.addMouseMotionListener(getController());
 
 	}
 
@@ -96,8 +96,8 @@ public class LevelEditorScreen extends Screen {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 1) {
 					// Draw to the world?
-					if (e.getSource() == view) {
-						if (world == null)
+					if (e.getSource() == _View) {
+						if (_World == null)
 							return;
 						Object selection = _PaletteSelector.getSelectedValue();
 						if (selection == null)
@@ -106,15 +106,15 @@ public class LevelEditorScreen extends Screen {
 							TileType drawType = (TileType) selection;
 							// TileType currentTile = world.getTile(e.getX(),
 							// e.getY());
-							Point2D.Float gameCoords = view.getScreenToGameCoords(e.getX(), e.getY());
-							world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
+							Point2D.Float gameCoords = _View.getScreenToGameCoords(e.getX(), e.getY());
+							_World.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 						}
 						e.consume();
 					}
 				} else if (e.getClickCount() == 2) {
 					if (e.getClickCount() == 2) {
-						Point2D.Float gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
-						Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
+						Point2D.Float gamePosition = _View.getScreenToGameCoords(e.getX(), e.getY());
+						Entity entity = _View.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 						if (entity == null)
 							return;
 						JEntityEditor.create(LevelEditorScreen.this, entity, SecurityLevel.AUTHOR, "Entity Editor");
@@ -126,8 +126,8 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (e.getSource() == view) {
-					if (world == null)
+				if (e.getSource() == _View) {
+					if (_World == null)
 						return;
 					Object selection = _PaletteSelector.getSelectedValue();
 					if (selection == null)
@@ -137,8 +137,8 @@ public class LevelEditorScreen extends Screen {
 						TileType drawType = (TileType) selection;
 						// TileType currentTile = world.getTile(e.getX(),
 						// e.getY());
-						Point2D.Float gameCoords = view.getCamera().unproject((float) e.getX(), (float) e.getY());
-						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
+						Point2D.Float gameCoords = _View.getCamera().unproject((float) e.getX(), (float) e.getY());
+						_World.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
 					e.consume();
 				}
@@ -155,7 +155,7 @@ public class LevelEditorScreen extends Screen {
 					if (_CurrentFile == null)
 						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 					if (_CurrentFile != null) {
-						String lua = world.getMapScript();
+						String lua = _World.getMapScript();
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
 							writer.write(lua);
 						} catch (IOException e1) {
@@ -167,7 +167,7 @@ public class LevelEditorScreen extends Screen {
 				case "Save As":
 					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 					if (saveFile != null) {
-						String lua = world.getMapScript();
+						String lua = _World.getMapScript();
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
 							writer.write(lua);
 						} catch (IOException e1) {
@@ -199,7 +199,7 @@ public class LevelEditorScreen extends Screen {
 						if (_CurrentFile == null)
 							_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 						if (_CurrentFile != null) {
-							String lua = world.getMapScript();
+							String lua = _World.getMapScript();
 							try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
 								writer.write(lua);
 							} catch (IOException e1) {
@@ -226,7 +226,7 @@ public class LevelEditorScreen extends Screen {
 				if (e.getSource() instanceof JSlider) {
 					JSlider sldr = (JSlider) e.getSource();
 					if (sldr.getName().equals("zoomSlider")) {
-						OrthographicCamera cam = view.getCamera();
+						OrthographicCamera cam = _View.getCamera();
 						if (cam != null) {
 							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
 						}
@@ -316,8 +316,8 @@ public class LevelEditorScreen extends Screen {
 
 	protected void export() {
 		System.out.println("Serializing...");
-		Serializer s = new Serializer();		
-		String json = s.Serialize(world);
+		Serializer s = new Serializer();
+		String json = s.Serialize(_World);
 		System.out.println(json);
 	}
 
@@ -352,10 +352,10 @@ public class LevelEditorScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
-		view = new WorldView(DungeonBotsMain.instance.getWorld());
-		view.addMouseListener(getController());
-		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
-		view.setOpaque(false);
+		_View = new WorldView(_World);
+		_View.addMouseListener(getController());
+		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
+		_View.setOpaque(false);
 
 		// The draw type combobox.
 		JComboBox<String> brushBox = new JComboBox<String>();
@@ -397,9 +397,8 @@ public class LevelEditorScreen extends Screen {
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK), 0,
 				getController()));
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Export",
-				KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK), KeyEvent.VK_E,
-				getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
+				KeyEvent.VK_E, getController()));
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Exit to Main",
 				KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK), KeyEvent.VK_X, getController()));
@@ -447,7 +446,7 @@ public class LevelEditorScreen extends Screen {
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(menuBar, BorderLayout.PAGE_START);
-		pane.add(view, BorderLayout.CENTER);
+		pane.add(_View, BorderLayout.CENTER);
 
 	}
 
@@ -455,7 +454,7 @@ public class LevelEditorScreen extends Screen {
 	protected void setDefaultLayout() {
 		this.setSize(1024, 768);
 		this.setLocationRelativeTo(null);
-		Image img = DungeonBotsMain.getImage("LevelEditorScreen_background.jpg");
+		Image img = UIBuilder.getImage("LevelEditorScreen_background.jpg");
 
 		if (img != null) {
 			img = img.getScaledInstance(this.getSize().width, this.getSize().height, Image.SCALE_SMOOTH);

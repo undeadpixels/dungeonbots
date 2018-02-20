@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+@SuppressWarnings("serial")
 public class CommunityScreen extends Screen {
 
 	public static final URI homeURI;

@@ -9,24 +9,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * The menu where users select Play, Create, or Community
@@ -42,10 +35,10 @@ public class MainMenuScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "PLAY":
-					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen());
+					DungeonBotsMain.instance.setGameplayScreen();					
 					break;
 				case "CREATE":
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
+					DungeonBotsMain.instance.setLevelEditorScreen();					
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new
@@ -198,7 +191,7 @@ public class MainMenuScreen extends Screen {
 		pane.add(Box.createHorizontalGlue());
 
 		// Some key bindings to make it easier.
-		JRootPane rootPane = this.getRootPane();
+		//JRootPane rootPane = this.getRootPane();
 
 	}
 
@@ -206,7 +199,7 @@ public class MainMenuScreen extends Screen {
 	protected void setDefaultLayout() {
 		this.setSize(640, 480);
 		this.setLocationRelativeTo(null);
-		Image img = DungeonBotsMain.getImage("dungeon_room.jpg");
+		Image img = UIBuilder.getImage("dungeon_room.jpg");
 
 		if (img != null) {
 			img = img.getScaledInstance(this.getSize().width, this.getSize().height, Image.SCALE_SMOOTH);

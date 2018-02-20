@@ -1,18 +1,14 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -23,7 +19,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
@@ -31,19 +26,16 @@ import javax.swing.event.ListSelectionListener;
 
 import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
-import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 
 /**
  * A GUI object whose purpose is to give users a way to change the contents of
  * an entity, including any associated scripts.
  */
+@SuppressWarnings("serial")
 public final class JEntityEditor extends JPanel {
 
 	private static final HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
@@ -111,7 +103,7 @@ public final class JEntityEditor extends JPanel {
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
 		JButton bttnReset = UIBuilder.makeButton("", "Reset the entity characteristics.", "RESET", _Controller);
 		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "SAVE", _Controller);
-		JButton bttnCancel = UIBuilder.makeButton("", "Cancel without saving changes.", "CANCEL", _Controller);
+		JButton bttnClose = UIBuilder.makeButton("", "Close without saving changes.", "CLOSE", _Controller);
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -120,7 +112,7 @@ public final class JEntityEditor extends JPanel {
 				// Invoke later because there will be no containing parent at
 				// construction time.
 				if (getContainingDialog() != null)
-					bttnPanel.add(bttnCancel);
+					bttnPanel.add(bttnClose);
 			}
 		});
 
@@ -153,7 +145,7 @@ public final class JEntityEditor extends JPanel {
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
 		_ScriptList.clear();
-		for (UserScript u : _Entity.userScripts)
+		for (UserScript u : _Entity.eventScripts)
 			_ScriptList.addElement(u.copy());
 	}
 
@@ -162,11 +154,11 @@ public final class JEntityEditor extends JPanel {
 	 * GUI.
 	 */
 	public void save() {
-		_Entity.userScripts.clear();
+		_Entity.eventScripts.clear();
 		_Editor.saveScript();
 		for (int i = 0; i < _ScriptList.getSize(); i++) {		
 			UserScript script = _ScriptList.get(i);
-			_Entity.userScripts.add(script);
+			_Entity.eventScripts.add(script);
 		}
 	}
 
@@ -196,7 +188,7 @@ public final class JEntityEditor extends JPanel {
 			case "SAVE":
 				save();
 				break;
-			case "CANCEL":
+			case "CLOSE":
 				JDialog dialog = getContainingDialog();
 				if (dialog != null)
 					dialog.dispose();

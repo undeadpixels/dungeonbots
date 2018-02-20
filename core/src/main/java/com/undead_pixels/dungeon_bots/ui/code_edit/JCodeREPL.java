@@ -9,19 +9,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -29,7 +25,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -44,21 +39,21 @@ import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
+@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
-	private final int MAX_HISTORY_COUNT = 100;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	private boolean _IsExecuting;
+	//private boolean _IsExecuting;
 
 	private LuaInvocation _RunningScript = null;
 
@@ -121,7 +116,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_CancelBttn.setFocusable(false);
 		_CancelBttn.setEnabled(false);
 		_CancelBttn.setPreferredSize(new Dimension(30, 40));
-		JButton helpBttn = UIBuilder.makeButton("", "Get help", "HELP", this);
+		//JButton helpBttn = UIBuilder.makeButton("", "Get help", "HELP", this);
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
@@ -140,7 +135,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 	/** Binds the CTRL+Enter key to execute the code. */
-	@SuppressWarnings("serial")
 	private void addKeyBindings() {
 
 		InputMap inputMap = _EditorPane.getInputMap();
@@ -206,7 +200,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					_EditorPane.setText("");
 				}
 			}
-
 		});
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
@@ -256,25 +249,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return result;
 	}
 
-	/*
-	 * public static JButton makeButton(String imageURL, String actionCommand,
-	 * String toolTipText, String altText, ActionListener l) {
-	 * 
-	 * JButton resultButton = new JButton();
-	 * resultButton.setActionCommand(actionCommand);
-	 * resultButton.setToolTipText(toolTipText);
-	 * resultButton.setToolTipText(toolTipText);
-	 * 
-	 * resultButton.addActionListener(l);
-	 * 
-	 * URL url = JCodeREPL.class.getResource(imageURL); if (url != null) {
-	 * resultButton.setIcon(new ImageIcon(url, altText)); } else {
-	 * resultButton.setText(altText); System.err.
-	 * println("Resource was missing.  Attempted to created button with image at "
-	 * + imageURL + ".  Using altText '" + altText + "' as image instead."); }
-	 * 
-	 * return resultButton; }
-	 */
+	
 
 	/*
 	 * ================================================================
@@ -314,10 +289,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * background thread.
 	 */
 	public LuaInvocation execute(long executionTime) {
-		//if (_RunningScript != null) {
-		//	messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-		//	return null;
-		//}
+		
 		setIsExecuting(true);
 		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
 
@@ -408,7 +380,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private void setIsExecuting(boolean value) {
 		//if (_IsExecuting == value)
 		//	throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
-		_IsExecuting = value;
+		//_IsExecuting = value;
 		_CancelBttn.setEnabled(value);
 		_ExecuteBttn.setEnabled(!value);
 
