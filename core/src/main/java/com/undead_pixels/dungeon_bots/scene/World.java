@@ -23,6 +23,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
@@ -62,6 +63,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/** The sandbox that the levelScript runs inside of */
 	private transient LuaSandbox mapSandbox;
+
+	/** The level pack of which this World is a part. */
+	private transient LevelPack levelPack = null;
 
 	/** The of this world (may be user-readable) */
 	private String name = "world";
@@ -188,6 +192,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	private void worldSomewhatInit() {
+		// TODO: "somewhat" init?
 		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
 		AssetManager.finishLoading();
 
@@ -230,7 +235,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 *
+	 * Gets the object of class Player that exists in the Lua sandbox and sets
+	 * the World's player reference to that.
+	 * 
 	 * @param luaPlayer
 	 */
 	@Bind(SecurityLevel.AUTHOR)
@@ -239,10 +246,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		setPlayer(p);
 	}
 
+	// =============================================
+	// ====== World GAME LOOP
+	// =============================================
+
 	// TODO - another constructor for specific resource paths?
 
 	/**
-	 * Updates this world and all children
+	 * Updates this world and all children. Update means.... ?
 	 * 
 	 * @param dt
 	 *            Delta time

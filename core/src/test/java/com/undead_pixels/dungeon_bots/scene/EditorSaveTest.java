@@ -90,7 +90,6 @@ public class EditorSaveTest {
 		out.close();
 
 		validateReflectedEquality(w1, w2, filename + " world", false, true);
-
 	}
 
 	/**
