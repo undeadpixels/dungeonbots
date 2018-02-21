@@ -19,8 +19,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -38,6 +40,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
@@ -60,8 +64,6 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 @SuppressWarnings("serial")
 public class LevelEditorScreen extends Screen {
 
-	
-	
 	/** The view */
 	private WorldView _View;
 
@@ -69,7 +71,10 @@ public class LevelEditorScreen extends Screen {
 	private JList<TileType> _TilePalette;
 
 	/** The visual list of entities available for dropping in the editor. */
-	private JList<Entity> _EntityPalette;
+	private JList<EntityType> _EntityPalette;
+
+	/** The standard entity types. */
+	private EntityType[] _EntityTypes = new EntityType[] { new EntityType("bot"), new EntityType("goal") };
 
 	public LevelEditorScreen(World world) {
 		super(world);
@@ -79,7 +84,9 @@ public class LevelEditorScreen extends Screen {
 			lm.addElement(t);
 		_TilePalette.setModel(lm);
 
-		DefaultListModel<Entity> em = new DefaultListModel<Entity>();
+		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
+		for (EntityType e : _EntityTypes)
+			em.addElement(e);
 		_EntityPalette.setModel(em);
 
 	}
@@ -130,7 +137,7 @@ public class LevelEditorScreen extends Screen {
 					Object selection = _TilePalette.getSelectedValue();
 					if (selection == null)
 						return;
-					if (selection instanceof TileType) {						
+					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
 						Point2D.Float gameCoords = _View.getCamera().unproject((float) e.getX(), (float) e.getY());
 						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
@@ -267,7 +274,7 @@ public class LevelEditorScreen extends Screen {
 			}
 
 			@Override
-			public void windowClosed(WindowEvent e) {				
+			public void windowClosed(WindowEvent e) {
 			}
 
 			@Override
@@ -311,12 +318,12 @@ public class LevelEditorScreen extends Screen {
 			return lbl;
 		}
 	};
-	private static ListCellRenderer<Entity> _EntityItemRenderer = new ListCellRenderer<Entity>() {
+	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
 		@Override
-		public Component getListCellRendererComponent(JList<? extends Entity> list, Entity item, int index,
+		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType item, int index,
 				boolean isSelected, boolean cellHasFocus) {
 			JLabel lbl = new JLabel();
-			lbl.setText(item.toString());
+			lbl.setText(item.name);
 			if (isSelected || cellHasFocus)
 				lbl.setForeground(Color.red);
 			return lbl;
@@ -326,9 +333,10 @@ public class LevelEditorScreen extends Screen {
 
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
+			System.out.println(e.getFirstIndex() + " to " + e.getLastIndex());
 			if (e.getValueIsAdjusting())
 				return;
-			System.out.println(e.getFirstIndex() + " to " + e.getLastIndex());
+			
 		}
 
 	};
@@ -364,7 +372,7 @@ public class LevelEditorScreen extends Screen {
 
 		// Create the entity palette, but again don't add elements. That occurs
 		// elsewhere.
-		_EntityPalette = new JList<Entity>();
+		_EntityPalette = new JList<EntityType>();
 		_EntityPalette.setCellRenderer(_EntityItemRenderer);
 		_EntityPalette.setPreferredSize(new Dimension(150, 600));
 		_EntityPalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -373,15 +381,10 @@ public class LevelEditorScreen extends Screen {
 				false);
 
 		JPanel controlPanel = new JPanel();
-		controlPanel.setLayout(new BorderLayout());
-		controlPanel.add(tilesCollapser, BorderLayout.CENTER);
-		controlPanel.add(entitiesCollapser, BorderLayout.PAGE_END);
-
-		// controlPanel.add(brushBoxContainer, BorderLayout.PAGE_START);
-		// controlPanel.add(new JLabel("Game position:"));
-		// controlPanel.add(new JLabel("Associated World scripts:"));
-		// controlPanel.add(new JLabel("Associated lines of code:"));
-		// controlPanel.add(new JLabel("Queue size:"));
+		controlPanel.setFocusable(false);
+		controlPanel.setLayout(new VerticalLayout());
+		controlPanel.add(tilesCollapser);
+		controlPanel.add(entitiesCollapser);
 
 		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
