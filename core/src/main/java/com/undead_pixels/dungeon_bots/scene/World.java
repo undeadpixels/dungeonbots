@@ -54,28 +54,27 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// private String levelScript;
 	private UserScript levelScript;
 
-	/**
-	 * The LuaBindings to the World Lazy initialized
-	 */
+	/** TODO: a script to be called when win() is invoked. */
+	private UserScript onWinScript;
+
+	/** The LuaBindings to the World Lazy initialized */
 	private transient LuaValue luaValue;
 
-	/**
-	 * The sandbox that the levelScript runs inside of
-	 */
+	/** The sandbox that the levelScript runs inside of */
 	private transient LuaSandbox mapSandbox;
 
-	/**
-	 * The of this world (may be user-readable)
-	 */
+	/** The of this world (may be user-readable) */
 	private String name = "world";
+
+	// =============================================
+	// ====== World CTOR AND STARTUP STUFF
+	// =============================================
 
 	// =============================================
 	// ====== World TILE MANAGEMENT STUFF
 	// =============================================
 
-	/**
-	 * A background image for this world
-	 */
+	/** A background image for this world */
 	private TextureRegion backgroundImage;
 
 	/**
@@ -84,39 +83,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private Tile[][] tiles;
 
-	/**
-	 * The collection of available TileType's
-	 */
+	/** The collection of available TileType's */
 	private TileTypes tileTypesCollection;
 
-	/**
-	 * Indication of if the tile array needs to be refreshed
-	 */
+	/** Indication of if the tile array needs to be refreshed */
 	private transient boolean tilesAreStale = true;
 
-	/**
-	 * Collection of all entities in this world
-	 */
+	/** Collection of all entities in this world */
 	private ArrayList<Entity> entities = new ArrayList<>();
 
-	/**
-	 * The player object
-	 */
+	// TODO: Is it worthwhile to have a ref to player object? Isn't it just an
+	// entity among the other entities?
+	/** The player object */
 	@State
 	private Player player;
 
+	// TODO: specify the goal position with a goal entity?
 	private Integer[] goalPosition = new Integer[] {};
 
-	/**
-	 * WO: for performance stats reporting?
-	 */
+	/** WO: for performance stats reporting? */
 	@State
 	private int timesReset = 0;
 
 	/**
 	 * An id counter, used to hand out id's to entities TODO - see if this
-	 * conflicts with anything Stewart is doing.
-	 * WO:  for now, this can be transient?
+	 * conflicts with anything Stewart is doing. WO: for now, this can be
+	 * transient?
 	 */
 	private transient int idCounter = 0;
 
@@ -185,6 +177,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
 			levelScript = new UserScript("init", initScript.getScript());
+			onWinScript = new UserScript("onWin", "--do nothing.", SecurityLevel.AUTHOR);
 			// levelScript = initScript.getScript();
 			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
 			level = new Level(initScript.getResults().get(), mapSandbox);
@@ -211,6 +204,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 	}
 
+	// =============================================
+	// ====== World BINDABLE METHODS
+	// =============================================
+
 	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
 	public static LuaValue newWorld() {
@@ -220,7 +217,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 *
+	 * Instantly causes win to occur.
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
@@ -229,7 +226,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void setPlayer(Player p) {
 		player = p;
-		//entities.add(p);
+		// entities.add(p);
 	}
 
 	/**
@@ -559,7 +556,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            Location Y, in tiles
 	 */
 	public void didLeaveTile(Entity e, int x, int y) {
-		// TODO
+		// TODO: what is this?
 	}
 
 	/**
@@ -575,11 +572,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		for (Entity e : entities) {
 			Point2D.Float p = e.getPosition();
 
-			if (x < p.x || x > p.x + 1) {
+			if (x < p.x || x >= p.x + 1) {
 				continue;
 			}
 
-			if (y < p.y || y > p.y + 1) {
+			if (y < p.y || y >= p.y + 1) {
 				continue;
 			}
 

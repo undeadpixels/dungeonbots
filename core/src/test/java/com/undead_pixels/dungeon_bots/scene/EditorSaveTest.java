@@ -63,12 +63,12 @@ public class EditorSaveTest {
 
 	@Test
 	public void testSerializeWorld() throws IOException, ClassNotFoundException {
-		testWorldFileScript("level1.lua");
-		testWorldFileScript("maze1.lua");
-		testWorldFileScript("maze2.lua");
+		testWorldMadeFromScript("level1.lua");
+		testWorldMadeFromScript("maze1.lua");
+		testWorldMadeFromScript("maze2.lua");
 	}
 
-	private static void testWorldFileScript(String filename) throws IOException, ClassNotFoundException {
+	private static void testWorldMadeFromScript(String filename) throws IOException, ClassNotFoundException {
 
 		World w1 = new World(new File(filename));
 

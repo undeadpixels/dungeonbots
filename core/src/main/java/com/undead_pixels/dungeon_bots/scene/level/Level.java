@@ -4,7 +4,17 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxedValue;
 import org.luaj.vm2.Varargs;
 
+
+/**
+ * This is deprecated because a "World" has been containing the concept of the
+ * level.
+ */
+@Deprecated
 public final class Level {
+
+	// TODO: The "World" appears to have swallowed up the concepts that we had
+	// thought of as a "Level". Is there any use to maintaining them separately?
+	
 	private final SandboxedValue sandboxedValue;
 
 	public Level(Varargs varargs, LuaSandbox luaSandbox) {
@@ -12,8 +22,7 @@ public final class Level {
 	}
 
 	public Level init() {
-		sandboxedValue.invoke(varargs ->
-			varargs.checktable(1).get("init").invoke());
+		sandboxedValue.invoke(varargs -> varargs.checktable(1).get("init").invoke());
 		return this;
 	}
 
