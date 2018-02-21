@@ -9,11 +9,8 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.*;
 /**
@@ -33,7 +30,7 @@ public class LuaSandbox {
 	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	private final BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
-	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
+	private final Set<Consumer<String>> outputEventListeners = new HashSet<>();
 
 	/**
      * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -268,8 +265,8 @@ public class LuaSandbox {
 			return script;
 	}
 
-	public void addOutputEventListener(Consumer<String> fn) {
-			outputEventListeners.add(fn);
+	public void addOutputEventListener(Consumer<String> outputConsumer) {
+			outputEventListeners.add(outputConsumer);
 	}
 
 	public String getOutput() {
@@ -309,5 +306,9 @@ public class LuaSandbox {
 
 	public PrintFunction getPrintFunction() {
 		return new PrintFunction();
+	}
+
+	public void resetOutput() {
+		outputStream.reset();
 	}
 }

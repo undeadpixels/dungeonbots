@@ -15,8 +15,9 @@ import static java.lang.String.*;
 public class ScriptApiTest {
 
 	private final double EPSILON = 0.00001;
-	private boolean eventCalled = false;
-    @Test public void testGetBindings() {
+	private volatile boolean eventCalled = false;
+
+	@Test public void testGetBindings() {
         Player player = new Player(new World(), "player");
         LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
         se.addBindable(player);
@@ -371,8 +372,7 @@ public class ScriptApiTest {
 		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
 	}
 
-	@Test
-	public void testGetAndUseUserData() {
+	@Test public void testGetAndUseUserData() {
     	World w = new World("world");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindable(w)
@@ -393,20 +393,16 @@ public class ScriptApiTest {
 		Assert.assertEquals(2.0, ans.arg(2).todouble(), EPSILON);
 	}
 
-	@Test
-	public void testReadOnlyTables() {
+	@Test public void testReadOnlyTables() {
 		World world = new World("w");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindable(world)
 				.addBindableClass(Player.class);
-
 		LuaInvocation script = se.init("p = Player.new(w,1.0,1.0); p.this = nil; return p;").join();
-		//Assert.assertEquals(ScriptStatus.LUA_ERROR, script.getStatus());
 		Assert.assertTrue(script.getError().getMessage().contains("Attempt to update readonly table"));
 	}
 
-	@Test
-	public void testPrintFunction() {
+	@Test public void testPrintFunction() {
     	LuaSandbox luaSandbox = new LuaSandbox();
     	LuaInvocation script = luaSandbox.init("print('Hello World')");
     	script.join();
@@ -415,22 +411,19 @@ public class ScriptApiTest {
     	Assert.assertEquals(output, "Hello World");
 	}
 
-	@Test
-	public void testPrintEventListener() {
+	@Test public void testPrintEventListener() {
     	eventCalled = false;
     	LuaSandbox luaSandbox = new LuaSandbox();
 		final String expected = "Hello World";
 		luaSandbox.addOutputEventListener((s) -> {
 			eventCalled = true;
-			Assert.assertEquals(s, expected);
-		});
+			Assert.assertEquals(s, expected); });
 		LuaInvocation script = luaSandbox.init(String.format("print('%s')", expected));
 		script.join();
 		Assert.assertTrue(eventCalled);
 	}
 
-	@Test
-	public void testPrintfFunction() {
+	@Test public void testPrintfFunction() {
 		LuaSandbox luaSandbox = new LuaSandbox();
 		LuaInvocation script = luaSandbox.init("printf('Hello %s', 'World')");
 		script.join();
@@ -439,15 +432,13 @@ public class ScriptApiTest {
 		Assert.assertEquals(output, "Hello World");
 	}
 
-	@Test
-	public void testPrintfEventListener() {
+	@Test public void testPrintfEventListener() {
 		eventCalled = false;
 		LuaSandbox luaSandbox = new LuaSandbox();
 		final String expected = "Hello World";
 		luaSandbox.addOutputEventListener((s) -> {
 			eventCalled = true;
-			Assert.assertEquals(s, expected);
-		});
+			Assert.assertEquals(s, expected); });
 		LuaInvocation script = luaSandbox.init("printf('Hello ', 'World')");
 		script.join();
 		Assert.assertTrue(eventCalled);
