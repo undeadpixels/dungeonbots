@@ -59,19 +59,19 @@ public class TestWhitelist {
 		LuaSandbox scriptEnvironment = a.getSandbox();
 		scriptEnvironment.addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
-		Optional<Method> m = getMethodWithName(a, "up");
+		Optional<Method> m = getMethodWithName(a, "queueUp");
 		Assert.assertTrue(m.isPresent() && w.onWhitelist(a, m.get()));
 
-		LuaInvocation luaScript = scriptEnvironment.init("test.up()").join();
+		LuaInvocation luaScript = scriptEnvironment.init("test.queueUp()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		a.getWorld().setSize(16,16);
 		a.getWorld().update(1.0f);
 		Assert.assertEquals( 1.0, a.getPosition().y, 0.001);
 
 		w.remove(a, m.get());
-		luaScript = scriptEnvironment.init("test.up()").join();
+		luaScript = scriptEnvironment.init("test.queueUp()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
-		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
+		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'queueUp' has not been whitelisted"));
 	}
 
 	@Test public void testAddToWhitelist() {
@@ -79,14 +79,14 @@ public class TestWhitelist {
 		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.NONE).addBindable(a);
 		Whitelist w = scriptEnvironment.getWhitelist();
 
- 		LuaInvocation luaScript = scriptEnvironment.init("test.up()").join();
+ 		LuaInvocation luaScript = scriptEnvironment.init("test.queueUp()").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
-		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'up' has not been whitelisted"));
+		Assert.assertTrue(luaScript.getError().getMessage().contains("Method 'queueUp' has not been whitelisted"));
 
-		Optional<Method> m = getMethodWithName(a, "up");
+		Optional<Method> m = getMethodWithName(a, "queueUp");
 		assert m.isPresent();
 		w.add(a, m.get());
-		luaScript = scriptEnvironment.init("test.up()").join();
+		luaScript = scriptEnvironment.init("test.queueUp()").join();
 		a.getWorld().setSize(16,16);
 		a.getWorld().update(1.f);
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);

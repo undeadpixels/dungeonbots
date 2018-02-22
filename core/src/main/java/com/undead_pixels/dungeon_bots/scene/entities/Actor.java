@@ -104,8 +104,9 @@ public class Actor extends SpriteEntity {
 	 * Enqueues an action to the action queue that directs the Actor to
 	 * move in the provided direction
 	 * @param dir The direction to move
+	 * @param blocking 
 	 */
-	public void queueMoveSlowly(Direction dir) {
+	public void queueMoveSlowly(Direction dir, boolean blocking) {
 		int dx = 0, dy = 0;
 
 		switch (dir) {
@@ -144,7 +145,7 @@ public class Actor extends SpriteEntity {
 			
 		};
 
-		Action fail1 = new SpriteAnimatedAction(sprite, .1f) {
+		Action fail1 = new SpriteAnimatedAction(sprite, .2f) {
 			public boolean preAct() {
 				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
 				return true;
@@ -157,7 +158,25 @@ public class Actor extends SpriteEntity {
 			}
 		};
 		Action moveFailAction = new SequentialActions(fail1, fail2);
+		
+		while(blocking && !actionQueue.isEmpty()) {
+			try {
+				Thread.sleep(1);//FIXME
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
+
+		while(blocking && !actionQueue.isEmpty()) {
+			try {
+				Thread.sleep(1);//FIXME
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 	}
 	
 	public void addText(String text) {
@@ -189,7 +208,7 @@ public class Actor extends SpriteEntity {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
-	private Actor moveAmt(Varargs amt, Direction direction) {
+	private Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
 		int SIZE = amt.narg();
 		int n;
 		if (SIZE < 2)
@@ -197,7 +216,7 @@ public class Actor extends SpriteEntity {
 		else
 			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
-			this.queueMoveSlowly(direction);
+			this.queueMoveSlowly(direction, blocking);
 		return this;
 	}
 
@@ -209,7 +228,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor up(Varargs amt) {
-		return moveAmt(amt, Direction.UP);
+		return moveAmt(amt, Direction.UP, true);
 	}
 
 	/**
@@ -220,7 +239,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor down(Varargs amt) {
-		return moveAmt(amt, Direction.DOWN);
+		return moveAmt(amt, Direction.DOWN, true);
 	}
 
 	/**
@@ -231,7 +250,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor left(Varargs amt) {
-		return moveAmt(amt, Direction.LEFT);
+		return moveAmt(amt, Direction.LEFT, true);
 	}
 
 	/**
@@ -242,7 +261,52 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor right(Varargs amt) {
-		return moveAmt(amt, Direction.RIGHT);
+		return moveAmt(amt, Direction.RIGHT, true);
+	}
+
+
+	/**
+	 * Moves the player UP
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueUp(Varargs amt) {
+		return moveAmt(amt, Direction.UP, false);
+	}
+
+	/**
+	 * Moves the player DOWN
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueDown(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN, false);
+	}
+
+	/**
+	 * Moves the player LEFT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueLeft(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT, false);
+	}
+
+	/**
+	 * Moves the player RIGHT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueRight(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT, false);
 	}
 
 	/**
