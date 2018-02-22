@@ -204,7 +204,8 @@ public class UIBuilder {
 	 * Creates a menu item with the given header, that responds to the given
 	 * accelerator and mnemonic. The accelerator is a key chord that will invoke
 	 * the item even if the menu is not open. The mnemonic is the underlined
-	 * letter of a menu item.
+	 * letter of a menu item. The command conveyed to the listener will be the
+	 * header.
 	 */
 	public static JMenuItem makeMenuItem(String header, KeyStroke accelerator, int mnemonic, ActionListener listener) {
 		JMenuItem result = new JMenuItem(header);
@@ -220,7 +221,14 @@ public class UIBuilder {
 		result.addActionListener(listener);
 
 		return result;
+	}
 
+	/**
+	 * Creates a menu item with the given header. The command conveyed to the
+	 * listener will be the header.
+	 */
+	public static JMenuItem makeMenuItem(String header, ActionListener listener) {
+		return makeMenuItem(header, null, 0, listener);
 	}
 
 	/**
@@ -243,13 +251,13 @@ public class UIBuilder {
 		JXCollapsiblePane collapser = new JXCollapsiblePane();
 		collapser.setContentPane(content);
 		collapser.setCollapsed(isCollapsed);
-		//collapser.setPreferredSize(new Dimension(100, 400));
+		// collapser.setPreferredSize(new Dimension(100, 400));
 
 		JLabel lbl = new JLabel();
 		lbl.setText(isCollapsed ? closedText : openText);
 		JToggleButton toggler = makeToggleButton("", toolTip, "", "TOGGLE", new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {				
+			public void actionPerformed(ActionEvent arg0) {
 				if (!arg0.getActionCommand().equals("TOGGLE"))
 					return;
 				collapser.setCollapsed(!collapser.isCollapsed());
@@ -269,16 +277,16 @@ public class UIBuilder {
 		result.setLayout(new BorderLayout());
 		result.add(header, BorderLayout.PAGE_START);
 		result.add(collapser, BorderLayout.CENTER);
-		/*result.addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				if (e.getID() != ComponentEvent.COMPONENT_RESIZED)
-					return;
-				//int height = result.getHeight() - header.getHeight();
-				collapser.setPreferredSize(new Dimension(result.getWidth(), 400));
-				//System.out.println(e.getID() + " " + result.getSize().toString());
-			}
-		});*/
+		/*
+		 * result.addComponentListener(new ComponentAdapter() {
+		 * 
+		 * @Override public void componentResized(ComponentEvent e) { if
+		 * (e.getID() != ComponentEvent.COMPONENT_RESIZED) return; //int height
+		 * = result.getHeight() - header.getHeight();
+		 * collapser.setPreferredSize(new Dimension(result.getWidth(), 400));
+		 * //System.out.println(e.getID() + " " + result.getSize().toString());
+		 * } });
+		 */
 
 		return result;
 

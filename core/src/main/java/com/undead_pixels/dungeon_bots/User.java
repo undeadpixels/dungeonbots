@@ -10,8 +10,10 @@ public class User {
 	// The following would not be serialized:
 	private SecurityLevel _SecurityLevel = SecurityLevel.AUTHOR;
 
+	private long _ID;
+
 	public User(String userName) {
-		_UserName  = userName;
+		_UserName = userName;
 	}
 
 	public static User dummy() {
@@ -36,12 +38,12 @@ public class User {
 	 */
 	public SecurityLevel setCurrentGame(DungeonBotsMain game) {
 		// TODO - this needs to be changed
-		
+
 		if (game == null)
 			return _SecurityLevel = SecurityLevel.DEFAULT;
 		game.setUser(this);
-		//if (game.isAuthor(this))
-		//	return _SecurityLevel = SecurityLevel.AUTHOR;
+		// if (game.isAuthor(this))
+		// return _SecurityLevel = SecurityLevel.AUTHOR;
 		return _SecurityLevel = SecurityLevel.DEFAULT;
 	}
 
@@ -51,17 +53,18 @@ public class User {
 	}
 
 	@Override
-	public boolean equals(Object other){
-		if (other==null) return false;
-		if (other instanceof User){
-			User u = (User)other;
-			return _UserName.equals(u._UserName);
+	public boolean equals(Object other) {
+		if (other == null)
+			return false;
+		if (other instanceof User) {
+			User u = (User) other;
+			return _ID == u._ID;
 		}
 		return false;
 	}
-	
+
 	@Override
-	public int hashCode(){
+	public int hashCode() {
 		return _UserName.hashCode();
 	}
 }

@@ -1,7 +1,12 @@
 package com.undead_pixels.dungeon_bots.file;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
@@ -32,7 +37,7 @@ public class Serializer {
 		builder = new GsonBuilder();
 		builder.serializeNulls();
 		builder.registerTypeAdapter(LevelPack.class, levelPackDeserializer);
-		
+
 		gson = builder.create();
 	}
 
@@ -50,10 +55,34 @@ public class Serializer {
 
 	}
 
+	private static byte[] worldToBytes(World world) {
+		byte[] worldAsBytes = null;
+		ByteArrayOutputStream byte_out = null;
+		try {
+			byte_out = new ByteArrayOutputStream();
+			ObjectOutputStream out = new ObjectOutputStream(byte_out);
+			out.writeObject(world);
+			out.flush();
+			worldAsBytes = byte_out.toByteArray();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				byte_out.close();
+			} catch (Exception e) {
+				// Ignore close exceptions.
+			}
+		}
+		if (worldAsBytes == null)
+			worldAsBytes = new byte[0];
+		return worldAsBytes;
+	}
+
 	JsonSerializer<LevelPack> levelPackSerializer = new JsonSerializer<LevelPack>() {
 
 		@Override
 		public JsonElement serialize(LevelPack src, Type typeOfSrc, JsonSerializationContext context) {
+
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -64,9 +93,45 @@ public class Serializer {
 		@Override
 		public LevelPack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
+
 			// TODO Auto-generated method stub
 			return null;
 		}
 	};
+
+	public byte[] toBytes(World world) {
+		return worldToBytes(world);
+	}
+
+	/** Uses Java serialization to make a deep copy of the given object. */
+	@SuppressWarnings("unchecked")
+	public static <T> T deepCopy(T original) {
+		T result = null;
+		PipedInputStream in_ = new PipedInputStream();
+		PipedOutputStream out_ = null;
+		ObjectOutputStream out = null;
+		try {
+			out_ = new PipedOutputStream(in_);
+			out = new ObjectOutputStream(out_);
+			ObjectInputStream in = new ObjectInputStream(in_);
+			out.writeObject(original);
+			result = (T) in.readObject();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (in_ != null)
+					in_.close();
+				if (out_ != null)
+					out_.close();
+				// if (in != null) in.close();
+				if (out != null)
+					out.close();
+			} catch (Exception e) {
+				// Ignore close errors.
+			}
+		}
+		return result;
+	}
 
 }

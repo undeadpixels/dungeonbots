@@ -82,12 +82,12 @@ public class GameplayScreen extends Screen {
 				switch (e.getActionCommand()) {
 
 				case "Open":
-					File openFile = FileControl.openDialog(GameplayScreen.this);
+					/*File openFile = FileControl.openDialog(GameplayScreen.this);
 					if (openFile != null) {
 						World newWorld = new World(openFile);
 						DungeonBotsMain.instance.setWorld(newWorld);
 					} else
-						System.out.println("Open cancelled.");
+						System.out.println("Open cancelled.");*/
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),

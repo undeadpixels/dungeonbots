@@ -19,10 +19,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -50,6 +48,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -151,38 +150,41 @@ public class LevelEditorScreen extends Screen {
 				switch (e.getActionCommand()) {
 
 				case "Save":
-					// If there is not a cached file, treat as a SaveAs instead.
-					if (_CurrentFile == null)
-						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-					if (_CurrentFile != null) {
-						String lua = world.getMapScript();
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
-							writer.write(lua);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					} else
-						System.out.println("Save cancelled.");
-					break;
+					Serializer s = new Serializer();
+					byte[] worldBytes = s.toBytes(world);
+
+					/*
+					 * // If there is not a cached file, treat as a SaveAs
+					 * instead. if (_CurrentFile == null) _CurrentFile =
+					 * FileControl.saveAsDialog(LevelEditorScreen.this); if
+					 * (_CurrentFile != null) { String lua =
+					 * world.getMapScript(); try (BufferedWriter writer = new
+					 * BufferedWriter(new FileWriter(_CurrentFile))) {
+					 * writer.write(lua); } catch (IOException e1) {
+					 * e1.printStackTrace(); } } else
+					 * System.out.println("Save cancelled."); break;
+					 */
 				case "Save As":
-					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-					if (saveFile != null) {
-						String lua = world.getMapScript();
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
-							writer.write(lua);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-						_CurrentFile = saveFile;
-					} else
-						System.out.println("SaveAs cancelled.");
+					System.err.println("SaveAs might be deprecated for LevelEditorScreen.");
 					break;
-				case "Open":
+				/*
+				 * File saveFile =
+				 * FileControl.saveAsDialog(LevelEditorScreen.this); if
+				 * (saveFile != null) { String lua = world.getMapScript(); try
+				 * (BufferedWriter writer = new BufferedWriter(new
+				 * FileWriter(saveFile))) { writer.write(lua); } catch
+				 * (IOException e1) { e1.printStackTrace(); } _CurrentFile =
+				 * saveFile; } else System.out.println("SaveAs cancelled.");
+				 * break;
+				 */
+				case "Import":
 					File openFile = FileControl.openDialog(LevelEditorScreen.this);
 					if (openFile != null) {
 						World newWorld = new World(openFile);
-						DungeonBotsMain.instance.setWorld(newWorld);
-						_CurrentFile = openFile;
+						LevelPack lp = DungeonBotsMain.instance.getLevelPack();
+						//lp._levels.add(newWorld);
+						//DungeonBotsMain.instance.setWorld(lp.levels.size() - 1);
+						// _CurrentFile = openFile;
 					} else
 						System.out.println("Open cancelled.");
 
@@ -382,14 +384,17 @@ public class LevelEditorScreen extends Screen {
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(50, 25));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
-		fileMenu.add(UIBuilder.makeMenuItem("Open", KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_O, getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
+				KeyEvent.VK_I, getController()));
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Save", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_S, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Save As",
-				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK), 0,
-				getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
+				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
+		/*
+		 * fileMenu.add(UIBuilder.makeMenuItem("Save As",
+		 * KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK |
+		 * ActionEvent.ALT_MASK), 0, getController()));
+		 */
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_E, getController()));
