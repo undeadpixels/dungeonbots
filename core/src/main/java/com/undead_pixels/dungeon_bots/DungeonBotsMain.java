@@ -43,8 +43,7 @@ public class DungeonBotsMain {
 			setCurrentScreen(new GameplayScreen(_World));
 		else if (_Screen instanceof LevelEditorScreen)
 			setCurrentScreen(new LevelEditorScreen(_World));
-		else
-			setCurrentScreen(new MainMenuScreen());
+		// else nothing.
 	}
 
 	/**
@@ -58,7 +57,7 @@ public class DungeonBotsMain {
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
-
+		// Does nothing.
 	}
 
 	/*
@@ -103,9 +102,14 @@ public class DungeonBotsMain {
 		// Sanity check.
 		assert newScreen != null;
 
-		// If there is no valid login, just return.
-		if (!(newScreen instanceof MainMenuScreen) && getUser() == null && !requestLogin(3))
-			return;
+		// Any screen but the MainMenuScreen must have some state established
+		// before running: a valid User, a valid Level Pack, etc.
+		if (!(newScreen instanceof MainMenuScreen)) {
+			if (getUser() == null && !requestLogin(3))
+				System.exit(0);
+			//if (_LevelPack == null)
+			//	_LevelPack = new LevelPack("My Level Pack", getUser());
+		}
 
 		// Start the new screen.
 		_Screen = newScreen;
@@ -125,6 +129,10 @@ public class DungeonBotsMain {
 	 */
 	public void setLevelEditorScreen() {
 		setCurrentScreen(new LevelEditorScreen(_World));
+	}
+
+	public void setResultScreen() {
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/** Returns the current level pack. */
@@ -187,13 +195,6 @@ public class DungeonBotsMain {
 	public void dispose() {
 		if (_Screen != null)
 			_Screen.dispose();
-	}
-
-	@Deprecated
-	public static Image getImage(String filename) {
-		// TODO: can this be deleted?
-		throw new IllegalStateException(
-				"Don't call DungeonBotsMain.getImage... use UIBuilder.getImage instead, it caches images already loaded.");
 	}
 
 }

@@ -4,6 +4,7 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -20,8 +21,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -34,16 +33,22 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
-//import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -58,22 +63,30 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 @SuppressWarnings("serial")
 public class LevelEditorScreen extends Screen {
 
-	/**The view*/
+	/** The view */
 	private WorldView _View;
 
-	/** The list of tiles available for drawing in the editor. */
-	private JList<Object> _TilePalette;
+	/** The visual list of tiles available for drawing in the editor. */
+	private JList<TileType> _TilePalette;
+
+	/** The visual list of entities available for dropping in the editor. */
+	private JList<EntityType> _EntityPalette;
+
+	/** The standard entity types. */
+	private EntityType[] _EntityTypes = new EntityType[] { new EntityType("bot"), new EntityType("goal") };
 
 	public LevelEditorScreen(World world) {
 		super(world);
 
-		DefaultListModel<Object> lm = new DefaultListModel<Object>();
+		DefaultListModel<TileType> lm = new DefaultListModel<TileType>();
 		for (TileType t : world.getTileTypes())
 			lm.addElement(t);
 		_TilePalette.setModel(lm);
-		_TilePalette.validate();
 
-		_View.addMouseMotionListener(getController());
+		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
+		for (EntityType e : _EntityTypes)
+			em.addElement(e);
+		_EntityPalette.setModel(em);
 
 	}
 
@@ -124,10 +137,7 @@ public class LevelEditorScreen extends Screen {
 					if (selection == null)
 						return;
 					if (selection instanceof TileType) {
-						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						// TileType currentTile = world.getTile(e.getX(),
-						// e.getY());
 						Point2D.Float gameCoords = _View.getCamera().unproject((float) e.getX(), (float) e.getY());
 						world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
 					}
@@ -137,43 +147,44 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-
 				switch (e.getActionCommand()) {
 
 				case "Save":
-					// If there is not a cached file, treat as a SaveAs instead.
-					if (_CurrentFile == null)
-						_CurrentFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-					if (_CurrentFile != null) {
-						String lua = world.getMapScript();
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(_CurrentFile))) {
-							writer.write(lua);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					} else
-						System.out.println("Save cancelled.");
-					break;
+					Serializer s = new Serializer();
+					byte[] worldBytes = s.toBytes(world);
+
+					/*
+					 * // If there is not a cached file, treat as a SaveAs
+					 * instead. if (_CurrentFile == null) _CurrentFile =
+					 * FileControl.saveAsDialog(LevelEditorScreen.this); if
+					 * (_CurrentFile != null) { String lua =
+					 * world.getMapScript(); try (BufferedWriter writer = new
+					 * BufferedWriter(new FileWriter(_CurrentFile))) {
+					 * writer.write(lua); } catch (IOException e1) {
+					 * e1.printStackTrace(); } } else
+					 * System.out.println("Save cancelled."); break;
+					 */
 				case "Save As":
-					File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-					if (saveFile != null) {
-						String lua = world.getMapScript();
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
-							writer.write(lua);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-						_CurrentFile = saveFile;
-					} else
-						System.out.println("SaveAs cancelled.");
+					System.err.println("SaveAs might be deprecated for LevelEditorScreen.");
 					break;
-				case "Open":
+				/*
+				 * File saveFile =
+				 * FileControl.saveAsDialog(LevelEditorScreen.this); if
+				 * (saveFile != null) { String lua = world.getMapScript(); try
+				 * (BufferedWriter writer = new BufferedWriter(new
+				 * FileWriter(saveFile))) { writer.write(lua); } catch
+				 * (IOException e1) { e1.printStackTrace(); } _CurrentFile =
+				 * saveFile; } else System.out.println("SaveAs cancelled.");
+				 * break;
+				 */
+				case "Import":
 					File openFile = FileControl.openDialog(LevelEditorScreen.this);
 					if (openFile != null) {
 						World newWorld = new World(openFile);
-						DungeonBotsMain.instance.setWorld(newWorld);
-						_CurrentFile = openFile;
+						//LevelPack lp = DungeonBotsMain.instance.getLevelPack();
+						//lp._levels.add(newWorld);
+						//DungeonBotsMain.instance.setWorld(lp.levels.size() - 1);
+						// _CurrentFile = openFile;
 					} else
 						System.out.println("Open cancelled.");
 
@@ -204,7 +215,6 @@ public class LevelEditorScreen extends Screen {
 
 					break;
 				case "Export":
-					export();
 					break;
 				default:
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
@@ -262,81 +272,68 @@ public class LevelEditorScreen extends Screen {
 
 			@Override
 			public void windowActivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowClosing(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowDeactivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowDeiconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowIconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void windowOpened(WindowEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 
 		};
 	}
 
-	protected void export() {
-		System.out.println("Serializing...");
-		Serializer s = new Serializer();
-		String json = s.Serialize(world);
-		System.out.println(json);
-	}
-
-	/** Handles the rendering of TileTypes in the TileType palette. */
-	private class PaletteItemRenderer extends DefaultListCellRenderer {
-		// As suggested by "SeniorJD",
-		// https://stackoverflow.com/questions/18896345/writing-a-custom-listcellrenderer,
-		// Sep. 19, 2013
+	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
+		@Override
+		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType item, int index,
+				boolean isSelected, boolean cellHasFocus) {
+			JLabel lbl = new JLabel();
+			lbl.setText(item.getName());
+			if (isSelected || cellHasFocus)
+				lbl.setForeground(Color.red);
+			return lbl;
+		}
+	};
+	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
+		@Override
+		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType item, int index,
+				boolean isSelected, boolean cellHasFocus) {
+			JLabel lbl = new JLabel();
+			lbl.setText(item.name);
+			if (isSelected || cellHasFocus)
+				lbl.setForeground(Color.red);
+			return lbl;
+		}
+	};
+	private ListSelectionListener _GreedySelectionListener = new ListSelectionListener() {
 
 		@Override
-		public Component getListCellRendererComponent(JList<? extends Object> list, Object item, int index,
-				boolean isSelected, boolean cellHasFocus) {
-			Component c = super.getListCellRendererComponent(list, item, index, isSelected, cellHasFocus);
-			if (c instanceof JLabel) {
-				// Are there any cases where a JLabel is not returned by
-				// DefaultListCellRenderer?
-				JLabel lbl = (JLabel) c;
-				if (item instanceof TileType) {
-					TileType tt = (TileType) item;
-					lbl.setText(tt.getName());
-				} else
-					lbl.setText(item.toString());
-			} else
-				System.err.println("Unexpected component type returned in " + this.getClass().getName() + ":"
-						+ c.getClass().getName());
-			return c;
+		public void valueChanged(ListSelectionEvent e) {
+			System.out.println(e.getFirstIndex() + " to " + e.getLastIndex());
+			if (e.getValueIsAdjusting())
+				return;
+
 		}
-	}
+
+	};
 
 	@Override
 	protected void addComponents(Container pane) {
@@ -345,6 +342,7 @@ public class LevelEditorScreen extends Screen {
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
 		_View.addMouseListener(getController());
+		_View.addMouseMotionListener(getController());
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
 
@@ -359,33 +357,44 @@ public class LevelEditorScreen extends Screen {
 		brushBoxContainer.setBorder(BorderFactory.createTitledBorder("Current draw mode"));
 
 		// Create the palette, but don't add elements - this is done elsewhere.
-		_TilePalette = new JList<Object>();
-		_TilePalette.setCellRenderer(new PaletteItemRenderer());
-		_TilePalette.setPreferredSize(new Dimension(150, 300));
-		JScrollPane paletteScroller = new JScrollPane(_TilePalette);
-		paletteScroller.setBorder(BorderFactory.createTitledBorder("Current Tile"));
+		_TilePalette = new JList<TileType>();
+		_TilePalette.setCellRenderer(_TileTypeItemRenderer);
+		_TilePalette.setMinimumSize(new Dimension(150, 400));
+		_TilePalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		_TilePalette.addListSelectionListener(_GreedySelectionListener);
+		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(_TilePalette), "Tiles", "Tiles", "", false);
+
+		// Create the entity palette, but again don't add elements. That occurs
+		// elsewhere.
+		_EntityPalette = new JList<EntityType>();
+		_EntityPalette.setCellRenderer(_EntityItemRenderer);
+		_EntityPalette.setPreferredSize(new Dimension(150, 600));
+		_EntityPalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		_EntityPalette.addListSelectionListener(_GreedySelectionListener);
+		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(_EntityPalette), "Entities", "Entities", "",
+				false);
 
 		JPanel controlPanel = new JPanel();
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
-		controlPanel.add(paletteScroller);
-		controlPanel.add(brushBoxContainer);
-		controlPanel.add(new JLabel("Game position:"));
-		controlPanel.add(new JLabel("Associated World scripts:"));
-		controlPanel.add(new JLabel("Associated lines of code:"));
-		controlPanel.add(new JLabel("Queue size:"));
+		controlPanel.setFocusable(false);
+		controlPanel.setLayout(new VerticalLayout());
+		controlPanel.add(tilesCollapser);
+		controlPanel.add(entitiesCollapser);
 
 		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(50, 25));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
-		fileMenu.add(UIBuilder.makeMenuItem("Open", KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_O, getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
+				KeyEvent.VK_I, getController()));
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Save", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_S, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Save As",
-				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK), 0,
-				getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
+				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
+		/*
+		 * fileMenu.add(UIBuilder.makeMenuItem("Save As",
+		 * KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK |
+		 * ActionEvent.ALT_MASK), 0, getController()));
+		 */
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_E, getController()));

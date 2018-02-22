@@ -111,4 +111,9 @@ public class TestIntervalSet {
 	public void testInclude_infinite(){
 		
 	}
+	
+	@Test
+	public void testRemove_finite(){
+		System.err.println("Not implemented yet.");		
+	}
 }

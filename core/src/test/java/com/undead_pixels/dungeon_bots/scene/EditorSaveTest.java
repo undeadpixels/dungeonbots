@@ -6,10 +6,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,13 +67,14 @@ public class EditorSaveTest {
 	}
 
 	@Test
-	public void testSerializeWorld() throws IOException, ClassNotFoundException {
-		testWorldMadeFromScript("level1.lua");
-		testWorldMadeFromScript("maze1.lua");
-		testWorldMadeFromScript("maze2.lua");
+	public void testSerializeWorld() throws Exception {
+		testWorldMadeFromScript("level1.lua", false);
+		testWorldMadeFromScript("maze1.lua", false);
+		testWorldMadeFromScript("maze2.lua", false);
+		testWorldMadeFromScript("default.lua", false);
 	}
 
-	private static void testWorldMadeFromScript(String filename) throws IOException, ClassNotFoundException {
+	private static void testWorldMadeFromScript(String filename, boolean printResults) throws Exception {
 
 		World w1 = new World(new File(filename));
 
@@ -89,19 +95,18 @@ public class EditorSaveTest {
 
 		out.close();
 
-		validateReflectedEquality(w1, w2, filename + " world", false, true);
-
+		validateReflectedEquality(w1, w2, filename + " world", false, true, printResults);
 	}
 
 	/**
 	 * This method uses reflection to determine actual equality of two objects
 	 * without the need to implement an equals() method for the objects' class.
 	 * 
-	 * @param a
+	 * @param objectA
 	 *            The first object to compare.
-	 * @param b
+	 * @param objectB
 	 *            The second object to compare.
-	 * @param itemName
+	 * @param rootName
 	 *            This is the name of the item, for help in debugging. It will
 	 *            constitute the first item in a fully qualified field name.
 	 * @param testTransiants
@@ -112,104 +117,197 @@ public class EditorSaveTest {
 	 * @param testFinals
 	 *            Whether to include final members in the test. There may be
 	 *            points where this is useless to test.
-	 * @throws RuntimeException
+	 * @throws Exception
 	 *             An exception will be thrown if it can be shown that the two
 	 *             objects are not deep-field equal.
 	 */
-	public static void validateReflectedEquality(Object a, Object b, String itemName, boolean testTransients,
-			boolean testFinals) {
-		HashSet<String> matched = new HashSet<String>();
-		HashSet<String> unmatched = new HashSet<String>();
-		HashSet<String> undetermined = new HashSet<String>();
-		Class<?> classA = a.getClass(), classB = b.getClass();
+	public static void validateReflectedEquality(Object objectA, Object objectB, String rootName,
+			boolean testTransients, boolean testFinals, boolean printResults) throws Exception {
 
-		if (!classA.equals(classB))
-			throw new RuntimeException("Unequal classes for two objects.");
+		ArrayList<String> matched = new ArrayList<String>(), unmatched = new ArrayList<String>(),
+				undetermined = new ArrayList<String>();
+		validateReflectedEqualityRecursive(objectA, objectB, matched, unmatched, undetermined, new HashSet<Object>(),
+				rootName, testTransients, testFinals);
 
+		String result = rootName + "   Matched fields: " + matched.size() + "   Unmatched fields: " + unmatched.size()
+				+ "   Undetermined fields: " + undetermined.size();
+		if (printResults) {
+			System.out.println(result);
+			for (String str : matched)
+				System.out.println(str);
+		}
+		if (unmatched.size() > 0 || undetermined.size() > 0)
+			throw new Exception(result);
+
+	}
+
+	private static void validateReflectedEqualityRecursive(Object objectA, Object objectB, ArrayList<String> matched,
+			ArrayList<String> unmatched, ArrayList<String> undetermined, HashSet<Object> checked, String rootName,
+			boolean testTransients, boolean testFinals) {
+		if (!checked.add(objectA))
+			return;
+
+		if (objectA == null) {
+			if (objectB == null)
+				matched.add(rootName);
+			else
+				unmatched.add(rootName);
+			return;
+		} else if (objectB == null) {
+			unmatched.add(rootName);
+			return;
+		}
+
+		// From here, neither are null.
+		Class<?> classA = objectA.getClass(), classB = objectB.getClass();
+		if (!classA.equals(classB)) {
+			unmatched.add(rootName);
+			return;
+		}
+		if (objectA.equals(objectB)) {
+			matched.add(rootName);
+			return;
+		}
+
+		// From here, the classes match but they are not equal.
+		if (classA.isArray()) {
+			int lengthA = Array.getLength(objectA), lengthB = Array.getLength(objectB);
+			if (lengthA != lengthB)
+				unmatched.add(rootName + ".length");
+			else {
+				for (int i = 0; i < lengthA; i++) {
+					validateReflectedEqualityRecursive(Array.get(objectA, i), Array.get(objectB, i), matched, unmatched,
+							undetermined, checked, rootName + "[" + i + "]", testTransients, testFinals);
+				}
+			}
+			return;
+		}
+		if (classA == boolean.class) {
+			if (((boolean) objectA) == ((boolean) objectB))
+				matched.add(rootName);
+			else
+				unmatched.add(rootName);
+			return;
+		}
+		if (classA.isPrimitive()) {
+			if (((Number) objectA).equals((Number) objectB))
+				matched.add(rootName);
+			else
+				unmatched.add(rootName);
+			return;
+		}
+
+		// Iterables require special handling.
+		if (isIterableClass(classA)) {
+			@SuppressWarnings("rawtypes")
+			Iterator iterA = ((Iterable) objectA).iterator(), iterB = ((Iterable) objectB).iterator();
+			int i = 0;
+			ArrayList<String> tempMatched = new ArrayList<String>(), tempUnmatched = new ArrayList<String>(),
+					tempUndetermined = new ArrayList<String>();
+			while (iterA.hasNext() && iterB.hasNext()) {
+				Object childA = iterA.next(), childB = iterB.next();
+				validateReflectedEqualityRecursive(childA, childB, tempMatched, tempUnmatched, tempUndetermined,
+						checked, rootName + "[" + i++ + "]", testTransients, testFinals);
+			}
+			if (iterA.hasNext() || iterB.hasNext())
+				unmatched.add(rootName);
+			else
+				matched.add(rootName);
+			matched.addAll(tempMatched);
+			unmatched.addAll(tempUnmatched);
+			undetermined.addAll(tempUndetermined);
+			while (iterA.hasNext())
+				validateReflectedEqualityRecursive(iterA.next(), new Object(), tempMatched, tempUnmatched,
+						tempUndetermined, checked, rootName + "[" + i++ + "]", testTransients, testFinals);
+			while (iterB.hasNext())
+				validateReflectedEqualityRecursive(iterB.next(), new Object(), tempMatched, tempUnmatched,
+						tempUndetermined, checked, rootName + "[" + i++ + "]", testTransients, testFinals);
+			return;
+		}
+
+		// From here the objects are guaranteed to be objects passed by
+		// reference, and they might have fields.
 		Field[] fields = classA.getDeclaredFields();
+		matched.add(rootName); // Added to make tree-like structure.
 		for (Field field : fields) {
 			int mods = field.getModifiers();
 
-			// Skip for uninteresting conditions.
+			// Skip conditions that are supposed to be ignored.
 			if (!testTransients && Modifier.isTransient(mods))
 				continue;
 			if (!testFinals && Modifier.isFinal(mods))
 				continue;
-			String fieldName = itemName + "." + field.getName();
 
-			// If the values couldn't be read for whatever reason, then throw
-			// them on the "undetermined" pile.
+			String fieldName = rootName + "." + field.getName();
+
+			// If the values couldn't be read for whatever reason, then
+			// throw them on the "undetermined" pile.
 			Object valA = null, valB = null;
 			boolean originalAccessible = field.isAccessible();
 			field.setAccessible(true);
 			try {
-				valA = field.get(a);
-				valB = field.get(b);
+				valA = field.get(objectA);
+				valB = field.get(objectB);
 			} catch (IllegalArgumentException e) {
 				System.out.println(fieldName + ": " + e.getMessage());
 				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
 				continue;
 			} catch (IllegalAccessException e) {
-				System.out.println(itemName + "." + field.getName() + ": " + e.getMessage());
+				System.out.println(rootName + "." + field.getName() + ": " + e.getMessage());
 				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
 				continue;
 			}
 			field.setAccessible(originalAccessible);
 
-			// If the field specifies a boolean or a value-type, then just
-			// determine their equality and move on.
-			Class<?> fieldType = field.getType();
-			if (fieldType == boolean.class) {
-				if (((boolean) valA) == ((boolean) valB))
-					matched.add(fieldName);
-				else
-					unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
-							+ valB.toString());
-				continue;
-			} else if (fieldType.isPrimitive()) {
-				if (((Number) valA).equals((Number) valB))
-					matched.add(fieldName);
-				else
-					unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
-							+ valB.toString());
-				continue;
-			}
-
-			// Otherwise, the field specifies a reference type, so handle
-			// possible nulls.
-			else if (valA == null && valB == null) {
-				matched.add(fieldName);
-				continue;
-			} else if (valA == null || valB == null) {
-				unmatched.add(fieldName + getStringModifiers(field.getModifiers()) + " " + valA.toString() + ", "
-						+ valB.toString());
-				continue;
-			}
-
-			// If two objects are designed to be equal(), return that.
-			else if (valA.equals(valB)) {
-				matched.add(fieldName);
-				continue;
-			}
-
-			// Finally, we're dealing with a reference type, so recursively test
-			// equality.
-			else
-				validateReflectedEquality(valA, valB, fieldName, testTransients, testFinals);
+			// Finally, recursively test equality of the values of the fields.
+			validateReflectedEqualityRecursive(valA, valB, matched, unmatched, undetermined, checked, fieldName,
+					testTransients, testFinals);
 		}
 
-		// Having tested all the fields, if anything is on the "undetermined" or
-		// "unmatched" pile, throw an exception.
-		if (undetermined.size() > 0) {
-			System.out.println("Undetermined:\n" + undetermined.toString());
-			throw new RuntimeException("Items exist whose equality could not be determined.");
-		}
+	}
 
-		if (unmatched.size() > 0) {
-			System.out.println("Unmatched:\n" + unmatched.toString());
-			throw new RuntimeException("Unmatched items exist.");
-		}
+	/**
+	 * Checks whether the specified class parameter is an instance of a
+	 * collection class.
+	 *
+	 * @param clazz
+	 *            <code>Class</code> to check.
+	 *
+	 * @return <code>true</code> is <code>clazz</code> is instance of a
+	 *         collection class, <code>false</code> otherwise.
+	 */
+	private static boolean isIterableClass(Class<?> clazz) {
+		// This from "JBoss" at
+		// http://www.java2s.com/Code/Java/Reflection/Returnstrueiftypeisaiterabletype.htm,
+		// posted Apr, 2009, last downloaded 2/22/18
+		List<Class<?>> classes = new ArrayList<Class<?>>();
+		computeClassHierarchy(clazz, classes);
+		return classes.contains(Iterable.class);
+	}
 
+	/**
+	 * Get all superclasses and interfaces recursively.
+	 *
+	 * @param clazz
+	 *            The class to start the search with.
+	 * @param classes
+	 *            List of classes to which to add all found super classes and
+	 *            interfaces.
+	 */
+	@SuppressWarnings("rawtypes")
+	private static void computeClassHierarchy(Class<?> clazz, List<Class<?>> classes) {
+		// This from "JBoss" at
+		// http://www.java2s.com/Code/Java/Reflection/Returnstrueiftypeisaiterabletype.htm,
+		// posted Apr. 2009, last downloaded 2/22/18
+		for (Class current = clazz; current != null; current = current.getSuperclass()) {
+			if (classes.contains(current)) {
+				return;
+			}
+			classes.add(current);
+			for (Class currentInterface : current.getInterfaces()) {
+				computeClassHierarchy(currentInterface, classes);
+			}
+		}
 	}
 
 	private static String getStringModifiers(int mod) {
