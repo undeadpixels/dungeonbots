@@ -107,17 +107,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * An id counter, used to hand out id's to entities TODO - see if this
-	 * conflicts with anything Stewart is doing. WO: for now, this can be
-	 * transient?
+	 * conflicts with anything Stewart is doing.
 	 */
-	private transient int idCounter = 0;
+	private int idCounter = 0;
 
 	/**
 	 * The playstyle of this world TODO - add a lua binding to be able to
-	 * configure this from the level script WO: I think this is generated during
-	 * play, so no need to serialize.
+	 * configure this from the level script
 	 */
-	private transient ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
+	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
 	/**
 	 *
