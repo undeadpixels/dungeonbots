@@ -103,7 +103,7 @@ public class DungeonBotsMain {
 				System.exit(0);
 			if (_LevelPack == null)
 				_LevelPack = new LevelPack("My Level Pack", getUser());		
-			//World breakit = new World(new File("maze2.lua"));
+			World breakit = new World(new File("maze2.lua"));
 			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());
 			break;
 		case RESULTS:
