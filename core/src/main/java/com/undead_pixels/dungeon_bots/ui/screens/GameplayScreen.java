@@ -92,7 +92,7 @@ public class GameplayScreen extends Screen {
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+						DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
 
 					break;
 				case "Quit":

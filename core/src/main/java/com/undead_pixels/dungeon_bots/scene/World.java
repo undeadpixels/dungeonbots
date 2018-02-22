@@ -226,7 +226,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
-		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
+		DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.RESULTS);
 	}
 
 	public void setPlayer(Player p) {

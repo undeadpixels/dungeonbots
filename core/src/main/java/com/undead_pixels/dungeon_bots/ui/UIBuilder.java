@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -29,6 +30,12 @@ import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 import org.jdesktop.swingx.JXCollapsiblePane;
+import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.JXLoginPane.Status;
+import org.jdesktop.swingx.auth.LoginListener;
+import org.jdesktop.swingx.auth.LoginService;
+import org.jdesktop.swingx.auth.PasswordStore;
+import org.jdesktop.swingx.auth.UserNameStore;
 
 import com.undead_pixels.dungeon_bots.libraries.StretchIcon;
 
@@ -322,6 +329,75 @@ public class UIBuilder {
 		_Images.put(filename, img);
 
 		return img;
+	}
+
+	/**
+	 * Returns a login that uses the given password store and username store,
+	 * and uses the specified listener for login events.
+	 * 
+	 * @param passwordStore
+	 *            A password store uses the last successful login password to
+	 *            pre-populate the password field.
+	 * @param userNameStore
+	 *            A username store uses the last successful login username to
+	 *            pre-populate the username field.
+	 * @param listener
+	 *            The listener detects login events and results.
+	 */
+	public static JXLoginPane makeLogin(String message, PasswordStore passwordStore, UserNameStore userNameStore,
+			LoginListener listener) {
+		LoginService service = new LoginService() {
+			@Override
+			public boolean authenticate(String name, char[] password, String server) throws Exception {
+				return true;
+			}
+		};
+		service.addLoginListener(listener);
+		JXLoginPane pane = new JXLoginPane(service);
+		if (passwordStore != null)
+			pane.setPasswordStore(passwordStore);
+		if (userNameStore != null)
+			pane.setUserNameStore(userNameStore);
+		pane.setBannerText(message);
+		return pane;
+	}
+
+	/**
+	 * Never roll your own security. This method blocks and returns a status
+	 * regarding the login.
+	 * 
+	 * @param passwordStore
+	 *            A password store uses the last successful login password to
+	 *            pre-populate the password field.
+	 * @param userNameStore
+	 *            A username store uses the last successful login username to
+	 *            pre-populate the username field.
+	 * @param listener
+	 *            The listener detects login events and results.
+	 */
+	public static Status showLoginModal(String message, Component parent, PasswordStore passwordStore,
+			UserNameStore userNameStore, LoginListener listener) {
+		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, listener);
+		return JXLoginPane.showLoginDialog(parent, pane);
+	}
+
+	/**
+	 * Never roll your own security. This method returns a JFrame containing
+	 * only a login, and when run it does not block.
+	 * 	 * 
+	 * @param passwordStore
+	 *            A password store uses the last successful login password to
+	 *            pre-populate the password field.
+	 * @param userNameStore
+	 *            A username store uses the last successful login username to
+	 *            pre-populate the username field.
+	 * @param listener
+	 *            The listener detects login events and results.
+	 */
+	public static JFrame showLoginModeless(String message, PasswordStore passwordStore, UserNameStore userNameStore,
+			LoginListener listener) {
+		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, listener);
+		return JXLoginPane.showLoginFrame(pane);
 	}
 
 }

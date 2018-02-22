@@ -109,7 +109,7 @@ public class ResultsScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "OK":
-					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
 					break;
 				case "Publish":
 				default:

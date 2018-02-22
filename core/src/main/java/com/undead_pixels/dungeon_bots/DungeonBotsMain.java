@@ -1,15 +1,19 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.undead_pixels.dungeon_bots.ui.Login;
-import java.awt.Image;
+
 import java.io.File;
+
+import javax.swing.JFrame;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.ui.Login;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
 import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 
 /**
  * The main game class. Maintains the identity of the current user and a
@@ -18,33 +22,15 @@ import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
  */
 public class DungeonBotsMain {
 
+	public enum ScreenType {
+		GAMEPLAY, LEVEL_EDITOR, MAIN_MENU, RESULTS
+	}
+
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
 
-	/** The World that is currently the focus of displayed screens. */
-	private World _World;
-
 	/** The LevelPack from which the current world is drawn. */
 	private LevelPack _LevelPack;
-
-	/** Returns the world currently associated with this game. */
-	// public World getWorld() {
-	// return _World;
-	// }
-
-	/**
-	 * Sets the current world focus for the game. If a screen is currently being
-	 * shown, rebuilds and displays the screen with the new world.
-	 */
-	public void setWorld(World world) {
-		_World = world;
-
-		if (_Screen instanceof GameplayScreen)
-			setCurrentScreen(new GameplayScreen(_World));
-		else if (_Screen instanceof LevelEditorScreen)
-			setCurrentScreen(new LevelEditorScreen(_World));
-		// else nothing.
-	}
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
@@ -76,11 +62,8 @@ public class DungeonBotsMain {
 		if (_Screen != null)
 			throw new RuntimeException("Multiple instances of the game cannot be run.");
 
-		// Create a new world.
-		_World = new World(new File("level1.lua"));
-
 		// Fire up the main menu screen.
-		setCurrentScreen(new MainMenuScreen());
+		setCurrentScreen(ScreenType.MAIN_MENU);
 	}
 
 	/**
@@ -92,47 +75,46 @@ public class DungeonBotsMain {
 	}
 
 	/** Sets the current screen to the given screen. */
-	public void setCurrentScreen(Screen newScreen) {
+	public void setCurrentScreen(ScreenType screenType) {
 
 		// Remove the old screen.
 		if (_Screen != null) {
 			_Screen.dispose();
 		}
 
-		// Sanity check.
-		assert newScreen != null;
-
-		// Any screen but the MainMenuScreen must have some state established
-		// before running: a valid User, a valid Level Pack, etc.
-		if (!(newScreen instanceof MainMenuScreen)) {
+		// Build the appropriate type of new screen.
+		switch (screenType) {
+		case MAIN_MENU:			
+			_Screen = new MainMenuScreen();
+			break;
+		case GAMEPLAY:
 			if (getUser() == null && !requestLogin(3))
 				System.exit(0);
-			//if (_LevelPack == null)
-			//	_LevelPack = new LevelPack("My Level Pack", getUser());
+			if (_LevelPack == null)
+				_LevelPack = new LevelPack("My Level Pack", getUser());
+			if (_LevelPack.getCurrentPlayer() != null && !_LevelPack.getCurrentPlayer().equals(getUser())) {
+				throw new RuntimeException("Cannot switch to a game being played by another player.");
+			}
+			_LevelPack.setCurrentPlayer(getUser());
+			_Screen = new GameplayScreen(_LevelPack.getCurrentWorld());
+			break;
+		case LEVEL_EDITOR:
+			if (getUser() == null && !requestLogin(3))
+				System.exit(0);
+			if (_LevelPack == null)
+				_LevelPack = new LevelPack("My Level Pack", getUser());		
+			World breakit = new World(new File("maze2.lua"));
+			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());
+			break;
+		case RESULTS:
+			_Screen = new ResultsScreen(_LevelPack.getCurrentWorld());
+		default:
+			throw new RuntimeException("Have not implemented switch to screen type: " + screenType.toString());
 		}
 
-		// Start the new screen.
-		_Screen = newScreen;
+		// Run the new screen.
 		// _Screen.pack();
 		_Screen.setVisible(true);
-	}
-
-	/**
-	 * Sets the current screen to a GameplayScreen to play the current world.
-	 */
-	public void setGameplayScreen() {
-		setCurrentScreen(new GameplayScreen(_World));
-	}
-
-	/**
-	 * Sets the current screen to a LevelEditorScreen to edit the current world.
-	 */
-	public void setLevelEditorScreen() {
-		setCurrentScreen(new LevelEditorScreen(_World));
-	}
-
-	public void setResultScreen() {
-		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/** Returns the current level pack. */
@@ -180,6 +162,8 @@ public class DungeonBotsMain {
 	 * @return Returns true if login was successful. Otherwise, returns false.
 	 */
 	public boolean requestLogin(int attempts) {
+		//JFrame f = UIBuilder.makeLoginFrame();
+		//f.setVisible(true);
 		System.out.println("Starting login...");
 		User user = Login.challenge("Welcome to DungeonBots.", attempts);
 		if (user == null) {

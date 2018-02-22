@@ -44,7 +44,8 @@ public class LevelPack {
 				SecurityLevel.AUTHOR);
 
 		this.levels = new ArrayList<byte[]>();
-		this.levels.add(serializer.toBytes(new World(new File("default.lua"))));
+		_DeserializedWorld = new World(new File("default.lua"));
+		this.levels.add(serializer.toBytes(_DeserializedWorld));
 
 		this.authors = new HashSet<User>();
 		this.authors.add(author);
@@ -77,15 +78,6 @@ public class LevelPack {
 		return _DeserializedWorld;
 	}
 
-	/**
-	 * Adds the given world to the Level Pack. Returns the index of the world
-	 * added. If the world already exists on the Level Pack, returns the index
-	 * of the world.
-	 */
-	public int saveWorld(World world) {
-		throw new RuntimeException("Not implemented yet.");
-	}
-
 	/** Gets the Level Pack's name. */
 	public String getName() {
 		return this.name;
@@ -96,13 +88,20 @@ public class LevelPack {
 		this.name = name;
 	}
 
+	public void saveCurrentWorld() {
+		assert levelIndex >= 0 && levelIndex < levels.size();
+		levels.set(levelIndex, serializer.toBytes(_DeserializedWorld));
+	}
+
 	/**
 	 * Sets the current world to the index indicated. Throws an exception if the
 	 * index is invalid.
 	 */
 	public World setCurrentWorld(int index) {
-		if (index < 0 || index >= levels.size())
-			throw new RuntimeException("Invalid level index: " + index);
+		if (index == levelIndex)
+			return _DeserializedWorld;
+		assert levelIndex >= 0 && levelIndex < levels.size();
+		// TODO: dispose of the running World?
 		levelIndex = index;
 		return getCurrentWorld();
 	}
@@ -135,10 +134,12 @@ public class LevelPack {
 	 * be assigned.
 	 */
 	public void setCurrentPlayer(User newPlayer) {
-		if (currentPlayer != null && !currentPlayer.equals(newPlayer))
+		if (currentPlayer != null && !newPlayer.equals(currentPlayer))
 			throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be changed.");
-		else
-			currentPlayer = newPlayer;
+		else if (newPlayer.equals(currentPlayer))
+			return;
+		currentPlayer = newPlayer;
+		playerCompleted = new HashSet<Integer>();
 	}
 
 	/** Returns highest index number of worlds completed by this player. */

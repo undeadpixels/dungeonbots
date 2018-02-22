@@ -41,10 +41,10 @@ public class MainMenuScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "PLAY":
-					DungeonBotsMain.instance.setGameplayScreen();					
+					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.GAMEPLAY);
 					break;
 				case "CREATE":
-					DungeonBotsMain.instance.setLevelEditorScreen();					
+					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.LEVEL_EDITOR);
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new
@@ -197,7 +197,7 @@ public class MainMenuScreen extends Screen {
 		pane.add(Box.createHorizontalGlue());
 
 		// Some key bindings to make it easier.
-		//JRootPane rootPane = this.getRootPane();
+		// JRootPane rootPane = this.getRootPane();
 
 	}
 
