@@ -36,6 +36,6 @@ public class LevelPack {
 	private HashSet<Integer> authors;
 
 	
-	private HashSet<World> levels;
+	private ArrayList<World> levels;
 
 }

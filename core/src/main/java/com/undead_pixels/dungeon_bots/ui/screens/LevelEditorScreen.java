@@ -213,7 +213,6 @@ public class LevelEditorScreen extends Screen {
 
 					break;
 				case "Export":
-					export();
 					break;
 				default:
 					System.out.println("Have not implemented the command: " + e.getActionCommand());
@@ -300,13 +299,6 @@ public class LevelEditorScreen extends Screen {
 		};
 	}
 
-	protected void export() {
-		System.out.println("Serializing...");
-		Serializer s = new Serializer();
-		String json = s.Serialize(world);
-		System.out.println(json);
-	}
-
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
 		@Override
 		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType item, int index,
@@ -336,7 +328,7 @@ public class LevelEditorScreen extends Screen {
 			System.out.println(e.getFirstIndex() + " to " + e.getLastIndex());
 			if (e.getValueIsAdjusting())
 				return;
-			
+
 		}
 
 	};

@@ -13,6 +13,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 
 /**
  * An object which can function to either serialize an object into a JSON
@@ -20,26 +21,23 @@ import com.undead_pixels.dungeon_bots.scene.World;
  */
 public class Serializer {
 
-	private Gson _GsonSerialize;
-	private Gson _GsonDeserialize;
+	private Gson gson;
 
 	public Serializer() {
 		GsonBuilder builder = new GsonBuilder();
 		builder.setPrettyPrinting();
-		
-		builder.serializeNulls();
-		builder.registerTypeAdapter(World.class, worldSerializer);
-		_GsonSerialize = builder.create();
 
+		builder.serializeNulls();
+		builder.registerTypeAdapter(LevelPack.class, levelPackSerializer);
 		builder = new GsonBuilder();
 		builder.serializeNulls();
+		builder.registerTypeAdapter(LevelPack.class, levelPackDeserializer);
 		
-		builder.registerTypeAdapter(World.class, worldDeserializer);
-		_GsonDeserialize = builder.create();
+		gson = builder.create();
 	}
 
 	public void writeToFile(String fileName, String json) {
-		
+
 		FileWriter writer = null;
 		try {
 			writer = new FileWriter(fileName);
@@ -52,46 +50,23 @@ public class Serializer {
 
 	}
 
-	/** Serialize the given world. */
-	public String Serialize(World world) {
-
-		/*String worldJSON = _GsonSerialize.toJson(world);
-		Tile[][] tiles = world.getTiles();
-		String tilesJSON = _GsonSerialize.toJson(tiles);
-		writeToFile("experiment.json", tilesJSON);
-*/
-		return _GsonSerialize.toJson(world);
-	}
-
-	/** Deserialize the given string into a World. */
-	public World Deserialize(String jsonString) {
-		return _GsonDeserialize.fromJson(jsonString, World.class);
-	}
-
-	JsonSerializer<World> worldSerializer = new JsonSerializer<World>() {
+	JsonSerializer<LevelPack> levelPackSerializer = new JsonSerializer<LevelPack>() {
 
 		@Override
-		public JsonElement serialize(World world, Type typeOfSrc, JsonSerializationContext context) {
-			//
-
-			//JsonObject obj = new JsonObject();
-
-			return null;
-		}
-
-	};
-
-	JsonDeserializer<World> worldDeserializer = new JsonDeserializer<World>() {
-
-		@Override
-		public World deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-				throws JsonParseException {
-			//JsonObject obj = json.getAsJsonObject();
-
+		public JsonElement serialize(LevelPack src, Type typeOfSrc, JsonSerializationContext context) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
+	};
+	JsonDeserializer<LevelPack> levelPackDeserializer = new JsonDeserializer<LevelPack>() {
+
+		@Override
+		public LevelPack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	};
 
 }
