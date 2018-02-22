@@ -15,11 +15,13 @@ import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGroupings;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -738,5 +740,31 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
+	}
+
+	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
+		Vector2 pos = a.getPosition();
+		Vector2 toUse = null;
+		switch (d) {
+			case UP:
+				toUse = new Vector2(pos.x, pos.y + 1);
+				break;
+			case DOWN:
+				toUse = new Vector2(pos.x, pos.y - 1);
+				break;
+			case LEFT:
+				toUse = new Vector2(pos.x - 1, pos.y);
+				break;
+			case RIGHT:
+				toUse = new Vector2(pos.x + 1, pos.y);
+				break;
+		}
+		// There's a better way to do this that would require changing how we store entities
+		for(Entity e: entities) {
+			if(e.getPosition().x == toUse.x && e.getPosition().y == toUse.y) {
+				return e.use(itemRef);
+			}
+		}
+		return false;
 	}
 }

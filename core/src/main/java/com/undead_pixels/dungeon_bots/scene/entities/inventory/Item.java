@@ -1,11 +1,11 @@
-package com.undead_pixels.dungeon_bots.scene.entities;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
 /**
  * A type representing an immaterial game item.
  */
-public class Item implements GetLuaFacade, Useable {
+public class Item implements GetLuaFacade {
 
 	private final String name;
 	private final String description;
@@ -39,4 +39,5 @@ public class Item implements GetLuaFacade, Useable {
 	@Bind(SecurityLevel.DEFAULT) public Integer getWeight() {
 		return weight;
 	}
+
 }

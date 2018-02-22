@@ -1,13 +1,13 @@
 package com.undead_pixels.dungeon_bots.utils.generic;
 
-public class Tuple2 <T,U> {
+public class Pair<T,U> {
 
-	public final T a;
-	public final U b;
+	public final T first;
+	public final U second;
 
-	public Tuple2(T a, U b) {
-		this.a = a;
-		this.b = b;
+	public Pair(T first, U second) {
+		this.first = first;
+		this.second = second;
 	}
-	
+
 }

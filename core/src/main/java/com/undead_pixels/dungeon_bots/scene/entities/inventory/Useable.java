@@ -1,7 +1,7 @@
-package com.undead_pixels.dungeon_bots.scene.entities;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
 public interface Useable {
-	default boolean use() {
+	default Boolean use(ItemReference item) {
 		return false;
 	}
 }
