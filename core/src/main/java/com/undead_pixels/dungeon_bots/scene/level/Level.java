@@ -5,11 +5,6 @@ import com.undead_pixels.dungeon_bots.script.SandboxedValue;
 import org.luaj.vm2.Varargs;
 
 
-/**
- * This is deprecated because a "World" has been containing the concept of the
- * level.
- */
-@Deprecated
 public final class Level {
 
 	// TODO: The "World" appears to have swallowed up the concepts that we had

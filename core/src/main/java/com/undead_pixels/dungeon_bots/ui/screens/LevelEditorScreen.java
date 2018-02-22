@@ -181,7 +181,7 @@ public class LevelEditorScreen extends Screen {
 					File openFile = FileControl.openDialog(LevelEditorScreen.this);
 					if (openFile != null) {
 						World newWorld = new World(openFile);
-						LevelPack lp = DungeonBotsMain.instance.getLevelPack();
+						//LevelPack lp = DungeonBotsMain.instance.getLevelPack();
 						//lp._levels.add(newWorld);
 						//DungeonBotsMain.instance.setWorld(lp.levels.size() - 1);
 						// _CurrentFile = openFile;

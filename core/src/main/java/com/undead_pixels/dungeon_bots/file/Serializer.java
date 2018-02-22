@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.file;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -78,6 +79,26 @@ public class Serializer {
 		return worldAsBytes;
 	}
 
+	/** Converts the given bytes to a World. */
+	private static World bytesToWorld(byte[] bytes) {
+		ByteArrayInputStream byte_in = null;
+		try {
+			byte_in = new ByteArrayInputStream(bytes);
+			ObjectInputStream in = new ObjectInputStream(byte_in);
+			return (World) in.readObject();
+		} catch (IOException ioe) {
+		} catch (ClassNotFoundException cnfe) {
+		} finally {
+			if (byte_in != null)
+				try {
+					byte_in.close();
+				} catch (IOException e) {
+					// Do nothing.
+				}
+		}
+		return null;
+	}
+
 	JsonSerializer<LevelPack> levelPackSerializer = new JsonSerializer<LevelPack>() {
 
 		@Override
@@ -132,6 +153,11 @@ public class Serializer {
 			}
 		}
 		return result;
+	}
+
+	public World toWorld(byte[] bs) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

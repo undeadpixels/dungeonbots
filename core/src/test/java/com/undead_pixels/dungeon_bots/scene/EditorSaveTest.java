@@ -71,6 +71,7 @@ public class EditorSaveTest {
 		testWorldMadeFromScript("level1.lua", false);
 		testWorldMadeFromScript("maze1.lua", false);
 		testWorldMadeFromScript("maze2.lua", false);
+		testWorldMadeFromScript("default.lua", false);
 	}
 
 	private static void testWorldMadeFromScript(String filename, boolean printResults) throws Exception {

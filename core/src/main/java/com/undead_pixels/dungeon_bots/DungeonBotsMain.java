@@ -102,17 +102,14 @@ public class DungeonBotsMain {
 		// Sanity check.
 		assert newScreen != null;
 
+		// Any screen but the MainMenuScreen must have some state established
+		// before running: a valid User, a valid Level Pack, etc.
 		if (!(newScreen instanceof MainMenuScreen)) {
 			if (getUser() == null && !requestLogin(3))
 				System.exit(0);
-			if (_LevelPack==null){
-				_LevelPack = new LevelPack("My Level Pack", getUser());
-			}
+			//if (_LevelPack == null)
+			//	_LevelPack = new LevelPack("My Level Pack", getUser());
 		}
-
-		// If there is no valid login, just return.
-		if (!(newScreen instanceof MainMenuScreen) && getUser() == null && !requestLogin(3))
-			return;
 
 		// Start the new screen.
 		_Screen = newScreen;

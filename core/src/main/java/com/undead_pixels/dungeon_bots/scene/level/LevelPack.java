@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.undead_pixels.dungeon_bots.User;
+import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 
 /**
@@ -13,6 +15,9 @@ import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
  * others.
  */
 public class LevelPack {
+
+	private transient static Serializer serializer = new Serializer();
+	private transient World _DeserializedWorld = null;
 
 	/**
 	 * A set of rules that specify whether the player will be able to see some,
@@ -23,7 +28,7 @@ public class LevelPack {
 	}
 
 	private HashSet<User> authors;
-	private ArrayList<World> levels;
+	private ArrayList<byte[]> levels;
 	private int levelIndex = 0;
 	private String name;
 	private LevelVisibility visibilityRule;
@@ -35,10 +40,11 @@ public class LevelPack {
 		this.name = name;
 
 		this.transitionScript = new UserScript("onTransition",
-				"--This script will be run to return an int specifying the next world to proceed to, given the current world state.");
+				"--This script will be run to return an LuaInt specifying the next world to proceed to, given the current world state.",
+				SecurityLevel.AUTHOR);
 
-		this.levels = new ArrayList<World>();
-		levels.add(new World(new File("default.lua")));
+		this.levels = new ArrayList<byte[]>();
+		this.levels.add(serializer.toBytes(new World(new File("default.lua"))));
 
 		this.authors = new HashSet<User>();
 		this.authors.add(author);
@@ -66,7 +72,9 @@ public class LevelPack {
 
 	/** Returns the current world. */
 	public World getCurrentWorld() {
-		return levels.get(levelIndex);
+		if (_DeserializedWorld == null)
+			_DeserializedWorld = serializer.toWorld(levels.get(levelIndex));
+		return _DeserializedWorld;
 	}
 
 	/**
@@ -74,13 +82,8 @@ public class LevelPack {
 	 * added. If the world already exists on the Level Pack, returns the index
 	 * of the world.
 	 */
-	public int addWorld(World world) {
-		int index = levels.indexOf(world);
-		if (index < 0) {
-			levels.add(world);
-			index = levels.size() - 1;
-		}
-		return index;
+	public int saveWorld(World world) {
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/** Gets the Level Pack's name. */
