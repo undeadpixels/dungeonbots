@@ -36,6 +36,11 @@ public class LevelPack {
 	private HashSet<Integer> playerCompleted;
 	public UserScript transitionScript;
 
+	/**
+	 * Creates a new Level Pack, having the given name and the first specified
+	 * author. The transition script will simple be a default script, and the
+	 * first World will be a default first World.
+	 */
 	public LevelPack(String name, User author) {
 		this.name = name;
 
@@ -48,7 +53,7 @@ public class LevelPack {
 		this.levels.add(serializer.toBytes(_DeserializedWorld));
 
 		this.authors = new HashSet<User>();
-		this.authors.add(author);
+		addAuthor(author);
 
 		visibilityRule = LevelVisibility.ALL;
 		currentPlayer = null;
@@ -71,6 +76,15 @@ public class LevelPack {
 		return authors.contains(user);
 	}
 
+	/**
+	 * Returns an array of all the authors contained in this Level Pack. Note
+	 * that the array returned is NOT a reference to the collection stored
+	 * internally.
+	 */
+	public User[] getAllAuthors() {
+		return authors.toArray(new User[authors.size()]);
+	}
+
 	/** Returns the current world. */
 	public World getCurrentWorld() {
 		if (_DeserializedWorld == null)
@@ -88,6 +102,7 @@ public class LevelPack {
 		this.name = name;
 	}
 
+	/** Saves the currently-operating world to the Level Pack. */
 	public void saveCurrentWorld() {
 		assert levelIndex >= 0 && levelIndex < levels.size();
 		levels.set(levelIndex, serializer.toBytes(_DeserializedWorld));
@@ -134,9 +149,13 @@ public class LevelPack {
 	 * be assigned.
 	 */
 	public void setCurrentPlayer(User newPlayer) {
-		if (currentPlayer != null && !newPlayer.equals(currentPlayer))
-			throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be changed.");
-		else if (newPlayer.equals(currentPlayer))
+
+		if (currentPlayer != null && !currentPlayer.equals(newPlayer)) {
+			if (newPlayer == null)
+				throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be nulled.");
+			else
+				throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be changed.");
+		} else if (newPlayer.equals(currentPlayer))
 			return;
 		currentPlayer = newPlayer;
 		playerCompleted = new HashSet<Integer>();

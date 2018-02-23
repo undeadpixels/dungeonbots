@@ -1,11 +1,12 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.Component;
 
-import java.io.File;
+import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.auth.LoginEvent;
+import org.jdesktop.swingx.auth.LoginListener;
+import org.jdesktop.swingx.auth.LoginService;
 
-import javax.swing.JFrame;
-
-import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -84,11 +85,11 @@ public class DungeonBotsMain {
 
 		// Build the appropriate type of new screen.
 		switch (screenType) {
-		case MAIN_MENU:			
+		case MAIN_MENU:
 			_Screen = new MainMenuScreen();
 			break;
 		case GAMEPLAY:
-			if (getUser() == null && !requestLogin(3))
+			if (getUser() == null && !requestLogin("Welcome Player", 3))
 				System.exit(0);
 			if (_LevelPack == null)
 				_LevelPack = new LevelPack("My Level Pack", getUser());
@@ -99,15 +100,15 @@ public class DungeonBotsMain {
 			_Screen = new GameplayScreen(_LevelPack.getCurrentWorld());
 			break;
 		case LEVEL_EDITOR:
-			if (getUser() == null && !requestLogin(3))
+			if (getUser() == null && !requestLogin("Welcome Author", 3))
 				System.exit(0);
 			if (_LevelPack == null)
-				_LevelPack = new LevelPack("My Level Pack", getUser());		
-			World breakit = new World(new File("maze2.lua"));
+				_LevelPack = new LevelPack("My Level Pack", getUser());
 			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());
 			break;
 		case RESULTS:
 			_Screen = new ResultsScreen(_LevelPack.getCurrentWorld());
+			break;
 		default:
 			throw new RuntimeException("Have not implemented switch to screen type: " + screenType.toString());
 		}
@@ -161,18 +162,49 @@ public class DungeonBotsMain {
 	 * 
 	 * @return Returns true if login was successful. Otherwise, returns false.
 	 */
-	public boolean requestLogin(int attempts) {
-		//JFrame f = UIBuilder.makeLoginFrame();
-		//f.setVisible(true);
-		System.out.println("Starting login...");
-		User user = Login.challenge("Welcome to DungeonBots.", attempts);
-		if (user == null) {
-			System.out.println("Invalid user login.");
-			return false;
-		}
-		System.out.println("Login valid.");
-		setUser(user);
-		return true;
+	public boolean requestLogin(String message, int attempts) {
+
+		LoginListener listener = new LoginListener() {
+
+			@Override
+			public void loginFailed(LoginEvent source) {
+				System.out.println("Failed");
+			}
+
+			@Override
+			public void loginStarted(LoginEvent e) {
+				DungeonBotsMain src = (DungeonBotsMain) e.getSource();
+				System.out.println("Started");
+			}
+
+			@Override
+			public void loginCanceled(LoginEvent source) {
+				System.out.println("Cancelled");
+			}
+
+			@Override
+			public void loginSucceeded(LoginEvent source) {
+				System.out.println("Succeeded");
+			}
+		};
+		LoginService service = new LoginService() {
+			@Override
+			public boolean authenticate(String name, char[] password, String server) throws Exception {
+				// TODO: actually go online and attempt to authenticate.
+				return false;
+			}
+		};
+		service.addLoginListener(listener);
+		UIBuilder.showLoginModal(message, null, null, null, service);
+		/*
+		 * 
+		 * System.out.println("Starting login..."); User user =
+		 * Login.challenge("Welcome to DungeonBots.", attempts); if (user ==
+		 * null) { System.out.println("Invalid user login."); return false; }
+		 * System.out.println("Login valid."); setUser(user); return true;
+		 */
+
+		return false;
 	}
 
 	/** Closes the game, releases all visual pieces. */

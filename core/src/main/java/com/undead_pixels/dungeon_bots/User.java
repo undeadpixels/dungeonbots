@@ -1,5 +1,10 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.util.HashMap;
+
+import org.jdesktop.swingx.auth.PasswordStore;
+import org.jdesktop.swingx.auth.UserNameStore;
+
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 public class User {
@@ -67,4 +72,5 @@ public class User {
 	public int hashCode() {
 		return _UserName.hashCode();
 	}
+
 }

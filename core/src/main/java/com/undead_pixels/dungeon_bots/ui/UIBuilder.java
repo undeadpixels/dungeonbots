@@ -337,23 +337,16 @@ public class UIBuilder {
 	 * 
 	 * @param passwordStore
 	 *            A password store uses the last successful login password to
-	 *            pre-populate the password field.
+	 *            pre-populate the password field. If null, none will be set.
 	 * @param userNameStore
 	 *            A username store uses the last successful login username to
-	 *            pre-populate the username field.
-	 * @param listener
-	 *            The listener detects login events and results.
+	 *            pre-populate the username field. If null, none will be set.
+	 * @param loginService
+	 *            The login service used to login.
 	 */
 	public static JXLoginPane makeLogin(String message, PasswordStore passwordStore, UserNameStore userNameStore,
-			LoginListener listener) {
-		LoginService service = new LoginService() {
-			@Override
-			public boolean authenticate(String name, char[] password, String server) throws Exception {
-				return true;
-			}
-		};
-		service.addLoginListener(listener);
-		JXLoginPane pane = new JXLoginPane(service);
+			LoginService loginService) {
+		JXLoginPane pane = new JXLoginPane(loginService);
 		if (passwordStore != null)
 			pane.setPasswordStore(passwordStore);
 		if (userNameStore != null)
@@ -368,35 +361,35 @@ public class UIBuilder {
 	 * 
 	 * @param passwordStore
 	 *            A password store uses the last successful login password to
-	 *            pre-populate the password field.
+	 *            pre-populate the password field. If null, none will be set.
 	 * @param userNameStore
 	 *            A username store uses the last successful login username to
-	 *            pre-populate the username field.
-	 * @param listener
-	 *            The listener detects login events and results.
+	 *            pre-populate the username field. If null, none will be set.
+	 * @param loginService
+	 *            The login service used to login.
 	 */
 	public static Status showLoginModal(String message, Component parent, PasswordStore passwordStore,
-			UserNameStore userNameStore, LoginListener listener) {
-		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, listener);
+			UserNameStore userNameStore, LoginService loginService) {
+		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginDialog(parent, pane);
 	}
 
 	/**
 	 * Never roll your own security. This method returns a JFrame containing
-	 * only a login, and when run it does not block.
-	 * 	 * 
+	 * only a login, and when run it does not block. *
+	 * 
 	 * @param passwordStore
 	 *            A password store uses the last successful login password to
-	 *            pre-populate the password field.
+	 *            pre-populate the password field. If null, none will be set.
 	 * @param userNameStore
 	 *            A username store uses the last successful login username to
-	 *            pre-populate the username field.
-	 * @param listener
-	 *            The listener detects login events and results.
+	 *            pre-populate the username field. If null, none will be set.
+	 * @param loginService
+	 *            The login service used to login.
 	 */
 	public static JFrame showLoginModeless(String message, PasswordStore passwordStore, UserNameStore userNameStore,
-			LoginListener listener) {
-		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, listener);
+			LoginService loginService) {
+		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginFrame(pane);
 	}
 
