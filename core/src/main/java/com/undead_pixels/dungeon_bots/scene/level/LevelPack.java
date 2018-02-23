@@ -150,12 +150,14 @@ public class LevelPack {
 	 */
 	public void setCurrentPlayer(User newPlayer) {
 
-		if (currentPlayer != null && !currentPlayer.equals(newPlayer)) {
-			if (newPlayer == null)
+		if (currentPlayer != null) {
+			if (currentPlayer.equals(newPlayer))
+				return;
+			else if (newPlayer == null)
 				throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be nulled.");
 			else
 				throw new RuntimeException("Once a player has been assigned to a Level Pack, it cannot be changed.");
-		} else if (newPlayer.equals(currentPlayer))
+		} else if (newPlayer == null)
 			return;
 		currentPlayer = newPlayer;
 		playerCompleted = new HashSet<Integer>();

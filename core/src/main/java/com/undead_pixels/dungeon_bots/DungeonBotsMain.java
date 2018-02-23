@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots;
 import java.awt.Component;
 
 import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.JXLoginPane.Status;
 import org.jdesktop.swingx.auth.LoginEvent;
 import org.jdesktop.swingx.auth.LoginListener;
 import org.jdesktop.swingx.auth.LoginService;
@@ -153,7 +154,7 @@ public class DungeonBotsMain {
 	/**
 	 * A function that prompts the user to log in.
 	 * 
-	 * An Internet connection will be required for access to the Sharing
+	 * TODO:  An Internet connection will be required for access to the Sharing
 	 * Platform, but this not required to run the pre-built parts of the game.
 	 * 
 	 * However, this will also be needed when we want to upload results to the
@@ -164,47 +165,16 @@ public class DungeonBotsMain {
 	 */
 	public boolean requestLogin(String message, int attempts) {
 
-		LoginListener listener = new LoginListener() {
-
-			@Override
-			public void loginFailed(LoginEvent source) {
-				System.out.println("Failed");
-			}
-
-			@Override
-			public void loginStarted(LoginEvent e) {
-				DungeonBotsMain src = (DungeonBotsMain) e.getSource();
-				System.out.println("Started");
-			}
-
-			@Override
-			public void loginCanceled(LoginEvent source) {
-				System.out.println("Cancelled");
-			}
-
-			@Override
-			public void loginSucceeded(LoginEvent source) {
-				System.out.println("Succeeded");
-			}
-		};
 		LoginService service = new LoginService() {
 			@Override
 			public boolean authenticate(String name, char[] password, String server) throws Exception {
 				// TODO: actually go online and attempt to authenticate.
-				return false;
+				return true;
 			}
 		};
-		service.addLoginListener(listener);
-		UIBuilder.showLoginModal(message, null, null, null, service);
-		/*
-		 * 
-		 * System.out.println("Starting login..."); User user =
-		 * Login.challenge("Welcome to DungeonBots.", attempts); if (user ==
-		 * null) { System.out.println("Invalid user login."); return false; }
-		 * System.out.println("Login valid."); setUser(user); return true;
-		 */
 
-		return false;
+		return UIBuilder.showLoginModal(message, null, null, null, service) == Status.SUCCEEDED;
+
 	}
 
 	/** Closes the game, releases all visual pieces. */
