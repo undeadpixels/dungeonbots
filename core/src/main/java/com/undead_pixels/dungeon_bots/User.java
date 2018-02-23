@@ -15,10 +15,11 @@ public class User {
 	// The following would not be serialized:
 	private SecurityLevel _SecurityLevel = SecurityLevel.AUTHOR;
 
-	private long _ID;
+	private final int _ID;
 
 	public User(String userName) {
 		_UserName = userName;
+		_ID = -123456789;
 	}
 
 	public static User dummy() {
@@ -53,7 +54,7 @@ public class User {
 	}
 
 	/** Returns the username for this user. */
-	public Object getUserName() {
+	public String getUserName() {
 		return _UserName;
 	}
 
@@ -72,5 +73,8 @@ public class User {
 	public int hashCode() {
 		return _UserName.hashCode();
 	}
+	
+	public int getID() { return _ID;}
+	
 
 }

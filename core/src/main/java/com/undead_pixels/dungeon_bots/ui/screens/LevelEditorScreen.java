@@ -149,10 +149,11 @@ public class LevelEditorScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 
-				case "Save":
-					Serializer s = new Serializer();
-					byte[] worldBytes = s.toBytes(world);
-
+				case "Save to LevelPack":
+					LevelPack lp = DungeonBotsMain.instance.getLevelPack();
+					String json = lp.toJson();
+					Serializer.writeToFile("example.json",  json);
+					break;
 					/*
 					 * // If there is not a cached file, treat as a SaveAs
 					 * instead. if (_CurrentFile == null) _CurrentFile =
