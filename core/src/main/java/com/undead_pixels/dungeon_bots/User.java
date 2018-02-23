@@ -12,9 +12,7 @@ public class User {
 	// The following should be serialized:
 	private String _UserName;
 
-	// The following would not be serialized:
-	private SecurityLevel _SecurityLevel = SecurityLevel.AUTHOR;
-
+	
 	private final int _ID;
 
 	public User(String userName) {
@@ -22,36 +20,20 @@ public class User {
 		_ID = -123456789;
 	}
 
+	/**
+	 * Constructs a User from JSON. This is the method by which a user is
+	 * imported from the website database and constructed locally.
+	 */
+	public static User fromJSON(String json) {
+		throw new RuntimeException("Not implemented yet.");
+	}
+
+	/** Returns a useless User. For testing purposes. */
 	public static User dummy() {
 		return new User("dummy");
 	}
 
-	public static User fromJSON(String json) {
-
-		if (json == "")
-			return dummy();
-
-		throw new UnsupportedOperationException("Not implemented yet.");
-	}
-
-	public SecurityLevel getSecurityLevel() {
-		return _SecurityLevel;
-	}
-
-	/**
-	 * Sets the game, and returns the user's security level associated with
-	 * that.
-	 */
-	public SecurityLevel setCurrentGame(DungeonBotsMain game) {
-		// TODO - this needs to be changed
-
-		if (game == null)
-			return _SecurityLevel = SecurityLevel.DEFAULT;
-		game.setUser(this);
-		// if (game.isAuthor(this))
-		// return _SecurityLevel = SecurityLevel.AUTHOR;
-		return _SecurityLevel = SecurityLevel.DEFAULT;
-	}
+	
 
 	/** Returns the username for this user. */
 	public String getUserName() {
@@ -73,8 +55,9 @@ public class User {
 	public int hashCode() {
 		return _UserName.hashCode();
 	}
-	
-	public int getID() { return _ID;}
-	
+
+	public int getID() {
+		return _ID;
+	}
 
 }

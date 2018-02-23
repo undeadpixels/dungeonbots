@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+//import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -73,12 +74,13 @@ public class Serializer {
 	@SuppressWarnings("unchecked")
 	public static <T> T deserializeFromBytes(byte[] bytes) {
 		ByteArrayInputStream byte_in = null;
+		T result = null;
 		try {
 			byte_in = new ByteArrayInputStream(bytes);
 			ObjectInputStream in = new ObjectInputStream(byte_in);
-			return (T) in.readObject();
-		} catch (IOException ioe) {
-		} catch (ClassNotFoundException cnfe) {
+			result = (T) in.readObject();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		} finally {
 			if (byte_in != null)
 				try {
@@ -87,7 +89,7 @@ public class Serializer {
 					// Do nothing.
 				}
 		}
-		return null;
+		return result;
 	}
 
 	/**
@@ -186,13 +188,14 @@ public class Serializer {
 	}
 
 	/** Converts the given list of Worlds to bytes. */
-	public static byte[] serializeWorlds(ArrayList<World> worlds) {
-		return serializeToBytes(worlds);
+	public static byte[] serializeWorlds(WorldList worlds) {		
+		byte[] result = serializeToBytes(worlds);
+		return result;
 	}
 
 	/** Converts the given bytes to an ordered list of Worlds. */
 	public static WorldList deserializeWorlds(byte[] bytes) {
-		return Serializer.<WorldList>deserializeFromBytes(bytes);
+		return Serializer.<WorldList>deserializeFromBytes(bytes);		
 	}
 
 	// ============================================================
@@ -203,21 +206,33 @@ public class Serializer {
 
 	private static Gson setupGson() {
 		GsonBuilder builder = new GsonBuilder();
-		builder.setPrettyPrinting();
+		// builder.setPrettyPrinting();
 		builder.serializeNulls();
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsSerializer);
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsDeserializer);
 		return builder.create();
 	}
+	
+	// Using Android's base64 libraries. This can be replaced with any base64 library.
+    private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
+        public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return Base64.decode(json.getAsString(), Base64.NO_WRAP);
+        }
 
-	private static JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
+        public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(Base64.encodeToString(src, Base64.NO_WRAP));
+        }
+    }
+
+	/*private static JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
 
 		@Override
 		public JsonElement serialize(WorldList src, Type typeOfSrc, JsonSerializationContext context) {
 			JsonObject obj = new JsonObject();
 			byte[] bytes = serializeWorlds(src);
-			obj.add("levels", _Gson.toJsonTree(new String(bytes)));
-			return obj;
+			return _Gson.toJsonTree(bytes);			
+			// obj.add("levels", _Gson.toJsonTree(new String(bytes)));
+			// return obj;
 		}
 	};
 
@@ -227,10 +242,11 @@ public class Serializer {
 		public WorldList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
 			String str = json.getAsJsonPrimitive().getAsString();
-			return deserializeWorlds(str.getBytes());
+			WorldList wl = deserializeWorlds(str.getBytes());
+			return wl;
 		}
 
-	};
+	};*/
 
 	public static String serializeLevelPack(LevelPack levelPack) {
 		return serializeToJSON(levelPack);
@@ -243,6 +259,20 @@ public class Serializer {
 	// ============================================================
 	// ====== Serializer VALIDATION STUFF =========================
 	// ============================================================
+
+	public enum PrintOptions {
+		NONE(0), MATCHED(1), UNMATCHED(2), UNDETERMINED(4), ALL_NON_MATCHED(2 | 4);
+
+		public int value;
+
+		PrintOptions(int value) {
+			this.value = value;
+		}
+
+		public int value() {
+			return value;
+		}
+	}
 
 	/**
 	 * Uses reflection to determine actual equality of two objects without the
@@ -271,7 +301,7 @@ public class Serializer {
 	 *             objects are not deep-field equal.
 	 */
 	public static void validate(Object objectA, Object objectB, String rootName, boolean testTransients,
-			boolean testFinals, boolean printResults) throws Exception {
+			boolean testFinals, PrintOptions options) throws Exception {
 
 		ArrayList<String> matched = new ArrayList<String>(), unmatched = new ArrayList<String>(),
 				undetermined = new ArrayList<String>();
@@ -280,11 +310,27 @@ public class Serializer {
 
 		String result = rootName + "   Matched fields: " + matched.size() + "   Unmatched fields: " + unmatched.size()
 				+ "   Undetermined fields: " + undetermined.size();
-		if (printResults) {
+		if (options.value > PrintOptions.NONE.value)
 			System.out.println(result);
-			for (String str : matched)
+		if ((options.value & PrintOptions.MATCHED.value) == PrintOptions.MATCHED.value) {
+			System.out.print("Matched: " + matched.size());
+			for (String str : matched) {
 				System.out.println(str);
+			}
 		}
+		if ((options.value & PrintOptions.UNMATCHED.value) == PrintOptions.UNMATCHED.value) {
+			System.out.print("Unmatched: " + unmatched.size());
+			for (String str : unmatched) {
+				System.out.println(str);
+			}
+		}
+		if ((options.value & PrintOptions.UNDETERMINED.value) == PrintOptions.UNDETERMINED.value) {
+			System.out.print("Undetermined: " + undetermined.size());
+			for (String str : undetermined) {
+				System.out.println(str);
+			}
+		}
+
 		if (unmatched.size() > 0 || undetermined.size() > 0)
 			throw new Exception(result);
 
@@ -372,6 +418,9 @@ public class Serializer {
 			while (iterB.hasNext())
 				validateReflectedEqualityRecursive(iterB.next(), new Object(), tempMatched, tempUnmatched,
 						tempUndetermined, checked, rootName + "[" + i++ + "]", testTransients, testFinals);
+
+			// Return because Iterables tend to have internals which don't
+			// match, even when they contain exactly the same items.
 			return;
 		}
 

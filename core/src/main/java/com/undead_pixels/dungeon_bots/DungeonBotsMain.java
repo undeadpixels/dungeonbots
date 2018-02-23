@@ -9,6 +9,7 @@ import org.jdesktop.swingx.auth.LoginListener;
 import org.jdesktop.swingx.auth.LoginService;
 
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
@@ -33,6 +34,9 @@ public class DungeonBotsMain {
 
 	/** The LevelPack from which the current world is drawn. */
 	private LevelPack _LevelPack;
+
+	/** Caches the current user's security level. */
+	private SecurityLevel _UserSecurityLevel;
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
@@ -124,6 +128,20 @@ public class DungeonBotsMain {
 		return _LevelPack;
 	}
 
+	public void setLevelPack(LevelPack levelPack) {
+		assert levelPack != null;
+		_LevelPack = levelPack;
+		updateSecurity();
+	}
+
+	/** Updates the cached security status for the current user. */
+	private void updateSecurity() {
+		if (getLevelPack() == null || getUser() == null)
+			_UserSecurityLevel = SecurityLevel.DEFAULT;
+		else
+			_UserSecurityLevel = getLevelPack().isAuthor(getUser()) ? SecurityLevel.AUTHOR : SecurityLevel.DEFAULT;
+	}
+
 	/*
 	 * ================================================================
 	 * DungeonBotsMain USER IDENTIFICATION AND SECURITY STUFF
@@ -148,13 +166,13 @@ public class DungeonBotsMain {
 		if (user == currentUser)
 			return;
 		currentUser = user;
-		user.setCurrentGame(this);
+		updateSecurity();
 	}
 
 	/**
 	 * A function that prompts the user to log in.
 	 * 
-	 * TODO:  An Internet connection will be required for access to the Sharing
+	 * TODO: An Internet connection will be required for access to the Sharing
 	 * Platform, but this not required to run the pre-built parts of the game.
 	 * 
 	 * However, this will also be needed when we want to upload results to the

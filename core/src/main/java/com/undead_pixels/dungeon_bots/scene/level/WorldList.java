@@ -1,11 +1,12 @@
 package com.undead_pixels.dungeon_bots.scene.level;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 
 /**
- * This is a class embodying a list of Worlds whose exclusive purpose is to make
+ * This is a class wrapping a list of Worlds whose exclusive purpose is to make
  * serialization work correctly. It probably won't even have any members.
  * <p>
  * The problem this class solves is that types of generics are erased in Java at
@@ -15,6 +16,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
  * WorldList from an ArrayList&ltWorld&gt. Hence, dummy class. Yes, it's
  * hackish, but Java's decision to use type erasure gives us no choice.
  */
-@SuppressWarnings("serial")
-public class WorldList extends ArrayList<World> {
+
+public class WorldList extends ArrayList<World> implements Serializable {
+	
 }

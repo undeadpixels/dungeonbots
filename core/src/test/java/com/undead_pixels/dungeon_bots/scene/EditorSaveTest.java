@@ -19,9 +19,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
 import com.undead_pixels.dungeon_bots.file.editor.TileRegionSection;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 
 public class EditorSaveTest {
 
@@ -69,26 +71,26 @@ public class EditorSaveTest {
 
 	@Test
 	public void testSerializeWorld() throws Exception {
-		testWorldMadeFromScript("level1.lua", false);
-		testWorldMadeFromScript("maze1.lua", false);
-		testWorldMadeFromScript("maze2.lua", false);
-		testWorldMadeFromScript("default.lua", false);
+		testWorldMadeFromScript("level1.lua", Serializer.PrintOptions.NONE);
+		testWorldMadeFromScript("maze1.lua", Serializer.PrintOptions.NONE);
+		testWorldMadeFromScript("maze2.lua", Serializer.PrintOptions.NONE);
+		testWorldMadeFromScript("default.lua", Serializer.PrintOptions.NONE);
 	}
 
-	private static void testWorldMadeFromScript(String filename, boolean printResults) throws Exception {
+	private static void testWorldMadeFromScript(String filename, Serializer.PrintOptions options) throws Exception {
 
 		World w1 = new World(new File(filename));
 		World w2 = Serializer.deserializeWorld(Serializer.serializeWorld(w1));
 
-		Serializer.validate(w1, w2, filename + " world", false, true, printResults);
+		Serializer.validate(w1, w2, filename + " world", false, true, options);
 	}
-	
-	@Test
-	public void testSerializeLevelPack() {
-		
-	}
-	
-	
 
-	
+	@Test
+	public void testSerializeLevelPack() throws Exception {
+		LevelPack lp1 = new LevelPack("lp01", User.dummy());
+		LevelPack lp2 = Serializer.deserializeLevelPack(Serializer.serializeLevelPack(lp1));
+		Serializer.validate(lp1, lp2, lp1.getName() + " LevelPack", false, true,
+				Serializer.PrintOptions.ALL_NON_MATCHED);
+	}
+
 }
