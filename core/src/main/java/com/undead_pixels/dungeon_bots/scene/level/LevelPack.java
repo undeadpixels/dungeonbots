@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.level;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashSet;
 
 import com.undead_pixels.dungeon_bots.User;
@@ -288,6 +289,12 @@ public class LevelPack {
 	public static LevelPack fromFile(String filename) {
 		String json = Serializer.readStringFromFile(filename);
 		return fromJson(json);
+	}
+
+	/** Saves this LevelPack to the indicated file name. */
+	public void toFile(String filename) {
+		String serialized = Serializer.serializeLevelPack(this);
+		Serializer.writeToFile(filename, serialized.getBytes());
 	}
 
 	/** Constructs and returns a LevelPack from the indicated json String. */

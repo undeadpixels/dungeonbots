@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 //import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -79,8 +80,10 @@ public class Serializer {
 			byte_in = new ByteArrayInputStream(bytes);
 			ObjectInputStream in = new ObjectInputStream(byte_in);
 			result = (T) in.readObject();
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		} catch (IOException iex) {
+			iex.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		} finally {
 			if (byte_in != null)
 				try {
@@ -123,13 +126,15 @@ public class Serializer {
 	 *            The name of the file to write.
 	 * @param bytes
 	 *            The bytes to write to the file.
+	 * @return Returns whether the write was successful.
 	 */
-	public static void writeToFile(String filename, byte[] bytes) {
+	public static boolean writeToFile(String filename, byte[] bytes) {
 		try {
 			Files.write(Paths.get(filename), bytes);
+			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
 		}
+		return false;
 	}
 
 	/**
@@ -139,9 +144,10 @@ public class Serializer {
 	 *            The name of the file to write.
 	 * @param bytes
 	 *            The String to write to the file.
+	 * @return Returns whether the write was successful.
 	 */
-	public static void writeToFile(String filename, String string) {
-		writeToFile(filename, string.getBytes());
+	public static boolean writeToFile(String filename, String string) {
+		return writeToFile(filename, string.getBytes());
 	}
 
 	/**
@@ -188,14 +194,14 @@ public class Serializer {
 	}
 
 	/** Converts the given list of Worlds to bytes. */
-	public static byte[] serializeWorlds(WorldList worlds) {		
+	public static byte[] serializeWorlds(WorldList worlds) {
 		byte[] result = serializeToBytes(worlds);
 		return result;
 	}
 
 	/** Converts the given bytes to an ordered list of Worlds. */
 	public static WorldList deserializeWorlds(byte[] bytes) {
-		return Serializer.<WorldList>deserializeFromBytes(bytes);		
+		return Serializer.<WorldList>deserializeFromBytes(bytes);
 	}
 
 	// ============================================================
@@ -212,27 +218,16 @@ public class Serializer {
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsDeserializer);
 		return builder.create();
 	}
-	
-	// Using Android's base64 libraries. This can be replaced with any base64 library.
-    private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
-        public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return Base64.decode(json.getAsString(), Base64.NO_WRAP);
-        }
 
-        public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(Base64.encodeToString(src, Base64.NO_WRAP));
-        }
-    }
-
-	/*private static JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
+	private static JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
 
 		@Override
 		public JsonElement serialize(WorldList src, Type typeOfSrc, JsonSerializationContext context) {
 			JsonObject obj = new JsonObject();
+			// To properly save the bytes, must use Base64 encoding.
 			byte[] bytes = serializeWorlds(src);
-			return _Gson.toJsonTree(bytes);			
-			// obj.add("levels", _Gson.toJsonTree(new String(bytes)));
-			// return obj;
+			String str = Base64.getEncoder().encodeToString(bytes);
+			return _Gson.toJsonTree(str);
 		}
 	};
 
@@ -241,12 +236,14 @@ public class Serializer {
 		@Override
 		public WorldList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
+			// To get the original bytes, must use Base64 decoding.
 			String str = json.getAsJsonPrimitive().getAsString();
-			WorldList wl = deserializeWorlds(str.getBytes());
+			byte[] bytes = Base64.getDecoder().decode(str.getBytes());
+			WorldList wl = deserializeWorlds(bytes);
 			return wl;
 		}
 
-	};*/
+	};
 
 	public static String serializeLevelPack(LevelPack levelPack) {
 		return serializeToJSON(levelPack);
