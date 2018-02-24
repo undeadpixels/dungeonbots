@@ -155,28 +155,22 @@ public class MainMenuScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 
-		Insets insets = new Insets(10, 10, 10, 10);
-		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "PLAY", getController(),
-				KeyStroke.getKeyStroke(KeyEvent.VK_P, 0));
-		bttnPlay.setMargin(insets);
-		bttnPlay.setAlignmentX(CENTER_ALIGNMENT);
+		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("PLAY")
+				.action("PLAY", getController()).hotkey('p').margin(10, 10, 10, 10).alignmentX(CENTER_ALIGNMENT)
+				.create();
 		bttnPlay.requestFocus();
 
-		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "CREATE", getController(),
-				KeyStroke.getKeyStroke(KeyEvent.VK_C, 0));
-		bttnCreate.setMargin(insets);
-		bttnCreate.setAlignmentX(CENTER_ALIGNMENT);
+		JButton bttnCreate = UIBuilder.buildButton().image("create.gif").toolTip("Edit a game as an author.")
+				.text("CREATE").action("CREATE", getController()).hotkey('c').margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
 
-		JButton bttnCommunity = UIBuilder.makeButton("community.gif", "Go to the community.", "COMMUNITY",
-				getController(), KeyStroke.getKeyStroke(KeyEvent.VK_U, 0));
-		bttnCommunity.setMargin(insets);
-		bttnCommunity.setAlignmentX(CENTER_ALIGNMENT);
+		JButton bttnCommunity = UIBuilder.buildButton().image("community.gif").toolTip("Go to the online community.")
+				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey('u').margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
 
-		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "QUIT", getController(),
-				KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0));
-		bttnQuit.setMargin(new Insets(5, 5, 5, 5));
-		bttnQuit.setAlignmentX(CENTER_ALIGNMENT);
-
+		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("QUIT")
+				.action("QUIT", getController()).hotkey('q').margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT).create();
+		
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 

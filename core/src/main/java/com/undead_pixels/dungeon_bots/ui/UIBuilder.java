@@ -7,18 +7,28 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -57,9 +67,9 @@ public class UIBuilder {
 	 */
 	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String actionCommand,
 			ActionListener listener) {
-		JButton ret = makeButton(imageURL, toolTipText, actionCommand, listener);
-		ret.setPreferredSize(new Dimension(width, height));
-		return ret;
+
+		return buildButton().image(imageURL).width(width).height(height).toolTip(toolTipText)
+				.action(actionCommand, listener).create();
 	}
 
 	/**
@@ -83,35 +93,317 @@ public class UIBuilder {
 	 */
 	public static JButton makeButton(String imageURL, String toolTipText, String actionCommand,
 			ActionListener listener) {
+		return buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand, listener).create();
+	}
 
-		JButton resultButton = new JButton();
-		if (actionCommand != null && !actionCommand.equals(""))
-			resultButton.setActionCommand(actionCommand);
-		if (toolTipText != null && !toolTipText.equals(""))
-			resultButton.setToolTipText(toolTipText);
+	public static abstract class ButtonBuilder<T extends AbstractButton> {
 
-		// Wire up the listener, and make the button respond as clicked when it
-		// has focus and enter is pressed.
-		if (listener != null)
-			resultButton.addActionListener(listener);
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), JComponent.WHEN_FOCUSED);
+		protected static final String FIELD_ACTION = "action";
+		protected static final String FIELD_ACTION_COMMAND = "action_command";
+		protected static final String FIELD_ACTION_COMMAND_LISTENER = "action_command_listener";
+		protected static final String FIELD_ALIGNMENT_X = "alignment_x";
+		protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
+		protected static final String FIELD_FOCUSABLE = "focusable";
+		protected static final String FIELD_HOTKEY = "hotkey";
+		protected static final String FIELD_IMAGE = "image";
+		protected static final String FIELD_INSETS = "insets";
+		protected static final String FIELD_PREFERRED_WIDTH = "preferred_width";
+		protected static final String FIELD_PREFERRED_HEIGHT = "preferred_height";
+		protected static final String FIELD_TEXT = "text";
+		protected static final String FIELD_TOOLTIP = "tooltip";
 
-		// Set the image if the resource can be found. If it can't set the
-		// contents of the button to the alternative text.
-		Image img = UIBuilder.getImage(imageURL);
-		if (img == null)
-			resultButton.setText(actionCommand);
-		else
-			// Proportionate probably makes sense most times.
-			resultButton.setIcon(new StretchIcon(img, true));
+		protected static final int DEFAULT_PREFERRED_WIDTH = 50;
+		protected static final int DEFAULT_PREFERRED_HEIGHT = 35;
 
-		resultButton.setPreferredSize(new Dimension(50, 40));
-		return resultButton;
+		private HashMap<String, Object> _Settings = new HashMap<String, Object>();
+
+		/** Clears all settings from this ButtonBuilder. */
+		public final void reset() {
+			_Settings.clear();
+		}
+
+		/** Sets the given action for buttons created by this builder. */
+		public final ButtonBuilder<T> action(Action action) {
+			_Settings.put(FIELD_ACTION, action);
+			return this;
+		}
+
+		/**
+		 * Specifies the action command, and adds the given listener to buttons
+		 * created by this builder.
+		 */
+		public final ButtonBuilder<T> action(String command, ActionListener listener) {
+			_Settings.put(FIELD_ACTION_COMMAND, command);
+			_Settings.put(FIELD_ACTION_COMMAND_LISTENER, listener);
+			return this;
+		}
+
+		public final ButtonBuilder<T> alignmentX(float alignment) {
+			_Settings.put(FIELD_ALIGNMENT_X, alignment);
+			return this;
+		}
+
+		public final ButtonBuilder<T> alignmentY(float alignment) {
+			_Settings.put(FIELD_ALIGNMENT_Y, alignment);
+			return this;
+		}
+
+		/** Sets focusability as specified. */
+		public final ButtonBuilder<T> focusable(boolean focusable) {
+			_Settings.put(FIELD_FOCUSABLE, focusable);
+			return this;
+		}
+
+		/**
+		 * Specifies the preferred height for buttons created by this builder.
+		 */
+		public final ButtonBuilder<T> height(int height) {
+			_Settings.put(FIELD_PREFERRED_HEIGHT, height);
+			return this;
+		}
+
+		/**
+		 * Specifies the hotkey for buttons created by this builder (note that
+		 * this may result in multiple buttons having the same hotkey).
+		 */
+		public final ButtonBuilder<T> hotkey(char keyChar, boolean shift, boolean ctrl, boolean alt, boolean meta,
+				boolean alt_graph) {
+			int mod = 0;
+			if (shift)
+				mod |= InputEvent.SHIFT_DOWN_MASK;
+			if (ctrl)
+				mod |= InputEvent.CTRL_DOWN_MASK;
+			if (alt)
+				mod |= InputEvent.ALT_DOWN_MASK;
+			if (meta)
+				mod |= InputEvent.META_DOWN_MASK;
+			if (alt_graph)
+				mod |= InputEvent.ALT_GRAPH_DOWN_MASK;
+			return hotkey(keyChar, mod);
+		}
+
+		/**
+		 * Specifies the hotkey for buttons created by this builder (note that
+		 * this may result in multiple buttons having the same hotkey).
+		 */
+		public final ButtonBuilder<T> hotkey(char keyChar) {
+			return hotkey(keyChar, 0);
+		}
+
+		/**
+		 * Specifies the hotkey for buttons created by this builder (note that
+		 * this may result in multiple buttons having the same hotkey).
+		 */
+		public final ButtonBuilder<T> hotkey(char keyChar, int modifiers) {
+			return hotkey(KeyStroke.getKeyStroke(new Character(keyChar), modifiers));
+		}
+
+		/**
+		 * Specifies the hotkey for buttons created by this builder (note that
+		 * this may result in multiple buttons having the same hotkey).
+		 */
+		public final ButtonBuilder<T> hotkey(KeyStroke hotKey) {
+			_Settings.put(FIELD_HOTKEY, hotKey);
+			return this;
+		}
+
+		/**
+		 * A class whose only purpose is to pair an image with its intended
+		 * proportionality flag.
+		 */
+		private static final class ImageProportionality {
+			public Image image;
+			public boolean proportional;
+
+			public ImageProportionality(Image image, boolean proportional) {
+				this.image = image;
+				this.proportional = proportional;
+			}
+		}
+
+		/**
+		 * Specifies an image from the given filename will be displayed by
+		 * buttons created by this builder. If the file could not be opened,
+		 * sets the displayed text to the filename.
+		 */
+		public final ButtonBuilder<T> image(String filename) {
+			_Settings.put(FIELD_IMAGE, filename);
+			return this;
+		}
+
+		/**
+		 * Specifies an image to be displayed by this button. The image will
+		 * fill the entire button.
+		 */
+		public final ButtonBuilder<T> image(Image image) {
+			return image(image, false);
+		}
+
+		/**
+		 * Specifies an image to be displayed by this button. If the given
+		 * boolean is true, the image will maintain proportionality within the
+		 * button but be scaled as large as it can but still fit. If false, the
+		 * image will be stretched to completely fill the button.
+		 */
+		public final ButtonBuilder<T> image(Image image, boolean proportional) {
+			_Settings.put(FIELD_IMAGE, new ImageProportionality(image, proportional));
+			return this;
+		}
+
+		/** Sets the button's margin as indicated. */
+		public final ButtonBuilder<T> margin(int top, int left, int bottom, int right) {
+			return margin(new Insets(top, left, bottom, right));
+		}
+
+		/** Sets the button's margin as indicated. */
+		public final ButtonBuilder<T> margin(Insets insets) {
+			_Settings.put(FIELD_INSETS, insets);
+			return this;
+		}
+
+		/**
+		 * Specifies the given text to be displayed by buttons created by this
+		 * builder.
+		 */
+		public final ButtonBuilder<T> text(String text) {
+			_Settings.put(FIELD_TEXT, text);
+			return this;
+		}
+
+		/** Adds the given tooltip text to buttons created by this builder. */
+		public final ButtonBuilder<T> toolTip(String toolTipText) {
+			_Settings.put(FIELD_TOOLTIP, toolTipText);
+			return this;
+		}
+
+		/**
+		 * Specifies the preferred width for buttons created by this builder.
+		 */
+		public final ButtonBuilder<T> width(int width) {
+			_Settings.put(FIELD_PREFERRED_WIDTH, width);
+			return this;
+		}
+
+		protected abstract void addSettings(T buttonBeingBuilt, HashMap<String, Object> unhandledSettings);
+
+		/**
+		 * Create an uninitialized button as it is defined in Swing, for example
+		 * a JButton or a JToggleButton. Settings will be applied after the
+		 * button is instantiated.
+		 */
+		protected abstract T createUninitialized();
+
+		public T create() {
+
+			// Create the base object.
+			T bttn = createUninitialized();
+
+			// Create a copy of the settings map.
+			HashMap<String, Object> unhandled = new HashMap<String, Object>();
+			for (Entry<String, Object> entry : this._Settings.entrySet())
+				unhandled.put(entry.getKey(), entry.getValue());
+
+			// Check each possible setting for an AbstractButton.
+			if (unhandled.containsKey(FIELD_ACTION))
+				bttn.setAction((Action) unhandled.remove(FIELD_ACTION));
+			if (unhandled.containsKey(FIELD_ACTION_COMMAND))
+				bttn.setActionCommand((String) unhandled.remove(FIELD_ACTION_COMMAND));
+			if (unhandled.containsKey(FIELD_ACTION_COMMAND_LISTENER))
+				bttn.addActionListener((ActionListener) unhandled.remove(FIELD_ACTION_COMMAND_LISTENER));
+			if (unhandled.containsKey(FIELD_ALIGNMENT_X))
+				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_X));
+			if (unhandled.containsKey(FIELD_ALIGNMENT_Y))
+				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_Y));
+			if (unhandled.containsKey(FIELD_FOCUSABLE))
+				bttn.setFocusable((boolean) unhandled.remove(FIELD_FOCUSABLE));
+			if (unhandled.containsKey(FIELD_TOOLTIP))
+				bttn.setToolTipText((String) unhandled.remove(FIELD_TOOLTIP));
+			if (unhandled.containsKey(FIELD_IMAGE)) {
+				Object value = unhandled.remove(FIELD_IMAGE);
+				ImageProportionality ip = null;
+				if (value instanceof String) {
+					ip = new ImageProportionality(UIBuilder.getImage((String) value), false);
+					if (ip.image == null)
+						bttn.setText((String) value);
+				} else if (value instanceof ImageProportionality)
+					ip = (ImageProportionality) value;
+				if (ip.image != null)
+					bttn.setIcon(new StretchIcon(ip.image, ip.proportional));
+			}
+			if (unhandled.containsKey(FIELD_INSETS))
+				bttn.setMargin((Insets) unhandled.remove(FIELD_INSETS));
+			if (unhandled.containsKey(FIELD_PREFERRED_WIDTH) || unhandled.containsKey(FIELD_PREFERRED_HEIGHT)) {
+				int prefWidth = unhandled.containsKey(FIELD_PREFERRED_WIDTH)
+						? (int) unhandled.remove(FIELD_PREFERRED_WIDTH) : DEFAULT_PREFERRED_WIDTH;
+				int prefHeight = unhandled.containsKey(FIELD_PREFERRED_HEIGHT)
+						? (int) unhandled.remove(FIELD_PREFERRED_HEIGHT) : DEFAULT_PREFERRED_HEIGHT;
+				bttn.setPreferredSize(new Dimension(prefWidth, prefHeight));
+			}
+			if (unhandled.containsKey(FIELD_HOTKEY)) {
+				KeyStroke hotkey = (KeyStroke) unhandled.remove(FIELD_HOTKEY);
+				bttn.registerKeyboardAction(
+						bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
+						KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), false),
+						JComponent.WHEN_IN_FOCUSED_WINDOW);
+				bttn.registerKeyboardAction(
+						bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
+						KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), true),
+						JComponent.WHEN_IN_FOCUSED_WINDOW);
+			}
+			if (unhandled.containsKey(FIELD_TEXT)) {
+				bttn.setText((String) unhandled.remove(FIELD_TEXT));
+			}
+
+			if (unhandled.size() > 0)
+				addSettings(bttn, unhandled);
+
+			// The 'enter' key should do the same as the 'space' key.
+			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
+					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
+			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
+					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), JComponent.WHEN_FOCUSED);
+
+			return bttn;
+		}
+
+	}
+
+	/**
+	 * Returns a builder for a JButton. The builder pattern will allow the
+	 * following call:
+	 * <p>
+	 * JButton button = buildButton().text("I'm a button").action("CLICK",
+	 * listener).create();
+	 */
+	public static ButtonBuilder<JButton> buildButton() {
+		return new ButtonBuilder<JButton>() {
+
+			@Override
+			protected void addSettings(JButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
+				throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
+			}
+
+			@Override
+			protected JButton createUninitialized() {
+				return new JButton();
+			}
+		};
+	}
+
+	public static ButtonBuilder<JToggleButton> buildToggleButton() {
+		return new ButtonBuilder<JToggleButton>() {
+
+			@Override
+			protected void addSettings(JToggleButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
+				throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
+			}
+
+			@Override
+			protected JToggleButton createUninitialized() {
+				return new JToggleButton();
+			}
+
+		};
 	}
 
 	/**
@@ -135,23 +427,14 @@ public class UIBuilder {
 	 *            The ActionListener to receive commands from this button. If
 	 *            null is given, no listener will be added.
 	 */
-	public static JButton makeButton(String imageURL, String toolTipText, String actionCommand, ActionListener listener,
-			KeyStroke hotKey) {
-
-		JButton resultButton = makeButton(imageURL, toolTipText, actionCommand, listener);
-
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
-				KeyStroke.getKeyStroke(hotKey.getKeyCode(), hotKey.getModifiers(), false),
-				JComponent.WHEN_IN_FOCUSED_WINDOW);
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
-				KeyStroke.getKeyStroke(hotKey.getKeyCode(), hotKey.getModifiers(), true),
-				JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-		return resultButton;
-
-	}
+	/*
+	 * public static JButton makeButton(String imageURL, String toolTipText,
+	 * String actionCommand, ActionListener listener, KeyStroke hotKey) {
+	 * 
+	 * return
+	 * buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand,
+	 * listener).hotkey(hotKey) .create(); }
+	 */
 
 	/**
 	 * Makes and returns a toggle button.
@@ -175,36 +458,7 @@ public class UIBuilder {
 
 	public static JToggleButton makeToggleButton(String imageURL, String toolTipText, String altText,
 			String actionCommand, ActionListener listener) {
-
-		JToggleButton resultButton = new JToggleButton();
-		if (actionCommand != null && !actionCommand.equals(""))
-			resultButton.setActionCommand(actionCommand);
-		if (toolTipText != null && !toolTipText.equals(""))
-			resultButton.setToolTipText(toolTipText);
-
-		// Wire up the listener, and make the button respond as clicked when it
-		// has focus and enter is pressed.
-		if (listener != null)
-			resultButton.addActionListener(listener);
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
-		resultButton.registerKeyboardAction(
-				resultButton.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
-				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), JComponent.WHEN_FOCUSED);
-
-		// Set the image if the resource can be found. If it can't set the
-		// contents of the button to the alternative text.
-		Image img = UIBuilder.getImage(imageURL);
-		if (img == null)
-			resultButton.setText(altText);
-		else
-			// Proportionate probably makes sense most times.
-			resultButton.setIcon(new StretchIcon(img, true));
-
-		resultButton.setPreferredSize(new Dimension(50, 40));
-
-		return resultButton;
+		return buildToggleButton().image(imageURL).toolTip(toolTipText).action(actionCommand, listener).create();
 	}
 
 	/**
