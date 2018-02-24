@@ -45,9 +45,8 @@ public class GameplayScreen extends Screen {
 	/** The JComponent that views the current world state. */
 	private WorldView view;
 
-	
 	public GameplayScreen(World world) {
-		super(world);		
+		super(world);
 	}
 
 	/**
@@ -82,12 +81,13 @@ public class GameplayScreen extends Screen {
 				switch (e.getActionCommand()) {
 
 				case "Open":
-					/*File openFile = FileControl.openDialog(GameplayScreen.this);
-					if (openFile != null) {
-						World newWorld = new World(openFile);
-						DungeonBotsMain.instance.setWorld(newWorld);
-					} else
-						System.out.println("Open cancelled.");*/
+					/*
+					 * File openFile =
+					 * FileControl.openDialog(GameplayScreen.this); if (openFile
+					 * != null) { World newWorld = new World(openFile);
+					 * DungeonBotsMain.instance.setWorld(newWorld); } else
+					 * System.out.println("Open cancelled.");
+					 */
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
@@ -234,12 +234,12 @@ public class GameplayScreen extends Screen {
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
-		JButton playBttn = UIBuilder.makeButton("play.jpg", "Start the game", "PLAY", getController());
-		playBttn.setPreferredSize(new Dimension(50, 50));
-		JButton stopBttn = UIBuilder.makeButton("stop.jpg", "Stop the game", "STOP", getController());
-		stopBttn.setPreferredSize(new Dimension(50, 50));
-		JButton rewindBttn = UIBuilder.makeButton("rewind.jpg", "Rewind the game", "REWIND", getController());
-		rewindBttn.setPreferredSize(new Dimension(50, 50));
+		JButton playBttn = UIBuilder.buildButton().image("play.jpg").toolTip("Start the game.")
+				.action("PLAY", getController()).preferredSize(50, 50).create();
+		JButton stopBttn = UIBuilder.buildButton().image("stop.jpg").toolTip("Stop the game.")
+				.action("STOP", getController()).preferredSize(50, 50).create();
+		JButton rewindBttn = UIBuilder.buildButton().image("rewind.jpg").toolTip("Rewind the game.")
+				.action("REWIND", getController()).preferredSize(50, 50).create();
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener(getController());

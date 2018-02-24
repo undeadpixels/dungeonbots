@@ -6,6 +6,7 @@ import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -16,6 +17,8 @@ import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -30,6 +33,7 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -38,6 +42,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXLoginPane;
@@ -48,6 +53,7 @@ import org.jdesktop.swingx.auth.PasswordStore;
 import org.jdesktop.swingx.auth.UserNameStore;
 
 import com.undead_pixels.dungeon_bots.libraries.StretchIcon;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
 
 public class UIBuilder {
 
@@ -68,7 +74,7 @@ public class UIBuilder {
 	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String actionCommand,
 			ActionListener listener) {
 
-		return buildButton().image(imageURL).width(width).height(height).toolTip(toolTipText)
+		return buildButton().image(imageURL).preferredSize(width, height).toolTip(toolTipText)
 				.action(actionCommand, listener).create();
 	}
 
@@ -91,9 +97,58 @@ public class UIBuilder {
 	 *            The ActionListener to receive commands from this button. If
 	 *            null is given, no listener will be added.
 	 */
-	public static JButton makeButton(String imageURL, String toolTipText, String actionCommand,
-			ActionListener listener) {
-		return buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand, listener).create();
+	/*
+	 * public static JButton makeButton(String imageURL, String toolTipText,
+	 * String actionCommand, ActionListener listener) { return
+	 * buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand,
+	 * listener).create(); }
+	 */
+
+	/**
+	 * A class whose sole purpose is to assure that buttons get filled by their
+	 * images, and the images shrink with the buttons.
+	 */
+	@SuppressWarnings("serial")
+	private static class ResizingIcon extends ImageIcon implements ComponentListener {
+
+		private Image _OriginalImage;
+		private AbstractButton _Host;
+
+		public ResizingIcon(Image image, AbstractButton host) {
+			this._OriginalImage = image;
+			(this._Host = host).addComponentListener(this);
+			resize();
+		}
+
+		private void resize() {
+			int width = _Host.getWidth();
+			int height = _Host.getHeight();
+			Insets margin = _Host.getMargin();
+			Image rescaledImage = _OriginalImage.getScaledInstance(width - (margin.left + margin.right + 8),
+					height - (margin.top + margin.bottom + 8), Image.SCALE_SMOOTH);
+			setImage(rescaledImage);
+		}
+
+		@Override
+		public void componentHidden(ComponentEvent arg0) {
+			// Do nothing.
+		}
+
+		@Override
+		public void componentMoved(ComponentEvent arg0) {
+			// Do nothing.
+		}
+
+		@Override
+		public void componentResized(ComponentEvent arg0) {
+			resize();
+		}
+
+		@Override
+		public void componentShown(ComponentEvent arg0) {
+			resize();
+		}
+
 	}
 
 	public static abstract class ButtonBuilder<T extends AbstractButton> {
@@ -103,12 +158,14 @@ public class UIBuilder {
 		protected static final String FIELD_ACTION_COMMAND_LISTENER = "action_command_listener";
 		protected static final String FIELD_ALIGNMENT_X = "alignment_x";
 		protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
+		protected static final String FIELD_ENABLED = "enabled";
 		protected static final String FIELD_FOCUSABLE = "focusable";
 		protected static final String FIELD_HOTKEY = "hotkey";
 		protected static final String FIELD_IMAGE = "image";
 		protected static final String FIELD_INSETS = "insets";
-		protected static final String FIELD_PREFERRED_WIDTH = "preferred_width";
-		protected static final String FIELD_PREFERRED_HEIGHT = "preferred_height";
+		protected static final String FIELD_MAX_SIZE = "max_size";
+		protected static final String FIELD_MIN_SIZE = "min_size";
+		protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
 		protected static final String FIELD_TEXT = "text";
 		protected static final String FIELD_TOOLTIP = "tooltip";
 
@@ -125,6 +182,12 @@ public class UIBuilder {
 		/** Sets the given action for buttons created by this builder. */
 		public final ButtonBuilder<T> action(Action action) {
 			_Settings.put(FIELD_ACTION, action);
+			return this;
+		}
+
+		/** Adds the given action listener. */
+		public ButtonBuilder<T> action(ActionListener controller) {
+			_Settings.put(FIELD_ACTION_COMMAND_LISTENER, controller);
 			return this;
 		}
 
@@ -148,6 +211,11 @@ public class UIBuilder {
 			return this;
 		}
 
+		public final ButtonBuilder<T> enabled(boolean value) {
+			_Settings.put(FIELD_ENABLED, value);
+			return this;
+		}
+
 		/** Sets focusability as specified. */
 		public final ButtonBuilder<T> focusable(boolean focusable) {
 			_Settings.put(FIELD_FOCUSABLE, focusable);
@@ -155,18 +223,14 @@ public class UIBuilder {
 		}
 
 		/**
-		 * Specifies the preferred height for buttons created by this builder.
-		 */
-		public final ButtonBuilder<T> height(int height) {
-			_Settings.put(FIELD_PREFERRED_HEIGHT, height);
-			return this;
-		}
-
-		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
+		 * 
+		 * @param keyEvent
+		 *            This KeyEvent int that specifies the key press, such as
+		 *            KeyEvent.VK_A.
 		 */
-		public final ButtonBuilder<T> hotkey(char keyChar, boolean shift, boolean ctrl, boolean alt, boolean meta,
+		public final ButtonBuilder<T> hotkey(int keyEvent, boolean shift, boolean ctrl, boolean alt, boolean meta,
 				boolean alt_graph) {
 			int mod = 0;
 			if (shift)
@@ -179,23 +243,31 @@ public class UIBuilder {
 				mod |= InputEvent.META_DOWN_MASK;
 			if (alt_graph)
 				mod |= InputEvent.ALT_GRAPH_DOWN_MASK;
-			return hotkey(keyChar, mod);
+			return hotkey(keyEvent, mod);
 		}
 
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
+		 * 
+		 * @param keyEvent
+		 *            This KeyEvent int that specifies the key press, such as
+		 *            KeyEvent.VK_A.
 		 */
-		public final ButtonBuilder<T> hotkey(char keyChar) {
-			return hotkey(keyChar, 0);
+		public final ButtonBuilder<T> hotkey(int keyEvent) {
+			return hotkey(keyEvent, 0);
 		}
 
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
+		 * 
+		 * @param keyEvent
+		 *            This KeyEvent int that specifies the key press, such as
+		 *            KeyEvent.VK_A.
 		 */
-		public final ButtonBuilder<T> hotkey(char keyChar, int modifiers) {
-			return hotkey(KeyStroke.getKeyStroke(new Character(keyChar), modifiers));
+		public final ButtonBuilder<T> hotkey(int keyEvent, int modifiers) {
+			return hotkey(KeyStroke.getKeyStroke(keyEvent, modifiers));
 		}
 
 		/**
@@ -222,43 +294,150 @@ public class UIBuilder {
 		}
 
 		/**
-		 * Specifies an image from the given filename will be displayed by
-		 * buttons created by this builder. If the file could not be opened,
-		 * sets the displayed text to the filename.
+		 * Specifies an image from the given filename to be displayed. If the
+		 * file could not be opened, sets the displayed text to the filename.
+		 * The image will fill the entire button.
 		 */
 		public final ButtonBuilder<T> image(String filename) {
-			_Settings.put(FIELD_IMAGE, filename);
+			return image(filename, false);
+		}
+
+		/**
+		 * Specifies an image from the given filename will be displayed. If the
+		 * file could not be opened, sets the displayed text to the filename.
+		 * 
+		 * @param proportional
+		 *            If this value is true, the image will maintain
+		 *            proportionality but be scaled as large as it can fit. If
+		 *            false, the image will be stretched to completely fill.
+		 */
+		public final ButtonBuilder<T> image(String filename, boolean proportional) {
+			Image img = UIBuilder.getImage(filename);
+			if (img != null)
+				return image(img, proportional);
+			_Settings.put(FIELD_TEXT, filename);
 			return this;
 		}
 
 		/**
-		 * Specifies an image to be displayed by this button. The image will
-		 * fill the entire button.
+		 * Specifies an image to be displayed. The image will fill the entire
+		 * button.
 		 */
 		public final ButtonBuilder<T> image(Image image) {
 			return image(image, false);
 		}
 
 		/**
-		 * Specifies an image to be displayed by this button. If the given
-		 * boolean is true, the image will maintain proportionality within the
-		 * button but be scaled as large as it can but still fit. If false, the
-		 * image will be stretched to completely fill the button.
+		 * Specifies an image to be displayed.
+		 * 
+		 * @param proportional
+		 *            If this value is true, the image will maintain
+		 *            proportionality but be scaled as large as it can fit. If
+		 *            false, the image will be stretched to completely fill. *
 		 */
 		public final ButtonBuilder<T> image(Image image, boolean proportional) {
 			_Settings.put(FIELD_IMAGE, new ImageProportionality(image, proportional));
 			return this;
 		}
 
-		/** Sets the button's margin as indicated. */
+		/** Sets the margin as indicated. */
 		public final ButtonBuilder<T> margin(int top, int left, int bottom, int right) {
 			return margin(new Insets(top, left, bottom, right));
 		}
 
-		/** Sets the button's margin as indicated. */
+		/** Sets the margin as indicated. */
 		public final ButtonBuilder<T> margin(Insets insets) {
 			_Settings.put(FIELD_INSETS, insets);
 			return this;
+		}
+
+		/** Sets the maximum height as indicated. */
+		public ButtonBuilder<T> maxHeight(int height) {
+			Dimension d = (Dimension) _Settings.get(FIELD_MAX_SIZE);
+			if (d == null)
+				return maxSize(new Dimension(9999, height));
+			d.setSize(d.width, height);
+			return maxSize(d);
+		}
+
+		/** Sets the maximum size as indicated. */
+		public ButtonBuilder<T> maxSize(int width, int height) {
+			return maxSize(new Dimension(width, height));
+		}
+
+		/** Sets the maximum size as indicated. */
+		public ButtonBuilder<T> maxSize(Dimension size) {
+			_Settings.put(FIELD_MAX_SIZE, size);
+			return this;
+		}
+
+		/** Sets the maximum width as indicated. */
+		public ButtonBuilder<T> maxWidth(int width) {
+			Dimension d = (Dimension) _Settings.get(FIELD_MAX_SIZE);
+			if (d == null)
+				return maxSize(new Dimension(width, 9999));
+			d.setSize(width, d.height);
+			return maxSize(d);
+		}
+
+		/** Sets the minimum height as indicated. */
+		public ButtonBuilder<T> minHeight(int height) {
+			Dimension d = (Dimension) _Settings.get(FIELD_MIN_SIZE);
+			if (d == null)
+				return minSize(new Dimension(0, height));
+			d.setSize(d.width, height);
+			return minSize(d);
+		}
+
+		/** Sets the minimum size as indicated. */
+		public ButtonBuilder<T> minSize(int width, int height) {
+			return minSize(new Dimension(width, height));
+		}
+
+		/** Sets the minimum size as indicated. */
+		public ButtonBuilder<T> minSize(Dimension size) {
+			_Settings.put(FIELD_MIN_SIZE, size);
+			return this;
+		}
+
+		/** Sets the minimum width as indicated. */
+		public ButtonBuilder<T> minWidth(int width) {
+			Dimension d = (Dimension) _Settings.get(FIELD_MIN_SIZE);
+			if (d == null)
+				return minSize(new Dimension(width, 0));
+			d.setSize(width, d.height);
+			return minSize(d);
+		}
+
+		// ==========
+
+		/** Sets the preferred height as indicated. */
+		public ButtonBuilder<T> preferredHeight(int height) {
+			Dimension d = (Dimension) _Settings.get(FIELD_PREFERRED_SIZE);
+			if (d == null)
+				return preferredSize(new Dimension(DEFAULT_PREFERRED_WIDTH, height));
+			d.setSize(d.width, height);
+			return preferredSize(d);
+		}
+
+		/** Sets the preferred size as indicated. */
+		public ButtonBuilder<T> preferredSize(int width, int height) {
+			return preferredSize(new Dimension(width, height));
+		}
+
+		/** Sets the preferred size as indicated. */
+		public ButtonBuilder<T> preferredSize(Dimension size) {
+			_Settings.put(FIELD_PREFERRED_SIZE, size);
+			return this;
+		}
+
+		/** Sets the preferred width as indicated. */
+		public ButtonBuilder<T> prefWidth(int width) {
+			Dimension d = (Dimension) _Settings.get(FIELD_PREFERRED_SIZE);
+			if (d == null)
+				return preferredSize(new Dimension(width, DEFAULT_PREFERRED_HEIGHT));
+			d.setSize(width, d.height);
+			return preferredSize(d);
 		}
 
 		/**
@@ -273,14 +452,6 @@ public class UIBuilder {
 		/** Adds the given tooltip text to buttons created by this builder. */
 		public final ButtonBuilder<T> toolTip(String toolTipText) {
 			_Settings.put(FIELD_TOOLTIP, toolTipText);
-			return this;
-		}
-
-		/**
-		 * Specifies the preferred width for buttons created by this builder.
-		 */
-		public final ButtonBuilder<T> width(int width) {
-			_Settings.put(FIELD_PREFERRED_WIDTH, width);
 			return this;
 		}
 
@@ -314,31 +485,24 @@ public class UIBuilder {
 				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_X));
 			if (unhandled.containsKey(FIELD_ALIGNMENT_Y))
 				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_Y));
+			if (unhandled.containsKey(FIELD_ENABLED))
+				bttn.setEnabled((boolean) unhandled.remove(FIELD_ENABLED));
 			if (unhandled.containsKey(FIELD_FOCUSABLE))
 				bttn.setFocusable((boolean) unhandled.remove(FIELD_FOCUSABLE));
 			if (unhandled.containsKey(FIELD_TOOLTIP))
 				bttn.setToolTipText((String) unhandled.remove(FIELD_TOOLTIP));
 			if (unhandled.containsKey(FIELD_IMAGE)) {
-				Object value = unhandled.remove(FIELD_IMAGE);
-				ImageProportionality ip = null;
-				if (value instanceof String) {
-					ip = new ImageProportionality(UIBuilder.getImage((String) value), false);
-					if (ip.image == null)
-						bttn.setText((String) value);
-				} else if (value instanceof ImageProportionality)
-					ip = (ImageProportionality) value;
-				if (ip.image != null)
-					bttn.setIcon(new StretchIcon(ip.image, ip.proportional));
+				ImageProportionality ip = (ImageProportionality) unhandled.remove(FIELD_IMAGE);
+				bttn.setIcon(new ResizingIcon(ip.image, bttn));
 			}
 			if (unhandled.containsKey(FIELD_INSETS))
 				bttn.setMargin((Insets) unhandled.remove(FIELD_INSETS));
-			if (unhandled.containsKey(FIELD_PREFERRED_WIDTH) || unhandled.containsKey(FIELD_PREFERRED_HEIGHT)) {
-				int prefWidth = unhandled.containsKey(FIELD_PREFERRED_WIDTH)
-						? (int) unhandled.remove(FIELD_PREFERRED_WIDTH) : DEFAULT_PREFERRED_WIDTH;
-				int prefHeight = unhandled.containsKey(FIELD_PREFERRED_HEIGHT)
-						? (int) unhandled.remove(FIELD_PREFERRED_HEIGHT) : DEFAULT_PREFERRED_HEIGHT;
-				bttn.setPreferredSize(new Dimension(prefWidth, prefHeight));
-			}
+			if (unhandled.containsKey(FIELD_MAX_SIZE))
+				bttn.setMaximumSize((Dimension) unhandled.remove(FIELD_MAX_SIZE));
+			if (unhandled.containsKey(FIELD_MIN_SIZE))
+				bttn.setMaximumSize((Dimension) unhandled.remove(FIELD_MIN_SIZE));
+			if (unhandled.containsKey(FIELD_PREFERRED_SIZE))
+				bttn.setPreferredSize((Dimension) unhandled.remove(FIELD_PREFERRED_SIZE));
 			if (unhandled.containsKey(FIELD_HOTKEY)) {
 				KeyStroke hotkey = (KeyStroke) unhandled.remove(FIELD_HOTKEY);
 				bttn.registerKeyboardAction(
@@ -407,61 +571,6 @@ public class UIBuilder {
 	}
 
 	/**
-	 * Create a button with an associated hot key that will apply so long as the
-	 * button is in a focused window. *
-	 * 
-	 * @param imageURL
-	 *            The image to put on the toggle button. If given null or "",
-	 *            the toggle button will contain the altText.
-	 * 
-	 * @param toolTipText
-	 *            The tool tip to display when the mouse hovers over the button.
-	 *            If given null or "", no tool tip text will be set.
-	 * @param altText
-	 *            The text to place in the button, if the given imageURL cannot
-	 *            be found.
-	 * @param actionCommand
-	 *            The String action command this button will issue to any
-	 *            listeners. If given null or "", no action command will be set.
-	 * @param listener
-	 *            The ActionListener to receive commands from this button. If
-	 *            null is given, no listener will be added.
-	 */
-	/*
-	 * public static JButton makeButton(String imageURL, String toolTipText,
-	 * String actionCommand, ActionListener listener, KeyStroke hotKey) {
-	 * 
-	 * return
-	 * buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand,
-	 * listener).hotkey(hotKey) .create(); }
-	 */
-
-	/**
-	 * Makes and returns a toggle button.
-	 * 
-	 * @param imageURL
-	 *            The image to put on the toggle button. If given null or "",
-	 *            the toggle button will contain the altText.
-	 * @param toolTipText
-	 *            The tool tip to display when the mouse hovers over the button.
-	 *            If given null or "", no tool tip text will be set.
-	 * @param altText
-	 *            The text to place in the button, if the given imageURL cannot
-	 *            be found.
-	 * @param actionCommand
-	 *            The String action command this button will issue to any
-	 *            listeners. If given null or "", no action command will be set.
-	 * @param listener
-	 *            The ActionListener to receive commands from this button. If
-	 *            null is given, no listener will be added.
-	 */
-
-	public static JToggleButton makeToggleButton(String imageURL, String toolTipText, String altText,
-			String actionCommand, ActionListener listener) {
-		return buildToggleButton().image(imageURL).toolTip(toolTipText).action(actionCommand, listener).create();
-	}
-
-	/**
 	 * Creates a menu item with the given header, that responds to the given
 	 * accelerator and mnemonic. The accelerator is a key chord that will invoke
 	 * the item even if the menu is not open. The mnemonic is the underlined
@@ -516,16 +625,17 @@ public class UIBuilder {
 
 		JLabel lbl = new JLabel();
 		lbl.setText(isCollapsed ? closedText : openText);
-		JToggleButton toggler = makeToggleButton("", toolTip, "", "TOGGLE", new ActionListener() {
+		JToggleButton toggler = UIBuilder.buildToggleButton().action("TOGGLE", new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (!arg0.getActionCommand().equals("TOGGLE"))
+			public void actionPerformed(ActionEvent e) {
+				if (!e.getActionCommand().equals("TOGGLE"))
 					return;
 				collapser.setCollapsed(!collapser.isCollapsed());
 				lbl.setText(collapser.isCollapsed() ? closedText : openText);
-				((JToggleButton) arg0.getSource()).setText(collapser.isCollapsed() ? ">" : "v");
+				((JToggleButton) e.getSource()).setText(collapser.isCollapsed() ? ">" : "v");
 			}
-		});
+		}).create();
+
 		toggler.setPreferredSize(new Dimension(40, 30));
 		toggler.setText(isCollapsed ? ">" : "v");
 		JPanel header = new JPanel();

@@ -65,9 +65,12 @@ public final class JScriptEditor extends JPanel {
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
-		JButton bttnCut = UIBuilder.makeButton("cut.jpg", "Cut a highlighted section", "CUT", _Controller);
-		JButton bttnCopy = UIBuilder.makeButton("copy.jpg", "Copy a highlighted section", "COPY", _Controller);
-		JButton bttnPaste = UIBuilder.makeButton("paste.jpg", "Paste at the cursor", "PASTE", _Controller);
+		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
+				.action("CUT", _Controller).preferredSize(40, 50).create();
+		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
+				.action("COPY", _Controller).preferredSize(40, 50).create();
+		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
+				.action("PASTE", _Controller).preferredSize(40, 50).create();
 
 		_Editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(_Editor);
@@ -82,8 +85,8 @@ public final class JScriptEditor extends JPanel {
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
-			JToggleButton lockButton = UIBuilder.makeToggleButton("lock.jpg", "Lock selected text", "Lock",
-					"TOGGLE_LOCK", _Controller);
+			JToggleButton lockButton = UIBuilder.buildToggleButton().image("lock.jpg").text("Lock")
+					.toolTip("Lock selected text.").action("TOGGLE_LOCK", _Controller).create();
 			toolBar.add(lockButton);
 			_Controller.setLockButton(lockButton);
 			_Controller.setLockColor(Color.blue);

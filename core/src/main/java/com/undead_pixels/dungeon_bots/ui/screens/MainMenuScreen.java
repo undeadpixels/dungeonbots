@@ -156,24 +156,24 @@ public class MainMenuScreen extends Screen {
 	protected void addComponents(Container pane) {
 
 		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("PLAY")
-				.action("PLAY", getController()).hotkey('p').margin(10, 10, 10, 10).alignmentX(CENTER_ALIGNMENT)
-				.create();
+				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
 		bttnPlay.requestFocus();
 
 		JButton bttnCreate = UIBuilder.buildButton().image("create.gif").toolTip("Edit a game as an author.")
-				.text("CREATE").action("CREATE", getController()).hotkey('c').margin(10, 10, 10, 10)
+				.text("CREATE").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
 		JButton bttnCommunity = UIBuilder.buildButton().image("community.gif").toolTip("Go to the online community.")
-				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey('u').margin(10, 10, 10, 10)
+				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
 		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("QUIT")
-				.action("QUIT", getController()).hotkey('q').margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT).create();
-		
+				.action("QUIT", getController()).hotkey(KeyEvent.VK_Q).margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT)
+				.create();
+
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-
 		buttonPanel.add(bttnPlay);
 		buttonPanel.add(Box.createVerticalStrut(10));
 		buttonPanel.add(bttnCreate);
@@ -189,9 +189,6 @@ public class MainMenuScreen extends Screen {
 		pane.add(buttonPanel);
 		pane.add(Box.createVerticalGlue());
 		pane.add(Box.createHorizontalGlue());
-
-		// Some key bindings to make it easier.
-		// JRootPane rootPane = this.getRootPane();
 
 	}
 

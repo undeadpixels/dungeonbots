@@ -68,11 +68,13 @@ public final class JEntityEditor extends JPanel {
 		dialog.addWindowListener(new WindowListenerAdapter() {
 			@Override
 			protected void event(WindowEvent e) {
-				//System.out.println("Event:" + e.getID());
-				//System.out.println("WINDOW_CLOSING:" + WindowEvent.WINDOW_CLOSING);
-				//System.out.println("WINDOW_CLOSED:" + WindowEvent.WINDOW_CLOSED);
+				// System.out.println("Event:" + e.getID());
+				// System.out.println("WINDOW_CLOSING:" +
+				// WindowEvent.WINDOW_CLOSING);
+				// System.out.println("WINDOW_CLOSED:" +
+				// WindowEvent.WINDOW_CLOSED);
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-					return;				
+					return;
 				_OpenEditors.remove(entity);
 			}
 		});
@@ -101,9 +103,12 @@ public final class JEntityEditor extends JPanel {
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
-		JButton bttnReset = UIBuilder.makeButton("", "Reset the entity characteristics.", "RESET", _Controller);
-		JButton bttnOK = UIBuilder.makeButton("", "Approve changes.", "SAVE", _Controller);
-		JButton bttnClose = UIBuilder.makeButton("", "Close without saving changes.", "CLOSE", _Controller);
+		JButton bttnReset = UIBuilder.buildButton().text("RESET").toolTip("Reset the entity characteristics.")
+				.action("RESET", _Controller).create();
+		JButton bttnOK = UIBuilder.buildButton().text("SAVE").toolTip("Approve the changes.")
+				.action("SAVE", _Controller).create();
+		JButton bttnClose = UIBuilder.buildButton().text("CLOSE").toolTip("Close the editor.")
+				.action("CLOSE", _Controller).create();
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		SwingUtilities.invokeLater(new Runnable() {
@@ -156,7 +161,7 @@ public final class JEntityEditor extends JPanel {
 	public void save() {
 		_Entity.eventScripts.clear();
 		_Editor.saveScript();
-		for (int i = 0; i < _ScriptList.getSize(); i++) {		
+		for (int i = 0; i < _ScriptList.getSize(); i++) {
 			UserScript script = _ScriptList.get(i);
 			_Entity.eventScripts.add(script);
 		}

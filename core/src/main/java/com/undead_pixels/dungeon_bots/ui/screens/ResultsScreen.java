@@ -33,7 +33,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 public class ResultsScreen extends Screen {
 
 	private World _World;
-	
+
 	public ResultsScreen(World world) {
 		super(world);
 		this.addWindowListener(getController());
@@ -187,16 +187,15 @@ public class ResultsScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 
-		//JPanel dispPanel = new JPanel();
+		// JPanel dispPanel = new JPanel();
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new BoxLayout(bttnPanel, BoxLayout.LINE_AXIS));
-		JButton bttnOK = UIBuilder.makeButton("", "Quit to Main Menu", "OK", getController());
-		bttnPanel.add(bttnOK);
-		bttnPanel.add(UIBuilder.makeButton("", "Publish", "PUBLISH", getController()));
+		bttnPanel.add(UIBuilder.buildButton().text("OK").toolTip("Quit to Main Menu.").action("OK", getController())
+				.create());
+		bttnPanel.add(UIBuilder.buildButton().text("Publish").action("PUBLISH", getController()).create());
 
 		Map<String, Object> endingState = _World.getState();
-		// Map<String, Object> endingState = new HashMap<String, Object>();
 		Vector<Entry<String, Object>> entries = new Vector<Entry<String, Object>>(endingState.entrySet());
 		JList<Entry<String, Object>> statsList = new JList<Entry<String, Object>>(entries);
 		statsList.setLayoutOrientation(JList.VERTICAL);
