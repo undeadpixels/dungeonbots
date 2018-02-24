@@ -212,7 +212,7 @@ public class Serializer {
 
 	private static Gson setupGson() {
 		GsonBuilder builder = new GsonBuilder();
-		// builder.setPrettyPrinting();
+		builder.setPrettyPrinting();
 		builder.serializeNulls();
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsSerializer);
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsDeserializer);
