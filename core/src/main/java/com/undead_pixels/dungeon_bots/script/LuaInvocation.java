@@ -124,9 +124,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return The source LuaScript
 	 */
 	public synchronized LuaInvocation stop() {
-		// TODO - tell the DebugLib to die
 		scriptInterrupt.kill();
-		//hookFunction.kill();
+		
 		try { this.wait(); }
 		catch (InterruptedException ie) { }
 		return this;

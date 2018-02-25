@@ -80,7 +80,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		final int TILESIZE = 16;
 		
 		// register some default tile types
-		// TODO - how do we handle this if we're running 'headless' (for testing)
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
 		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);

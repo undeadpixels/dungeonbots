@@ -137,12 +137,12 @@ public class LuaSandbox {
 	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
 		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
 		scriptQueue.update(0.f);
-		try {
-			Thread.sleep(50); // XXX
-		} catch (InterruptedException e) {
+		//try {
+			//Thread.sleep(50); // XXX - really need to delete this
+		//} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//	e.printStackTrace();
+		//}
 		
 		return ret;
 	}

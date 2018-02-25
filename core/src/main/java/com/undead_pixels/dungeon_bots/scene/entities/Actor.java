@@ -163,9 +163,8 @@ public class Actor extends SpriteEntity {
 		
 		while(blocking && !actionQueue.isEmpty()) {
 			try {
-				Thread.sleep(1);//FIXME
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -173,9 +172,8 @@ public class Actor extends SpriteEntity {
 
 		while(blocking && !actionQueue.isEmpty()) {
 			try {
-				Thread.sleep(1);//FIXME
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}

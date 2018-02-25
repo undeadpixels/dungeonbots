@@ -35,8 +35,6 @@ public class Tile extends SpriteEntity {
 	public Tile(World world, TileType tileType, int x, int y) {
 		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(), x, y);
 		this.type = tileType;
-		System.out.println("Tile @("+x+","+y+") being constructed");
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

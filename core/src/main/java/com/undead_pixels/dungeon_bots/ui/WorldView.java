@@ -62,10 +62,7 @@ public class WorldView extends JComponent {
 		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 		lastTime = nowTime;
 
-		// TODO - move this update() thing elsewhere. Pretty please.
-		// TODO
-		// TODO
-		// TODO
+		// TODO - move this update() thing elsewhere.
 		if (world != null) {
 			world.update(dt);
 		}

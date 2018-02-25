@@ -133,7 +133,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 * @return The team of this Entity
 	 */
 	public TeamFlavor getTeam() {
-		return TeamFlavor.NONE; // TODO
+		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe (or just have overrides do this right)
 	}
 
 	/**

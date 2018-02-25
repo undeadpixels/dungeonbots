@@ -117,7 +117,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
     
     /**
      * The playstyle of this world
-     * TODO - add a lua binding to be able to configure this from the level script
+     * TODO - add a lua binding to be able to configure this from the level script; or maybe just an Editor option
      */
     private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
@@ -444,8 +444,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
-		// TODO - more stuff here
-		
 		if(x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
 			return; // out of bounds; TODO - should something else happen?
 		}
