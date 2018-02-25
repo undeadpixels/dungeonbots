@@ -90,7 +90,6 @@ public class WorldView extends JComponent {
 
 			cam.setViewportSize(w, h);
 
-			cam.update();
 			batch.setProjectionMatrix(cam);
 			// batch.setTransformMatrix(cam.view);
 

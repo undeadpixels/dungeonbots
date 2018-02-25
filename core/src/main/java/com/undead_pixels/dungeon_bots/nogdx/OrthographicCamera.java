@@ -32,12 +32,6 @@ public class OrthographicCamera implements Serializable {
 		viewportHeight = h;
 	}
 
-	@Deprecated
-	public void update() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	public Point2D.Float unproject(Point2D.Float pt) {
 		AffineTransform xform = getTransform();
 		Point2D.Float ret = new Point2D.Float();
