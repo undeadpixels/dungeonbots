@@ -6,10 +6,14 @@ import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
@@ -30,18 +34,17 @@ public class WorldView extends JComponent {
 	private World world;
 
 	private long lastTime;
+	private Point[] selectedTiles;
 
-	/*@Deprecated
-	public WorldView() {
-		// world = new World(new
-		// File("sample-level-packs/sample-pack-1/levels/level1.lua"));
-		world = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
-
-		this.setPreferredSize(new Dimension(9999, 9999));
-
-		this.setFocusable(true);
-		this.requestFocusInWindow();
-	}*/
+	/*
+	 * @Deprecated public WorldView() { // world = new World(new //
+	 * File("sample-level-packs/sample-pack-1/levels/level1.lua")); world = new
+	 * World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
+	 * 
+	 * this.setPreferredSize(new Dimension(9999, 9999));
+	 * 
+	 * this.setFocusable(true); this.requestFocusInWindow(); }
+	 */
 
 	public WorldView(World world) {
 		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
@@ -52,6 +55,7 @@ public class WorldView extends JComponent {
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
+		selectedTiles = new Point[0];
 	}
 
 	/**
@@ -98,7 +102,9 @@ public class WorldView extends JComponent {
 				world.render(batch);
 			}
 
+			// Render the grid.
 			if (showGrid) {
+				g2d.setStroke(new BasicStroke(1));
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
 				Point2D.Float size = world.getSize();
 				// draw Y lines
@@ -110,6 +116,25 @@ public class WorldView extends JComponent {
 					batch.drawLine(j, 0, j, size.y);
 				}
 			}
+
+			// Render selections.
+			Point[] selections = this.selectedTiles;			
+			if (selections.length > 0) {
+				g2d.setStroke(new BasicStroke(3));
+				g.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
+				for (int i = 0; i < selections.length; i++) {
+					Point pt = selections[i];
+					int x = pt.x, y = pt.y;
+					batch.fillRect(x, y + 1, 1, 1);
+				}
+				g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.8f));
+				for (int i = 0; i < selections.length; i++) {
+					Point pt = selections[i];
+					int x = pt.x, y = pt.y;
+					batch.drawRect(x, y + 1, 1, 1);
+				}
+			}
+
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
@@ -140,7 +165,7 @@ public class WorldView extends JComponent {
 
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
-		return cam.unproject((float) screenX, (float) screenY);		
+		return cam.unproject((float) screenX, (float) screenY);
 	}
 
 	/** Returns the world currently being viewed. */
@@ -151,5 +176,14 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
+	}
+
+	/** Returns a copied array of the selection positions. */
+	public Point[] getSelectedTiles() {
+		return selectedTiles.clone();
+	}
+
+	public void setSelectedTiles(Point[] newSelections) {
+		selectedTiles = newSelections.clone();
 	}
 }

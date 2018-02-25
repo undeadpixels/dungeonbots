@@ -331,7 +331,6 @@ public class LevelEditorScreen extends Screen {
 			System.out.println(e.getFirstIndex() + " to " + e.getLastIndex());
 			if (e.getValueIsAdjusting())
 				return;
-
 		}
 
 	};
@@ -362,7 +361,7 @@ public class LevelEditorScreen extends Screen {
 		_TilePalette.setCellRenderer(_TileTypeItemRenderer);
 		_TilePalette.setMinimumSize(new Dimension(150, 400));
 		_TilePalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		_TilePalette.addListSelectionListener(_GreedySelectionListener);
+		//_TilePalette.addListSelectionListener(_GreedySelectionListener);
 		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(_TilePalette), "Tiles", "Tiles", "", false);
 
 		// Create the entity palette, but again don't add elements. That occurs
@@ -371,7 +370,7 @@ public class LevelEditorScreen extends Screen {
 		_EntityPalette.setCellRenderer(_EntityItemRenderer);
 		_EntityPalette.setPreferredSize(new Dimension(150, 600));
 		_EntityPalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		_EntityPalette.addListSelectionListener(_GreedySelectionListener);
+		//_EntityPalette.addListSelectionListener(_GreedySelectionListener);
 		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(_EntityPalette), "Entities", "Entities", "",
 				false);
 

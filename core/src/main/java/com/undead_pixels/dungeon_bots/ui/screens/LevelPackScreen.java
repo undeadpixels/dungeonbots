@@ -6,8 +6,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 
 public class LevelPackScreen extends Screen {
 
-	public LevelPackScreen(World world) {
-		super(world);
+	public LevelPackScreen() {
+		super(null);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -57,52 +57,13 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
 
 public class UIBuilder {
 
-	public UIBuilder() {
-		// TODO Auto-generated constructor stub
-	}
-
-	public static boolean verbose = true;
-
 	/**
-	 * Generates a new button that uses the given image, size, tooltip text, and
-	 * alternative text. The given action command will be sent to the specified
-	 * action listener.
-	 * 
-	 * If the given image URL is not available, the alternative text will be
-	 * used for the button's image.
+	 * Whether or not verbose messages will be printed. Verbose messages include:
+	 * <p>
+	 * Advice messages of missing image file resources.
 	 */
-	public static JButton makeButton(String imageURL, int width, int height, String toolTipText, String actionCommand,
-			ActionListener listener) {
+	public static boolean verbose = false;
 
-		return buildButton().image(imageURL).preferredSize(width, height).toolTip(toolTipText)
-				.action(actionCommand, listener).create();
-	}
-
-	/**
-	 * Generates a new button that uses the given image, tooltip text, and
-	 * alternative text. The given action command will be sent to the specified
-	 * action listener.
-	 * 
-	 * @param imageURL
-	 *            The image to put on the toggle button. If given null or "",
-	 *            the toggle button will contain the altText.
-	 * 
-	 * @param toolTipText
-	 *            The tool tip to display when the mouse hovers over the button.
-	 *            If given null or "", no tool tip text will be set.
-	 * @param actionCommand
-	 *            The String action command this button will issue to any
-	 *            listeners. If given null or "", no action command will be set.
-	 * @param listener
-	 *            The ActionListener to receive commands from this button. If
-	 *            null is given, no listener will be added.
-	 */
-	/*
-	 * public static JButton makeButton(String imageURL, String toolTipText,
-	 * String actionCommand, ActionListener listener) { return
-	 * buildButton().image(imageURL).toolTip(toolTipText).action(actionCommand,
-	 * listener).create(); }
-	 */
 
 	/**
 	 * A class whose sole purpose is to assure that buttons get filled by their
@@ -148,9 +109,15 @@ public class UIBuilder {
 		public void componentShown(ComponentEvent arg0) {
 			resize();
 		}
-
 	}
 
+	/**
+	 * blah blah blah. Try this:
+	 * <p>
+	 * JButton button = UIBuilder.buildButton().text("I'm a button.").create();
+	 * <p>
+	 * That will create a button containing the text "I'm a button."
+	 */
 	public static abstract class ButtonBuilder<T extends AbstractButton> {
 
 		protected static final String FIELD_ACTION = "action";
@@ -532,6 +499,33 @@ public class UIBuilder {
 
 	}
 
+	public static class ToggleButtonBuilder extends ButtonBuilder<JToggleButton> {
+
+		@Override
+		protected void addSettings(JToggleButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
+			throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
+		}
+
+		@Override
+		protected JToggleButton createUninitialized() {
+			return new JToggleButton();
+		}
+	}
+
+	public static class MenuItemBuilder extends ButtonBuilder<JMenuItem> {
+
+		@Override
+		protected void addSettings(JMenuItem buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
+			throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
+		}
+
+		@Override
+		protected JMenuItem createUninitialized() {
+			return new JMenuItem();
+		}
+
+	}
+
 	/**
 	 * Returns a builder for a JButton. The builder pattern will allow the
 	 * following call:
@@ -541,7 +535,6 @@ public class UIBuilder {
 	 */
 	public static ButtonBuilder<JButton> buildButton() {
 		return new ButtonBuilder<JButton>() {
-
 			@Override
 			protected void addSettings(JButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
 				throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
@@ -554,20 +547,22 @@ public class UIBuilder {
 		};
 	}
 
-	public static ButtonBuilder<JToggleButton> buildToggleButton() {
-		return new ButtonBuilder<JToggleButton>() {
+	/**
+	 * Returns a builder for a JToggleButton. The builder pattern will allow the
+	 * following call:
+	 * <p>
+	 * JToggleButton t = buildToggleButton().text("I'm a
+	 * button").action("CLICK", listener).create();
+	 */
+	public static ToggleButtonBuilder buildToggleButton() {
+		return new ToggleButtonBuilder();
+	}
 
-			@Override
-			protected void addSettings(JToggleButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
-				throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
-			}
-
-			@Override
-			protected JToggleButton createUninitialized() {
-				return new JToggleButton();
-			}
-
-		};
+	/**
+	 * Returns a builder for a JMenuItem.
+	 */
+	public static MenuItemBuilder buildMenuItem() {
+		return new MenuItemBuilder();
 	}
 
 	/**

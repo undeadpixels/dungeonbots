@@ -109,7 +109,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
 		_ExecuteBttn = UIBuilder.buildButton().image("executeButton.gif").minSize(50, 80).toolTip("Click to execute.")
-				.action("EXECUTE", this).focusable(false).minSize(50, 80).create();
+				.action("EXECUTE", this).focusable(false).preferredSize(50, 80).create();
 		_CancelBttn = UIBuilder.buildButton().image("cancelButton.gif").toolTip("Click to cancel.")
 				.action("CANCEL", this).focusable(false).preferredSize(30, 40).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
@@ -224,13 +224,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JToolBar result = new JToolBar();
 		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
-				.action("CUT", this).focusable(false).create();
+				.action("CUT", this).focusable(false).preferredSize(30, 30).create();
 		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
-				.action("COPY", this).focusable(false).create();
+				.action("COPY", this).focusable(false).preferredSize(30, 30).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
-				.action("PASTE", this).focusable(false).create();
+				.action("PASTE", this).focusable(false).preferredSize(30, 30).create();
 		JButton bttnHelp = UIBuilder.buildButton().image("help.jpg").toolTip("Get help with the command line.")
-				.action("HELP", this).focusable(false).create();
+				.action("HELP", this).focusable(false).preferredSize(30, 30).create();
 
 		result.add(bttnCut);
 		result.add(bttnCopy);

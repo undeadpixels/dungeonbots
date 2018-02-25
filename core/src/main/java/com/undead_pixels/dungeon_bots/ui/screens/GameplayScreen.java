@@ -247,14 +247,17 @@ public class GameplayScreen extends Screen {
 		JPanel arrowPanel = new JPanel();
 		arrowPanel.setLayout(new GridLayout(3, 3));
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.makeButton("up_arrow.gif", 20, 20, "Move view up", "PAN_UP", getController()));
+		arrowPanel.add(UIBuilder.buildToggleButton().image("up_arrow.gif").preferredSize(20, 20)
+				.toolTip("Move view up.").action("PAN_UP", getController()).create());
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.makeButton("left_arrow.gif", 20, 20, "Move view left", "PAN_LEFT", getController()));
+		arrowPanel.add(UIBuilder.buildToggleButton().image("left_arrow.gif").preferredSize(20, 20)
+				.toolTip("Move view left.").action("PAN_LEFT", getController()).create());
 		arrowPanel.add(new JPanel());
-		arrowPanel
-				.add(UIBuilder.makeButton("right_arrow.gif", 20, 20, "Move view right", "PAN_RIGHT", getController()));
+		arrowPanel.add(UIBuilder.buildToggleButton().image("right_arrow.gif").preferredSize(20, 20)
+				.toolTip("Move view right.").action("PAN_RIGHT", getController()).create());
 		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.makeButton("down_arrow.gif", 20, 20, "Move view down", "PAN_DOWN", getController()));
+		arrowPanel.add(UIBuilder.buildToggleButton().image("down_arrow.gif").preferredSize(20, 20)
+				.toolTip("Move view down.").action("PAN_DOWN", getController()).create());
 		arrowPanel.add(new JPanel());
 		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
 		Image gridImage = UIBuilder.getImage("grid.gif");
