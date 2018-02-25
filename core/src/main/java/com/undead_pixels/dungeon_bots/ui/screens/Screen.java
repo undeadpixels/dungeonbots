@@ -86,7 +86,7 @@ public abstract class Screen extends JFrame {
 	 * must be extended in any class that inherits from Screen.
 	 */
 	protected abstract class ScreenController
-			implements MouseInputListener, KeyListener, ActionListener, WindowListener, ChangeListener {
+			implements MouseInputListener, KeyListener, ActionListener, ChangeListener {
 	}
 
 }

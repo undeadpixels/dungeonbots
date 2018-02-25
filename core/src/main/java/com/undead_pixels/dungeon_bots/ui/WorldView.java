@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.ui.screens.Tool;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.BasicStroke;
@@ -12,12 +13,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.io.File;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -34,7 +32,8 @@ public class WorldView extends JComponent {
 	private World world;
 
 	private long lastTime;
-	private Point[] selectedTiles;
+	private Point[] selectedTiles = null;
+	private Tool renderingTool = null;
 
 	/*
 	 * @Deprecated public WorldView() { // world = new World(new //
@@ -118,8 +117,8 @@ public class WorldView extends JComponent {
 			}
 
 			// Render selections.
-			Point[] selections = this.selectedTiles;			
-			if (selections.length > 0) {
+			Point[] selections = this.selectedTiles;
+			if (selections != null && selections.length > 0) {
 				g2d.setStroke(new BasicStroke(3));
 				g.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
 				for (int i = 0; i < selections.length; i++) {
@@ -134,6 +133,10 @@ public class WorldView extends JComponent {
 					batch.drawRect(x, y + 1, 1, 1);
 				}
 			}
+
+			// Render scribbles.
+			if (renderingTool != null)
+				renderingTool.render(g2d);
 
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
@@ -185,5 +188,13 @@ public class WorldView extends JComponent {
 
 	public void setSelectedTiles(Point[] newSelections) {
 		selectedTiles = newSelections.clone();
+	}
+
+	public Tool getRenderingTool() {
+		return renderingTool;
+	}
+
+	public void setRenderingTool(Tool tool) {
+		this.renderingTool = tool;
 	}
 }

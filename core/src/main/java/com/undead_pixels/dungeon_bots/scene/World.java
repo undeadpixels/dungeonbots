@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -593,6 +594,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 
 		return null;
+	}
+
+	public Point getTileLocation(float x, float y) {
+		return new Point((int) x, (int) y);
 	}
 
 	@Override
