@@ -23,6 +23,8 @@ public class Tile extends SpriteEntity {
 	 * The type of this tile
 	 */
 	private TileType type;
+	
+	private Entity occupiedBy = null;
 
 	/**
 	 * @param world		The world that contains this tile
@@ -31,20 +33,20 @@ public class Tile extends SpriteEntity {
 	 * @param y			Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType.getName(), tileType.getTexture(), x, y);
+		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(), x, y);
 		this.type = tileType;
+		System.out.println("Tile @("+x+","+y+") being constructed");
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public float getZ() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public boolean isSolid() {
-		return type.isSolid();
+		return type != null && type.isSolid();
 	}
 
 	@Override
@@ -107,6 +109,21 @@ public class Tile extends SpriteEntity {
 	}
 
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
-		this.sprite.setTexture(type.getTexture(l, r, u, d));
+		if(type == null) {
+			this.sprite.setTexture(null);
+		} else {
+			this.sprite.setTexture(type.getTexture(l, r, u, d));
+		}
+	}
+
+	public void setOccupiedBy(Entity e) {
+		occupiedBy = e;
+		System.out.println("Occupying tile by: "+e);
+	}
+	public Entity getOccupiedBy() {
+		return occupiedBy;
+	}
+	public boolean isOccupied() {
+		return occupiedBy != null;
 	}
 }

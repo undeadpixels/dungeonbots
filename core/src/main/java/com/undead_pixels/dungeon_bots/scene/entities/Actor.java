@@ -49,7 +49,7 @@ public class Actor extends SpriteEntity {
 	 */
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
-		this.world.addEntity(this);
+		this.world.addEntity(this); // TODO - XXX
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
 		// TODO Auto-generated constructor stub

@@ -44,8 +44,6 @@ public class WorldView extends JComponent {
 	}
 
 	public WorldView(World world) {
-		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-		AssetManager.finishLoading();
 		this.world = world;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292

@@ -34,7 +34,7 @@ public class Player extends RpgActor {
 	 *            The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getAsset("player", AssetManager.AssetSrc.Player, 3, 1).orElse(null));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
 	}
 
 	/**

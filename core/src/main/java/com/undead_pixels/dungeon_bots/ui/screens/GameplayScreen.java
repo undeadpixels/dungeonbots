@@ -43,6 +43,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
@@ -81,9 +82,9 @@ public class GameplayScreen extends Screen {
 					return;
 				}
 
-				if (entity instanceof Player) {
+				if (entity instanceof Player || entity instanceof Bot) {
 
-					JEntityEditor jpe = new JEntityEditor((Player) entity);
+					JEntityEditor jpe = new JEntityEditor(entity);
 					JDialog dialog = new JDialog(GameplayScreen.this, "Player editor",
 							Dialog.ModalityType.DOCUMENT_MODAL);
 					dialog.add(jpe);
