@@ -65,78 +65,153 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 public final class LevelEditorScreen extends Screen {
 
 	private WorldView _View;
-	private JList<Tool> _ToolPalette;
-	private JList<TileType> _TilePalette;
-	private JList<EntityType> _EntityPalette;
-	private EntityType[] _EntityTypes = new EntityType[] { new EntityType("bot", UIBuilder.getImage("bot_entity.gif")),
-			new EntityType("goal", UIBuilder.getImage("goal_entity.gif")) };
 
 	public LevelEditorScreen(World world) {
 		super(world);
-
-		// The greedy selection listener will allow only one item to be selected
-		// among the three lists.
-		_GreedySelectionListener = new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-
-				if (e.getSource() == _ToolPalette) {
-					_EntityPalette.clearSelection();
-					_TilePalette.clearSelection();
-					((LevelEditorScreenController) getController()).currentTool = _ToolPalette.getSelectedValue();
-				} else if (e.getSource() == _TilePalette) {
-					_ToolPalette.clearSelection();
-					_EntityPalette.clearSelection();
-				} else if (e.getSource() == _EntityPalette) {
-					_ToolPalette.clearSelection();
-					_TilePalette.clearSelection();
-				}
-				LevelEditorScreenController controller = (LevelEditorScreenController) getController();
-				controller.currentTool = _ToolPalette.getSelectedValue();
-				controller.currentTileType = _TilePalette.getSelectedValue();
-				controller.currentEntityType = _EntityPalette.getSelectedValue();
-			}
-		};
-
-		// Set up the members of the lists.
-		_ToolPalette.addListSelectionListener(_GreedySelectionListener);
-		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		for (Tool t : createTools())
-			tm.addElement(t);
-		_ToolPalette.setModel(tm);
-
-		_TilePalette.addListSelectionListener(_GreedySelectionListener);
-		DefaultListModel<TileType> lm = new DefaultListModel<TileType>();
-		for (TileType t : world.getTileTypes())
-			lm.addElement(t);
-		_TilePalette.setModel(lm);
-
-		_EntityPalette.addListSelectionListener(_GreedySelectionListener);
-		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
-		for (EntityType e : _EntityTypes)
-			em.addElement(e);
-		_EntityPalette.setModel(em);
 	}
 
 	@Override
 	protected ScreenController makeController() {
-		return new LevelEditorScreenController();
+		return new LevelEditorScreen.Controller();
 	}
 
-	protected class LevelEditorScreenController extends ScreenController {
+	/** Creates all the tools available in this Level Editor. */
+	public ArrayList<Tool> createTools() {
+		ArrayList<Tool> result = new ArrayList<Tool>();
+		result.add(new Tool("Selector", UIBuilder.getImage("selection.gif")) {
 
+			Point cornerA = null;
+			Point cornerB = null;
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (cornerA != null)
+					return;
+				cornerB = cornerA = new Point(e.getX(), e.getY());
+				if (_View.getRenderingTool() == null)
+					_View.setRenderingTool(this);
+				e.consume();
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+
+				if (cornerA == null)
+					return;
+
+				Point2D.Float gamePositionA = _View.getScreenToGameCoords((int) cornerA.getX(), (int) cornerA.getY());
+				Point2D.Float gamePositionB = _View.getScreenToGameCoords((int) cornerB.getX(), (int) cornerB.getY());
+				int x1 = Math.min((int) gamePositionA.getX(), (int) gamePositionB.getX());
+				int y1 = Math.min((int) gamePositionA.getY(), (int) gamePositionB.getY());
+				int x2 = Math.max((int) gamePositionA.getX(), (int) gamePositionB.getX());
+				int y2 = Math.max((int) gamePositionA.getY(), (int) gamePositionB.getY());
+
+				if (_View.getRenderingTool() == this)
+					_View.setRenderingTool(null);
+
+				ArrayList<Point> selectedTiles = new ArrayList<Point>();
+				for (int x = x1; x <= x2; x++) {
+					for (int y = y1; y <= y2; y++) {
+						selectedTiles.add(new Point(x, y));
+					}
+				}
+				if (selectedTiles.size() == 1) {
+
+				}
+
+				_View.setSelectedTiles(selectedTiles.toArray(new Point[selectedTiles.size()]));
+
+				cornerB = cornerA = null;
+				e.consume();
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if (cornerA == null)
+					return;
+				cornerB = new Point(e.getX(), e.getY());
+				e.consume();
+			}
+
+			@Override
+			public void render(Graphics2D g) {
+				int x = (int) Math.min(cornerA.getX(), cornerB.getX());
+				int y = (int) Math.min(cornerA.getY(), cornerB.getY());
+				int width = (int) Math.abs(cornerA.getX() - cornerB.getX());
+				int height = (int) Math.abs(cornerA.getY() - cornerB.getY());
+				g.setColor(Color.RED);
+				g.setStroke(new BasicStroke(2));
+				g.drawRect(x, y, width, height);
+			}
+		});
+
+		return result;
+	}
+
+	/** Creates all the entity types available in this Level Editor. */
+	public ArrayList<EntityType> createEntityTypes() {
+		ArrayList<EntityType> result = new ArrayList<EntityType>();
+		result.add(new EntityType("bot", UIBuilder.getImage("bot_entity.gif")));
+		result.add(new EntityType("goal", UIBuilder.getImage("goal_entity.gif")));
+		return result;
+	}
+
+	/**
+	 * The Level Editor controller works by maintaining a reference to a Tool to
+	 * correctly handle inputs in the game view, whereas the controller itself
+	 * handles Level Editor-related actions.
+	 */
+	protected final class Controller extends ScreenController implements ListSelectionListener {
+
+		/** The list managing the selection of a tool. */
+		public JList<Tool> toolPalette;
+		/** The list managing the selection of a tile type. */
+		public JList<TileType> tilePalette;
+		/** The list managing the selection of an entity type. */
+		public JList<EntityType> entityPalette;
+
+		/** The current Tool provides handlers for inputs. */
+		private Tool currentTool = null;
 		/**
-		 * The current Tool provides alternative handlers for inputs. If a Tool
-		 * is specified and the handler consumes an event, it will not be
-		 * handled in this controller.
+		 * The current entity type to place. If the tool is the entity placer.
 		 */
-		public Tool currentTool = null;
+		private EntityType currentEntityType = null;
+		/**
+		 * The current tile that will be drawn if the tool is the tile drawing
+		 * tool.
+		 */
+		private TileType currentTileType = null;
 
-		/** The current tile type for drawing. */
-		public TileType currentTileType = null;
+		private Tool _EntityPlacerTool = new Tool("Entity placer tool", null) {
 
-		/** The current entity type to place. */
-		public EntityType currentEntityType = null;
+			@Override
+			public void mouseClicked(MouseEvent e) {
+
+			}
+		};
+
+		private Tool _TileDrawTool = new Tool("Tile draw tool", null) {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (drawTile(e.getX(), e.getY()))
+					e.consume();
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				if (drawTile(e.getX(), e.getY()))
+					e.consume();
+			}
+
+			private boolean drawTile(int x, int y) {
+				if (currentTileType == null)
+					return false;
+				Point2D.Float gameCoords = _View.getScreenToGameCoords(x, y);
+				world.setTile((int) gameCoords.x, (int) gameCoords.y, currentTileType);
+				return true;
+			}
+		};
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -146,26 +221,6 @@ public final class LevelEditorScreen extends Screen {
 				currentTool.mouseClicked(e);
 			if (e.isConsumed())
 				return;
-
-			switch (e.getClickCount()) {
-			case 1:
-				TileType selection = currentTileType;
-				if (selection == null)
-					return;
-				TileType drawType = (TileType) selection;
-				Point2D.Float gameCoords = _View.getScreenToGameCoords(e.getX(), e.getY());
-				world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
-				e.consume();
-				break;
-			case 2:
-				Point2D.Float gamePosition = _View.getScreenToGameCoords(e.getX(), e.getY());
-				Entity entity = _View.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
-				if (entity == null)
-					return;
-				JEntityEditor.create(LevelEditorScreen.this, entity, SecurityLevel.AUTHOR, "Entity Editor");
-				e.consume();
-				break;
-			}
 		}
 
 		@Override
@@ -176,13 +231,6 @@ public final class LevelEditorScreen extends Screen {
 				currentTool.mouseDragged(e);
 			if (e.isConsumed())
 				return;
-			Object selection = _TilePalette.getSelectedValue();
-			if (selection == null)
-				return;
-			TileType drawType = (TileType) selection;
-			Point2D.Float gameCoords = _View.getCamera().unproject((float) e.getX(), (float) e.getY());
-			world.setTile((int) gameCoords.x, (int) gameCoords.y, drawType);
-			e.consume();
 		}
 
 		@Override
@@ -342,89 +390,38 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+		/** Handle the palette list changes. */
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+
+			if (e.getSource() instanceof JList) {
+
+				// The different tool lists are greedy - choosing a tool, or a
+				// tile, or an entity, means the other selections are not
+				// chosen.
+				if (e.getSource() == toolPalette) {
+					entityPalette.clearSelection();
+					tilePalette.clearSelection();
+					currentTool = toolPalette.getSelectedValue();
+				} else if (e.getSource() == tilePalette) {
+					toolPalette.clearSelection();
+					entityPalette.clearSelection();
+					currentTool = _TileDrawTool;
+				} else if (e.getSource() == entityPalette) {
+					toolPalette.clearSelection();
+					tilePalette.clearSelection();
+					currentTool = _EntityPlacerTool;
+				}
+				currentTool = toolPalette.getSelectedValue();
+				currentTileType = tilePalette.getSelectedValue();
+				currentEntityType = entityPalette.getSelectedValue();
+			}
+
+		}
+
 	}
 
-	/** Creates all the tools available in this controller. */
-	public ArrayList<Tool> createTools() {
-		ArrayList<Tool> result = new ArrayList<Tool>();
-		result.add(new Tool("Selector", UIBuilder.getImage("selection.gif")) {
-
-			Point cornerA = null;
-			Point cornerB = null;
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (cornerA != null)
-					return;
-				cornerB = cornerA = new Point(e.getX(), e.getY());
-				if (_View.getRenderingTool() == null)
-					_View.setRenderingTool(this);
-				e.consume();
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-
-				if (cornerA == null)
-					return;
-
-				Point2D.Float gamePositionA = _View.getScreenToGameCoords((int) cornerA.getX(), (int) cornerA.getY());
-				Point2D.Float gamePositionB = _View.getScreenToGameCoords((int) cornerB.getX(), (int) cornerB.getY());
-				int x1 = Math.min((int) gamePositionA.getX(), (int) gamePositionB.getX());
-				int y1 = Math.min((int) gamePositionA.getY(), (int) gamePositionB.getY());
-				int x2 = Math.max((int) gamePositionA.getX(), (int) gamePositionB.getX());
-				int y2 = Math.max((int) gamePositionA.getY(), (int) gamePositionB.getY());
-
-				if (_View.getRenderingTool() == this)
-					_View.setRenderingTool(null);
-
-				ArrayList<Point> selectedTiles = new ArrayList<Point>();
-				for (int x = x1; x <= x2; x++) {
-					for (int y = y1; y <= y2; y++) {
-						selectedTiles.add(new Point(x, y));
-					}
-				}
-				if (selectedTiles.size()==1){
-					
-				}
-				
-				_View.setSelectedTiles(selectedTiles.toArray(new Point[selectedTiles.size()]));
-
-				cornerB = cornerA = null;
-				e.consume();
-			}
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				if (cornerA == null)
-					return;
-				cornerB = new Point(e.getX(), e.getY());
-				e.consume();
-			}
-
-			@Override
-			public void render(Graphics2D g) {
-				int x = (int) Math.min(cornerA.getX(), cornerB.getX());
-				int y = (int) Math.min(cornerA.getY(), cornerB.getY());
-				int width = (int) Math.abs(cornerA.getX() - cornerB.getX());
-				int height = (int) Math.abs(cornerA.getY() - cornerB.getY());
-				g.setColor(Color.RED);
-				g.setStroke(new BasicStroke(2));
-				g.drawRect(x, y, width, height);
-			}
-		});
-
-		return result;
-	}
-
-	/**
-	 * A selection listener designed to ensure an item from only one list is
-	 * selected at a time.
-	 * <p>
-	 * NOTE: cannot be designed at class declaration because non-static fields
-	 * are not instantiated when the subclass constructor runs.
-	 */
-	private static ListSelectionListener _GreedySelectionListener = null;
+	/** Handles the rendering of an item in the TileType palette. */
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
 		@Override
 		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType item, int index,
@@ -436,6 +433,7 @@ public final class LevelEditorScreen extends Screen {
 			return lbl;
 		}
 	};
+	/** Handles the rendering of an item in the EntityType palette. */
 	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
 		@Override
 		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType item, int index,
@@ -447,6 +445,7 @@ public final class LevelEditorScreen extends Screen {
 			return lbl;
 		}
 	};
+	/** Handles the rendering of an item in the Tool palette. */
 	private static ListCellRenderer<Tool> _ToolItemRenderer = new ListCellRenderer<Tool>() {
 
 		@Override
@@ -461,6 +460,7 @@ public final class LevelEditorScreen extends Screen {
 
 	};
 
+	/** Build the actual GUI for the Level Editor. */
 	@Override
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
@@ -472,39 +472,44 @@ public final class LevelEditorScreen extends Screen {
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
 
-		// The draw type combobox.
-		JComboBox<String> brushBox = new JComboBox<String>();
-		brushBox.addItem("Point");
-		brushBox.addItem("Line");
-		brushBox.addItem("Area");
-		JPanel brushBoxContainer = new JPanel(new FlowLayout());
-		brushBoxContainer.add(brushBox);
-		brushBoxContainer.setMaximumSize(new Dimension(9999, 100));
-		brushBoxContainer.setBorder(BorderFactory.createTitledBorder("Current draw mode"));
+		// Create the tool palette GUI.
+		JList<Tool> tl = ((Controller) getController()).toolPalette = new JList<Tool>();
+		tl.setCellRenderer(_ToolItemRenderer);
+		tl.setMinimumSize(new Dimension(150, 400));
+		tl.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel toolCollapser = UIBuilder.makeCollapser(new JScrollPane(tl), "Tools", "Tools", "", false);
+		// Set up the members of the lists.
+		tl.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
+		for (Tool t : createTools())
+			tm.addElement(t);
+		tl.setModel(tm);
 
-		// Create the tool palette, but the elements and selection listener will
-		// be added elsewhere.
-		_ToolPalette = new JList<Tool>();
-		_ToolPalette.setCellRenderer(_ToolItemRenderer);
-		_ToolPalette.setMinimumSize(new Dimension(150, 400));
-		_ToolPalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel toolCollapser = UIBuilder.makeCollapser(new JScrollPane(_ToolPalette), "Tools", "Tools", "", false);
+		// Create the tile palette GUI.
+		JList<TileType> il = ((Controller) getController()).tilePalette = new JList<TileType>();
+		il.setCellRenderer(_TileTypeItemRenderer);
+		il.setMinimumSize(new Dimension(150, 400));
+		il.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(il), "Tiles", "Tiles", "", false);
+		// Set up the tile list.
+		il.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
+		for (TileType i : world.getTileTypes())
+			im.addElement(i);
+		il.setModel(im);
 
-		// Create the palette, but don't add elements - this is done elsewhere.
-		_TilePalette = new JList<TileType>();
-		_TilePalette.setCellRenderer(_TileTypeItemRenderer);
-		_TilePalette.setMinimumSize(new Dimension(150, 400));
-		_TilePalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(_TilePalette), "Tiles", "Tiles", "", false);
-
-		// Create the entity palette, but again don't add elements. That occurs
-		// elsewhere.
-		_EntityPalette = new JList<EntityType>();
-		_EntityPalette.setCellRenderer(_EntityItemRenderer);
-		_EntityPalette.setPreferredSize(new Dimension(150, 400));
-		_EntityPalette.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(_EntityPalette), "Entities", "Entities", "",
-				false);
+		// Create the entity palette GUI.
+		JList<EntityType> el = ((Controller) getController()).entityPalette = new JList<EntityType>();
+		el.setCellRenderer(_EntityItemRenderer);
+		el.setPreferredSize(new Dimension(150, 400));
+		el.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(el), "Entities", "Entities", "", false);
+		// Set up the entity list.
+		el.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
+		for (EntityType e : createEntityTypes())
+			em.addElement(e);
+		el.setModel(em);
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
