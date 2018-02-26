@@ -203,7 +203,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@BindTo("new")
 	public static LuaValue newWorld() {
 		World w = new World();
-		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 

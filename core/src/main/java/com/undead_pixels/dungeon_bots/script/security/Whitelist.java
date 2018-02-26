@@ -15,55 +15,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * @author Stewart Charles
+ * @author Stewart Charles, Kevin Parker
  * @version 2/1/2018
  * Creates a Whitelist of allowed callable Methods that is unique to the caller
  * and the method.
  */
 public class Whitelist implements GetLuaFacade {
-	private Set<String> whitelist;
+	private HashMap<String, SecurityLevel> whitelist;
 	private LuaValue luaValue;
 
 	public Whitelist() {
-		this.whitelist = new HashSet<>();
-	}
-
-	/**
-	 * Add the Argument Whitelist ID's to the Whitelist
-	 * @param args
-	 * @return
-	 */
-	public Whitelist addId(final String... args) {
-		return addId(Stream.of(args));
-	}
-
-	/**
-	 * Remove the Argument Whitelist ID's to the Whitelist
-	 * @param args
-	 * @return
-	 */
-	public Whitelist removeId(final String... args) {
-		return removeId(Stream.of(args));
-	}
-
-	/**
-	 * Adds the argument ID's to the source Whitelist
-	 * @param args A Stream of String ID's to add
-	 * @return The source Whitelist
-	 */
-	public  Whitelist addId(final Stream<String> args) {
-		whitelist.addAll(args.collect(Collectors.toList()));
-		return this;
-	}
-
-	/**
-	 * Removes the argument ID's from the source Whitelist
-	 * @param args A Stream of String ID's to remove
-	 * @return The source Whitelist
-	 */
-	public Whitelist removeId(final Stream<String> args) {
-		whitelist.removeAll(args.collect(Collectors.toList()));
-		return this;
+		this.whitelist = new HashMap<>();
 	}
 
 	/**
@@ -74,80 +36,74 @@ public class Whitelist implements GetLuaFacade {
 	 * @return The source Whitelist
 	 */
 	@SafeVarargs
-	public final <T extends GetLuaFacade> Whitelist add(final T... bindables) {
-		Stream.of(bindables).forEach(bindable -> addWhitelists(bindable.getWhitelist()));
+	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final T... bindables) {
+		for(T t : bindables) {
+			this.addWhitelistNoReplace(t.getWhitelist());
+		}
 		return this;
 	}
-
-	/**
-	 * Adds the argument method to the Whitelist with an ID associated with the caller.<br>
-	 * Use this to Whitelist a caller invoking a given method.<br>
-	 * @param caller The caller object
-	 * @param m The target method
-	 * @param <T> A type that implements GetLuaFacade
-	 * @return The source Whitelist
-	 */
-	public <T extends GetLuaFacade> Whitelist add(final T caller, final Method m) {
-		whitelist.add(LuaReflection.genId(caller,m));
+	
+	@SafeVarargs
+	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final Class<? extends GetLuaFacade>... bindables) {
+		for(Class<? extends GetLuaFacade> t : bindables) {
+			this.addWhitelistNoReplace(GetLuaFacade.getWhitelist(t));
+		}
 		return this;
 	}
 
 	/**
 	 * Removes the argument method to the Whitelist with an ID associated with the caller.<br>
-	 * Use this to Whitelist a caller invoking a given method.<br>
-	 * This disallows a specific caller from invoking a method.<br>
-	 * @param caller
-	 * @param m
-	 * @param <T>
-	 * @return
+	 * 
+	 * @param method
+	 * @return	this
 	 */
-	public <T extends GetLuaFacade> Whitelist remove(final T caller, final Method m) {
-		whitelist.remove(LuaReflection.genId(caller, m));
-		return this;
+	public <T extends GetLuaFacade> Whitelist remove(final Method method) {
+		return setLevel(method, SecurityLevel.AUTHOR);
+	}
+
+	
+	/**
+	 * Adds the argument method to the Whitelist with a given security level.<br>
+	 * Use this to Whitelist/blacklist a given method.<br>
+	 * 
+	 * @param method The target method
+	 * @param securityLevel The target security level
+	 * @return The source Whitelist
+	 */
+	public Whitelist setLevel(final Method method, SecurityLevel securityLevel) {
+		return setLevel(LuaReflection.genId(method), securityLevel);
 	}
 
 	/**
-	 * Adds the argument elements Whitelists to the source Whitelist.
-	 * @param securityLevel The Security Level of the Whitelists to retrieve <br>
-	 *                         when calling the GetLuaFacade.getWhitlist function
-	 * @param args A variadic array of elements implementing the GetLuaFacade interface
-	 * @param <T> A type that implements the GetLuaFacade interface
+	 * Adds the argument method to the Whitelist with a given security level.<br>
+	 * Use this to Whitelist/blacklist a given method.<br>
+	 * 
+	 * @param bindId The target method ID
+	 * @param securityLevel The target security level
 	 * @return The source Whitelist
 	 */
-	public <T extends GetLuaFacade> Whitelist add(final SecurityLevel securityLevel, final T... args) {
-		return addWhitelists(Stream.of(args).map(val -> val.getWhitelist(securityLevel)));
-	}
-
-	/**
-	 * Adds the whitelist of the argument Class to the source Whitelist
-	 * @param securityLevel The security level to invoke when acquiring the Whitelist of the argument class
-	 * @param arg The argument class
-	 * @param <T> A Type that implements GetLuaFacade to obtain the Whitelist
-	 * @return The source Whitelist
-	 */
-	public <T extends GetLuaFacade> Whitelist add(final SecurityLevel securityLevel, final Class<T> arg) {
-		whitelist.addAll(GetLuaFacade.getWhitelist(arg, securityLevel).whitelist);
+	public Whitelist setLevel(final String bindId, SecurityLevel securityLevel) {
+		whitelist.put(bindId, securityLevel);
 		return this;
 	}
 
 	/**
 	 * Query if a specific id is in the source Whitelist
-	 * @param bindId The String id to query
-	 * @return True if found on the whitelist
+	 * @param bindID The String id to query
+	 * @return The security level on the whitelist
 	 */
-	public boolean onWhitelist(final String bindId) {
-		return whitelist.contains(bindId);
+	public SecurityLevel getLevel(final String bindID) {
+		return whitelist.getOrDefault(bindID, SecurityLevel.DEBUG);
 	}
 
 	/**
 	 * Query if the given method is on the source Whitelist associated with the specified caller
 	 * @param caller The caller that invokes the specified method. Can be null if a static method.
 	 * @param m The target method.
-	 * @param <T> A Type that implements GetLuaFacade
 	 * @return True if found on the whitelist
 	 */
-	public <T extends GetLuaFacade> boolean onWhitelist(final T caller, final Method m) {
-		return onWhitelist(LuaReflection.genId(caller,m));
+	public <T extends GetLuaFacade> SecurityLevel getLevel(final Method m) {
+		return getLevel(LuaReflection.genId(m));
 	}
 
 	/**
@@ -180,29 +136,63 @@ public class Whitelist implements GetLuaFacade {
 
 	/**
 	 * Binding to Lua code that allows Authors to add things to the whitelist.<br>
-	 * <pre>{@code
-	 *     -- Whitelists functions named up, down, left and right that belong to the player entity if found
-	 *     whitelist.allow(player, "up", "down", "left", "right")
-	 *
-	 *     -- Whitelists all functions for the player entity
-	 *     whitelist.allow(player)
-	 *     }</pre>
+	 * 
+	 * usage:
+	 * 
+	 * setLevel("com.undead_pixels.dungeon_bots.entites.Actor:up", "general")
+	 * 
+	 * 
+	 * 
+	 * // <pre>{@code
+	 * //     -- Whitelists functions named up, down, left and right that belong to the player entity if found
+	 * //     whitelist.allow(player, "up", "down", "left", "right")
+	 * //
+	 * //     -- Whitelists all functions for the player entity
+	 * //     whitelist.allow(player)
+	 * //     }</pre>
 	 * @param obj
 	 * @param toAllow
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public void allow(LuaValue obj, LuaValue toAllow) {
+	public Whitelist setLevel(LuaValue obj, LuaValue methodName, LuaValue permissionLevel) {
 		GetLuaFacade o = (GetLuaFacade) obj.checktable().get("this").checkuserdata(GetLuaFacade.class);
-		LuaReflection.getMethodWithName(o, toAllow.checkjstring())
-				.ifPresent(m -> add(o, m));
+		Method method = LuaReflection.getMethodWithName(o, methodName.checkjstring()).get();
+		
+		SecurityLevel securityLevel = SecurityLevel.DEBUG;
+		
+		switch(permissionLevel.checkjstring().toLowerCase()) {
+		case "author":
+			securityLevel = SecurityLevel.AUTHOR;
+			break;
+		case "entity":
+			securityLevel = SecurityLevel.ENTITY;
+			break;
+		case "team":
+			securityLevel = SecurityLevel.TEAM;
+			break;
+		case "default":
+			securityLevel = SecurityLevel.DEFAULT;
+			break;
+		case "none":
+		case "general":
+			securityLevel = SecurityLevel.NONE;
+			break;
+			
+		default:
+			// TODO - throw some exception?
+			return this;
+		}
+		
+		return this.setLevel(method, securityLevel);
 	}
 
-	private Whitelist addWhitelists(Whitelist... w) {
-		return addWhitelists(Stream.of(w));
-	}
+	private Whitelist addWhitelistNoReplace(Whitelist w) {
 
-	private Whitelist addWhitelists(Stream<Whitelist> w) {
-		w.forEach(val -> whitelist.addAll(val.whitelist));
+		for(String methodID : w.whitelist.keySet()) {
+			SecurityLevel newLevel = w.whitelist.get(methodID);
+			whitelist.putIfAbsent(methodID, newLevel);
+		}
+
 		return this;
 	}
 }

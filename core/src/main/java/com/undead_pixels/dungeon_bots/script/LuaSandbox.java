@@ -1,10 +1,14 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
+import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -26,36 +30,35 @@ import java.util.stream.*;
  */
 public class LuaSandbox {
 
-    private final Globals globals;
-    final Globals invokerGlobals = JsePlatform.debugGlobals();
-    private final Whitelist whitelist = new Whitelist();
-	private SecurityLevel securityLevel;
+	private final Globals globals;
+	final Globals invokerGlobals = JsePlatform.debugGlobals();
+	private final SecurityContext securityContext; // TODO - init this
 	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	private final BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 
 	/**
-     * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
-     */
-    public LuaSandbox() {
-    	this(SecurityLevel.AUTHOR);
-    }
+	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
+	 */
+	public LuaSandbox() {
+		this(SecurityLevel.NONE);
+	}
 
-    /**
-     * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
-     * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
-     */
-    public LuaSandbox(SecurityLevel securityLevel) {
-    	this(securityLevel, securityLevel.globals);
-    }
+	/**
+	 * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
+	 * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
+	 */
+	public LuaSandbox(SecurityLevel securityLevel) {
+		this(securityLevel, securityLevel.globals);
+	}
 
 	/**
 	 * Inits a LuaSandbox using the argument Globals parameter
 	 * @param globals
 	 */
 	public LuaSandbox(Globals globals) {
-		this(SecurityLevel.AUTHOR, globals);
+		this(SecurityLevel.NONE, globals);
 	}
 
 	public LuaSandbox(SecurityLevel securityLevel, Globals globals) {
@@ -88,9 +91,9 @@ public class LuaSandbox {
 	 * @return The source LuaSandbox
 	 */
     @SafeVarargs
-    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindable) {
-		whitelist.add(securityLevel, bindable);
-		add(Stream.of(bindable)
+    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
+		whitelist.addAutoLevelsForBindables(bindables);
+		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
 		return this;
 	}
@@ -102,10 +105,10 @@ public class LuaSandbox {
 	 */
 	@SafeVarargs
 	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
-		Stream.of(clz).forEach(c -> {
-			whitelist.add(securityLevel, c);
+		for(Class<? extends GetLuaFacade> c : clz) {
+			whitelist.addAutoLevelsForBindables(c);
 			add(LuaProxyFactory.getBindings(c));
-		});
+		}
 		return this;
 	}
 
@@ -137,12 +140,6 @@ public class LuaSandbox {
 	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
 		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
 		scriptQueue.update(0.f);
-		//try {
-			//Thread.sleep(50); // XXX - really need to delete this
-		//} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-		//	e.printStackTrace();
-		//}
 		
 		return ret;
 	}
