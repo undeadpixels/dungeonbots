@@ -122,7 +122,7 @@ public class Sprite implements Serializable {
 				xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 				xform.translate(-.5, .5);
 			}
-			batch.draw(tex, xform);
+			batch.draw(tex, xform);			
 		}
 	}
 

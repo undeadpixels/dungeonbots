@@ -49,6 +49,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
@@ -66,8 +67,20 @@ public final class LevelEditorScreen extends Screen {
 
 	private WorldView _View;
 
+	private Point[] _SelectedTiles = null;
+	private Entity[] _SelectedEntities = null;
+
 	public LevelEditorScreen(World world) {
 		super(world);
+	}
+
+	public void setSelectedTiles(Point[] newSelection) {
+		_View.setSelectedTiles(_SelectedTiles = newSelection);
+		// TODO: throw an event for listeners?
+	}
+
+	public void setSelectedEntities(Entity[] newSelection) {
+		_View.setSelectedEntities(_SelectedEntities = newSelection);
 	}
 
 	@Override
@@ -119,7 +132,7 @@ public final class LevelEditorScreen extends Screen {
 
 				}
 
-				_View.setSelectedTiles(selectedTiles.toArray(new Point[selectedTiles.size()]));
+				setSelectedTiles(selectedTiles.toArray(new Point[selectedTiles.size()]));
 
 				cornerB = cornerA = null;
 				e.consume();
@@ -186,7 +199,11 @@ public final class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-
+				Point2D.Float gamePosition = _View.getScreenToGameCoords(e.getX(), e.getY());
+				Entity existing = world.getEntityUnderLocation(gamePosition.x, gamePosition.y);
+				if (existing != null) {
+					setSelectedEntities(new Entity[] { existing });
+				}
 			}
 		};
 
@@ -403,18 +420,22 @@ public final class LevelEditorScreen extends Screen {
 					entityPalette.clearSelection();
 					tilePalette.clearSelection();
 					currentTool = toolPalette.getSelectedValue();
+					currentTileType = null;
+					currentEntityType = null;
 				} else if (e.getSource() == tilePalette) {
 					toolPalette.clearSelection();
 					entityPalette.clearSelection();
 					currentTool = _TileDrawTool;
+					currentTileType = tilePalette.getSelectedValue();
+					currentEntityType = null;
 				} else if (e.getSource() == entityPalette) {
 					toolPalette.clearSelection();
 					tilePalette.clearSelection();
 					currentTool = _EntityPlacerTool;
+					currentTileType = null;
+					currentEntityType = entityPalette.getSelectedValue();
 				}
-				currentTool = toolPalette.getSelectedValue();
-				currentTileType = tilePalette.getSelectedValue();
-				currentEntityType = entityPalette.getSelectedValue();
+
 			}
 
 		}

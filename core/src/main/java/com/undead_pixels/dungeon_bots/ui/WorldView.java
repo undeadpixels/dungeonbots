@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
@@ -33,6 +34,7 @@ public class WorldView extends JComponent {
 
 	private long lastTime;
 	private Point[] selectedTiles = null;
+	private Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
 
 	/*
@@ -116,21 +118,37 @@ public class WorldView extends JComponent {
 				}
 			}
 
-			// Render selections.
-			Point[] selections = this.selectedTiles;
-			if (selections != null && selections.length > 0) {
-				g2d.setStroke(new BasicStroke(3));
+			// Render selected tiles.
+			Point[] selectedTiles = this.selectedTiles;
+			if (selectedTiles != null && selectedTiles.length > 0) {
 				g.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
-				for (int i = 0; i < selections.length; i++) {
-					Point pt = selections[i];
+				for (int i = 0; i < selectedTiles.length; i++) {
+					Point pt = selectedTiles[i];
 					int x = pt.x, y = pt.y;
-					batch.fillRect(x, y + 1, 1, 1);
+					batch.fillRect((float) x, (float) (y + 1), 1f, 1f);
 				}
 				g.setColor(new Color(1.0f, 0.0f, 0.0f, 0.8f));
-				for (int i = 0; i < selections.length; i++) {
-					Point pt = selections[i];
+				g2d.setStroke(new BasicStroke(3));
+				for (int i = 0; i < selectedTiles.length; i++) {
+					Point pt = selectedTiles[i];
 					int x = pt.x, y = pt.y;
-					batch.drawRect(x, y + 1, 1, 1);
+					batch.drawRect((float) x, (float) (y + 1), 1f, 1f);
+				}
+			}
+
+			// Render entity selections.
+			Entity[] selectedEntities = this.selectedEntities;
+			if (selectedEntities != null && selectedEntities.length > 0) {
+				g.setColor(new Color(1.0f, 1.0f, 0.0f, 0.4f));
+				for (Entity e : selectedEntities) {
+					Point2D.Float pt = e.getPosition();
+					batch.fillRect(pt.x, pt.y + 1f, 1f, 1f);
+				}
+				g2d.setStroke(new BasicStroke(3));
+				g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.8f));
+				for (Entity e : selectedEntities) {
+					Point2D.Float pt = e.getPosition();
+					batch.drawRect(pt.x, pt.y + 1f, 1f, 1f);
 				}
 			}
 
@@ -181,13 +199,22 @@ public class WorldView extends JComponent {
 		this.world = world;
 	}
 
-	/** Returns a copied array of the selection positions. */
+	/** Returns a copied array of the selected tiles positions. */
 	public Point[] getSelectedTiles() {
 		return selectedTiles.clone();
 	}
 
-	public void setSelectedTiles(Point[] newSelections) {
-		selectedTiles = newSelections.clone();
+	public void setSelectedTiles(Point[] tiles) {
+		selectedTiles = tiles.clone();
+	}
+
+	/** Returns a copied array of the selected entities. */
+	public Entity[] getSelectedEntities() {
+		return selectedEntities.clone();
+	}
+
+	public void setSelectedEntities(Entity[] entities) {
+		selectedEntities = entities.clone();
 	}
 
 	public Tool getRenderingTool() {
@@ -197,4 +224,5 @@ public class WorldView extends JComponent {
 	public void setRenderingTool(Tool tool) {
 		this.renderingTool = tool;
 	}
+
 }

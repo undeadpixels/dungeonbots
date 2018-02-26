@@ -472,6 +472,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
+	 * All the entities are assigned to a layer during the render loop,
+	 * depending on their Z-value.
+	 * 
+	 * TODO: since each Z-value can create an entire layer, wouldn't it just
+	 * make more sense to sort the Entities by Z-order? And for that matter,
+	 * wouldn't it be more efficient if the sorting occurred when the Entity is
+	 * added to the World, rather than at render time?
+	 * 
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -576,7 +584,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            Location X, in tiles
 	 * @param y
 	 *            Location Y, in tiles
-	 * @return The entity under the given location
+	 * @return The entity under the given location. Returns null if there is no
+	 *         such entity.
 	 */
 	public Entity getEntityUnderLocation(float x, float y) {
 		for (Entity e : entities) {
