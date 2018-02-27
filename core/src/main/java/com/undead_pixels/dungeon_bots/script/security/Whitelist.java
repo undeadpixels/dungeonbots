@@ -88,22 +88,28 @@ public class Whitelist implements GetLuaFacade {
 	}
 
 	/**
-	 * Query if a specific id is in the source Whitelist
-	 * @param bindID The String id to query
-	 * @return The security level on the whitelist
-	 */
-	public SecurityLevel getLevel(final String bindID) {
-		return whitelist.getOrDefault(bindID, SecurityLevel.DEBUG);
-	}
-
-	/**
 	 * Query if the given method is on the source Whitelist associated with the specified caller
 	 * @param caller The caller that invokes the specified method. Can be null if a static method.
 	 * @param m The target method.
 	 * @return True if found on the whitelist
 	 */
+	@SuppressWarnings("unchecked")
 	public <T extends GetLuaFacade> SecurityLevel getLevel(final Method m) {
-		return getLevel(LuaReflection.genId(m));
+		String bindID = LuaReflection.genId(m);
+		SecurityLevel level = whitelist.getOrDefault(bindID, null);
+		
+		if(level == null) {
+			Class<?> uncastedClass = m.getDeclaringClass();
+			try {
+				if(GetLuaFacade.class.isAssignableFrom(uncastedClass)) {
+					addAutoLevelsForBindables((Class<? extends GetLuaFacade>)uncastedClass);
+				}
+			} catch(Exception ex) {
+				ex.printStackTrace();
+			}
+			return whitelist.getOrDefault(bindID, SecurityLevel.DEBUG);
+		}
+		return level;
 	}
 
 	/**
