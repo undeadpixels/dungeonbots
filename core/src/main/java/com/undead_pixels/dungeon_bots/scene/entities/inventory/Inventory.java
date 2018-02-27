@@ -3,7 +3,6 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import org.luaj.vm2.*;
 import java.util.stream.*;
 
@@ -18,8 +17,8 @@ public class Inventory implements GetLuaFacade {
 	private final int maxSize;
 	private final int maxWeight = 100;
 
-	public Inventory(final LuaSandbox luaSandobx, int maxSize) {
-		this.owner = luaSandobx;
+	public Inventory(final LuaSandbox luaSandbox, int maxSize) {
+		this.owner = luaSandbox;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
 	}
@@ -133,7 +132,7 @@ public class Inventory implements GetLuaFacade {
 	 * @return
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public LuaTable get(){
+	public LuaTable get() {
 		LuaTable table = new LuaTable();
 		for(int i = 0; i < table.length(); i++) {
 			ItemReference ir = new ItemReference(this, i);
@@ -144,7 +143,7 @@ public class Inventory implements GetLuaFacade {
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
-	public Varargs unpack(){
+	public Varargs unpack() {
 		return LuaValue.varargsOf((LuaValue[]) IntStream.range(0, inventory.length)
 				.mapToObj(index -> {
 					ItemReference ir = new ItemReference(this, index);
