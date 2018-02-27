@@ -126,7 +126,7 @@ public class LuaProxyFactory {
 	}
 
 	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Exception {
-		if(context.canExecute(caller, m)) {
+		if(context == null || context.canExecute(caller, m)) {
 			if(returnType.isAssignableFrom(Varargs.class))
 				return Varargs.class.cast(m.invoke(caller, args));
 			else if(returnType.isAssignableFrom(LuaValue.class))
@@ -182,10 +182,10 @@ public class LuaProxyFactory {
 			public Varargs invoke(Varargs args) {
 				try {
 					LuaSandbox sandbox = SandboxManager.getCurrentSandbox(); // can be null
-					if(sandbox == null) {
-						throw new RuntimeException("Sandbox was null");
-					}
-					return invokeWhitelist(m, returnType, sandbox.getSecurityContext(), caller, getParams(m, args));
+					//if(sandbox == null) {
+						//throw new RuntimeException("Sandbox was null");
+					//}
+					return invokeWhitelist(m, returnType, sandbox==null?null : sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
 				catch (Exception me) {
 					me.printStackTrace();
