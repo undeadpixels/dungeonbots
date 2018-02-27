@@ -7,10 +7,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.UseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
@@ -23,7 +22,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  *          Does not include UI elements.
  */
 @SuppressWarnings("serial")
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, UseItem {
 
 	/**
 	 * The script associated with this entity. Access to this collection is

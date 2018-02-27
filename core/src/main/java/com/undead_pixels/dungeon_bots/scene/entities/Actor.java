@@ -1,7 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
-import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
@@ -33,7 +31,6 @@ public class Actor extends SpriteEntity implements HasInventory {
 	protected int bumps = 0;
 
 	protected Inventory inventory = new Inventory(this.getSandbox(),10);
-	private LuaValue luaBinding;
 	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 

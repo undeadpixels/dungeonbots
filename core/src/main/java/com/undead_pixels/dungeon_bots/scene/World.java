@@ -836,28 +836,33 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
-		Vector2 pos = a.getPosition();
-		Vector2 toUse = null;
+		Point2D.Float pos = a.getPosition();
+		Point2D.Float toUse = null;
 		switch (d) {
 			case UP:
-				toUse = new Vector2(pos.x, pos.y + 1);
+				toUse = new Point2D.Float(pos.x, pos.y + 1);
 				break;
 			case DOWN:
-				toUse = new Vector2(pos.x, pos.y - 1);
+				toUse = new Point2D.Float(pos.x, pos.y - 1);
 				break;
 			case LEFT:
-				toUse = new Vector2(pos.x - 1, pos.y);
+				toUse = new Point2D.Float(pos.x - 1, pos.y);
 				break;
 			case RIGHT:
-				toUse = new Vector2(pos.x + 1, pos.y);
+				toUse = new Point2D.Float(pos.x + 1, pos.y);
 				break;
 		}
 		// There's a better way to do this that would require changing how we store entities
 		for(Entity e: entities) {
-			if(e.getPosition().x == toUse.x && e.getPosition().y == toUse.y) {
+			if(e.getPosition().x == toUse.getX() && e.getPosition().y == toUse.getY()) {
 				return e.useItem(itemRef);
 			}
 		}
 		return false;
+	}
+
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		this.worldSomewhatInit();
 	}
 }
