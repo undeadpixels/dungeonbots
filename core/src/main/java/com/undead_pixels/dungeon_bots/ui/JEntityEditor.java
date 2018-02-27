@@ -68,11 +68,6 @@ public final class JEntityEditor extends JPanel {
 		dialog.addWindowListener(new WindowListenerAdapter() {
 			@Override
 			protected void event(WindowEvent e) {
-				// System.out.println("Event:" + e.getID());
-				// System.out.println("WINDOW_CLOSING:" +
-				// WindowEvent.WINDOW_CLOSING);
-				// System.out.println("WINDOW_CLOSED:" +
-				// WindowEvent.WINDOW_CLOSED);
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
 				_OpenEditors.remove(entity);

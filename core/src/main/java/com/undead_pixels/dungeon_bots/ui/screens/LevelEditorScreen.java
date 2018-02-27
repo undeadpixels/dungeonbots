@@ -169,8 +169,8 @@ public final class LevelEditorScreen extends Screen {
 
 				// Find the entities that would be lassoed. If there are none,
 				// the selected entities should be null and the lassoed tiles
-				// should be found. If there are none, the selected tiles should
-				// be null.
+				// should be found instead. If no tiles are lassoed at that
+				// point, they should be set to null.
 				List<Entity> se = world.getEntitiesUnderLocation(rect);
 				if (se.size() > 0) {
 					setSelectedEntities(se.toArray(new Entity[se.size()]));
@@ -255,7 +255,10 @@ public final class LevelEditorScreen extends Screen {
 		 */
 		private TileType currentTileType = null;
 
-		private Tool _EntityPlacerTool = new Tool("Entity placer tool", null) {
+		// ===========================================================
+		// ======== LevelEditorScreen.Controller TOOL STUFF
+		// ===========================================================
+		private final Tool _EntityPlacerTool = new Tool("Entity placer tool", null) {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -267,7 +270,7 @@ public final class LevelEditorScreen extends Screen {
 			}
 		};
 
-		private Tool _TileDrawTool = new Tool("Tile draw tool", null) {
+		private final Tool _TileDrawTool = new Tool("Tile draw tool", null) {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -290,69 +293,83 @@ public final class LevelEditorScreen extends Screen {
 			}
 		};
 
+		/**
+		 * This stupid boolean is there just to flag a list's clearSelection()
+		 * call from in turn clearing other lists.
+		 */
+		private boolean _PropogateChange = true;
+
+		/** Handle the palette list changes. */
 		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (e.getSource() != _View)
-				return;
-			if (currentTool != null)
-				currentTool.mouseClicked(e);
-			if (e.isConsumed())
-				return;
+		public void valueChanged(ListSelectionEvent e) {
+
+			if (e.getSource() instanceof JList) {
+
+				// The different lists are greedy - choosing a tool, or a
+				// tile, or an entity, means the other selections are not
+				// chosen.
+
+				// Handle clicking on the tool palette.
+				if (e.getSource() == toolPalette) {
+					if (_PropogateChange) {
+						_PropogateChange = false;
+						entityPalette.clearSelection();
+						tilePalette.clearSelection();
+						_PropogateChange = true;
+					}
+
+					currentTool = toolPalette.getSelectedValue();
+					currentTileType = null;
+					currentEntityType = null;
+				}
+				// Handle clicking on the tile palette.
+				else if (e.getSource() == tilePalette) {
+					if (_PropogateChange) {
+						_PropogateChange = false;
+						toolPalette.clearSelection();
+						entityPalette.clearSelection();
+						_PropogateChange = true;
+					}
+					currentTool = _TileDrawTool;
+					JList<TileType> tp = tilePalette;
+					currentTileType = tilePalette.getSelectedValue();
+					currentEntityType = null;
+					if (_SelectedTiles != null && currentTileType != null) {
+						for (Tile t : _SelectedTiles) {
+							Point2D.Float pos = t.getPosition();
+							world.setTile((int) pos.x, (int) pos.y, currentTileType);
+						}
+					}
+				}
+				// Handle clicking on the entity palette.
+				else if (e.getSource() == entityPalette) {
+					if (_PropogateChange) {
+						_PropogateChange = false;
+						toolPalette.clearSelection();
+						tilePalette.clearSelection();
+						_PropogateChange = true;
+					}
+					currentTool = _EntityPlacerTool;
+					currentTileType = null;
+					currentEntityType = entityPalette.getSelectedValue();
+				}
+
+			}
+
 		}
 
+		/** Handle changes in the state of the zoom slider. */
 		@Override
-		public void mouseDragged(MouseEvent e) {
-			if (e.getSource() != _View)
-				return;
-			if (currentTool != null)
-				currentTool.mouseDragged(e);
-			if (e.isConsumed())
-				return;
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseMoved(e);
-			if (e.isConsumed())
-				return;
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseEntered(e);
-			if (e.isConsumed())
-				return;
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseExited(e);
-			if (e.isConsumed())
-				return;
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			if (e.getSource() != _View)
-				return;
-			if (currentTool != null)
-				currentTool.mousePressed(e);
-			if (e.isConsumed())
-				return;
-
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			if (e.getSource() != _View)
-				return;
-			if (currentTool != null)
-				currentTool.mouseReleased(e);
-			if (e.isConsumed())
-				return;
+		public void stateChanged(ChangeEvent e) {
+			if (e.getSource() instanceof JSlider) {
+				JSlider sldr = (JSlider) e.getSource();
+				if (sldr.getName().equals("zoomSlider")) {
+					OrthographicCamera cam = _View.getCamera();
+					if (cam != null) {
+						cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
+					}
+				}
+			}
 		}
 
 		@Override
@@ -431,16 +448,68 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 		@Override
-		public void stateChanged(ChangeEvent e) {
-			if (e.getSource() instanceof JSlider) {
-				JSlider sldr = (JSlider) e.getSource();
-				if (sldr.getName().equals("zoomSlider")) {
-					OrthographicCamera cam = _View.getCamera();
-					if (cam != null) {
-						cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
-					}
-				}
-			}
+		public void mouseClicked(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
+			if (currentTool != null)
+				currentTool.mouseClicked(e);
+			if (e.isConsumed())
+				return;
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
+			if (currentTool != null)
+				currentTool.mouseDragged(e);
+			if (e.isConsumed())
+				return;
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent e) {
+			if (currentTool != null)
+				currentTool.mouseMoved(e);
+			if (e.isConsumed())
+				return;
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			if (currentTool != null)
+				currentTool.mouseEntered(e);
+			if (e.isConsumed())
+				return;
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			if (currentTool != null)
+				currentTool.mouseExited(e);
+			if (e.isConsumed())
+				return;
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
+			if (currentTool != null)
+				currentTool.mousePressed(e);
+			if (e.isConsumed())
+				return;
+
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
+			if (currentTool != null)
+				currentTool.mouseReleased(e);
+			if (e.isConsumed())
+				return;
 		}
 
 		@Override
@@ -465,39 +534,6 @@ public final class LevelEditorScreen extends Screen {
 				currentTool.keyPressed(e);
 			if (e.isConsumed())
 				return;
-		}
-
-		/** Handle the palette list changes. */
-		@Override
-		public void valueChanged(ListSelectionEvent e) {
-
-			if (e.getSource() instanceof JList) {
-
-				// The different tool lists are greedy - choosing a tool, or a
-				// tile, or an entity, means the other selections are not
-				// chosen.
-				if (e.getSource() == toolPalette) {
-					entityPalette.clearSelection();
-					tilePalette.clearSelection();
-					currentTool = toolPalette.getSelectedValue();
-					currentTileType = null;
-					currentEntityType = null;
-				} else if (e.getSource() == tilePalette) {
-					toolPalette.clearSelection();
-					entityPalette.clearSelection();
-					currentTool = _TileDrawTool;
-					currentTileType = tilePalette.getSelectedValue();
-					currentEntityType = null;
-				} else if (e.getSource() == entityPalette) {
-					toolPalette.clearSelection();
-					tilePalette.clearSelection();
-					currentTool = _EntityPlacerTool;
-					currentTileType = null;
-					currentEntityType = entityPalette.getSelectedValue();
-				}
-
-			}
-
 		}
 
 	}

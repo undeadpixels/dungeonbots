@@ -14,8 +14,5 @@ public class EntityType {
 		this.image = image;
 	}
 
-	public void writeTo(Entity entity) {
-
-	}
 
 }
