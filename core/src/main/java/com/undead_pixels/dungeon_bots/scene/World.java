@@ -464,8 +464,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Returns the tile at the given tile location. If tiles reference is null,
 	 * or the (x,y) is outside the world boundaries, returns null.
+	 * 
+	 * @param x
+	 *            The x position, in game space.
+	 * @param y
+	 *            The y position, in game space.
 	 */
-	public Tile getTile(int x, int y) {
+	public Tile getTileUnderLocation(float x, float y) {
+		return getTileUnderLocation((int) x, (int) y);
+	}
+
+	/**
+	 * Returns the tile at the given tile location. If tiles reference is null,
+	 * or the (x,y) is outside the world boundaries, returns null.
+	 * 
+	 * @param x
+	 *            The x position, in game space.
+	 * @param y
+	 *            The y position, in game space.
+	 */
+	public Tile getTileUnderLocation(int x, int y) {
 		Tile[][] tiles = this.tiles;
 		if (tiles == null)
 			return null;
@@ -476,9 +494,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return tiles[x][y];
 	}
 
-	public Tile getTileUnderLocation(float x, float y) {
-		throw new RuntimeException("Not implemented yet.");
-	}
 
 	/**
 	 * Returns all tiles that are encompassed by, or intersect, the given

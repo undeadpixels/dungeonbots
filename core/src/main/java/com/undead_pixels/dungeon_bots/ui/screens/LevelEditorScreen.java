@@ -202,6 +202,20 @@ public final class LevelEditorScreen extends Screen {
 			}
 
 			public void mouseClicked(MouseEvent e) {
+				Point2D.Float pos = _View.getScreenToGameCoords(e.getX(), e.getY());
+				if (_SelectedTiles != null) {
+					Tile t;
+					if (isSelectedTile(e.getX(), e.getY()) && (t = world.getTileUnderLocation(e.getX(), e.getY())) != null)
+						// If clicking within the selection, change the
+						// selection to just that tile.
+						setSelectedTiles(new Tile[] { t });
+					else
+						// Otherwise clear the selection.
+						setSelectedTiles(null);
+				} else if (_SelectedEntities != null){
+					
+				}
+					
 
 			}
 
