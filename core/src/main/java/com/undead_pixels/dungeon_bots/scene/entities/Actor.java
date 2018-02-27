@@ -1,14 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
-import com.undead_pixels.dungeon_bots.scene.GetState;
-import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -25,14 +25,12 @@ import java.io.Serializable;
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
-public class Actor extends SpriteEntity {
+public class Actor extends SpriteEntity implements HasInventory {
 
-	@State
 	protected int steps = 0;
-
-	@State
 	protected int bumps = 0;
 
+	protected Inventory inventory = new Inventory(this,10);
 	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
@@ -338,6 +336,15 @@ public class Actor extends SpriteEntity {
 			text += args.tojstring(i);
 		}
 		this.addText(text);
+	}
+
+	public void removeItem(Item i) {
+
+	}
+
+	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
+	public Inventory getInventory() {
+		return inventory;
 	}
 
 	@Bind(SecurityLevel.DEFAULT) public int steps() {

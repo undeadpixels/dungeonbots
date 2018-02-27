@@ -21,11 +21,13 @@ import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -191,7 +193,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			level = new Level(initScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
@@ -233,12 +235,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setPlayer(Player p) {
 		player = p;
 		// entities.add(p);
+		p.resetInventory();
+		//entities.add(p);
 	}
 
 	/**
 	 * Gets the object of class Player that exists in the Lua sandbox and sets
 	 * the World's player reference to that.
-	 * 
+	 *
 	 * @param luaPlayer
 	 */
 	@Bind(SecurityLevel.AUTHOR)
@@ -528,12 +532,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * All the entities are assigned to a layer during the render loop,
 	 * depending on their Z-value.
-	 * 
+	 *
 	 * TODO: since each Z-value can create an entire layer, wouldn't it just
 	 * make more sense to sort the Entities by Z-order? And for that matter,
 	 * wouldn't it be more efficient if the sorting occurred when the Entity is
 	 * added to the World, rather than at render time?
-	 * 
+	 *
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -680,7 +684,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * Gets all entities intersecting the given rectangle.
-	 * 
+	 *
 	 * @return The list of intersecting entities. An entity is "intersecting" if
 	 *         any part of it would be within the given rectangle.
 	 */
@@ -872,6 +876,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
+	}
+
+	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
+		Point2D.Float pos = a.getPosition();
+		Point2D.Float toUse = null;
+		switch (d) {
+			case UP:
+				toUse = new Point2D.Float(pos.x, pos.y + 1);
+				break;
+			case DOWN:
+				toUse = new Point2D.Float(pos.x, pos.y - 1);
+				break;
+			case LEFT:
+				toUse = new Point2D.Float(pos.x - 1, pos.y);
+				break;
+			case RIGHT:
+				toUse = new Point2D.Float(pos.x + 1, pos.y);
+				break;
+		}
+		// There's a better way to do this that would require changing how we store entities
+		for(Entity e: entities) {
+			if(e.getPosition().x == toUse.getX() && e.getPosition().y == toUse.getY()) {
+				return e.useItem(itemRef);
+			}
+		}
+		return false;
 	}
 
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {

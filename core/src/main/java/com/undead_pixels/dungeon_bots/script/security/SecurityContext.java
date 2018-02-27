@@ -75,6 +75,7 @@ public class SecurityContext {
 		
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
+		// TODO - just have an interface to get team and entity owners
 		if(o instanceof World) {
 			oTeam = TeamFlavor.AUTHOR;
 		} else if(o instanceof Entity) {

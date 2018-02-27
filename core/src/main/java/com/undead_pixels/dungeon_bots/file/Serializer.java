@@ -142,7 +142,7 @@ public class Serializer {
 	 * 
 	 * @param filename
 	 *            The name of the file to write.
-	 * @param bytes
+	 * @param string
 	 *            The String to write to the file.
 	 * @return Returns whether the write was successful.
 	 */
@@ -285,7 +285,7 @@ public class Serializer {
 	 * @param rootName
 	 *            This is the name of the item, for help in debugging. It will
 	 *            constitute the first item in a fully qualified field name.
-	 * @param testTransiants
+	 * @param testTransients
 	 *            Whether to include transient fields in the test. For
 	 *            serialization testing, this should be false, because one would
 	 *            expect that transients aren't going to be equal before and
