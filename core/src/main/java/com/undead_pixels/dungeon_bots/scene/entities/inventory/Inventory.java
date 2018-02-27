@@ -4,6 +4,8 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
@@ -24,6 +26,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
+		Whitelist w;//TODO
+		w.addAutoLevelsForBindables(ItemReference.class);
 	}
 
 	public Inventory(final GetLuaSandbox luaSandbox, final Item[] items) {

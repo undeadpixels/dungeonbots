@@ -15,6 +15,8 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
+import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
+import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
 
 /**
  * @author Kevin Parker
@@ -22,7 +24,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  *          Does not include UI elements.
  */
 @SuppressWarnings("serial")
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, UseItem {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, UseItem, HasEntity, HasTeam {
 
 	/**
 	 * The script associated with this entity. Access to this collection is
@@ -137,11 +139,14 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return actionQueue;
 	}
 
-	/**
-	 * @return The team of this Entity
-	 */
+	@Override
 	public TeamFlavor getTeam() {
 		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe (or just have overrides do this right)
+	}
+	
+	@Override
+	public Entity getEntity() {
+		return this;
 	}
 
 	/**

@@ -7,6 +7,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
+import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
 
 public class SecurityContext {
 
@@ -76,11 +78,14 @@ public class SecurityContext {
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
 		// TODO - just have an interface to get team and entity owners
-		if(o instanceof World) {
-			oTeam = TeamFlavor.AUTHOR;
-		} else if(o instanceof Entity) {
-			Entity e = (Entity)o;
-			oTeam = e.getTeam();
+		if(o instanceof HasEntity) {
+			Entity e = ((HasEntity)o).getEntity();
+			if(e != null) {
+				oTeam = e.getTeam();
+			}
+		}
+		if(o instanceof HasTeam) {
+			oTeam = ((HasTeam)o).getTeam();
 		}
 		
 		switch(level) {
