@@ -53,16 +53,16 @@ public class LuaSandbox {
 	@Deprecated
 	public LuaSandbox(SecurityLevel securityLevel) {
 		this.securityContext = new SecurityContext(new Whitelist(), securityLevel, null, null, TeamFlavor.NONE);
-		this.globals = securityContext.getSecurityLevel().globals;
+		this.globals = securityContext.getSecurityLevel().getGlobals();
 	}
 
 	public LuaSandbox(Entity e) {
 		this.securityContext = new SecurityContext(e);
-		this.globals = securityContext.getSecurityLevel().globals;
+		this.globals = securityContext.getSecurityLevel().getGlobals();
 	}
 	public LuaSandbox(World w) {
 		this.securityContext = new SecurityContext(w);
-		this.globals = securityContext.getSecurityLevel().globals;
+		this.globals = securityContext.getSecurityLevel().getGlobals();
 	}
 
 

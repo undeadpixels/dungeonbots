@@ -9,19 +9,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -29,7 +25,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -44,21 +39,21 @@ import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
+@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
-	private final int MAX_HISTORY_COUNT = 100;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	private boolean _IsExecuting;
+	// private boolean _IsExecuting;
 
 	private LuaInvocation _RunningScript = null;
 
@@ -78,9 +73,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
-		
+
 		_Sandbox.addOutputEventListener((str) -> this.message(str));
-		
 
 		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
@@ -114,14 +108,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "Click to execute", ">", "EXECUTE", this);
-		_ExecuteBttn.setFocusable(false);
-		_ExecuteBttn.setMinimumSize(new Dimension(50, 80));
-		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "Click to cancel", "X", "CANCEL", this);
-		_CancelBttn.setFocusable(false);
-		_CancelBttn.setEnabled(false);
-		_CancelBttn.setPreferredSize(new Dimension(30, 40));
-		JButton helpBttn = UIBuilder.makeButton("", "Get help", "?", "HELP", this);
+		_ExecuteBttn = UIBuilder.buildButton().image("executeButton.gif").minSize(50, 80).toolTip("Click to execute.")
+				.action("EXECUTE", this).focusable(false).preferredSize(50, 80).create();
+		_CancelBttn = UIBuilder.buildButton().image("cancelButton.gif").toolTip("Click to cancel.")
+				.action("CANCEL", this).focusable(false).preferredSize(30, 40).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
@@ -140,7 +130,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 	/** Binds the CTRL+Enter key to execute the code. */
-	@SuppressWarnings("serial")
 	private void addKeyBindings() {
 
 		InputMap inputMap = _EditorPane.getInputMap();
@@ -206,7 +195,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					_EditorPane.setText("");
 				}
 			}
-
 		});
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
@@ -235,47 +223,22 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif",
-				"Cut from the command line and move the text to the clipboard.", "Cut", "CUT", this);
-		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "Copy from the command line to the clipboard.", "Copy",
-				"COPY", this);
-		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "Paste from the clipboard to the command line.",
-				"Paste", "PASTE", this);
-		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "Get help with the command line.", "Help", "HELP",
-				this);
+		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
+				.action("CUT", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
+				.action("COPY", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
+				.action("PASTE", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnHelp = UIBuilder.buildButton().image("help.jpg").toolTip("Get help with the command line.")
+				.action("HELP", this).focusable(false).preferredSize(30, 30).create();
 
-		cutBttn.setFocusable(false);
-		copyBttn.setFocusable(false);
-		pasteBttn.setFocusable(false);
-		helpBttn.setFocusable(false);
-
-		result.add(cutBttn);
-		result.add(copyBttn);
-		result.add(pasteBttn);
-		result.add(helpBttn);
+		result.add(bttnCut);
+		result.add(bttnCopy);
+		result.add(bttnPaste);
+		result.add(bttnHelp);
 
 		return result;
 	}
-
-	/*
-	 * public static JButton makeButton(String imageURL, String actionCommand,
-	 * String toolTipText, String altText, ActionListener l) {
-	 * 
-	 * JButton resultButton = new JButton();
-	 * resultButton.setActionCommand(actionCommand);
-	 * resultButton.setToolTipText(toolTipText);
-	 * resultButton.setToolTipText(toolTipText);
-	 * 
-	 * resultButton.addActionListener(l);
-	 * 
-	 * URL url = JCodeREPL.class.getResource(imageURL); if (url != null) {
-	 * resultButton.setIcon(new ImageIcon(url, altText)); } else {
-	 * resultButton.setText(altText); System.err.
-	 * println("Resource was missing.  Attempted to created button with image at "
-	 * + imageURL + ".  Using altText '" + altText + "' as image instead."); }
-	 * 
-	 * return resultButton; }
-	 */
 
 	/*
 	 * ================================================================
@@ -315,17 +278,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * background thread.
 	 */
 	public LuaInvocation execute(long executionTime) {
-		//if (_RunningScript != null) {
-		//	messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-		//	return null;
-		//}
+
 		setIsExecuting(true);
 		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
 
 			@Override
 			public void scriptEventFinished(LuaInvocation script, ScriptStatus status) {
-				System.out.println("Script "+script+" is "+script.getStatus() +", thinks "+status);
-				if(_RunningScript == script) {
+				System.out.println("Script " + script + " is " + script.getStatus() + ", thinks " + status);
+				if (_RunningScript == script) {
 					_RunningScript = null;
 				}
 
@@ -365,13 +325,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			@Override
 			public void scriptEventStarted(LuaInvocation script, ScriptStatus status) {
 			}
-			
+
 		};
 
 		message(">>> " + getCode(), _EchoMessageStyle);
 		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
 		_EditorPane.setText("");
-		
+
 		return _RunningScript;
 	}
 
@@ -388,8 +348,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_LastResult = result;
 
 		// Update the command history records.
-		if (_CommandHistory.size() == 0
-				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
+		if (_CommandHistory.size() == 0 || !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
 			_CommandHistory.add(sender.getScript());
 		_CommandHistoryIndex = _CommandHistory.size();
 
@@ -407,9 +366,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Sets the GUI to correctly reflect the execution status. */
 	private void setIsExecuting(boolean value) {
-		//if (_IsExecuting == value)
-		//	throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
-		_IsExecuting = value;
+		// if (_IsExecuting == value)
+		// throw new IllegalStateException("Call to setIsExecuting(boolean) must
+		// CHANGE state.");
+		// _IsExecuting = value;
 		_CancelBttn.setEnabled(value);
 		_ExecuteBttn.setEnabled(!value);
 

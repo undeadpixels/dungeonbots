@@ -4,14 +4,10 @@ import java.awt.Container;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 
-/**
- * The screen where a user selects what level/pack they want to play
- */
-@SuppressWarnings("serial")
-public class LevelSelectMenuScreen extends Screen {
+public class LevelPackScreen extends Screen {
 
-	protected LevelSelectMenuScreen(World world) {
-		super(world);
+	public LevelPackScreen() {
+		super(null);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -24,13 +20,13 @@ public class LevelSelectMenuScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	// TODO
 
 	@Override
 	protected void setDefaultLayout() {
 		// TODO Auto-generated method stub
-		
+
 	}
+
 }

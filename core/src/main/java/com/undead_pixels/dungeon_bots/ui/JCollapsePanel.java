@@ -4,6 +4,7 @@ import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class JCollapsePanel extends JPanel {
 
 	public JCollapsePanel() {

@@ -2,7 +2,7 @@
  * 
  * this java file available from 
  * https://tips4java.wordpress.com/2012/03/31/stretch-icon/
- * Last download 2/4/18
+ * By Darryl Burke, posted 3/31/12, last download 2/4/18
  * */
 
 /**
@@ -35,6 +35,7 @@ import javax.swing.ImageIcon;
  * @version 1.0 03/27/12
  * @author Darryl
  */
+@SuppressWarnings("serial")
 public class StretchIcon extends ImageIcon {
 
   /**

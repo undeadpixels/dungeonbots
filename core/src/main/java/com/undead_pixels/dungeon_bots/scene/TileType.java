@@ -59,7 +59,7 @@ public class TileType implements GetLuaFacade, Serializable {
 	}
 
 	/**
-	 * Get the texture of this, depending on the surrounding tiles
+	 * Get the image texture for a tile, depending on the surrounding tiles
 	 * 
 	 * @param left		Tile to the left
 	 * @param right		Tile to the right
