@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
+import com.undead_pixels.dungeon_bots.math.Helpers2D;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
@@ -460,15 +462,44 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 * Returns the tile at the given location. If outside the world boundaries,
-	 * returns null.
+	 * Returns the tile at the given tile location. If tiles reference is null,
+	 * or the (x,y) is outside the world boundaries, returns null.
 	 */
 	public Tile getTile(int x, int y) {
+		Tile[][] tiles = this.tiles;
+		if (tiles == null)
+			return null;
 		if (x < 0 || x >= tiles.length)
 			return null;
 		if (y < 0 || y >= tiles[x].length)
 			return null;
 		return tiles[x][y];
+	}
+
+	public Tile getTileUnderLocation(float x, float y) {
+		throw new RuntimeException("Not implemented yet.");
+	}
+
+	/**
+	 * Returns all tiles that are encompassed by, or intersect, the given
+	 * rectangle.
+	 */
+	public List<Tile> getTilesUnderLocation(Rectangle2D.Float rect) {
+		ArrayList<Tile> result = new ArrayList<Tile>();
+		Tile[][] tiles = this.tiles;
+		assert (tiles != null); // Sanity check
+		int maxX = (int) (rect.x + rect.width);
+		int maxY = (int) (rect.y + rect.height);
+		for (int x = Math.max(0, (int) rect.x); x <= maxX && x < tiles.length; x++) {
+			Tile[] tilesAtX = tiles[x]; // Sanity check.
+			assert (tilesAtX != null);
+			for (int y = Math.max(0, (int) rect.y); y <= maxY && y < tilesAtX.length; y++) {
+				Tile t = tilesAtX[y];
+				if (t != null)
+					result.add(t);
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -601,8 +632,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 			return e;
 		}
-
 		return null;
+	}
+
+	/**
+	 * Gets all entities intersecting the given rectangle.
+	 * 
+	 * @return The list of intersecting entities. An entity is "intersecting" if
+	 *         any part of it would be within the given rectangle.
+	 */
+	public List<Entity> getEntitiesUnderLocation(Rectangle2D.Float rect) {
+		ArrayList<Entity> result = new ArrayList<Entity>();
+
+		for (Entity e : entities) {
+			Point2D.Float pt = e.getPosition();
+			Rectangle2D.Float rectEntity = new Rectangle2D.Float(pt.x, pt.y, 1f, 1f);
+			if (Helpers2D.intersect(rect, rectEntity))
+				result.add(e);
+		}
+
+		return result;
 	}
 
 	public Point getTileLocation(float x, float y) {

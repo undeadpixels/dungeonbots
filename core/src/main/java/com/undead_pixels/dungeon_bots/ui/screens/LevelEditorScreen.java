@@ -18,8 +18,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -50,6 +53,7 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
@@ -67,20 +71,57 @@ public final class LevelEditorScreen extends Screen {
 
 	private WorldView _View;
 
-	private Point[] _SelectedTiles = null;
+	private Tile[] _SelectedTiles = null;
 	private Entity[] _SelectedEntities = null;
 
 	public LevelEditorScreen(World world) {
 		super(world);
 	}
 
-	public void setSelectedTiles(Point[] newSelection) {
+	/** Change the set of selected tiles. */
+	public void setSelectedTiles(Tile[] newSelection) {
 		_View.setSelectedTiles(_SelectedTiles = newSelection);
+		if (newSelection != null)
+			_View.setSelectedEntities(_SelectedEntities = null);
 		// TODO: throw an event for listeners?
 	}
 
+	/**
+	 * Returns whether the tile at the given game space location is selected.
+	 */
+	public boolean isSelectedTile(float x, float y) {
+		Tile[] selected = _SelectedTiles;
+		if (selected == null)
+			return false;
+		int xi = (int) x, yi = (int) y;
+		for (int i = 0; i < selected.length; i++) {
+			Tile t = selected[i];
+			int tx = (int) t.getPosition().getX();
+			if (tx != xi)
+				continue;
+			int ty = (int) t.getPosition().getY();
+			if (ty == yi)
+				return true;
+		}
+		return false;
+	}
+
+	/** Sets the selected entities as indicated. */
 	public void setSelectedEntities(Entity[] newSelection) {
 		_View.setSelectedEntities(_SelectedEntities = newSelection);
+		if (newSelection != null)
+			_View.setSelectedTiles(_SelectedTiles = null);
+		// TODO: throw an event for listeners?
+	}
+
+	/** Returns whether the given entity is selected. */
+	public boolean isSelectedEntity(Entity e) {
+		Entity[] selected = _SelectedEntities;
+		for (int i = 0; i < selected.length; i++) {
+			if (e == selected[i])
+				return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -91,6 +132,8 @@ public final class LevelEditorScreen extends Screen {
 	/** Creates all the tools available in this Level Editor. */
 	public ArrayList<Tool> createTools() {
 		ArrayList<Tool> result = new ArrayList<Tool>();
+
+		// The first tool: the Selector.
 		result.add(new Tool("Selector", UIBuilder.getImage("selection.gif")) {
 
 			Point cornerA = null;
@@ -98,54 +141,71 @@ public final class LevelEditorScreen extends Screen {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
+
+				// If there is a cornerA, it means selection has started
+				// already.
 				if (cornerA != null)
 					return;
+
+				assert (_View.getRenderingTool() == null); // sanity check.
+
+				// Set the selection corner in screen coordinates.
 				cornerB = cornerA = new Point(e.getX(), e.getY());
-				if (_View.getRenderingTool() == null)
-					_View.setRenderingTool(this);
+
+				// The view should start rendering the lasso.
+				_View.setRenderingTool(this);
 				e.consume();
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
 
+				// If there is no cornerA, it means selection hasn't started
+				// yet.
 				if (cornerA == null)
 					return;
 
-				Point2D.Float gamePositionA = _View.getScreenToGameCoords((int) cornerA.getX(), (int) cornerA.getY());
-				Point2D.Float gamePositionB = _View.getScreenToGameCoords((int) cornerB.getX(), (int) cornerB.getY());
-				int x1 = Math.min((int) gamePositionA.getX(), (int) gamePositionB.getX());
-				int y1 = Math.min((int) gamePositionA.getY(), (int) gamePositionB.getY());
-				int x2 = Math.max((int) gamePositionA.getX(), (int) gamePositionB.getX());
-				int y2 = Math.max((int) gamePositionA.getY(), (int) gamePositionB.getY());
+				Rectangle2D.Float rect = _View.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
 
-				if (_View.getRenderingTool() == this)
-					_View.setRenderingTool(null);
-
-				ArrayList<Point> selectedTiles = new ArrayList<Point>();
-				for (int x = x1; x <= x2; x++) {
-					for (int y = y1; y <= y2; y++) {
-						selectedTiles.add(new Point(x, y));
-					}
-				}
-				if (selectedTiles.size() == 1) {
-
+				// Find the entities that would be lassoed. If there are none,
+				// the selected entities should be null and the lassoed tiles
+				// should be found. If there are none, the selected tiles should
+				// be null.
+				List<Entity> se = world.getEntitiesUnderLocation(rect);
+				if (se.size() > 0) {
+					setSelectedEntities(se.toArray(new Entity[se.size()]));
+					setSelectedTiles(null);
+				} else {
+					List<Tile> st = world.getTilesUnderLocation(rect);
+					setSelectedTiles(st.size() > 0 ? st.toArray(new Tile[st.size()]) : null);
 				}
 
-				setSelectedTiles(selectedTiles.toArray(new Point[selectedTiles.size()]));
+				// The view should no longer render the lasso.
+				_View.setRenderingTool(null);
 
+				// Show that selection is complete, and re-selection hasn't
+				// started.
 				cornerB = cornerA = null;
 				e.consume();
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
+
+				// If there's no cornerA, selection isn't happening.
 				if (cornerA == null)
 					return;
+
+				// Set cornerB to the screen coordinates.
 				cornerB = new Point(e.getX(), e.getY());
 				e.consume();
 			}
 
+			public void mouseClicked(MouseEvent e) {
+
+			}
+
+			/** Does the actual rendering. */
 			@Override
 			public void render(Graphics2D g) {
 				int x = (int) Math.min(cornerA.getX(), cornerB.getX());
