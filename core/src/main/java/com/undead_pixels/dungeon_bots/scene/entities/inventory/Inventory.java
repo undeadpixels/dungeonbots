@@ -1,9 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
@@ -15,19 +14,19 @@ import java.util.stream.*;
  */
 public class Inventory implements GetLuaFacade, Serializable {
 
-	final GetLuaSandbox owner;
+	final Entity owner;
 	final Item[] inventory;
 	private final int maxSize;
 	private final int maxWeight = 100;
 
-	public Inventory(final GetLuaSandbox owner, int maxSize) {
+	public Inventory(final Entity owner, int maxSize) {
 		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
 	}
 
-	public Inventory(final GetLuaSandbox luaSandbox, final Item[] items) {
-		this.owner = luaSandbox;
+	public Inventory(final Entity entity, final Item[] items) {
+		this.owner = entity;
 		this.maxSize = 25;
 		this.inventory = items;
 	}
@@ -137,7 +136,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	@Bind(SecurityLevel.DEFAULT)
 	public LuaTable get() {
 		LuaTable table = new LuaTable();
-		for(int i = 0; i < table.length(); i++) {
+		for(int i = 0; i < inventory.length; i++) {
 			ItemReference ir = new ItemReference(this, i);
 			this.owner.getSandbox().getWhitelist().add(ir);
 			table.set(i + 1, ir.getLuaValue());
@@ -147,13 +146,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs unpack() {
-		return LuaValue.varargsOf((LuaValue[]) IntStream.range(0, inventory.length)
-				.mapToObj(index -> {
-					ItemReference ir = new ItemReference(this, index);
-					this.owner.getSandbox().getWhitelist().add(ir);
-					return ir.getLuaValue();
-				})
-				.toArray());
+		LuaValue[] ans = new LuaValue[inventory.length];
+		IntStream.range(0, inventory.length).forEach(i -> {
+			ItemReference ir = new ItemReference(this, i);
+			this.owner.getSandbox().getWhitelist().add(ir);
+			ans[i] = ir.getLuaValue();
+		});
+		return LuaValue.varargsOf(ans);
 	}
 
 	/**

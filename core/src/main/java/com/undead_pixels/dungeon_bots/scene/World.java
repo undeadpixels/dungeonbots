@@ -865,4 +865,5 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		inputStream.defaultReadObject();
 		this.worldSomewhatInit();
 	}
+
 }

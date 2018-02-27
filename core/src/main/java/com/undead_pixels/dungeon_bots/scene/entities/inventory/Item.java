@@ -7,12 +7,12 @@ import java.io.Serializable;
 /**
  * A type representing an immaterial game item.
  */
-public class Item implements GetLuaFacade, Serializable {
+public abstract class Item implements GetLuaFacade, Serializable {
 
-	private final String name;
-	private final String description;
-	private final int value;
-	private final int weight;
+	protected final String name;
+	protected final String description;
+	protected final int value;
+	protected final int weight;
 
 	public Item(String name, String descr, int value, int weight) {
 		this.name = name;
@@ -40,6 +40,10 @@ public class Item implements GetLuaFacade, Serializable {
 
 	@Bind(SecurityLevel.DEFAULT) public Integer getWeight() {
 		return weight;
+	}
+
+	@Bind public boolean use() {
+		return true;
 	}
 
 }

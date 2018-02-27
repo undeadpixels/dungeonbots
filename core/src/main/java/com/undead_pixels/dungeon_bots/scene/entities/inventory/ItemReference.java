@@ -45,6 +45,11 @@ public class ItemReference implements GetLuaFacade, Serializable {
 		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getWeight()).orElse(0);
 	}
 
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use() {
+		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.use()).orElse(false);
+	}
+
 	public Optional<Item> derefItem() {
 		Optional<Item> i = getItem();
 		this.inventory.removeItem(this.index);
