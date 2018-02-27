@@ -68,6 +68,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		}
 		
 		// TODO - maybe add the current thread to the sandbox map?
+		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?
 		try {
 			setStatus(ScriptStatus.RUNNING);
 

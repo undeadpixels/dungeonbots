@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.level;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.SandboxedValue;
 import org.luaj.vm2.Varargs;
 

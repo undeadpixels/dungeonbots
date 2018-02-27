@@ -168,11 +168,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.name = name;
    	 	backgroundImage = null;
    	 	tiles = new Tile[0][0];
-		
+
+		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 		if(luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
 			levelScript = initScript.getScript();
@@ -182,6 +182,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			assert player != null;
 			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 		}
+		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
 	
 	private void worldSomewhatInit() {

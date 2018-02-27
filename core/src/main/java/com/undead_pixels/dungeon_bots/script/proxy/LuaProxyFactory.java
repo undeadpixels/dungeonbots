@@ -182,9 +182,13 @@ public class LuaProxyFactory {
 			public Varargs invoke(Varargs args) {
 				try {
 					LuaSandbox sandbox = SandboxManager.getCurrentSandbox(); // can be null
+					if(sandbox == null) {
+						throw new RuntimeException("Sandbox was null");
+					}
 					return invokeWhitelist(m, returnType, sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
 				catch (Exception me) {
+					me.printStackTrace();
 					return LuaValue.error(me.getMessage());
 				}
 			}
