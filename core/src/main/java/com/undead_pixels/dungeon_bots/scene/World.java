@@ -622,20 +622,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		System.out.println("Ok to move");
 		tiles[x][y].setOccupiedBy(e);
 		
-		for(int i = 0; i < this.getSize().y; i++) {
-			for(int j = 0; j < this.getSize().x; j++) {
-				Tile t = tiles[j][i];
-				if(t.isSolid())
-					System.out.print("#");
-				else if(t.isOccupied())
-					System.out.print("O");
-				else
-					System.out.print(".");
-
-			}
-			System.out.println();
-		}
-		
 		return true;
 		
 	}
