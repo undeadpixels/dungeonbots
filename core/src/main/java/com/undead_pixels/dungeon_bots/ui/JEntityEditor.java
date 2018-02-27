@@ -138,8 +138,7 @@ public final class JEntityEditor extends JPanel {
 		JCodeREPL repl = new JCodeREPL(entity.getSandbox());
 
 		JTabbedPane tabPane = new JTabbedPane();
-		if (securityLevel.level >= SecurityLevel.AUTHOR.level)
-			tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");
+		tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");	
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
 		tabPane.addTab("Properties", propertiesPanel);
 
