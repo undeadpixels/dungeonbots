@@ -118,7 +118,6 @@ onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 
 	public void setOccupiedBy(Entity e) {
 		occupiedBy = e;
-		System.out.println("Occupying tile by: "+e);
 	}
 	public Entity getOccupiedBy() {
 		return occupiedBy;
