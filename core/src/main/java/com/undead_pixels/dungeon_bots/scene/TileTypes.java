@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -145,7 +146,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public TileType getTile(LuaValue luaValue) {
 		return getTile(luaValue.checkjstring());
 	}

@@ -23,8 +23,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
-		Whitelist w;//TODO
-		w.addAutoLevelsForBindables(ItemReference.class);
+		owner.getWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
 	public Inventory(final Entity entity, final Item[] items) {
@@ -53,7 +52,6 @@ public class Inventory implements GetLuaFacade, Serializable {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
 		ItemReference ir = new ItemReference(this, i);
-		owner.getSandbox().getWhitelist().add(ir);
 		return ir;
 	}
 
@@ -140,7 +138,6 @@ public class Inventory implements GetLuaFacade, Serializable {
 		LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
 			ItemReference ir = new ItemReference(this, i);
-			this.owner.getSandbox().getWhitelist().add(ir);
 			table.set(i + 1, ir.getLuaValue());
 		}
 		return table;
@@ -151,7 +148,6 @@ public class Inventory implements GetLuaFacade, Serializable {
 		LuaValue[] ans = new LuaValue[inventory.length];
 		IntStream.range(0, inventory.length).forEach(i -> {
 			ItemReference ir = new ItemReference(this, i);
-			this.owner.getSandbox().getWhitelist().add(ir);
 			ans[i] = ir.getLuaValue();
 		});
 		return LuaValue.varargsOf(ans);
