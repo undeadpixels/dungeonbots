@@ -1,8 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Note;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -90,6 +90,26 @@ public class Player extends RpgActor {
 
 	public int getSteps() {
 		return steps;
+	}
+
+	public void resetInventory() {
+		this.inventory.reset();
+		this.inventory.addItem(new Note("Greetings", "Welcome to Dungeonbots!"));
+	}
+
+	/**
+	 *
+	 * @param luaDir
+	 * @param itemReference
+	 * @return
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
+		String dir = luaDir.checkjstring().toUpperCase();
+		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
+				.checkuserdata(ItemReference.class);
+		Direction direction = Direction.valueOf(dir);
+		return this.world.tryUse(itemRef, direction, this);
 	}
 
 }

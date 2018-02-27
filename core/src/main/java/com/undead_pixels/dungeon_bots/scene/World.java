@@ -20,11 +20,13 @@ import com.undead_pixels.dungeon_bots.math.Helpers2D;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -188,7 +190,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			level = new Level(initScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
 		}
 	}
 
@@ -232,7 +234,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void setPlayer(Player p) {
 		player = p;
-		// entities.add(p);
+		p.resetInventory();
+		entities.add(p);
 	}
 
 	/**
@@ -845,9 +848,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
-
-	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
-		inputStream.defaultReadObject();
-		this.worldSomewhatInit();
-	}
+==== BASE ====
+==== BASE ====
 }

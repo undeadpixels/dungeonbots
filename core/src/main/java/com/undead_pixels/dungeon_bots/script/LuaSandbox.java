@@ -12,7 +12,6 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.*;

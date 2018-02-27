@@ -1,5 +1,6 @@
-buildscript {
+apply plugin: 'distribution'
 
+buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
@@ -14,7 +15,6 @@ buildscript {
 allprojects {
     apply plugin: "eclipse"
     apply plugin: "idea"
-
     version = '1.0'
     ext {
         appName = "DungeonBots"

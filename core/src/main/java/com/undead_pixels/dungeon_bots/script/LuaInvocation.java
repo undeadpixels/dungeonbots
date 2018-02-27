@@ -8,9 +8,11 @@ import com.undead_pixels.dungeon_bots.queueing.Taskable;
 import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.utils.generic.Pair;
 import org.luaj.vm2.*;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author Stewart Charles
@@ -58,7 +60,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		throw new RuntimeException("Not Implemented");
 	}
 
-	
 	/**
 	 * Executes this lua script in-line
 	 */
@@ -74,6 +75,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			/* Initialize new HookFunction and InterruptedDebug every time run() is called */
 			hookFunction = new HookFunction();
 
+			/* Setup default globals */
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
@@ -152,7 +154,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	/**
 	 * Calls join on the contained thread, waiting indefinitely for completion.
-	 * 
 	 * @return The invoked LuaScript
 	 */
 	public LuaInvocation join() {
@@ -163,9 +164,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	/**
 	 * Calls join on the contained thread. Call with '0' to wait indefinitely.
-	 * 
-	 * @param wait
-	 *            The amount of time to wait for the join
+	 * @param timeout The amount of time to wait for the join
 	 * @return The invoked LuaScript
 	 */
 	public LuaInvocation join(long timeout) {

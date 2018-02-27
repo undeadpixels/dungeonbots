@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.UseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
@@ -21,8 +22,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-@SuppressWarnings("serial")
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, UseItem {
 
 	/**
 	 * The script associated with this entity. Access to this collection is
