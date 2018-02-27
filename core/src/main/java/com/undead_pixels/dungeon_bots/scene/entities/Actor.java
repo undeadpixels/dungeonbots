@@ -15,10 +15,6 @@ import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import static org.luaj.vm2.LuaValue.*;
 
 /**
@@ -32,7 +28,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	protected int steps = 0;
 	protected int bumps = 0;
 
-	private Inventory luaInventory = new Inventory(50);
+	protected Inventory inventory = new Inventory(this.getSandbox(),10);
 	private LuaValue luaBinding;
 	private FloatingText floatingText;
 
@@ -348,7 +344,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 
 	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
 	public Inventory getInventory() {
-		return luaInventory;
+		return inventory;
 	}
 
 	@Bind(SecurityLevel.DEFAULT) public int steps() {

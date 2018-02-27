@@ -5,7 +5,6 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Key;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Useable;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 
 import java.util.Optional;
@@ -37,7 +36,7 @@ public class Door extends SpriteEntity {
 	}
 
 	@Override
-	public Boolean use(ItemReference itemRef) {
+	public Boolean useItem(ItemReference itemRef) {
 		Optional<Item> item = itemRef.getItem();
 		return item.map(i -> {
 			if(i == key) {

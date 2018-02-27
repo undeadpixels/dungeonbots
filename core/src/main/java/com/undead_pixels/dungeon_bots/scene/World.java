@@ -187,7 +187,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 			level = new Level(levelScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
 		}
 	}
 
@@ -209,6 +209,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 
 	public void setPlayer(Player p) {
 		player = p;
+		p.resetInventory();
 		entities.add(p);
 	}
 
@@ -762,7 +763,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState {
 		// There's a better way to do this that would require changing how we store entities
 		for(Entity e: entities) {
 			if(e.getPosition().x == toUse.x && e.getPosition().y == toUse.y) {
-				return e.use(itemRef);
+				return e.useItem(itemRef);
 			}
 		}
 		return false;

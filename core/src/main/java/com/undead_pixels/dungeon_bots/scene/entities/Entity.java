@@ -3,12 +3,10 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.DefaultListModel;
-
 import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Useable;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.UseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
@@ -20,7 +18,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Useable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, UseItem {
 
 	public List<UserScript> userScripts = new ArrayList<UserScript>();
 
