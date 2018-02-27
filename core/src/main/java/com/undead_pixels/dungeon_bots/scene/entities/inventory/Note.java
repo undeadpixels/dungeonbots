@@ -3,6 +3,8 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
+import java.io.Serializable;
+
 public class Note extends Item implements UseItem {
 
 	public Note(String name, String descr) {

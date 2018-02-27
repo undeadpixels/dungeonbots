@@ -4,9 +4,10 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
+import java.io.Serializable;
 import java.util.Optional;
 
-public class ItemReference implements GetLuaFacade {
+public class ItemReference implements GetLuaFacade, Serializable {
 
 	final Inventory inventory;
 	final int index;

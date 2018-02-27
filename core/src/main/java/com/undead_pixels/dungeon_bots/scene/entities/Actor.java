@@ -30,7 +30,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	protected int steps = 0;
 	protected int bumps = 0;
 
-	protected Inventory inventory = new Inventory(this.getSandbox(),10);
+	protected Inventory inventory = new Inventory(this,10);
 	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 

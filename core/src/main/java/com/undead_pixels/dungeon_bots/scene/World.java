@@ -236,7 +236,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		player = p;
 		// entities.add(p);
 		p.resetInventory();
-		entities.add(p);
+		//entities.add(p);
 	}
 
 	/**

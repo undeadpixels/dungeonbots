@@ -8,7 +8,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 
 public class ItemChest extends SpriteEntity implements HasInventory {
 
-	private final Inventory inventory = new Inventory(getSandbox(), 100);	
+	private final Inventory inventory = new Inventory(this, 100);
 
 	public ItemChest(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
