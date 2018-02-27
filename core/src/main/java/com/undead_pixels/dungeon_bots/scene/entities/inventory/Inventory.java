@@ -23,6 +23,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
+		Whitelist w;//TODO
+		w.addAutoLevelsForBindables(ItemReference.class);
 	}
 
 	public Inventory(final Entity entity, final Item[] items) {

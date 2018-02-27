@@ -12,7 +12,6 @@ import static com.undead_pixels.dungeon_bots.script.ScriptStatus.*;
 public class EntityScriptTest {
 
 	@Test public void testEntitySandbox() {
-		SecurityContext.set(SecurityLevel.DEBUG);
 		World w = new World();
 		Player p = new Player(w, "player");
 		w.setSize(16,16);

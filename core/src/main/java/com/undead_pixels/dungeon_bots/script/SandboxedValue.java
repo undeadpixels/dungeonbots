@@ -28,7 +28,7 @@ public class SandboxedValue {
 	 * @return
 	 */
 	public SandboxedValue invoke(Function<Varargs,Varargs> fn) {
-		SecurityContext.set(luaSandbox);
+		// TODO - is this still valid even?
 		return new SandboxedValue(fn.apply(varargs), luaSandbox);
 	}
 }

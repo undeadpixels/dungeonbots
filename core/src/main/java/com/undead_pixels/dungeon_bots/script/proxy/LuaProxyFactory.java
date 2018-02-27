@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.proxy;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -123,8 +125,8 @@ public class LuaProxyFactory {
 		return clzSet.stream();
 	}
 
-	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final Whitelist whitelist, final T caller, final Object... args) throws Exception {
-		if(whitelist.onWhitelist(caller, m))
+	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Exception {
+		if(context == null || context.canExecute(caller, m)) {
 			if(returnType.isAssignableFrom(Varargs.class))
 				return Varargs.class.cast(m.invoke(caller, args));
 			else if(returnType.isAssignableFrom(LuaValue.class))
@@ -133,8 +135,9 @@ public class LuaProxyFactory {
 				return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
 			else
 				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
-		else
+		} else {
 			throw new MethodNotOnWhitelistException(m);
+		}
 	}
 
 	private static LuaValue[] varargToArr(final Varargs varargs) {
@@ -178,9 +181,14 @@ public class LuaProxyFactory {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
-					return invokeWhitelist(m, returnType, SecurityContext.getWhitelist(), caller, getParams(m, args));
+					LuaSandbox sandbox = SandboxManager.getCurrentSandbox(); // can be null
+					//if(sandbox == null) {
+						//throw new RuntimeException("Sandbox was null");
+					//}
+					return invokeWhitelist(m, returnType, sandbox==null?null : sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
 				catch (Exception me) {
+					me.printStackTrace();
 					return LuaValue.error(me.getMessage());
 				}
 			}

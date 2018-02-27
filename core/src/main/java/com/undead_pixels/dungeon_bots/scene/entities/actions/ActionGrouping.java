@@ -103,9 +103,9 @@ public abstract interface ActionGrouping extends Serializable {
 					currentTeam = TeamFlavor.PLAYER;
 					break;
 				case PLAYER:
-					currentTeam = TeamFlavor.ENEMY;
+					currentTeam = TeamFlavor.AUTHOR;
 					break;
-				case ENEMY:
+				case AUTHOR:
 					currentTeam = TeamFlavor.NONE;
 					break;
 				}
