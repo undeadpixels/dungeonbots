@@ -96,7 +96,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
 		TileTypes tileTypes = new TileTypes();
-		SecurityContext.getWhitelist().add(tileTypes);
 		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 

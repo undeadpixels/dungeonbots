@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -35,6 +36,8 @@ public class Player extends RpgActor {
 	 */
 	public Player(World world, String name) {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+
+		world.getWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	/**
@@ -54,7 +57,6 @@ public class Player extends RpgActor {
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
-		SecurityContext.getWhitelist().add(p);
 		p.steps = 0;
 		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
@@ -90,6 +92,11 @@ public class Player extends RpgActor {
 
 	public int getSteps() {
 		return steps;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.PLAYER;
 	}
 
 }

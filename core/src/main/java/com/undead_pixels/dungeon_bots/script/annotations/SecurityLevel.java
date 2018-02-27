@@ -31,7 +31,7 @@ public enum SecurityLevel {
 	/**
 	 * Anyone can use these
 	 */
-	DEFAULT(5, GameGlobals.playerGlobals()),
+	DEFAULT(0, GameGlobals.playerGlobals()),
 
 	/**
 	 * Anyone can use these

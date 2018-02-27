@@ -41,29 +41,28 @@ public class LuaSandbox {
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
 	 */
+	@Deprecated
 	public LuaSandbox() {
-		this(SecurityLevel.NONE);
+		this(SecurityLevel.DEFAULT);
 	}
 
 	/**
 	 * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
 	 * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
 	 */
+	@Deprecated
 	public LuaSandbox(SecurityLevel securityLevel) {
-		this(securityLevel, securityLevel.globals);
+		this.securityContext = new SecurityContext(new Whitelist(), securityLevel, null, null, TeamFlavor.NONE);
+		this.globals = securityContext.getSecurityLevel().globals;
 	}
 
-	/**
-	 * Inits a LuaSandbox using the argument Globals parameter
-	 * @param globals
-	 */
-	public LuaSandbox(Globals globals) {
-		this(SecurityLevel.NONE, globals);
+	public LuaSandbox(Entity e) {
+		this.securityContext = new SecurityContext(e);
+		this.globals = securityContext.getSecurityLevel().globals;
 	}
-
-	public LuaSandbox(SecurityLevel securityLevel, Globals globals) {
-		this.securityLevel = securityLevel;
-		this.globals = globals;
+	public LuaSandbox(World w) {
+		this.securityContext = new SecurityContext(w);
+		this.globals = securityContext.getSecurityLevel().globals;
 	}
 
 
@@ -78,12 +77,6 @@ public class LuaSandbox {
         return this;
     }
 
-
-	public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
-		this.securityLevel = securityLevel;
-		return this;
-	}
-
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
 	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
@@ -92,7 +85,7 @@ public class LuaSandbox {
 	 */
     @SafeVarargs
     public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
-		whitelist.addAutoLevelsForBindables(bindables);
+		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
 		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
 		return this;
@@ -106,7 +99,7 @@ public class LuaSandbox {
 	@SafeVarargs
 	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
 		for(Class<? extends GetLuaFacade> c : clz) {
-			whitelist.addAutoLevelsForBindables(c);
+			securityContext.getWhitelist().addAutoLevelsForBindables(c);
 			add(LuaProxyFactory.getBindings(c));
 		}
 		return this;
@@ -157,7 +150,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public Whitelist getWhitelist() {
-		return whitelist;
+		return securityContext.getWhitelist();
 	}
 
 	/**
@@ -165,7 +158,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public SecurityLevel getSecurityLevel() {
-		return securityLevel;
+		return securityContext.getSecurityLevel();
 	}
 	
 	public ScriptEventQueue getQueue() {
@@ -322,5 +315,9 @@ public class LuaSandbox {
 
 	public void update(float dt) {
 		scriptQueue.update(dt);
+	}
+
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 }

@@ -67,7 +67,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			return;
 		}
 		
-		SecurityContext.set(environment);
+		// TODO - maybe add the current thread to the sandbox map?
 		try {
 			setStatus(ScriptStatus.RUNNING);
 

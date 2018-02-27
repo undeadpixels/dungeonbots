@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -35,9 +36,10 @@ public class Bot extends RpgActor {
 	 */
 	public Bot(World world, String name) {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 7, 1));
-		SecurityContext.getWhitelist().add(this);
 		steps = 0;
 		bumps = 0;
+
+		world.getWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	public void setPosition(Point2D.Float v) {
@@ -49,6 +51,10 @@ public class Bot extends RpgActor {
 
 	public int getSteps() {
 		return steps;
+	}
+
+	public TeamFlavor getTeam() {
+		return TeamFlavor.PLAYER;
 	}
 
 }
