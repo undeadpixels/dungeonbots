@@ -24,7 +24,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	private final LuaSandbox environment;
 	private final String script;
 	private final LuaValue[] args;
-	private volatile Varargs varargs;
+	private volatile Varargs result;
 	private volatile ScriptStatus scriptStatus;
 	private volatile LuaError luaError;
 	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
@@ -90,7 +90,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
 			// Instead the varargs returns with a false boolean as the first result.
 			Varargs ans = thread.resume(LuaValue.NIL);
-			varargs = ans.subargs(2);
+			result = ans.subargs(2);
 			if(ans.arg1().checkboolean()) {
 				setStatus(ScriptStatus.COMPLETE);
 				luaError = null;
@@ -204,7 +204,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return An Optional containing results if they are present.
 	 */
 	public Optional<Varargs> getResults() {
-		return Optional.ofNullable(varargs);
+		return Optional.ofNullable(result);
 	}
 
 	/**
@@ -213,7 +213,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public void reset(long maxWait) {
 		join(maxWait);
-		varargs = null;
+		result = null;
 		this.luaError = null;
 		setStatus(ScriptStatus.READY);
 	}

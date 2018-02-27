@@ -5,12 +5,12 @@ import java.awt.Font;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 
 public class FloatingText extends ChildEntity {
@@ -54,8 +54,8 @@ public class FloatingText extends ChildEntity {
 
 	@Override
 	public void render(SpriteBatch batch) {
-		Vector2 pos = getPosition();
-		pos = new Vector2(pos.x, pos.y + .4f);
+		Point2D.Float pos = getPosition();
+		pos = new Point2D.Float(pos.x, pos.y + .4f);
 		for(Iterator<TextInfo> iter = lines.descendingIterator(); iter.hasNext(); ) {
 			pos = iter.next().render(batch, pos);
 		}
@@ -113,7 +113,7 @@ public class FloatingText extends ChildEntity {
 			age += dt;
 		}
 		
-		private Vector2 render(SpriteBatch batch, Vector2 pos) {
+		private Point2D.Float render(SpriteBatch batch, Point2D.Float pos) {
 			float fadeRatio = (duration - age) / fadeDuration;
 			if(fadeRatio > 1) {
 				fadeRatio = 1;
@@ -135,7 +135,7 @@ public class FloatingText extends ChildEntity {
 				
 				batch.drawString(text, font, c, xform);
 				
-				return new Vector2(pos.x, (float) (pos.y + bounds.getHeight()*scale));
+				return new Point2D.Float(pos.x, (float) (pos.y + bounds.getHeight()*scale));
 			} else {
 				return pos;
 			}

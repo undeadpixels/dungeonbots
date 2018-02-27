@@ -46,7 +46,7 @@ public class LuaSandbox {
      * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
      */
     public LuaSandbox(SecurityLevel securityLevel) {
-    	this(securityLevel, securityLevel.globals);
+    	this(securityLevel, securityLevel.getGlobals());
     }
 
 	/**

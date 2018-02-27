@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.math.Vector2;
+import com.google.gson.Gson;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
@@ -17,6 +18,9 @@ import org.luaj.vm2.*;
 
 import static org.luaj.vm2.LuaValue.*;
 
+import java.awt.geom.Point2D;
+import java.io.Serializable;
+
 /**
  * @author Kevin Parker
  * @version 1.0
@@ -30,6 +34,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 
 	protected Inventory inventory = new Inventory(this.getSandbox(),10);
 	private LuaValue luaBinding;
+	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
 	/**
@@ -318,7 +323,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Varargs position() {
-		Vector2 pos = this.getPosition();
+		Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 

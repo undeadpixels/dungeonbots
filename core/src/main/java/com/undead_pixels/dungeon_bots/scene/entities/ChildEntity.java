@@ -1,9 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
+import java.awt.geom.Point2D;
 
 public abstract class ChildEntity extends Entity {
-	
+
 	/**
 	 * The entity that this child attaches to
 	 */
@@ -11,12 +11,12 @@ public abstract class ChildEntity extends Entity {
 
 	public ChildEntity(Entity parent, String name) {
 		super(parent.world, name);
-		
+
 		this.parent = parent;
 	}
 
 	@Override
-	public Vector2 getPosition() {
+	public Point2D.Float getPosition() {
 		return parent.getPosition();
 	}
 
@@ -24,8 +24,10 @@ public abstract class ChildEntity extends Entity {
 	public boolean isSolid() {
 		return false;
 	}
-	
+
+	@Deprecated
 	@Override
+	// WO: what is this used for?
 	public float getScale() {
 		return parent.getScale();
 	}

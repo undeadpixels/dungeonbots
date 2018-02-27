@@ -29,6 +29,7 @@ import com.undead_pixels.dungeon_bots.User;
  * A login component that returns a user by calling the Login.challenge()
  * method. If login is invalid, the Login.challenge() method returns null.
  */
+@SuppressWarnings("serial")
 public class Login extends JDialog {
 
 	/*
@@ -156,7 +157,6 @@ public class Login extends JDialog {
 			}
 		});
 
-		@SuppressWarnings("serial")
 		Action return_action = new AbstractAction() {
 
 			@Override
@@ -184,9 +184,9 @@ public class Login extends JDialog {
 	}
 
 	private User fetchUser(String username, char[] password) {
-		User fetched = null;
+		//User fetched = null;
 		try {
-			return fetched.fromJSON("");
+			return User.fromJSON("");
 			// return null;
 			// TODO: get the User from remote source as JSON, and then build a
 			// User object from it thru User.FromJSON(String).

@@ -1,19 +1,26 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.ui.screens.Tool;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.Collection;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -30,18 +37,19 @@ public class WorldView extends JComponent {
 	private World world;
 
 	private long lastTime;
+	private Tile[] selectedTiles = null;
+	private Entity[] selectedEntities = null;
+	private Tool renderingTool = null;
 
-	@Deprecated
-	public WorldView() {
-		// world = new World(new
-		// File("sample-level-packs/sample-pack-1/levels/level1.lua"));
-		world = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
-
-		this.setPreferredSize(new Dimension(9999, 9999));
-
-		this.setFocusable(true);
-		this.requestFocusInWindow();
-	}
+	/*
+	 * @Deprecated public WorldView() { // world = new World(new //
+	 * File("sample-level-packs/sample-pack-1/levels/level1.lua")); world = new
+	 * World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
+	 * 
+	 * this.setPreferredSize(new Dimension(9999, 9999));
+	 * 
+	 * this.setFocusable(true); this.requestFocusInWindow(); }
+	 */
 
 	public WorldView(World world) {
 		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
@@ -90,26 +98,35 @@ public class WorldView extends JComponent {
 
 			cam.setViewportSize(w, h);
 
-			cam.update();
+			// cam.update(); //Nothing in this function call.
 			batch.setProjectionMatrix(cam);
 			// batch.setTransformMatrix(cam.view);
 
 			if (world != null) {
 				world.render(batch);
 			}
-			
-			if(showGrid) {
+
+			// Render the grid.
+			if (showGrid) {
+				g2d.setStroke(new BasicStroke(1));
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
-				Vector2 size = world.getSize();
+				Point2D.Float size = world.getSize();
 				// draw Y lines
-				for(int i = 0; i <= size.y+.5f; i++) {
+				for (int i = 0; i <= size.y + .5f; i++) {
 					batch.drawLine(0, i, size.x, i);
 				}
 				// draw X lines
-				for(int j = 0; j <= size.x+.5f; j++) {
+				for (int j = 0; j <= size.x + .5f; j++) {
 					batch.drawLine(j, 0, j, size.y);
 				}
 			}
+
+			// Render selection stuff.
+			renderSelectedTiles(g2d, batch);
+			renderSelectedEntities(g2d, batch);
+			if (renderingTool != null)
+				renderingTool.render(g2d);
+
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
@@ -139,9 +156,20 @@ public class WorldView extends JComponent {
 	}
 
 	/** Returns the given screen coordinates, translated into game space. */
-	public Vector2 getScreenToGameCoords(int screenX, int screenY) {
-		Vector2 gameSpace = cam.unproject(new Vector2(screenX, screenY));
-		return new Vector2(gameSpace.x, gameSpace.y);
+	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
+		return cam.unproject((float) screenX, (float) screenY);
+	}
+
+	/**
+	 * Returns a rectangle defined by the given corner points, translated into
+	 * game space.
+	 */
+	public Rectangle2D.Float getScreenToGameRect(int x1, int y1, int x2, int y2) {
+		Point2D.Float pt1 = cam.unproject((float) x1, (float) y1);
+		Point2D.Float pt2 = cam.unproject((float) x2, (float) y2);
+
+		return new Rectangle2D.Float(Math.min(pt1.x, pt2.x), Math.min(pt1.y, pt2.y), Math.abs(pt1.x - pt2.x),
+				(pt1.y - pt2.y));
 	}
 
 	/** Returns the world currently being viewed. */
@@ -153,4 +181,75 @@ public class WorldView extends JComponent {
 	public void setWorld(World world) {
 		this.world = world;
 	}
+
+	// ==================================================
+	// ======= WorldView SELECTION STUFF ================
+	// ==================================================
+
+	/** Returns a copied array of the selected tiles positions. */
+	public Tile[] getSelectedTiles() {
+		return selectedTiles.clone();
+	}
+
+	/** Sets the selected tiles to an array copy of the indicated collection. */
+	public void setSelectedTiles(Tile[] newTiles) {
+		selectedTiles = newTiles;
+	}
+
+	private void renderSelectedTiles(Graphics2D g2d, SpriteBatch batch) {
+		Tile[] st = this.selectedTiles;
+		if (st != null && st.length > 0) {
+			g2d.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
+			for (Tile tile : st) {
+				Point2D.Float pt = tile.getPosition();
+				batch.fillRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+			g2d.setColor(new Color(1.0f, 0.0f, 0.0f, 0.8f));
+			g2d.setStroke(new BasicStroke(3));
+			for (Tile tile : st) {
+				Point2D.Float pt = tile.getPosition();
+				batch.drawRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+		}
+	}
+
+	/** Returns a copied array of the selected entities. */
+	public Entity[] getSelectedEntities() {
+		return selectedEntities.clone();
+	}
+
+	/**
+	 * Sets the selected entities to an array copy of the indicated collection.
+	 */
+	public void setSelectedEntities(Entity[] newEntities) {
+		selectedEntities = newEntities;
+	}
+
+	private void renderSelectedEntities(Graphics2D g2d, SpriteBatch batch) {
+		Entity[] se = this.selectedEntities;
+		if (se != null && se.length > 0) {
+			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.4f));
+			for (Entity e : se) {
+				Point2D.Float pt = e.getPosition();
+				batch.fillRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+			g2d.setStroke(new BasicStroke(3));
+			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.8f));
+			for (Entity e : se) {
+				Point2D.Float pt = e.getPosition();
+				batch.drawRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+		}
+	}
+
+	/** Returns the scribbling render tool. */
+	public Tool getRenderingTool() {
+		return renderingTool;
+	}
+
+	/** Sets the scribbling render tool. */
+	public void setRenderingTool(Tool tool) {
+		this.renderingTool = tool;
+	}
+
 }

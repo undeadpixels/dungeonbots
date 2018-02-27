@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
+import java.awt.geom.Point2D;
+
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
@@ -54,12 +55,12 @@ public abstract class SpriteEntity extends Entity {
 			//sprite.setRotation((float) ((System.currentTimeMillis() % 5000l) * (360f / 5000)));
 			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX()+", origin = "+sprite.getOriginX());
 			sprite.draw(batch);
-		}
+		}		
 	}
 
 	@Override
-	public Vector2 getPosition() {
-		return new Vector2(sprite.getX(), sprite.getY());
+	public Point2D.Float getPosition() {
+		return sprite.getPosition();
 	}
 	
 	@Override
