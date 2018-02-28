@@ -4,12 +4,12 @@ import java.util.HashMap;
 
 public class SandboxManager {
 	
-	private static HashMap<String, LuaSandbox> sandboxes = new HashMap<>();
+	private static HashMap<ThreadGroup, LuaSandbox> sandboxes = new HashMap<>();
 
 	public static void register(Thread runLoopThread, LuaSandbox sandbox) {
-		runLoopThread.setName("lua-"+System.currentTimeMillis()); // TODO - maybe get name of sandbox?
-
-		sandboxes.put(runLoopThread.getName(), sandbox);
+		runLoopThread.setName(sandbox.getThreadGroup().activeCount()+"-main"); // TODO - maybe get name of sandbox?
+		
+		sandboxes.put(sandbox.getThreadGroup(), sandbox);
 	}
 
 	public static void delete(Thread runLoopThread) {
@@ -17,9 +17,19 @@ public class SandboxManager {
 	}
 	
 	public static LuaSandbox getCurrentSandbox() {
-		String currentThreadName = Thread.currentThread().getName();
-
-		return sandboxes.getOrDefault(currentThreadName, null);
+		ThreadGroup group = Thread.currentThread().getThreadGroup();
+		
+		while(group != null) {
+			LuaSandbox ret = sandboxes.getOrDefault(group, null);
+			
+			if(ret != null) {
+				return ret;
+			}
+			
+			group = group.getParent();
+		}
+		
+		return null;
 	}
 
 }

@@ -43,7 +43,7 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 		//owner.enqueueFunctionCall("update", new LuaValue[] {LuaValue.valueOf(dt)}, UpdateCoalescer.instance);
 
 		if(runLoopThread == null) {
-			runLoopThread = new Thread(this);
+			runLoopThread = new Thread(owner.getThreadGroup(), this);
 			SandboxManager.register(runLoopThread, owner);
 			runLoopThread.start();
 		} else {
