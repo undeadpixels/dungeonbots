@@ -13,17 +13,14 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * The menu where users select Play, Create, or Community
@@ -31,13 +28,37 @@ import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
 @SuppressWarnings("serial")
 public class MainMenuScreen extends Screen {
 
+	public MainMenuScreen() {
+		super(null);
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	protected ScreenController makeController() {
 		return new ScreenController() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				buttonClicked(e);				
+				switch (e.getActionCommand()) {
+				case "PLAY":
+					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.GAMEPLAY);
+					break;
+				case "CREATE":
+					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.LEVEL_EDITOR);
+					break;
+				case "COMMUNITY":
+					// DungeonBotsMain.instance.setCurrentScreen(new
+					// CommunityScreen());
+					try {
+						java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					break;
+				case "QUIT":
+					System.exit(0);
+					break;
+				}
 			}
 
 			@Override
@@ -80,106 +101,38 @@ public class MainMenuScreen extends Screen {
 			public void mouseMoved(MouseEvent arg0) {
 			}
 
-			@Override
-			public void windowActivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowClosing(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowDeactivated(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowDeiconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowIconified(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void windowOpened(WindowEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 		};
 	}
 
-	protected void buttonClicked(ActionEvent e) {
-
-		switch (e.getActionCommand()) {
-		case "PLAY":
-			DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen());
-			break;
-		case "CREATE":
-			DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
-			break;
-		case "COMMUNITY":
-			//DungeonBotsMain.instance.setCurrentScreen(new CommunityScreen());
-			try {
-				java.awt.Desktop.getDesktop().browse(CommunityScreen.homeURI);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-			break;
-		case "QUIT":
-			System.exit(0);
-			break;
-		}
-
-	}
-
 	@Override
 	protected void addComponents(Container pane) {
 
-		Insets insets = new Insets(10, 10, 10, 10);
-		JButton bttnPlay = UIBuilder.makeButton("play.gif", "Start a game as a player.", "Play", "PLAY",
-				getController());
-		bttnPlay.setMargin(insets);
-		bttnPlay.setAlignmentX(CENTER_ALIGNMENT);
+		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("PLAY")
+				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
 		bttnPlay.requestFocus();
 
-		JButton bttnCreate = UIBuilder.makeButton("create.gif", "Edit a game as an author.", "Create", "CREATE",
-				getController());
-		bttnCreate.setMargin(insets);
-		bttnCreate.setAlignmentX(CENTER_ALIGNMENT);
-		JButton bttnCommunity = UIBuilder.makeButton("community.gif", "Go to the community.", "Community", "COMMUNITY",
-				getController());
-		bttnCommunity.setMargin(insets);
-		bttnCommunity.setAlignmentX(CENTER_ALIGNMENT);
-		JButton bttnQuit = UIBuilder.makeButton("quit.gif", "Quit the game.", "Quit", "QUIT", getController());
-		bttnQuit.setMargin(new Insets(5, 5, 5, 5));
-		bttnQuit.setAlignmentX(CENTER_ALIGNMENT);
+		JButton bttnCreate = UIBuilder.buildButton().image("create.gif").toolTip("Edit a game as an author.")
+				.text("CREATE").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
+
+		JButton bttnCommunity = UIBuilder.buildButton().image("community.gif").toolTip("Go to the online community.")
+				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
+				.alignmentX(CENTER_ALIGNMENT).create();
+
+		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("QUIT")
+				.action("QUIT", getController()).hotkey(KeyEvent.VK_Q).margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT)
+				.create();
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-
 		buttonPanel.add(bttnPlay);
 		buttonPanel.add(Box.createVerticalStrut(10));
 		buttonPanel.add(bttnCreate);
@@ -198,12 +151,11 @@ public class MainMenuScreen extends Screen {
 
 	}
 
-	
 	@Override
 	protected void setDefaultLayout() {
 		this.setSize(640, 480);
 		this.setLocationRelativeTo(null);
-		Image img = DungeonBotsMain.getImage("dungeon_room.jpg");
+		Image img = UIBuilder.getImage("dungeon_room.jpg");
 
 		if (img != null) {
 			img = img.getScaledInstance(this.getSize().width, this.getSize().height, Image.SCALE_SMOOTH);

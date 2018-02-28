@@ -1,14 +1,18 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Note;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+
+import java.awt.geom.Point2D;
+
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -32,7 +36,9 @@ public class Player extends RpgActor {
 	 *            The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getAsset("player", AssetManager.AssetSrc.Player, 3, 1).orElse(null));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+
+		world.getWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	/**
@@ -52,7 +58,6 @@ public class Player extends RpgActor {
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
-		SecurityContext.getWhitelist().add(p);
 		p.steps = 0;
 		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
@@ -81,13 +86,38 @@ public class Player extends RpgActor {
 		return defaultCode != null ? defaultCode : "";
 	}
 
-	public void setPosition(Vector2 v) {
+	public void setPosition(Point2D.Float v) {
 		sprite.setX(v.x);
 		sprite.setY(v.y);
 	}
 
 	public int getSteps() {
 		return steps;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.PLAYER;
+	}
+	
+	public void resetInventory() {
+		this.inventory.reset();
+		this.inventory.addItem(new Note("Greetings", "Welcome to Dungeonbots!"));
+	}
+
+	/**
+	 *
+	 * @param luaDir
+	 * @param itemReference
+	 * @return
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
+		String dir = luaDir.checkjstring().toUpperCase();
+		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
+				.checkuserdata(ItemReference.class);
+		Direction direction = Direction.valueOf(dir);
+		return this.world.tryUse(itemRef, direction, this);
 	}
 
 }

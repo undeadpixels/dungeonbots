@@ -1,18 +1,22 @@
 package com.undead_pixels.dungeon_bots;
 
+import java.awt.Component;
+
+import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.JXLoginPane.Status;
+import org.jdesktop.swingx.auth.LoginEvent;
+import org.jdesktop.swingx.auth.LoginListener;
+import org.jdesktop.swingx.auth.LoginService;
+
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.Login;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
 import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 
 /**
  * The main game class. Maintains the identity of the current user and a
@@ -21,25 +25,18 @@ import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
  */
 public class DungeonBotsMain {
 
+	public enum ScreenType {
+		GAMEPLAY, LEVEL_EDITOR, MAIN_MENU, RESULTS
+	}
+
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
-	private World _World;
 
-	/** Returns the world currently associated with this game. */
-	public World getWorld() {
-		return _World;
-	}
+	/** The LevelPack from which the current world is drawn. */
+	private LevelPack _LevelPack;
 
-	public void setWorld(World world) {
-		_World = world;
-
-		if (_Screen instanceof GameplayScreen)
-			setCurrentScreen(new GameplayScreen());
-		else if (_Screen instanceof LevelEditorScreen)
-			setCurrentScreen(new LevelEditorScreen());
-		else
-			setCurrentScreen(new MainMenuScreen());
-	}
+	/** Caches the current user's security level. */
+	private SecurityLevel _UserSecurityLevel;
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
@@ -52,7 +49,7 @@ public class DungeonBotsMain {
 	 * private constructor for singleton
 	 */
 	private DungeonBotsMain() {
-
+		// Does nothing.
 	}
 
 	/*
@@ -71,11 +68,8 @@ public class DungeonBotsMain {
 		if (_Screen != null)
 			throw new RuntimeException("Multiple instances of the game cannot be run.");
 
-		// Create a new world.
-		_World = new World(new File("level1.lua"));
-
 		// Fire up the main menu screen.
-		setCurrentScreen(new MainMenuScreen());
+		setCurrentScreen(ScreenType.MAIN_MENU);
 	}
 
 	/**
@@ -87,24 +81,65 @@ public class DungeonBotsMain {
 	}
 
 	/** Sets the current screen to the given screen. */
-	public void setCurrentScreen(Screen newScreen) {
+	public void setCurrentScreen(ScreenType screenType) {
 
 		// Remove the old screen.
 		if (_Screen != null) {
 			_Screen.dispose();
 		}
 
-		// Sanity check.
-		assert newScreen != null;
+		// Build the appropriate type of new screen.
+		switch (screenType) {
+		case MAIN_MENU:
+			_Screen = new MainMenuScreen();
+			break;
+		case GAMEPLAY:
+			if (getUser() == null && !requestLogin("Welcome Player", 3))
+				System.exit(0);
+			if (_LevelPack == null)
+				_LevelPack = new LevelPack("My Level Pack", getUser());
+			if (_LevelPack.getCurrentPlayer() != null && !_LevelPack.getCurrentPlayer().equals(getUser())) {
+				throw new RuntimeException("Cannot switch to a game being played by another player.");
+			}
+			_LevelPack.setCurrentPlayer(getUser());
+			_Screen = new GameplayScreen(_LevelPack.getCurrentWorld());
+			break;
+		case LEVEL_EDITOR:
+			if (getUser() == null && !requestLogin("Welcome Author", 3))
+				System.exit(0);
+			if (_LevelPack == null)
+				_LevelPack = new LevelPack("My Level Pack", getUser());
+			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());
+			break;
+		case RESULTS:
+			_Screen = new ResultsScreen(_LevelPack.getCurrentWorld());
+			break;
+		default:
+			throw new RuntimeException("Have not implemented switch to screen type: " + screenType.toString());
+		}
 
-		// If there is no valid login, just return.
-		if (!(newScreen instanceof MainMenuScreen) && getUser() == null && !requestLogin(3))
-			return;
-
-		// Start the new screen.
-		_Screen = newScreen;
+		// Run the new screen.
 		// _Screen.pack();
 		_Screen.setVisible(true);
+	}
+
+	/** Returns the current level pack. */
+	public LevelPack getLevelPack() {
+		return _LevelPack;
+	}
+
+	public void setLevelPack(LevelPack levelPack) {
+		assert levelPack != null;
+		_LevelPack = levelPack;
+		updateSecurity();
+	}
+
+	/** Updates the cached security status for the current user. */
+	private void updateSecurity() {
+		if (getLevelPack() == null || getUser() == null)
+			_UserSecurityLevel = SecurityLevel.DEFAULT;
+		else
+			_UserSecurityLevel = getLevelPack().isAuthor(getUser()) ? SecurityLevel.AUTHOR : SecurityLevel.DEFAULT;
 	}
 
 	/*
@@ -131,13 +166,13 @@ public class DungeonBotsMain {
 		if (user == currentUser)
 			return;
 		currentUser = user;
-		user.setCurrentGame(this);
+		updateSecurity();
 	}
 
 	/**
 	 * A function that prompts the user to log in.
 	 * 
-	 * An Internet connection will be required for access to the Sharing
+	 * TODO: An Internet connection will be required for access to the Sharing
 	 * Platform, but this not required to run the pre-built parts of the game.
 	 * 
 	 * However, this will also be needed when we want to upload results to the
@@ -146,16 +181,18 @@ public class DungeonBotsMain {
 	 * 
 	 * @return Returns true if login was successful. Otherwise, returns false.
 	 */
-	public boolean requestLogin(int attempts) {
-		System.out.println("Starting login...");
-		User user = Login.challenge("Welcome to DungeonBots.", attempts);
-		if (user == null) {
-			System.out.println("Invalid user login.");
-			return false;
-		}
-		System.out.println("Login valid.");
-		setUser(user);
-		return true;
+	public boolean requestLogin(String message, int attempts) {
+
+		LoginService service = new LoginService() {
+			@Override
+			public boolean authenticate(String name, char[] password, String server) throws Exception {
+				// TODO: actually go online and attempt to authenticate.
+				return true;
+			}
+		};
+
+		return UIBuilder.showLoginModal(message, null, null, null, service) == Status.SUCCEEDED;
+
 	}
 
 	/** Closes the game, releases all visual pieces. */
@@ -164,25 +201,4 @@ public class DungeonBotsMain {
 			_Screen.dispose();
 	}
 
-	/*
-	 * ================================================================
-	 * DungeonBotsMain RESOURCE CONTROL
-	 * ================================================================
-	 */
-
-	/** Gets an ImageIcon based on the image at the given location. */
-	public static Image getImage(String filename) {
-		if (filename == null || filename.equals(""))
-			return null;
-		String path = System.getProperty("user.dir") + "/images/" + filename;
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(new File(path));
-		} catch (IOException ioex) {
-			System.err.println("Image resource missing: " + path);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return img;
-	}
 }

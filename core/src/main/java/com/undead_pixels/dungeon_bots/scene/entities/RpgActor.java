@@ -23,14 +23,8 @@ import java.util.stream.Stream;
  */
 public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	private final int STAT_COUNT = 4;
-
-	// -- Skill resource attributes --
-	// -- The use of certain skills temporarily consumes their associated resources --
-	@State
 	protected int health = 10;
-	@State
 	protected int mana = 10;
-	@State
 	protected int stamina = 10;
 
 	// Skill stats determine the effectiveness and potency of associated skill abilities

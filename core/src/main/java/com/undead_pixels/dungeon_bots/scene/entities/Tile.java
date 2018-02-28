@@ -1,9 +1,11 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.annotations.BooleanScript;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -16,48 +18,47 @@ import org.luaj.vm2.LuaValue;
 public class Tile extends SpriteEntity {
 
 	/**
-	 * Lazily-loaded LuaValue representing this tile
+	 * The script that should be executed when a bot enters.
+	 * TODO: implement this functionality.
 	 */
-	private LuaValue luaValue;
+	private UserScript onEnter;
 
 	/**
-	 * True if this tile cannot be walked through
+	 * Lazily-loaded LuaValue representing this tile
 	 */
-	private boolean solid;
+	private transient LuaValue luaValue;
+
+	/**
+	 * The type of this tile
+	 */
+	private TileType type;
+	
+	private Entity occupiedBy = null;
 
 	/**
 	 * @param world
-	 *            The world to contain this Actor
-	 * @param name
-	 *            The name of this tile
-	 * @param tex
-	 *            A texture for this Actor
+	 *            The world that contains this tile
+	 * @param tileType
+	 *            The (initial) type of tile
 	 * @param x
 	 *            Location X, in tiles
 	 * @param y
 	 *            Location Y, in tiles
-	 * @param solid
-	 *            True, if this tile cannot be walked through
 	 */
-	public Tile(World world, String name, TextureRegion tex, float x, float y, boolean solid) {
-		super(world, name, tex, x, y);
-		this.solid = solid;
+	public Tile(World world, TileType tileType, int x, int y) {
+		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(), x, y);
+onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
+		this.type = tileType;
 	}
 
 	@Override
 	public float getZ() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public boolean isSolid() {
-		return solid;
-	}
-
-	@Override
-	public String getName() {
-		return name;
+		return type != null && type.isSolid();
 	}
 
 	@Override
@@ -67,40 +68,61 @@ public class Tile extends SpriteEntity {
 		return this.luaValue;
 	}
 
-	@Override
-	public int getId() {
-		return id;
+	/*
+	 * @Bind
+	 * 
+	 * @Deprecated public static LuaValue Wall(LuaValue lworld, LuaValue lx,
+	 * LuaValue ly) { Tile t = new Tile((World)
+	 * lworld.checktable().checkuserdata(World.class), "wall", null,
+	 * lx.tofloat(), ly.tofloat(), true); return LuaProxyFactory.getLuaValue(t);
+	 * }
+	 * 
+	 * @Bind
+	 * 
+	 * @Deprecated public static LuaValue Floor(LuaValue lworld, LuaValue lx,
+	 * LuaValue ly) { Tile t = new Tile((World)
+	 * lworld.checktable().checkuserdata(World.class), "floor", null,
+	 * lx.tofloat(), ly.tofloat(), false); return
+	 * LuaProxyFactory.getLuaValue(t); }
+	 * 
+	 * @Bind
+	 * 
+	 * @Deprecated public static LuaValue Goal(LuaValue lworld, LuaValue lx,
+	 * LuaValue ly) { Tile t = new Tile((World)
+	 * lworld.checktable().checkuserdata(World.class), "goal", null,
+	 * lx.tofloat(), ly.tofloat(), false); return
+	 * LuaProxyFactory.getLuaValue(t); }
+	 */
+
+	/** Sets the TileType of this Tile. */
+	public void setType(TileType tileType) {
+		this.type = tileType;
 	}
 
 	/**
-	 * Used exclusively for creating an exemplar tile to put in the Level
-	 * Editor's palette.
+	 * Returns the TileType (which contains image display information and other
+	 * default characteristics) of this tile.
 	 */
-	public static Tile worldlessTile(String name, boolean solid) {
-		return null;
+	public TileType getType() {
+		return type;
 	}
 
-	@Bind
-	@Deprecated
-	public static LuaValue Wall(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "wall", null, lx.tofloat(),
-				ly.tofloat(), true);
-		return LuaProxyFactory.getLuaValue(t);
+	/** Updates the image texture of the tile based on its neighbors. */
+	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
+		if(type == null) {
+			this.sprite.setTexture(null);
+		} else {
+			this.sprite.setTexture(type.getTexture(l, r, u, d));
+		}
 	}
 
-	@Bind
-	@Deprecated
-	public static LuaValue Floor(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "floor", null, lx.tofloat(),
-				ly.tofloat(), false);
-		return LuaProxyFactory.getLuaValue(t);
+	public void setOccupiedBy(Entity e) {
+		occupiedBy = e;
 	}
-
-	@Bind
-	@Deprecated
-	public static LuaValue Goal(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "goal", null, lx.tofloat(),
-				ly.tofloat(), false);
-		return LuaProxyFactory.getLuaValue(t);
+	public Entity getOccupiedBy() {
+		return occupiedBy;
+	}
+	public boolean isOccupied() {
+		return occupiedBy != null;
 	}
 }

@@ -1,13 +1,15 @@
 package com.undead_pixels.dungeon_bots.scene;
 
+import java.awt.geom.Point2D;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -18,7 +20,7 @@ import org.luaj.vm2.LuaValue;
 /**
  * A collection of TileType's
  */
-public class TileTypes implements GetLuaFacade, Iterable<TileType> {
+public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable {
 
 	/**
 	 * Internal storage
@@ -28,7 +30,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	/**
 	 * Lazily-loaded luaValue for this object
 	 */
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 	
 	/**
 	 * Creates some default tiles (such as walls and floors)
@@ -38,48 +40,47 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 
 
 		// TODO - visually test these all at some point
-		Vector2[] offsetsWalls = new Vector2[] {
-				new Vector2(0, 1), // 0 default
-				new Vector2(1, 0), // 1 only left
-				new Vector2(1, 0), // 2 only right
-				new Vector2(1, 0), // 3 only left+right
-				new Vector2(1, 1), // 4 only up
-				new Vector2(2, 2), // 5 only up+left
-				new Vector2(0, 2), // 6 only up+right
-				new Vector2(4, 2), // 7 no down
-				new Vector2(0, 1), // 8 only down
-				new Vector2(2, 0), // 9 only down+left
-				new Vector2(0, 0), // A only down+right
-				new Vector2(4, 0), // B no up
-				new Vector2(0, 1), // C only down+up
-				new Vector2(5, 1), // D no right
-				new Vector2(3, 1), // E no left
-				new Vector2(4, 1), // F all
+		Point2D.Float[] offsetsWalls = new Point2D.Float[] {
+				new Point2D.Float(0, 1), // 0 default
+				new Point2D.Float(1, 0), // 1 only left
+				new Point2D.Float(1, 0), // 2 only right
+				new Point2D.Float(1, 0), // 3 only left+right
+				new Point2D.Float(1, 1), // 4 only up
+				new Point2D.Float(2, 2), // 5 only up+left
+				new Point2D.Float(0, 2), // 6 only up+right
+				new Point2D.Float(4, 2), // 7 no down
+				new Point2D.Float(0, 1), // 8 only down
+				new Point2D.Float(2, 0), // 9 only down+left
+				new Point2D.Float(0, 0), // A only down+right
+				new Point2D.Float(4, 0), // B no up
+				new Point2D.Float(0, 1), // C only down+up
+				new Point2D.Float(5, 1), // D no right
+				new Point2D.Float(3, 1), // E no left
+				new Point2D.Float(4, 1), // F all
 		};
 
-		Vector2[] offsetsFloors = new Vector2[] {
-				new Vector2(5, 0), // 0 default
-				new Vector2(6, 1), // 1 only left
-				new Vector2(4, 1), // 2 only right
-				new Vector2(5, 1), // 3 only left+right
-				new Vector2(3, 2), // 4 only up
-				new Vector2(2, 2), // 5 only up+left
-				new Vector2(0, 2), // 6 only up+right
-				new Vector2(1, 2), // 7 no down
-				new Vector2(3, 0), // 8 only down
-				new Vector2(2, 0), // 9 only down+left
-				new Vector2(0, 0), // A only down+right
-				new Vector2(1, 0), // B no up
-				new Vector2(3, 1), // C only down+up
-				new Vector2(2, 1), // D no right
-				new Vector2(0, 1), // E no left
-				new Vector2(1, 1), // F all
+		Point2D.Float[] offsetsFloors = new Point2D.Float[] {
+				new Point2D.Float(5, 0), // 0 default
+				new Point2D.Float(6, 1), // 1 only left
+				new Point2D.Float(4, 1), // 2 only right
+				new Point2D.Float(5, 1), // 3 only left+right
+				new Point2D.Float(3, 2), // 4 only up
+				new Point2D.Float(2, 2), // 5 only up+left
+				new Point2D.Float(0, 2), // 6 only up+right
+				new Point2D.Float(1, 2), // 7 no down
+				new Point2D.Float(3, 0), // 8 only down
+				new Point2D.Float(2, 0), // 9 only down+left
+				new Point2D.Float(0, 0), // A only down+right
+				new Point2D.Float(1, 0), // B no up
+				new Point2D.Float(3, 1), // C only down+up
+				new Point2D.Float(2, 1), // D no right
+				new Point2D.Float(0, 1), // E no left
+				new Point2D.Float(1, 1), // F all
 		};
 		
 		final int TILESIZE = 16;
 		
 		// register some default tile types
-		// TODO - how do we handle this if we're running 'headless' (for testing)
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
 		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
@@ -96,7 +97,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
 		TileTypes tileTypes = new TileTypes();
-		SecurityContext.getWhitelist().add(tileTypes);
 		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 
@@ -109,7 +109,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	 * @param solid			True if this tile cannot be walked through
 	 */
 	public void registerTile(String name, Texture texture, int tilesize, int x, int y, boolean solid) {
-		registerTile(name, texture, tilesize, x, y, new Vector2[] {new Vector2()}, true, solid);
+		registerTile(name, texture, tilesize, x, y, new Point2D.Float[] {new Point2D.Float()}, true, solid);
 	}
 
 	/**
@@ -126,7 +126,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 	 * 							tile is the same.
 	 * @param solid			True if this tile cannot be walked through
 	 */
-	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Vector2[] variations, boolean random, boolean solid) {
+	public void registerTile(String name, Texture texture, int tilesize, int x, int y, Point2D.Float[] variations, boolean random, boolean solid) {
 		
 		int len = 1;
 		if(variations != null) {
@@ -146,7 +146,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType> {
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public TileType getTile(LuaValue luaValue) {
 		return getTile(luaValue.checkjstring());
 	}

@@ -1,15 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.google.gson.Gson;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
-import com.undead_pixels.dungeon_bots.scene.GetState;
-import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -17,21 +16,22 @@ import org.luaj.vm2.*;
 
 import static org.luaj.vm2.LuaValue.*;
 
+import java.awt.geom.Point2D;
+import java.io.Serializable;
+
 /**
  * @author Kevin Parker
  * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
  */
-public class Actor extends SpriteEntity {
+public class Actor extends SpriteEntity implements HasInventory {
 
-	@State
 	protected int steps = 0;
-
-	@State
 	protected int bumps = 0;
 
-	private LuaValue luaBinding;
+	protected Inventory inventory = new Inventory(this,10);
+	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
 	/**
@@ -47,7 +47,7 @@ public class Actor extends SpriteEntity {
 	 */
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
-		this.world.addEntity(this);
+		this.world.addEntity(this); // TODO - XXX
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
 		// TODO Auto-generated constructor stub
@@ -104,8 +104,9 @@ public class Actor extends SpriteEntity {
 	 * Enqueues an action to the action queue that directs the Actor to
 	 * move in the provided direction
 	 * @param dir The direction to move
+	 * @param blocking 
 	 */
-	public void queueMoveSlowly(Direction dir) {
+	public void queueMoveSlowly(Direction dir, boolean blocking) {
 		int dx = 0, dy = 0;
 
 		switch (dir) {
@@ -144,7 +145,7 @@ public class Actor extends SpriteEntity {
 			
 		};
 
-		Action fail1 = new SpriteAnimatedAction(sprite, .1f) {
+		Action fail1 = new SpriteAnimatedAction(sprite, .2f) {
 			public boolean preAct() {
 				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
 				return true;
@@ -157,7 +158,23 @@ public class Actor extends SpriteEntity {
 			}
 		};
 		Action moveFailAction = new SequentialActions(fail1, fail2);
+		
+		while(blocking && !actionQueue.isEmpty()) {
+			try {
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		}
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
+
+		while(blocking && !actionQueue.isEmpty()) {
+			try {
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		}
 	}
 	
 	public void addText(String text) {
@@ -189,7 +206,7 @@ public class Actor extends SpriteEntity {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
-	private Actor moveAmt(Varargs amt, Direction direction) {
+	private Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
 		int SIZE = amt.narg();
 		int n;
 		if (SIZE < 2)
@@ -197,7 +214,7 @@ public class Actor extends SpriteEntity {
 		else
 			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
-			this.queueMoveSlowly(direction);
+			this.queueMoveSlowly(direction, blocking);
 		return this;
 	}
 
@@ -209,7 +226,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor up(Varargs amt) {
-		return moveAmt(amt, Direction.UP);
+		return moveAmt(amt, Direction.UP, true);
 	}
 
 	/**
@@ -220,7 +237,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor down(Varargs amt) {
-		return moveAmt(amt, Direction.DOWN);
+		return moveAmt(amt, Direction.DOWN, true);
 	}
 
 	/**
@@ -231,7 +248,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor left(Varargs amt) {
-		return moveAmt(amt, Direction.LEFT);
+		return moveAmt(amt, Direction.LEFT, true);
 	}
 
 	/**
@@ -242,7 +259,52 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Actor right(Varargs amt) {
-		return moveAmt(amt, Direction.RIGHT);
+		return moveAmt(amt, Direction.RIGHT, true);
+	}
+
+
+	/**
+	 * Moves the player UP
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueUp(Varargs amt) {
+		return moveAmt(amt, Direction.UP, false);
+	}
+
+	/**
+	 * Moves the player DOWN
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueDown(Varargs amt) {
+		return moveAmt(amt, Direction.DOWN, false);
+	}
+
+	/**
+	 * Moves the player LEFT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueLeft(Varargs amt) {
+		return moveAmt(amt, Direction.LEFT, false);
+	}
+
+	/**
+	 * Moves the player RIGHT
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	final public Actor queueRight(Varargs amt) {
+		return moveAmt(amt, Direction.RIGHT, false);
 	}
 
 	/**
@@ -256,7 +318,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Varargs position() {
-		Vector2 pos = this.getPosition();
+		Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
@@ -274,6 +336,15 @@ public class Actor extends SpriteEntity {
 			text += args.tojstring(i);
 		}
 		this.addText(text);
+	}
+
+	public void removeItem(Item i) {
+
+	}
+
+	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
+	public Inventory getInventory() {
+		return inventory;
 	}
 
 	@Bind(SecurityLevel.DEFAULT) public int steps() {

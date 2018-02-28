@@ -9,19 +9,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -29,7 +25,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -40,25 +35,27 @@ import org.luaj.vm2.LuaNil;
 import org.luaj.vm2.Varargs;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.script.LuaScript;
+import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.utils.builders.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
+@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
-	private final int MAX_HISTORY_COUNT = 100;
 	final private int _MessageMax = 3000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	private boolean _IsExecuting;
+	// private boolean _IsExecuting;
 
-	private LuaScript _RunningScript = null;
+	private LuaInvocation _RunningScript = null;
 
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
 	private int _CommandHistoryIndex = 0;
@@ -69,11 +66,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * ================================================================
 	 */
 
-	/** Creates a new REPL. All code will execute in a brand-new sandbox. */
-	public JCodeREPL() {
-		this(new LuaSandbox(SecurityLevel.DEBUG));
-	}
-
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
 
@@ -81,6 +73,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
 		_Sandbox = sandbox;
+
+		_Sandbox.addOutputEventListener((str) -> this.message(str));
 
 		_EchoMessageStyle = putSimpleAttributeSet(Color.WHITE, Color.BLACK, false);
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
@@ -114,14 +108,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.makeButton("executeButton.gif", "Click to execute", ">", "EXECUTE", this);
-		_ExecuteBttn.setFocusable(false);
-		_ExecuteBttn.setMinimumSize(new Dimension(50, 80));
-		_CancelBttn = UIBuilder.makeButton("cancelButton.gif", "Click to cancel", "X", "CANCEL", this);
-		_CancelBttn.setFocusable(false);
-		_CancelBttn.setEnabled(false);
-		_CancelBttn.setPreferredSize(new Dimension(30, 40));
-		JButton helpBttn = UIBuilder.makeButton("", "Get help", "?", "HELP", this);
+		_ExecuteBttn = UIBuilder.buildButton().image("executeButton.gif").minSize(50, 80).toolTip("Click to execute.")
+				.action("EXECUTE", this).focusable(false).preferredSize(50, 80).create();
+		_CancelBttn = UIBuilder.buildButton().image("cancelButton.gif").toolTip("Click to cancel.")
+				.action("CANCEL", this).focusable(false).preferredSize(30, 40).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
@@ -140,7 +130,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 	/** Binds the CTRL+Enter key to execute the code. */
-	@SuppressWarnings("serial")
 	private void addKeyBindings() {
 
 		InputMap inputMap = _EditorPane.getInputMap();
@@ -206,7 +195,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 					_EditorPane.setText("");
 				}
 			}
-
 		});
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
@@ -235,47 +223,22 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton cutBttn = UIBuilder.makeButton("cutBttn.gif",
-				"Cut from the command line and move the text to the clipboard.", "Cut", "CUT", this);
-		JButton copyBttn = UIBuilder.makeButton("copyBttn.gif", "Copy from the command line to the clipboard.", "Copy",
-				"COPY", this);
-		JButton pasteBttn = UIBuilder.makeButton("pasteBttn.gif", "Paste from the clipboard to the command line.",
-				"Paste", "PASTE", this);
-		JButton helpBttn = UIBuilder.makeButton("helpBttn.gif", "Get help with the command line.", "Help", "HELP",
-				this);
+		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
+				.action("CUT", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
+				.action("COPY", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
+				.action("PASTE", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnHelp = UIBuilder.buildButton().image("help.jpg").toolTip("Get help with the command line.")
+				.action("HELP", this).focusable(false).preferredSize(30, 30).create();
 
-		cutBttn.setFocusable(false);
-		copyBttn.setFocusable(false);
-		pasteBttn.setFocusable(false);
-		helpBttn.setFocusable(false);
-
-		result.add(cutBttn);
-		result.add(copyBttn);
-		result.add(pasteBttn);
-		result.add(helpBttn);
+		result.add(bttnCut);
+		result.add(bttnCopy);
+		result.add(bttnPaste);
+		result.add(bttnHelp);
 
 		return result;
 	}
-
-	/*
-	 * public static JButton makeButton(String imageURL, String actionCommand,
-	 * String toolTipText, String altText, ActionListener l) {
-	 * 
-	 * JButton resultButton = new JButton();
-	 * resultButton.setActionCommand(actionCommand);
-	 * resultButton.setToolTipText(toolTipText);
-	 * resultButton.setToolTipText(toolTipText);
-	 * 
-	 * resultButton.addActionListener(l);
-	 * 
-	 * URL url = JCodeREPL.class.getResource(imageURL); if (url != null) {
-	 * resultButton.setIcon(new ImageIcon(url, altText)); } else {
-	 * resultButton.setText(altText); System.err.
-	 * println("Resource was missing.  Attempted to created button with image at "
-	 * + imageURL + ".  Using altText '" + altText + "' as image instead."); }
-	 * 
-	 * return resultButton; }
-	 */
 
 	/*
 	 * ================================================================
@@ -304,107 +267,72 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Stops any running script by forcing an interrupt. */
 	public void stop() {
-		LuaScript toBeCancelled = _RunningScript;
+		LuaInvocation toBeCancelled = _RunningScript;
 		if (toBeCancelled == null)
 			return;
 		toBeCancelled.stop();
 	}
 
 	/**
-	 * The reason for the ScriptExecutionWorker is to make the Lua script run to
-	 * its completion but not lock up the GUI.
-	 */
-	private class ScriptExecutionWorker extends SwingWorker<Object, String> {
-
-		public String executingCode = "";
-		private long _milliseconds = MAX_EXECUTION_TIME;
-
-		public ScriptExecutionWorker(String code, long executionTime) {
-			executingCode = code;
-			_milliseconds = executionTime;
-		}
-
-		// Cannot override execute()
-
-		/** Does the work in the calling thread. Useful for testing purposes. */
-		public Object doSynchronized() {
-			return doInBackground();
-		}
-
-		/** Returns the currently operating script, if there is one. */
-		public LuaScript getScript() {
-			return _RunningScript;
-		}
-
-		@Override
-		protected Object doInBackground() {
-
-			PrintStream originalOut = System.out;
-			try {
-
-				_RunningScript = _Sandbox.script(executingCode);
-				_RunningScript.start();
-				_RunningScript.join(_milliseconds);
-
-				if (_RunningScript.getError() != null)
-					return _RunningScript.getError();
-
-				switch (_RunningScript.getStatus()) {
-				case READY:
-					throw new Exception("Script did not execute.");
-				case COMPLETE:
-					return _RunningScript.getResults().map(result -> interpret(result)).orElse("Ok");
-				// return interpret(_RunningScript.getResults());
-				case RUNNING:
-					throw new Exception("Script is still running.");
-				case TIMEOUT:
-					throw new Exception("Script timed out.");
-				case STOPPED:
-					throw new Exception("Script has been interrupted.");
-				case LUA_ERROR:
-					throw new Exception("Lua error.");
-				case ERROR:
-					throw new Exception("Threading error.");
-				case PAUSED:
-					throw new Exception("Script has been paused.");
-				default:
-					throw new Exception("Unrecognized status: " + _RunningScript.getStatus() + ".");
-				}
-			} catch (Exception ex) {
-				return ex;
-			} finally {
-				System.setOut(originalOut);
-			}
-		}
-
-		@Override
-		protected void done() {
-			try {
-				Object result = get();
-				_RunningScript = null;
-				onExecutionComplete(this, result);
-			} catch (Exception e) {
-				onExecutionComplete(this, e);
-			}
-		}
-	}
-
-	/**
 	 * Starts execution of the code contained in the code editor, on a
 	 * background thread.
 	 */
-	public void execute(long executionTime) {
-
-		if (_RunningScript != null) {
-			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-			return;
-		}
+	public LuaInvocation execute(long executionTime) {
 
 		setIsExecuting(true);
-		String code = getCode();
-		message(">>> " + code, _EchoMessageStyle);
-		ScriptExecutionWorker worker = new ScriptExecutionWorker(code, executionTime);
-		worker.execute();
+		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
+
+			@Override
+			public void scriptEventFinished(LuaInvocation script, ScriptStatus status) {
+				System.out.println("Script " + script + " is " + script.getStatus() + ", thinks " + status);
+				if (_RunningScript == script) {
+					_RunningScript = null;
+				}
+
+				if (script.getError() != null) {
+					onExecutionComplete(script, script.getError());
+				} else {
+					switch (script.getStatus()) {
+					case READY:
+						onExecutionComplete(script, new Exception("Script did not execute."));
+						break;
+					case COMPLETE:
+						onExecutionComplete(script, script.getResults().map(result -> interpret(result)).orElse("Ok"));
+						break;
+					case RUNNING:
+						onExecutionComplete(script, new Exception("Script is still running."));
+						break;
+					case TIMEOUT:
+						onExecutionComplete(script, new Exception("Script timed out."));
+						break;
+					case STOPPED:
+						onExecutionComplete(script, new Exception("Script has been interrupted."));
+						break;
+					case LUA_ERROR:
+						onExecutionComplete(script, new Exception("Lua error."));
+						break;
+					case ERROR:
+						onExecutionComplete(script, new Exception("Threading error."));
+						break;
+					case PAUSED:
+						onExecutionComplete(script, new Exception("Script has been paused."));
+						break;
+					default:
+					}
+				}
+			}
+
+			@Override
+			public void scriptEventStarted(LuaInvocation script, ScriptStatus status) {
+			}
+
+		};
+
+		message(">>> " + getCode(), _EchoMessageStyle);
+		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		_EditorPane.setText("");
+
+		return _RunningScript;
 	}
 
 	/**
@@ -412,25 +340,17 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * testing purposes.
 	 */
 	public void executeSynchronized(long executionTime) {
-		if (_RunningScript != null) {
-			messageError("Error - a script is already running.  NOTE:  this shouldn't actually be possible.");
-			return;
-		}
-		setIsExecuting(true);
-		ScriptExecutionWorker worker = new ScriptExecutionWorker(getCode(), executionTime);
-		_RunningScript = null;
-		onExecutionComplete(worker, worker.doSynchronized());
+		LuaInvocation inv = execute(executionTime);
+		inv.join(executionTime);
 	}
 
-	private void onExecutionComplete(ScriptExecutionWorker sender, Object result) {
+	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
 
 		// Update the command history records.
-		if (_CommandHistory.size() == 0
-				|| !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.executingCode))
-			_CommandHistory.add(sender.executingCode);
+		if (_CommandHistory.size() == 0 || !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
+			_CommandHistory.add(sender.getScript());
 		_CommandHistoryIndex = _CommandHistory.size();
-		_EditorPane.setText("");
 
 		// Send a message indicating the results.
 		if (result == null)
@@ -446,9 +366,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Sets the GUI to correctly reflect the execution status. */
 	private void setIsExecuting(boolean value) {
-		if (_IsExecuting == value)
-			throw new IllegalStateException("Call to setIsExecuting(boolean) must CHANGE state.");
-		_IsExecuting = value;
+		// if (_IsExecuting == value)
+		// throw new IllegalStateException("Call to setIsExecuting(boolean) must
+		// CHANGE state.");
+		// _IsExecuting = value;
 		_CancelBttn.setEnabled(value);
 		_ExecuteBttn.setEnabled(!value);
 
