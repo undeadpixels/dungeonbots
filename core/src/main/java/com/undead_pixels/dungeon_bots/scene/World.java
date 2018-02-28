@@ -190,7 +190,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			level = new Level(initScript.getResults().get(), mapSandbox);
 			level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
+			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection,
+					player.getInventory());
 		}
 	}
 
@@ -235,7 +236,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setPlayer(Player p) {
 		player = p;
 		p.resetInventory();
-		entities.add(p);
+		if (!entities.contains(p))
+			entities.add(p);
 	}
 
 	/**
@@ -473,6 +475,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param y
 	 *            The y position, in game space.
 	 */
+	public Tile getTileUnderLocation(double x, double y) {
+		return getTileUnderLocation((int) x, (int) y);
+	}
+
+	/**
+	 * Returns the tile at the given tile location. If tiles reference is null,
+	 * or the (x,y) is outside the world boundaries, returns null.
+	 * 
+	 * @param x
+	 *            The x position, in game space.
+	 * @param y
+	 *            The y position, in game space.
+	 */
 	public Tile getTileUnderLocation(float x, float y) {
 		return getTileUnderLocation((int) x, (int) y);
 	}
@@ -496,7 +511,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return null;
 		return tiles[x][y];
 	}
-
 
 	/**
 	 * Returns all tiles that are encompassed by, or intersect, the given
@@ -627,14 +641,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 * Gets what entity is occupying a given tile
+	 * Gets what entity is occupying a given tile, or null if there is no such
+	 * entity.
 	 * 
 	 * @param x
-	 *            Location X, in tiles
+	 *            Location X, in game space.
 	 * @param y
-	 *            Location Y, in tiles
-	 * @return The entity under the given location. Returns null if there is no
-	 *         such entity.
+	 *            Location Y, in game space.
+	 */
+	public Entity getEntityUnderLocation(double x, double y) {
+		return getEntityUnderLocation((float) x, (float) y);
+	}
+
+	/**
+	 * Gets what entity is occupying a given tile, or null if there is no such
+	 * entity.
+	 * 
+	 * @param x
+	 *            Location X, in game space.
+	 * @param y
+	 *            Location Y, in game space.
 	 */
 	public Entity getEntityUnderLocation(float x, float y) {
 		for (Entity e : entities) {
@@ -848,6 +874,5 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
-==== BASE ====
-==== BASE ====
+
 }

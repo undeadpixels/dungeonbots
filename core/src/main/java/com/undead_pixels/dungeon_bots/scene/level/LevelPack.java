@@ -51,7 +51,7 @@ public class LevelPack {
 				SecurityLevel.AUTHOR);
 
 		this.levels = new WorldList();
-		this.levels.add(new World(new File("default.lua")));
+		this.levels.add(new World(new File("maze1.lua")));
 		this.levelIndex = 0;
 
 		this.authors = new ArrayList<User>();

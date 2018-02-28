@@ -74,6 +74,22 @@ public class GameplayScreen extends Screen {
 					e.consume();
 				}
 			}
+			
+
+			/** Called when the zoom slider's state changes. */
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (e.getSource() instanceof JSlider) {
+					JSlider sldr = (JSlider) e.getSource();
+					if (sldr.getName().equals("zoomSlider")) {
+						OrthographicCamera cam = view.getCamera();
+						if (cam != null) {
+							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
+						}
+					}
+				}
+			}
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -160,20 +176,6 @@ public class GameplayScreen extends Screen {
 			public void mouseMoved(MouseEvent arg0) {
 			}
 
-
-			/** Called when the zoom slider's state changes. */
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (e.getSource() instanceof JSlider) {
-					JSlider sldr = (JSlider) e.getSource();
-					if (sldr.getName().equals("zoomSlider")) {
-						OrthographicCamera cam = view.getCamera();
-						if (cam != null) {
-							cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
-						}
-					}
-				}
-			}
 
 		};
 

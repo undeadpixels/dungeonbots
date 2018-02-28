@@ -86,6 +86,24 @@ public final class LevelEditorScreen extends Screen {
 		// TODO: throw an event for listeners?
 	}
 
+	/** Returns whether the given tile is selected. */
+	public boolean isSelectedTile(Tile tile) {
+		Tile[] selected = _SelectedTiles;
+		if (selected == null)
+			return false;
+		for (Tile t : selected)
+			if (t == tile)
+				return true;
+		return false;
+	}
+
+	/**
+	 * Returns whether the tile at the given game space location is selected.
+	 */
+	public boolean isSelectedTile(double x, double y) {
+		return isSelectedTile((float) x, (float) y);
+	}
+
 	/**
 	 * Returns whether the tile at the given game space location is selected.
 	 */
@@ -165,19 +183,41 @@ public final class LevelEditorScreen extends Screen {
 				if (cornerA == null)
 					return;
 
+				// What is the current lasso in game space?
 				Rectangle2D.Float rect = _View.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
 
-				// Find the entities that would be lassoed. If there are none,
-				// the selected entities should be null and the lassoed tiles
-				// should be found instead. If no tiles are lassoed at that
-				// point, they should be set to null.
+				// Find the entities (first) or tiles (second) that are lassoed.
+				// If only one entity is lassoed and that entity is already
+				// selected, open its editor. Otherwise if any entities are
+				// lassoed, select them. But if no entities are lassoed, look to
+				// tiles. If selecting tiles that are already part of the
+				// selection, just update the tile selection. Otherwise, nothing
+				// is selected.
+
 				List<Entity> se = world.getEntitiesUnderLocation(rect);
-				if (se.size() > 0) {
+				List<Tile> st = world.getTilesUnderLocation(rect);
+				if (st.size() == 1 && isSelectedEntity(se.get(0))) {
+					// Clicked on an entity. Open its editor.
+					setSelectedEntities(new Entity[] { se.get(0) });
+					JEntityEditor.create(LevelEditorScreen.this, se.get(0), SecurityLevel.DEFAULT, "Entity Editor");
+					setSelectedTiles(null);
+				} else if (se.size() > 0) {
+					// One or more unselected entities are lassoed. Select them
+					// all.
 					setSelectedEntities(se.toArray(new Entity[se.size()]));
 					setSelectedTiles(null);
+				} else if (st.size() == 1 && !isSelectedTile(st.get(0))) {
+					// Clicked on an unselected tile. Clear the tile selection.
+					setSelectedTiles(null);
+					setSelectedEntities(null);
+				} else if (st.size() > 0) {
+					// More than one tile lassoed. Select them all.
+					setSelectedTiles(st.toArray(new Tile[st.size()]));
+					setSelectedEntities(null);
 				} else {
-					List<Tile> st = world.getTilesUnderLocation(rect);
-					setSelectedTiles(st.size() > 0 ? st.toArray(new Tile[st.size()]) : null);
+					// Neither tile nor entity selected.
+					setSelectedTiles(null);
+					setSelectedEntities(null);
 				}
 
 				// The view should no longer render the lasso.
@@ -199,24 +239,6 @@ public final class LevelEditorScreen extends Screen {
 				// Set cornerB to the screen coordinates.
 				cornerB = new Point(e.getX(), e.getY());
 				e.consume();
-			}
-
-			public void mouseClicked(MouseEvent e) {
-				Point2D.Float pos = _View.getScreenToGameCoords(e.getX(), e.getY());
-				if (_SelectedTiles != null) {
-					Tile t;
-					if (isSelectedTile(e.getX(), e.getY()) && (t = world.getTileUnderLocation(e.getX(), e.getY())) != null)
-						// If clicking within the selection, change the
-						// selection to just that tile.
-						setSelectedTiles(new Tile[] { t });
-					else
-						// Otherwise clear the selection.
-						setSelectedTiles(null);
-				} else if (_SelectedEntities != null){
-					
-				}
-					
-
 			}
 
 			/** Does the actual rendering. */

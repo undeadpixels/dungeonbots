@@ -155,6 +155,12 @@ public class WorldView extends JComponent {
 		return cam;
 	}
 
+	
+	/** Returns the given screen coordinates, translated into game space. */
+	public Point2D.Float getScreenToGameCoords(double screenX, double screenY) {
+		return cam.unproject((float) screenX, (float) screenY);
+	}
+	
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
