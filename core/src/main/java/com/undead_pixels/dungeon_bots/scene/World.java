@@ -147,8 +147,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs this world from a lua script
 	 * 
-	 * @param luaScriptFile
-	 *            The level script
+	 * @param luaScriptFile	The level script
 	 */
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
@@ -158,8 +157,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs this world with a name
 	 * 
-	 * @param name
-	 *            The name
+		 * @param name	The name
 	 */
 	public World(String name) {
 		this(null, name);
@@ -169,10 +167,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs a world
 	 * 
-	 * @param luaScriptFile
-	 *            The level script
-	 * @param name
-	 *            The name
+	 * @param luaScriptFile	The level script
+	 * @param name			The name
 	 */
 	public World(File luaScriptFile, String name) {
 		this.name = name;
@@ -199,7 +195,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	private void worldSomewhatInit() {
-		// TODO: "somewhat" init?
 		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
 		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
@@ -260,8 +255,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Updates this world and all children. Update means.... ?
 	 * 
-	 * @param dt
-	 *            Delta time
+	 * @param dt		Delta time
 	 */
 	public void update(float dt) {
 		updateLock.lock();
@@ -294,8 +288,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Render this world and all children
 	 * 
-	 * @param batch
-	 *            a SpriteBatch
+	 * @param batch	a SpriteBatch
 	 */
 	public void render(SpriteBatch batch) {
 		refreshTiles();
@@ -337,8 +330,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Adds an entity
 	 * 
-	 * @param e
-	 *            The entity to add
+	 * @param e	The entity to add
 	 */
 	public void addEntity(Entity e) {
 		entities.add(e);
@@ -352,6 +344,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void makeBot(String name, float x, float y) {
 		// TODO - clean up better
+		// check that we don't already have a bot by the same name
 		for(Entity e : entities) {
 			if(e.getName().equals(name)) {
 				if(e instanceof Bot) {
@@ -393,7 +386,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            the height, in tiles
 	 */
 	public void setSize(int w, int h) {
-		// TODO - copy old tiles?
 		Tile[][] oldTiles = tiles;
 		tiles = new Tile[w][h];
 
@@ -414,7 +406,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			Tile t = this.getTile(e.getPosition());
 			if(e.isSolid()) {
 				if(t == null) {
-					System.out.println("Solid entity is living in missing tile"); // TODO - this is bad
+					 // TODO - this is probably bad; should we kill the entity, move it, or do something else?
+					System.out.println("Solid entity is living in missing tile");
 				} else {
 					t.setOccupiedBy(e);
 				}
@@ -448,8 +441,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 					current.updateTexture(l, r, u, d);
 				}
-
-				// System.out.println();
 			}
 
 			tilesAreStale = false;
@@ -547,8 +538,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		int maxX = (int) (rect.x + rect.width);
 		int maxY = (int) (rect.y + rect.height);
 		for (int x = Math.max(0, (int) rect.x); x <= maxX && x < tiles.length; x++) {
-			Tile[] tilesAtX = tiles[x]; // Sanity check.
-			assert (tilesAtX != null);
+			Tile[] tilesAtX = tiles[x];
+			assert (tilesAtX != null); // Sanity check.
 			for (int y = Math.max(0, (int) rect.y); y <= maxY && y < tilesAtX.length; y++) {
 				Tile t = tilesAtX[y];
 				if (t != null)
