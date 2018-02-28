@@ -1,10 +1,14 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
+import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -25,41 +29,39 @@ import java.util.stream.*;
  */
 public class LuaSandbox {
 
-    private final Globals globals;
-    final Globals invokerGlobals = JsePlatform.debugGlobals();
-    private final Whitelist whitelist = new Whitelist();
-	private SecurityLevel securityLevel;
+	private final Globals globals;
+	final Globals invokerGlobals = JsePlatform.debugGlobals();
+	private final SecurityContext securityContext; // TODO - init this
 	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	private final BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 
 	/**
-     * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
-     */
-    public LuaSandbox() {
-    	this(SecurityLevel.AUTHOR);
-    }
-
-    /**
-     * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
-     * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
-     */
-    public LuaSandbox(SecurityLevel securityLevel) {
-    	this(securityLevel, securityLevel.getGlobals());
-    }
-
-	/**
-	 * Inits a LuaSandbox using the argument Globals parameter
-	 * @param globals
+	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
 	 */
-	public LuaSandbox(Globals globals) {
-		this(SecurityLevel.AUTHOR, globals);
+	@Deprecated
+	public LuaSandbox() {
+		this(SecurityLevel.DEFAULT);
 	}
 
-	public LuaSandbox(SecurityLevel securityLevel, Globals globals) {
-		this.securityLevel = securityLevel;
-		this.globals = globals;
+	/**
+	 * Creates a new LuaSandbox using different enumerated default Global environments specified by the Sandbox parameter
+	 * @param securityLevel An enumeration of different default Global environment types to use for the Script environment
+	 */
+	@Deprecated
+	public LuaSandbox(SecurityLevel securityLevel) {
+		this.securityContext = new SecurityContext(new Whitelist(), securityLevel, null, null, TeamFlavor.NONE);
+		this.globals = securityContext.getSecurityLevel().getGlobals();
+	}
+
+	public LuaSandbox(Entity e) {
+		this.securityContext = new SecurityContext(e);
+		this.globals = securityContext.getSecurityLevel().getGlobals();
+	}
+	public LuaSandbox(World w) {
+		this.securityContext = new SecurityContext(w);
+		this.globals = securityContext.getSecurityLevel().getGlobals();
 	}
 
 
@@ -74,12 +76,6 @@ public class LuaSandbox {
         return this;
     }
 
-
-	public LuaSandbox setSecurityLevel(SecurityLevel securityLevel) {
-		this.securityLevel = securityLevel;
-		return this;
-	}
-
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
 	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
@@ -87,9 +83,9 @@ public class LuaSandbox {
 	 * @return The source LuaSandbox
 	 */
     @SafeVarargs
-    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindable) {
-		whitelist.add(securityLevel, bindable);
-		add(Stream.of(bindable)
+    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
+		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
+		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
 		return this;
 	}
@@ -101,10 +97,10 @@ public class LuaSandbox {
 	 */
 	@SafeVarargs
 	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
-		Stream.of(clz).forEach(c -> {
-			whitelist.add(securityLevel, c);
+		for(Class<? extends GetLuaFacade> c : clz) {
+			securityContext.getWhitelist().addAutoLevelsForBindables(c);
 			add(LuaProxyFactory.getBindings(c));
-		});
+		}
 		return this;
 	}
 
@@ -136,12 +132,6 @@ public class LuaSandbox {
 	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
 		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
 		scriptQueue.update(0.f);
-		try {
-			Thread.sleep(50); // XXX
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		return ret;
 	}
@@ -159,7 +149,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public Whitelist getWhitelist() {
-		return whitelist;
+		return securityContext.getWhitelist();
 	}
 
 	/**
@@ -167,7 +157,7 @@ public class LuaSandbox {
 	 * @return
 	 */
 	public SecurityLevel getSecurityLevel() {
-		return securityLevel;
+		return securityContext.getSecurityLevel();
 	}
 	
 	public ScriptEventQueue getQueue() {
@@ -324,5 +314,9 @@ public class LuaSandbox {
 
 	public void update(float dt) {
 		scriptQueue.update(dt);
+	}
+
+	public SecurityContext getSecurityContext() {
+		return securityContext;
 	}
 }

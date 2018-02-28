@@ -4,9 +4,10 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
+import java.io.Serializable;
 import java.util.Optional;
 
-public class ItemReference implements GetLuaFacade {
+public class ItemReference implements GetLuaFacade, Serializable {
 
 	final Inventory inventory;
 	final int index;
@@ -42,6 +43,11 @@ public class ItemReference implements GetLuaFacade {
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
 		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getWeight()).orElse(0);
+	}
+
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use() {
+		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.use()).orElse(false);
 	}
 
 	public Optional<Item> derefItem() {

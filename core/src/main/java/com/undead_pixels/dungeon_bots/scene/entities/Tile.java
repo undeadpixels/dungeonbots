@@ -18,16 +18,10 @@ import org.luaj.vm2.LuaValue;
 public class Tile extends SpriteEntity {
 
 	/**
-	 * The script that should be executed when a bot enters. TODO: implement
-	 * this functionality.
+	 * The script that should be executed when a bot enters.
+	 * TODO: implement this functionality.
 	 */
 	private UserScript onEnter;
-
-	/**
-	 * Whether the Tile is solid or not. The 'isSolid' variable is set, be
-	 * default, to match that of the TileType, but it can be changed.
-	 */
-	private boolean isSolid = false;
 
 	/**
 	 * Lazily-loaded LuaValue representing this tile
@@ -38,6 +32,8 @@ public class Tile extends SpriteEntity {
 	 * The type of this tile
 	 */
 	private TileType type;
+	
+	private Entity occupiedBy = null;
 
 	/**
 	 * @param world
@@ -50,9 +46,9 @@ public class Tile extends SpriteEntity {
 	 *            Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType.getName(), tileType.getTexture(), x, y);
-		onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
-		setType(tileType);
+		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(), x, y);
+onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
+		this.type = tileType;
 	}
 
 	@Override
@@ -62,11 +58,7 @@ public class Tile extends SpriteEntity {
 
 	@Override
 	public boolean isSolid() {
-		return isSolid;
-	}
-
-	public void setIsSolid(boolean value) {
-		isSolid = value;
+		return type != null && type.isSolid();
 	}
 
 	@Override
@@ -105,7 +97,6 @@ public class Tile extends SpriteEntity {
 	/** Sets the TileType of this Tile. */
 	public void setType(TileType tileType) {
 		this.type = tileType;
-		this.isSolid = tileType.isSolid();
 	}
 
 	/**
@@ -118,6 +109,21 @@ public class Tile extends SpriteEntity {
 
 	/** Updates the image texture of the tile based on its neighbors. */
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
-		this.sprite.setTexture(type.getTexture(l, r, u, d));
+		if(type == null) {
+			this.sprite.setTexture(null);
+		} else {
+			this.sprite.setTexture(type.getTexture(l, r, u, d));
+		}
+	}
+
+	public void setOccupiedBy(Entity e) {
+		occupiedBy = e;
+		System.out.println("Occupying tile by: "+e);
+	}
+	public Entity getOccupiedBy() {
+		return occupiedBy;
+	}
+	public boolean isOccupied() {
+		return occupiedBy != null;
 	}
 }

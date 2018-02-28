@@ -40,11 +40,18 @@ public class Door extends SpriteEntity {
 		Optional<Item> item = itemRef.getItem();
 		return item.map(i -> {
 			if(i == key) {
-				itemRef.derefItem();
+				// Consumes the key from the players inventory
+				// and unlocks the door.
+				Optional<Item> itemOpt = itemRef.derefItem();
+				itemOpt.ifPresent(key -> this.unlock());
 				return true;
 			}
 			return false;
 		}).orElse(false);
+	}
+
+	private void unlock() {
+		/** Unlock this door. **/
 	}
 
 }

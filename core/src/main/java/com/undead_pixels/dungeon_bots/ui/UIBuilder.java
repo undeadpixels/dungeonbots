@@ -1,5 +1,11 @@
 package com.undead_pixels.dungeon_bots.ui;
 
+import org.jdesktop.swingx.JXCollapsiblePane;
+import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.auth.LoginService;
+import org.jdesktop.swingx.auth.PasswordStore;
+import org.jdesktop.swingx.auth.UserNameStore;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -42,18 +48,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-
-import org.jdesktop.swingx.JXCollapsiblePane;
-import org.jdesktop.swingx.JXLoginPane;
-import org.jdesktop.swingx.JXLoginPane.Status;
-import org.jdesktop.swingx.auth.LoginListener;
-import org.jdesktop.swingx.auth.LoginService;
-import org.jdesktop.swingx.auth.PasswordStore;
-import org.jdesktop.swingx.auth.UserNameStore;
-
-import com.undead_pixels.dungeon_bots.libraries.StretchIcon;
-import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
 
 public class UIBuilder {
 
@@ -727,8 +721,8 @@ public class UIBuilder {
 	 * @param loginService
 	 *            The login service used to login.
 	 */
-	public static Status showLoginModal(String message, Component parent, PasswordStore passwordStore,
-			UserNameStore userNameStore, LoginService loginService) {
+	public static JXLoginPane.Status showLoginModal(String message, Component parent, PasswordStore passwordStore,
+													UserNameStore userNameStore, LoginService loginService) {
 		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginDialog(parent, pane);
 	}
@@ -747,7 +741,7 @@ public class UIBuilder {
 	 *            The login service used to login.
 	 */
 	public static JFrame showLoginModeless(String message, PasswordStore passwordStore, UserNameStore userNameStore,
-			LoginService loginService) {
+										   LoginService loginService) {
 		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginFrame(pane);
 	}

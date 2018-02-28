@@ -1,5 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Note;
@@ -34,7 +36,9 @@ public class Player extends RpgActor {
 	 *            The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getAsset("player", AssetManager.AssetSrc.Player, 3, 1).orElse(null));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+
+		world.getWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	/**
@@ -54,7 +58,6 @@ public class Player extends RpgActor {
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
-		SecurityContext.getWhitelist().add(p);
 		p.steps = 0;
 		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
@@ -92,6 +95,11 @@ public class Player extends RpgActor {
 		return steps;
 	}
 
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.PLAYER;
+	}
+	
 	public void resetInventory() {
 		this.inventory.reset();
 		this.inventory.addItem(new Note("Greetings", "Welcome to Dungeonbots!"));

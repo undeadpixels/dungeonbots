@@ -52,8 +52,6 @@ public class WorldView extends JComponent {
 	 */
 
 	public WorldView(World world) {
-		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-		AssetManager.finishLoading();
 		this.world = world;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
@@ -72,10 +70,7 @@ public class WorldView extends JComponent {
 		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 		lastTime = nowTime;
 
-		// TODO - move this update() thing elsewhere. Pretty please.
-		// TODO
-		// TODO
-		// TODO
+		// TODO - move this update() thing elsewhere.
 		if (world != null) {
 			world.update(dt);
 		}
@@ -100,7 +95,6 @@ public class WorldView extends JComponent {
 
 			// cam.update(); //Nothing in this function call.
 			batch.setProjectionMatrix(cam);
-			// batch.setTransformMatrix(cam.view);
 
 			if (world != null) {
 				world.render(batch);

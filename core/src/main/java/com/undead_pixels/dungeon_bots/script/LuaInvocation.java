@@ -68,7 +68,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			return;
 		}
 		
-		SecurityContext.set(environment);
+		// TODO - maybe add the current thread to the sandbox map?
+		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?
 		try {
 			setStatus(ScriptStatus.RUNNING);
 
@@ -126,9 +127,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return The source LuaScript
 	 */
 	public synchronized LuaInvocation stop() {
-		// TODO - tell the DebugLib to die
 		scriptInterrupt.kill();
-		//hookFunction.kill();
+		
 		try { this.wait(); }
 		catch (InterruptedException ie) { }
 		return this;

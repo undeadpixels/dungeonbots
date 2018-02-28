@@ -1,31 +1,33 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import org.luaj.vm2.*;
+
+import java.io.Serializable;
 import java.util.stream.*;
 
 /**
  * A type that encapsulates handling accessing and modifying
  * an inventory for an entity.
  */
-public class Inventory implements GetLuaFacade {
+public class Inventory implements GetLuaFacade, Serializable {
 
-	final LuaSandbox owner;
+	final Entity owner;
 	final Item[] inventory;
 	private final int maxSize;
 	private final int maxWeight = 100;
 
-	public Inventory(final LuaSandbox luaSandobx, int maxSize) {
-		this.owner = luaSandobx;
+	public Inventory(final Entity owner, int maxSize) {
+		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
+		owner.getWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
-	public Inventory(final LuaSandbox luaSandbox, final Item[] items) {
-		this.owner = luaSandbox;
+	public Inventory(final Entity entity, final Item[] items) {
+		this.owner = entity;
 		this.maxSize = 25;
 		this.inventory = items;
 	}
@@ -50,7 +52,6 @@ public class Inventory implements GetLuaFacade {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
 		ItemReference ir = new ItemReference(this, i);
-		owner.getWhitelist().add(ir);
 		return ir;
 	}
 
@@ -133,25 +134,23 @@ public class Inventory implements GetLuaFacade {
 	 * @return
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public LuaTable get(){
+	public LuaTable get() {
 		LuaTable table = new LuaTable();
-		for(int i = 0; i < table.length(); i++) {
+		for(int i = 0; i < inventory.length; i++) {
 			ItemReference ir = new ItemReference(this, i);
-			this.owner.getWhitelist().add(ir);
 			table.set(i + 1, ir.getLuaValue());
 		}
 		return table;
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
-	public Varargs unpack(){
-		return LuaValue.varargsOf((LuaValue[]) IntStream.range(0, inventory.length)
-				.mapToObj(index -> {
-					ItemReference ir = new ItemReference(this, index);
-					this.owner.getWhitelist().add(ir);
-					return ir.getLuaValue();
-				})
-				.toArray());
+	public Varargs unpack() {
+		LuaValue[] ans = new LuaValue[inventory.length];
+		IntStream.range(0, inventory.length).forEach(i -> {
+			ItemReference ir = new ItemReference(this, i);
+			ans[i] = ir.getLuaValue();
+		});
+		return LuaValue.varargsOf(ans);
 	}
 
 	/**

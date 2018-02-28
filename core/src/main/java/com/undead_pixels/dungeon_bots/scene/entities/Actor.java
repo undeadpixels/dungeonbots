@@ -30,8 +30,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	protected int steps = 0;
 	protected int bumps = 0;
 
-	protected Inventory inventory = new Inventory(this.getSandbox(),10);
-	private LuaValue luaBinding;
+	protected Inventory inventory = new Inventory(this,10);
+	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
 	/**
@@ -47,7 +47,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 */
 	public Actor(World world, String name, TextureRegion tex) {
 		super(world, name, tex);
-		this.world.addEntity(this);
+		this.world.addEntity(this); // TODO - XXX
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
 		// TODO Auto-generated constructor stub
@@ -161,9 +161,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 		
 		while(blocking && !actionQueue.isEmpty()) {
 			try {
-				Thread.sleep(1);//FIXME
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -171,9 +170,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 
 		while(blocking && !actionQueue.isEmpty()) {
 			try {
-				Thread.sleep(1);//FIXME
+				Thread.sleep(1);//FIXME - something better than sleepy busy wait
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}

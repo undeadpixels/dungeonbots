@@ -20,6 +20,7 @@ import com.undead_pixels.dungeon_bots.math.Helpers2D;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -114,14 +115,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@State
 	private int timesReset = 0;
 
+
 	/**
-	 * An id counter, used to hand out id's to entities TODO - see if this
-	 * conflicts with anything Stewart is doing.
+	 * An id counter, used to hand out id's to entities
+	 * 
+	 * TODO - see if this conflicts with anything Stewart is doing.
 	 */
 	private int idCounter = 0;
 
 	/**
-	 * The playstyle of this world TODO - add a lua binding to be able to
+	 * The playstyle of this world
+	 * 
+	 * TODO - add a lua binding to be able to
 	 * configure this from the level script
 	 */
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
@@ -171,16 +176,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public World(File luaScriptFile, String name) {
 		this.name = name;
+		
 		backgroundImage = null;
 		tiles = new Tile[0][0];
 
+		mapSandbox = new LuaSandbox(this);
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-			AssetManager.finishLoading();
-
-			mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
 			levelScript = new UserScript("init", initScript.getScript());
@@ -193,13 +196,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection,
 					player.getInventory());
 		}
+		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
 
 	private void worldSomewhatInit() {
 		// TODO: "somewhat" init?
-		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-		AssetManager.finishLoading();
-
 		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
 		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
@@ -221,7 +222,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@BindTo("new")
 	public static LuaValue newWorld() {
 		World w = new World();
-		SecurityContext.getWhitelist().add(w);
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
@@ -235,6 +235,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void setPlayer(Player p) {
 		player = p;
+
 		p.resetInventory();
 		if (!entities.contains(p))
 			entities.add(p);
@@ -243,7 +244,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Gets the object of class Player that exists in the Lua sandbox and sets
 	 * the World's player reference to that.
-	 * 
+	 *
 	 * @param luaPlayer
 	 */
 	@Bind(SecurityLevel.AUTHOR)
@@ -271,11 +272,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			refreshTiles();
 
 			// update tiles
-			for (Tile[] ts : tiles) {
-				for (Tile t : ts) {
-					if (t != null) {
-						t.update(dt);
-					}
+			for(Tile[] ts : tiles) {
+				for(Tile t : ts) {
+					t.update(dt);
 				}
 			}
 
@@ -312,7 +311,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		batch.clearContext();
 
 		// draw background image
-		batch.begin();
 		if (backgroundImage != null) {
 			batch.draw(backgroundImage, 0, 0);
 		}
@@ -320,20 +318,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		// draw tiles
 		for (Tile[] ts : tiles) {
 			for (Tile t : ts) {
-				if (t != null) {
-					t.render(batch);
-				}
+				t.render(batch);
 			}
 		}
-		batch.end();
 
 		// draw each layer of entities
 		for (Layer layer : toLayers()) {
-			batch.begin();
 			for (Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
-			batch.end();
 		}
 	}
 
@@ -351,6 +344,30 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public void addEntity(Entity e) {
 		entities.add(e);
+		if(e.isSolid()) {
+			Tile tile = this.getTile(e.getPosition());
+			if(tile != null) {
+				tile.setOccupiedBy(e);
+			}
+		}
+	}
+
+	public void makeBot(String name, float x, float y) {
+		Bot b = new Bot(this, name);
+		b.setPosition(new Point2D.Float(x, y));
+	}
+	public void makePlayer(float x, float y) {
+		Player p = new Player(this, name);
+		p.setPosition(new Point2D.Float(x, y));
+	}
+
+	@Bind
+	public void makeBot(LuaValue name, LuaValue x, LuaValue y) {
+		makeBot(name.tojstring(), x.tofloat(), y.tofloat());
+	}
+	@Bind
+	public void makePlayer(LuaValue x, LuaValue y) {
+		makePlayer(x.tofloat(), y.tofloat());
 	}
 
 	@Bind
@@ -370,6 +387,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
 		tiles = new Tile[w][h];
+		
+		for(int i = 0; i < h; i++) {
+			for(int j = 0; j < w; j++) {
+				tiles[j][i] = new Tile(this, null, j, i);
+			}
+		}
 	}
 
 	/**
@@ -391,14 +414,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				for (int j = 0; j < h; j++) {
 					Tile current = tiles[i][j];
 
-					if (current != null) {
-						Tile l = i >= 1 ? tiles[i - 1][j] : null;
-						Tile r = i < w - 1 ? tiles[i + 1][j] : null;
-						Tile u = j < h - 1 ? tiles[i][j + 1] : null;
-						Tile d = j >= 1 ? tiles[i][j - 1] : null;
+					Tile l = i >= 1 ? tiles[i - 1][j] : null;
+					Tile r = i < w - 1 ? tiles[i + 1][j] : null;
+					Tile u = j < h - 1 ? tiles[i][j + 1] : null;
+					Tile d = j >= 1 ? tiles[i][j - 1] : null;
 
-						current.updateTexture(l, r, u, d);
-					}
+					current.updateTexture(l, r, u, d);
 				}
 
 				// System.out.println();
@@ -449,8 +470,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
-		// TODO - more stuff here
-
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
 			return; // out of bounds; TODO - should something else happen?
 		}
@@ -459,11 +478,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			setGoal(x, y);
 		tilesAreStale = true;
 
-		if (tiles[x][y] == null) {
-			tiles[x][y] = new Tile(this, tileType, x, y);
-		} else {
-			tiles[x][y].setType(tileType);
-		}
+		tiles[x][y].setType(tileType);
 	}
 
 	/**
@@ -488,6 +503,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param y
 	 *            The y position, in game space.
 	 */
+	@Deprecated
 	public Tile getTileUnderLocation(float x, float y) {
 		return getTileUnderLocation((int) x, (int) y);
 	}
@@ -511,6 +527,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return null;
 		return tiles[x][y];
 	}
+
+	public Tile getTile(float x, float y) {
+		return getTile(Math.round(x), Math.round(y));
+	}
+	
+	public Tile getTile(Point2D.Float pos) {
+		return getTile(pos.x, pos.y);
+	}
+	
+	
 
 	/**
 	 * Returns all tiles that are encompassed by, or intersect, the given
@@ -537,12 +563,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * All the entities are assigned to a layer during the render loop,
 	 * depending on their Z-value.
-	 * 
+	 *
 	 * TODO: since each Z-value can create an entire layer, wouldn't it just
 	 * make more sense to sort the Entities by Z-order? And for that matter,
 	 * wouldn't it be more efficient if the sorting occurred when the Entity is
 	 * added to the World, rather than at render time?
-	 * 
+	 *
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -615,15 +641,34 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return false;
 		}
 
-		if (tiles[x][y] != null && tiles[x][y].isSolid()) {
+		if(tiles[x][y].isSolid()) {
 			System.out.println("Unable to move: tile solid");
 			return false;
 		}
+		if(tiles[x][y].isOccupied()) {
+			System.out.println("Unable to move: tile occupied");
+			return false;
+		}
 
-		// TODO - check if other entities own that spot
-		// TODO - tell the world that this entity owns that spot
+		System.out.println("Ok to move");
+		tiles[x][y].setOccupiedBy(e);
+		
+		for(int i = 0; i < this.getSize().y; i++) {
+			for(int j = 0; j < this.getSize().x; j++) {
+				Tile t = tiles[j][i];
+				if(t.isSolid())
+					System.out.print("#");
+				else if(t.isOccupied())
+					System.out.print("O");
+				else
+					System.out.print(".");
 
+			}
+			System.out.println();
+		}
+		
 		return true;
+		
 	}
 
 	/**
@@ -637,7 +682,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            Location Y, in tiles
 	 */
 	public void didLeaveTile(Entity e, int x, int y) {
-		// TODO: what is this?
+		Tile tile = getTile(x, y);
+		tile.setOccupiedBy(null);
 	}
 
 	/**
@@ -681,7 +727,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * Gets all entities intersecting the given rectangle.
-	 * 
+	 *
 	 * @return The list of intersecting entities. An entity is "intersecting" if
 	 *         any part of it would be within the given rectangle.
 	 */
@@ -873,6 +919,37 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
+	}
+
+	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
+		Point2D.Float pos = a.getPosition();
+		Point2D.Float toUse = null;
+		switch (d) {
+			case UP:
+				toUse = new Point2D.Float(pos.x, pos.y + 1);
+				break;
+			case DOWN:
+				toUse = new Point2D.Float(pos.x, pos.y - 1);
+				break;
+			case LEFT:
+				toUse = new Point2D.Float(pos.x - 1, pos.y);
+				break;
+			case RIGHT:
+				toUse = new Point2D.Float(pos.x + 1, pos.y);
+				break;
+		}
+		// There's a better way to do this that would require changing how we store entities
+		for(Entity e: entities) {
+			if(e.getPosition().x == toUse.getX() && e.getPosition().y == toUse.getY()) {
+				return e.useItem(itemRef);
+			}
+		}
+		return false;
+	}
+
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		this.worldSomewhatInit();
 	}
 
 }
