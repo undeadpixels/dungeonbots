@@ -9,6 +9,7 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,9 +21,10 @@ import java.util.stream.Stream;
  * Creates a Whitelist of allowed callable Methods that is unique to the caller
  * and the method.
  */
-public class Whitelist implements GetLuaFacade {
+public class Whitelist implements GetLuaFacade, Serializable {
+	
 	private HashMap<String, SecurityLevel> whitelist;
-	private LuaValue luaValue;
+	private transient LuaValue luaValue;
 
 	public Whitelist() {
 		this.whitelist = new HashMap<>();
