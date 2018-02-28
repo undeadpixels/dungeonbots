@@ -75,7 +75,7 @@ public class ScriptApiTest {
 			}
 
 			// Tag the error function with a 'high' security level
-			@Bind(SecurityLevel.DEBUG)
+			@Bind(SecurityLevel.AUTHOR)
 			public LuaValue error() {
 				return LuaValue.NIL;
 			}
@@ -93,7 +93,7 @@ public class ScriptApiTest {
 
 		DebugError player = new DebugError( "player");
 		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
-		LuaSandbox se = new LuaSandbox(SecurityLevel.AUTHOR).addBindable(player);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(player);
 		LuaInvocation luaScript = se.init("return player:error();");
 		luaScript.join();
 		Assert.assertEquals(ScriptStatus.LUA_ERROR, luaScript.getStatus());
