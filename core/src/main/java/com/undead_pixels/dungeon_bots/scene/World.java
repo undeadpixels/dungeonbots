@@ -353,6 +353,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	public void makeBot(String name, float x, float y) {
+		// TODO - clean up better
+		for(Entity e : entities) {
+			if(e.getName().equals(name)) {
+				if(e instanceof Bot) {
+					Bot b = (Bot) e;
+					b.setPosition(new Point2D.Float(x, y));
+					return;
+				}
+			}
+		}
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
 	}
@@ -386,11 +396,30 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public void setSize(int w, int h) {
 		// TODO - copy old tiles?
+		Tile[][] oldTiles = tiles;
 		tiles = new Tile[w][h];
+
+		int copyW = Math.min(w, oldTiles.length);
+		int copyH = Math.min(h, oldTiles.length == 0 ? 0 : oldTiles[0].length);
 		
 		for(int i = 0; i < h; i++) {
 			for(int j = 0; j < w; j++) {
-				tiles[j][i] = new Tile(this, null, j, i);
+				if(j < copyW && i < copyH) {
+					tiles[j][i] = oldTiles[j][i];
+				} else {
+					tiles[j][i] = new Tile(this, null, j, i);
+				}
+			}
+		}
+		
+		for(Entity e: entities) {
+			Tile t = this.getTile(e.getPosition());
+			if(e.isSolid()) {
+				if(t == null) {
+					System.out.println("Solid entity is living in missing tile"); // TODO - this is bad
+				} else {
+					t.setOccupiedBy(e);
+				}
 			}
 		}
 	}
@@ -652,20 +681,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		System.out.println("Ok to move");
 		tiles[x][y].setOccupiedBy(e);
-		
-		for(int i = 0; i < this.getSize().y; i++) {
-			for(int j = 0; j < this.getSize().x; j++) {
-				Tile t = tiles[j][i];
-				if(t.isSolid())
-					System.out.print("#");
-				else if(t.isOccupied())
-					System.out.print("O");
-				else
-					System.out.print(".");
-
-			}
-			System.out.println();
-		}
 		
 		return true;
 		
