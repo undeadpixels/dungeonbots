@@ -29,6 +29,8 @@ import java.util.stream.*;
  */
 public class LuaSandbox {
 
+	private static int id = 0;
+	
 	private final Globals globals;
 	final Globals invokerGlobals = JsePlatform.debugGlobals();
 	private final SecurityContext securityContext; // TODO - init this
@@ -36,6 +38,7 @@ public class LuaSandbox {
 	private final BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
+	private final ThreadGroup threadGroup = new ThreadGroup("lua-"+(id++));
 
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -318,5 +321,9 @@ public class LuaSandbox {
 
 	public SecurityContext getSecurityContext() {
 		return securityContext;
+	}
+
+	public ThreadGroup getThreadGroup() {
+		return threadGroup;
 	}
 }
