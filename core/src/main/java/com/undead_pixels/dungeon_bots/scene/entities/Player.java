@@ -29,11 +29,8 @@ public class Player extends RpgActor {
 
 	/**
 	 * Constructor
-	 * 
-	 * @param world
-	 *            The world this player belongs to
-	 * @param name
-	 *            The name of this player
+	 * @param world The world this player belongs to
+	 * @param name The name of this player
 	 */
 	public Player(World world, String name) {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
@@ -43,13 +40,9 @@ public class Player extends RpgActor {
 
 	/**
 	 * Static LuaBinding used to generate new players
-	 * 
-	 * @param world
-	 *            The world to assign to the player
-	 * @param x
-	 *            The initial x position of the player
-	 * @param y
-	 *            The initial y position of the player
+	 * @param world The world to assign to the player
+	 * @param x The initial x position of the player
+	 * @param y The initial y position of the player
 	 * @return A newly constructed Player that has been coerced into it's
 	 *         associated LuaValue
 	 */

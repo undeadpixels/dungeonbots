@@ -14,22 +14,38 @@ import java.util.stream.*;
  */
 public class Inventory implements GetLuaFacade, Serializable {
 
-	final Entity owner;
+	/**
+	 * The Entity that owns the inventory.
+	 */
+	private final Entity owner;
+
+	/**
+	 * The underlying array if Items of the inventory.
+	 */
 	final Item[] inventory;
+
+	/**
+	 *
+	 */
+	final ItemReference[] itemReferences;
+
+	/**
+	 * The max size of the inventory.
+	 */
 	private final int maxSize;
+
+	/**
+	 * The max weight of the inventory.
+	 */
 	private final int maxWeight = 100;
 
 	public Inventory(final Entity owner, int maxSize) {
 		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
+		itemReferences = new ItemReference[maxSize];
+		IntStream.range(0, maxSize).forEach(i -> itemReferences[i] = new ItemReference(this, i));
 		owner.getWhitelist().addAutoLevelsForBindables(ItemReference.class);
-	}
-
-	public Inventory(final Entity entity, final Item[] items) {
-		this.owner = entity;
-		this.maxSize = 25;
-		this.inventory = items;
 	}
 
 	@Override
@@ -50,9 +66,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	@Bind(SecurityLevel.DEFAULT) public ItemReference peek(LuaValue index) {
 		final int i = index.checkint() - 1;
-		assert i < this.inventory.length;
-		ItemReference ir = new ItemReference(this, i);
-		return ir;
+		assert i < this.inventory.length && i < this.itemReferences.length;
+		return itemReferences[i];
 	}
 
 	/**
@@ -135,21 +150,27 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public LuaTable get() {
-		LuaTable table = new LuaTable();
+		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
-			ItemReference ir = new ItemReference(this, i);
+			ItemReference ir = itemReferences[i];
 			table.set(i + 1, ir.getLuaValue());
 		}
 		return table;
 	}
 
+	/**
+	 * Binding that unpacks the contents of an inventory in to Varargs.<br>
+	 * Example of use<br>
+	 * <pre>{@code
+	 * 	i1, i2 = player:inventory():unpack()
+	 * }</pre>
+	 * @return
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs unpack() {
-		LuaValue[] ans = new LuaValue[inventory.length];
-		IntStream.range(0, inventory.length).forEach(i -> {
-			ItemReference ir = new ItemReference(this, i);
-			ans[i] = ir.getLuaValue();
-		});
+		final LuaValue[] ans = new LuaValue[inventory.length];
+		IntStream.range(0, inventory.length)
+				.forEach(i -> ans[i] = itemReferences[i].getLuaValue());
 		return LuaValue.varargsOf(ans);
 	}
 
@@ -160,5 +181,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 		for(int i = 0; i < inventory.length; i++) {
 			inventory[i] = null;
 		}
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public Item[] getInventory() {
+		return inventory;
 	}
 }
