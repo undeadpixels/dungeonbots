@@ -258,12 +258,16 @@ tbl.init = function()
 		world:setTile(16, 14, tileTypes:getTile("wall"))
 		world:setTile(16, 15, tileTypes:getTile("wall"))
 		world:setTile(16, 16, tileTypes:getTile("wall"))
-		world:setPlayer(Player.new(world, 2, 2))
+
+		local player = Player.new(world, 2, 2)
+		player.setDefaultCode("")
+		world:setPlayer(player)
 	end
 tbl.update = function(dt)
 
 		local x, y = world:getPlayer():position()
-		if x == 15 and y == 2 then
+		local gx, gy = world:getGoal()
+		if x == gx and y == gy then
 			world.win()
 		end
 	end

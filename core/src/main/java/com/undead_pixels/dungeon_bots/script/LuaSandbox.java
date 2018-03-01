@@ -27,7 +27,7 @@ import java.util.stream.*;
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.
  * TODO: May need to generate a return type from LuaScripts that references the source LuaSandbox
  */
-public class LuaSandbox {
+public final class LuaSandbox {
 
 	private static int id = 0;
 	
