@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.script.annotations;
+package com.undead_pixels.dungeon_bots.script;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import javax.swing.text.BadLocationException;
 
 import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 /**
  * A user script associates a Lua script with the information pertaining to how

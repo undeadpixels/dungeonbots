@@ -26,8 +26,8 @@ import javax.swing.event.ListSelectionListener;
 
 import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 

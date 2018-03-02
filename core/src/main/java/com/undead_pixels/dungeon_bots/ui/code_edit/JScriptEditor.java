@@ -32,8 +32,8 @@ import javax.swing.text.Position;
 import javax.swing.text.View;
 
 import com.undead_pixels.dungeon_bots.math.IntegerSet;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**

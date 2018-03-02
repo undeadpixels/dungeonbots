@@ -30,9 +30,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -61,19 +59,29 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// private String levelScript;
 	private UserScript levelScript;
 
-	/** TODO: a script to be called when win() is invoked. */
+	/**
+	 * TODO: a script to be called when win() is invoked.
+	 */
 	private UserScript onWinScript;
 
-	/** The LuaBindings to the World Lazy initialized */
+	/**
+	 * The LuaBindings to the World Lazy initialized
+	 */
 	private transient LuaValue luaValue;
 
-	/** The sandbox that the levelScript runs inside of */
+	/**
+	 * The sandbox that the levelScript runs inside of
+	 */
 	private transient LuaSandbox mapSandbox;
 
-	/** The level pack of which this World is a part. */
+	/**
+	 * The level pack of which this World is a part.
+	 */
 	private transient LevelPack levelPack = null;
 
-	/** The of this world (may be user-readable) */
+	/**
+	 * The of this world (may be user-readable)
+	 */
 	private String name = "world";
 
 	// =============================================
@@ -84,7 +92,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// ====== World TILE MANAGEMENT STUFF
 	// =============================================
 
-	/** A background image for this world */
+	/**
+	 * A background image for this world
+	 * Not currently used.
+	 */
 	private TextureRegion backgroundImage;
 
 	/**
@@ -93,25 +104,35 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private Tile[][] tiles;
 
-	/** The collection of available TileType's */
+	/**
+	 * The collection of available TileType's
+	 */
 	private TileTypes tileTypesCollection;
 
-	/** Indication of if the tile array needs to be refreshed */
+	/**
+	 * Indication of if the tile array needs to be refreshed
+	 * */
 	private transient boolean tilesAreStale = true;
 
-	/** Collection of all entities in this world */
+	/**
+	 * Collection of all entities in this world
+	 */
 	private ArrayList<Entity> entities = new ArrayList<>();
 
 	// TODO: Is it worthwhile to have a ref to player object? Isn't it just an
 	// entity among the other entities?
-	/** The player object */
+	/**
+	 * The player object
+	 */
 	@State
 	private Player player;
 
 	// TODO: specify the goal position with a goal entity?
 	private Integer[] goalPosition = new Integer[] {};
 
-	/** WO: for performance stats reporting? */
+	/**
+	 * WO: for performance stats reporting?
+	 */
 	@State
 	private int timesReset = 0;
 
@@ -157,7 +178,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs this world with a name
 	 * 
-		 * @param name	The name
+	 * @param name	The name
 	 */
 	public World(String name) {
 		this(null, name);
@@ -194,6 +215,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
 
+	/**
+	 * Perform some initializations that need to be done upon deserialization
+	 */
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
 		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
@@ -380,10 +404,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Sets this world's size Calls to set tiles outside of the world's size (or
 	 * before the world's size is set) may cause issues.
 	 * 
-	 * @param w
-	 *            the width, in tiles
-	 * @param h
-	 *            the height, in tiles
+	 * @param w	the width, in tiles
+	 * @param h	the height, in tiles
 	 */
 	public void setSize(int w, int h) {
 		Tile[][] oldTiles = tiles;
@@ -480,12 +502,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Sets a specific tile
 	 * 
-	 * @param x
-	 *            The x location, in tiles
-	 * @param y
-	 *            The y location, in tiles
-	 * @param tileType
-	 *            The type of the tile
+	 * @param x			The x location, in tiles
+	 * @param y			The y location, in tiles
+	 * @param tileType	The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
@@ -612,12 +631,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Asks if an entity is allowed to move to a given tile. Locks that tile to
 	 * be owned by the given entity if it is allowed.
 	 * 
-	 * @param e
-	 *            The entity asking
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param e	The entity asking
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 * @return True if the entity is allowed to move to this location
 	 */
 	public boolean requestMoveToNewTile(Entity e, int x, int y) {
@@ -649,12 +665,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Used to release the lock that this entity previously owned on a tile
 	 * 
-	 * @param e
-	 *            The entity releasing the tile
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param e	The entity releasing the tile
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 */
 	public void didLeaveTile(Entity e, int x, int y) {
 		Tile tile = getTile(x, y);
@@ -664,10 +677,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Gets what entity is occupying a given tile
 	 * 
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 * @return The entity under the given location. Returns null if there is no
 	 *         such entity.
 	 */
