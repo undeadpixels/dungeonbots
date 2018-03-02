@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.stream.*;
 
 /**
@@ -15,11 +16,6 @@ import java.util.stream.*;
 public class Inventory implements GetLuaFacade, Serializable {
 
 	/**
-	 * The Entity that owns the inventory.
-	 */
-	private final Entity owner;
-
-	/**
 	 * The underlying array if Items of the inventory.
 	 */
 	final Item[] inventory;
@@ -27,7 +23,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	/**
 	 *
 	 */
-	final ItemReference[] itemReferences;
+	private final ItemReference[] itemReferences;
 
 	/**
 	 * The max size of the inventory.
@@ -40,7 +36,6 @@ public class Inventory implements GetLuaFacade, Serializable {
 	private final int maxWeight = 100;
 
 	public Inventory(final Entity owner, int maxSize) {
-		this.owner = owner;
 		this.maxSize = maxSize;
 		inventory = new Item[maxSize];
 		itemReferences = new ItemReference[maxSize];
@@ -78,10 +73,19 @@ public class Inventory implements GetLuaFacade, Serializable {
 	public Item removeItem(int i) {
 		assert i < this.inventory.length;
 		synchronized (this.inventory) {
-			Item item = this.inventory[i - 1];
-			this.inventory[i - 1] = null;
+			Item item = this.inventory[i];
+			this.inventory[i] = null;
 			return item;
 		}
+	}
+
+	public Optional<Integer> findIndex(Item item) {
+		for(int i = 0; i < inventory.length; i++) {
+			if(inventory[i] == item) {
+				return Optional.of(i);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -122,6 +126,10 @@ public class Inventory implements GetLuaFacade, Serializable {
 			}
 			return false;
 		}
+	}
+
+	public boolean containsItem(Item i) {
+		return Stream.of(inventory).collect(Collectors.toSet()).contains(i);
 	}
 
 	/**

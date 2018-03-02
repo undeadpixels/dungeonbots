@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.UseItem;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
@@ -24,7 +24,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
  *          Does not include UI elements.
  */
 @SuppressWarnings("serial")
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, UseItem, HasEntity, HasTeam {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
 
 	/**
 	 * The script associated with this entity. Access to this collection is
