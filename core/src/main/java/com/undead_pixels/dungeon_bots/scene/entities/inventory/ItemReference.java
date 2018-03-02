@@ -7,12 +7,12 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import java.io.Serializable;
 import java.util.Optional;
 
-public class ItemReference implements GetLuaFacade, Serializable {
+public final class ItemReference implements GetLuaFacade, Serializable, Useable {
 
 	final Inventory inventory;
-	final int index;
+	private final int index;
 
-	public ItemReference(Inventory inventory, int index) {
+	public ItemReference(final Inventory inventory, int index) {
 		this.inventory = inventory;
 		this.index = index;
 	}
@@ -25,29 +25,69 @@ public class ItemReference implements GetLuaFacade, Serializable {
 		return inventory.inventory[index] != null;
 	}
 
+	@Override
 	@Bind(SecurityLevel.DEFAULT)
 	public String getName() {
-		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getName()).orElse("Empty");
+		return getItem()
+				.map(Item::getName)
+				.orElse("Empty");
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
 	public String getDescription() {
-		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getDescription()).orElse("An empty item slot!");
+		return getItem()
+				.map(Item::getDescription)
+				.orElse("An empty item slot");
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getValue() {
-		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getValue()).orElse(0);
+		return getItem()
+				.map(Item::getValue)
+				.orElse(0);
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
-		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.getWeight()).orElse(0);
+		return getItem()
+				.map(Item::getWeight)
+				.orElse(0);
 	}
 
-	@Bind(SecurityLevel.DEFAULT)
+
+	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean use() {
-		return Optional.ofNullable(inventory.inventory[index]).map(item -> item.use()).orElse(false);
+		return getItem()
+				.map(Useable::use)
+				.orElse(false);
+	}
+
+	@Override @Bind(SecurityLevel.ENTITY)
+	public Boolean up() {
+		return getItem()
+				.map(Useable::up)
+				.orElse(false);
+	}
+
+	@Override @Bind(SecurityLevel.ENTITY)
+	public Boolean down() {
+		return getItem()
+				.map(Useable::down)
+				.orElse(false);
+	}
+
+	@Override @Bind(SecurityLevel.ENTITY)
+	public Boolean left() {
+		return getItem()
+				.map(Useable::left)
+				.orElse(false);
+	}
+
+	@Override @Bind(SecurityLevel.ENTITY)
+	public Boolean right() {
+		return getItem()
+				.map(Useable::right)
+				.orElse(false);
 	}
 
 	public Optional<Item> derefItem() {

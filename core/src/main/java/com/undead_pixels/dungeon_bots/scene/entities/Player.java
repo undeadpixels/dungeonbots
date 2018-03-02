@@ -1,12 +1,10 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Note;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -43,8 +41,8 @@ public class Player extends RpgActor {
 	 * @param world The world to assign to the player
 	 * @param x The initial x position of the player
 	 * @param y The initial y position of the player
-	 * @return A newly constructed Player that has been coerced into it's
-	 *         associated LuaValue
+	 * @return A newly constructed Player that has been coerced into it's<br>
+	 * associated LuaValue
 	 */
 	@Bind
 	@BindTo("new")

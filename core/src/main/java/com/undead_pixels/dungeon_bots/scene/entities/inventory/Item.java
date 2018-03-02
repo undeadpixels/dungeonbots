@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
@@ -9,7 +8,7 @@ import java.io.Serializable;
 /**
  * A type representing an immaterial game item.
  */
-public abstract class Item implements GetLuaFacade, Serializable {
+public abstract class Item implements GetLuaFacade, Serializable, Useable {
 	protected final World world;
 	protected final String name;
 	protected final String description;
@@ -34,11 +33,6 @@ public abstract class Item implements GetLuaFacade, Serializable {
 
 	@Bind(SecurityLevel.DEFAULT) public Integer getWeight() {
 		return weight;
-	}
-
-	@Bind(SecurityLevel.DEFAULT) public Boolean use() {
-		// Use item on self.
-		return true;
 	}
 
 	@Bind(SecurityLevel.DEFAULT) public Boolean up() {

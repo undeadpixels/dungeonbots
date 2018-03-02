@@ -9,7 +9,7 @@ import javax.swing.*;
 public class Note extends Item implements CanUseItem {
 
 	public Note(World world, String name, String descr) {
-		super(world,"Note: " + name, descr, 0, 0);
+		super(world,name, descr, 0, 0);
 	}
 
 	@Bind(SecurityLevel.DEFAULT) public Boolean use() {
