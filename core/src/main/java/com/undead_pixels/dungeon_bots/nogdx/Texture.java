@@ -3,6 +3,9 @@ package com.undead_pixels.dungeon_bots.nogdx;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import javax.imageio.ImageIO;
 
@@ -11,12 +14,12 @@ import javax.imageio.ImageIO;
  * 
  * May be unwrapped at some later point
  */
-public class Texture {
+public class Texture implements Serializable {
 	
 	/**
 	 * Internal backing image
 	 */
-	private final BufferedImage img;
+	private transient BufferedImage img;
 	
 	/**
 	 * @return	The image this texture represents
@@ -44,4 +47,13 @@ public class Texture {
 		this.img = img;
 	}
 
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		img = ImageIO.read(inputStream);
+	}
+
+	private void writeObject(ObjectOutputStream outputStream) throws IOException, ClassNotFoundException {
+		outputStream.defaultWriteObject();
+		ImageIO.write(img, "png", outputStream); // TODO - handle typical images with file path?
+	}
 }

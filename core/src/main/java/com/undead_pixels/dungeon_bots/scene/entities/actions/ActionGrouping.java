@@ -1,5 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities.actions;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 
 /**
@@ -7,7 +11,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
  * 
  * This can be used to implement an RTS-like or turn-based game.
  */
-public abstract interface ActionGroupings {
+public abstract interface ActionGrouping extends Serializable {
 	
 	/**
 	 * Checks if this queue is allowed to start new tasks
@@ -41,7 +45,7 @@ public abstract interface ActionGroupings {
 	 * A grouping that defines an RTS.
 	 * Actions are allowed to begin at any time, regardless of what else is performing actions.
 	 */
-	public static class RTSGrouping implements ActionGroupings {
+	public static class RTSGrouping implements ActionGrouping {
 
 		@Override
 		public boolean allowsDequeueAction(ActionQueue q) {
@@ -60,12 +64,12 @@ public abstract interface ActionGroupings {
 	 * For example, a Player and all of their Bots will begin their move at the exact same time;
 	 * then once those moves all finish, Enemies will all begin their moves.
 	 */
-	public static class TeamTurnsGrouping implements ActionGroupings {
+	public static class TeamTurnsGrouping implements ActionGrouping {
 		
 		/**
 		 * A lock that waits for all actions of a team to finish before allowing the next team to start.
 		 */
-		private ActionGroupLock currentTeamLock = new ActionGroupLock();
+		private transient ActionGroupLock currentTeamLock = new ActionGroupLock();
 		
 		/**
 		 * The current team
@@ -110,6 +114,12 @@ public abstract interface ActionGroupings {
 			}
 		}
 		
+
+		private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+			inputStream.defaultReadObject();
+			currentTeamLock = new ActionGroupLock();
+		}
+		
 	}
 	
 	/**
@@ -117,12 +127,12 @@ public abstract interface ActionGroupings {
 	 * Instead of team-based turns, it's just based on the order
 	 * the given entity was added to the world.
 	 */
-	public static class EntityTurnsGrouping implements ActionGroupings {
+	public static class EntityTurnsGrouping implements ActionGrouping {
 		
 		/**
 		 * A lock for all of the entities in the World
 		 */
-		ActionGroupLock everything = new ActionGroupLock();
+		private transient ActionGroupLock everything = new ActionGroupLock();
 		
 		
 		public boolean allowsDequeueAction(ActionQueue q) {
@@ -136,6 +146,11 @@ public abstract interface ActionGroupings {
 		}
 		@Override
 		public void update() {
+		}
+
+		private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+			inputStream.defaultReadObject();
+			everything = new ActionGroupLock();
 		}
 	}
 }

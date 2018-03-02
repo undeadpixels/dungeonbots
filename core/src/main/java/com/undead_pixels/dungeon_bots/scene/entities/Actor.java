@@ -1,7 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.google.gson.Gson;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.State;
@@ -17,6 +16,9 @@ import org.luaj.vm2.*;
 
 import static org.luaj.vm2.LuaValue.*;
 
+import java.awt.geom.Point2D;
+import java.io.Serializable;
+
 /**
  * @author Kevin Parker
  * @version 1.0
@@ -31,7 +33,7 @@ public class Actor extends SpriteEntity {
 	@State
 	protected int bumps = 0;
 
-	private LuaValue luaBinding;
+	private transient LuaValue luaBinding;
 	private FloatingText floatingText;
 
 	/**
@@ -320,7 +322,7 @@ public class Actor extends SpriteEntity {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	final public Varargs position() {
-		Vector2 pos = this.getPosition();
+		Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 

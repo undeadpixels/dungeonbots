@@ -15,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.HashMap;
 
@@ -40,7 +41,6 @@ import javax.swing.JDialog;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -73,7 +73,7 @@ public class GameplayScreen extends Screen {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Vector2 gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
+				Point2D.Float gamePosition = view.getScreenToGameCoords(e.getX(), e.getY());
 				Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 
 				if (_OpenEditors.containsKey(entity)) {

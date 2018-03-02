@@ -3,10 +3,9 @@ package com.undead_pixels.dungeon_bots.nogdx;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.io.Serializable;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
-
-public class OrthographicCamera {
+public class OrthographicCamera implements Serializable {
 
 	/**
 	 * Zoom factor (size of each tile compared to the viewport)
@@ -39,8 +38,7 @@ public class OrthographicCamera {
 		
 	}
 
-	@Deprecated
-	public Vector2 unproject(Vector2 pt) {
+	public Point2D.Float unproject(Point2D.Float pt) {
 		AffineTransform xform = getTransform();
 		Point2D.Float ret = new Point2D.Float();
 		try {
@@ -48,7 +46,7 @@ public class OrthographicCamera {
 		} catch (NoninvertibleTransformException e) {
 			e.printStackTrace();
 		}
-		return new Vector2(ret.x, ret.y);
+		return new Point2D.Float(ret.x, ret.y);
 	}
 
 	public AffineTransform getTransform() {
@@ -75,11 +73,6 @@ public class OrthographicCamera {
 		zoom = 1f;
 		
 		position = new Point2D.Float(size.x/2, size.y/2);
-	}
-
-	@Deprecated
-	public void zoomFor(Vector2 size) {
-		zoomFor(new Point2D.Float(size.x, size.y));
 	}
 
 	public void setViewportSize(float w, float h) {

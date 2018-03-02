@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -38,7 +39,6 @@ import javax.swing.event.ChangeEvent;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.editor.GameEditorState;
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -97,8 +97,8 @@ public class LevelEditorScreen extends Screen {
 						return;
 					if (selection instanceof TileType) {
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(e.getX(), e.getY());
-						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						//TileType currentTile = world.getTile(e.getX(), e.getY());
+						Point2D.Float gameCoords = view.getCamera().unproject(new Point2D.Float(e.getX(), e.getY()));
 						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();
@@ -116,8 +116,8 @@ public class LevelEditorScreen extends Screen {
 					if (selection instanceof TileType) {
 						// TODO: This is very hack-like. Work out the math.
 						TileType drawType = (TileType) selection;
-						TileType currentTile = world.getTile(e.getX(), e.getY());
-						Vector2 gameCoords = view.getCamera().unproject(new Vector2(e.getX(), e.getY()));
+						//TileType currentTile = world.getTile(e.getX(), e.getY());
+						Point2D.Float gameCoords = view.getCamera().unproject(new Point2D.Float(e.getX(), e.getY()));
 						world.setTile((int)gameCoords.x, (int)gameCoords.y, drawType);
 					}
 					e.consume();

@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.ui;
 
-import com.undead_pixels.dungeon_bots.math.Vector2;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
@@ -13,6 +12,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 
 import javax.swing.JComponent;
@@ -100,7 +100,7 @@ public class WorldView extends JComponent {
 			
 			if(showGrid) {
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
-				Vector2 size = world.getSize();
+				Point2D.Float size = world.getSize();
 				// draw Y lines
 				for(int i = 0; i <= size.y+.5f; i++) {
 					batch.drawLine(0, i, size.x, i);
@@ -139,9 +139,9 @@ public class WorldView extends JComponent {
 	}
 
 	/** Returns the given screen coordinates, translated into game space. */
-	public Vector2 getScreenToGameCoords(int screenX, int screenY) {
-		Vector2 gameSpace = cam.unproject(new Vector2(screenX, screenY));
-		return new Vector2(gameSpace.x, gameSpace.y);
+	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
+		Point2D.Float gameSpace = cam.unproject(new Point2D.Float(screenX, screenY));
+		return new Point2D.Float(gameSpace.x, gameSpace.y);
 	}
 
 	/** Returns the world currently being viewed. */
