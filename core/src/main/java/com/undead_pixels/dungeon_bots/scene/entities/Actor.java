@@ -11,6 +11,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
 
@@ -24,6 +25,8 @@ import java.io.Serializable;
  * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
+ * 
+ * TODO - mark as abstract
  */
 public class Actor extends SpriteEntity implements HasInventory {
 
@@ -45,31 +48,14 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @param world		The world to contain this Actor
 	 * @param tex		A texture for this Actor
 	 */
-	public Actor(World world, String name, TextureRegion tex) {
-		super(world, name, tex);
-		this.world.addEntity(this); // TODO - XXX
+	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
+		super(world, name, tex, scripts);
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
-		// TODO Auto-generated constructor stub
-	}
-	
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user sandbox that is run on this object
-	 * @param tex		A texture for this Actor
-	 */
-	@Deprecated
-	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, tex);
-		this.world.addEntity(this);
-		// TODO Auto-generated constructor stub
-		/// XXX
-		// DELETEME
 	}
 
 	@Override
 	public float getZ() {
-		// TODO Auto-generated method stub
 		return 10;
 	}
 

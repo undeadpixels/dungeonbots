@@ -12,7 +12,7 @@ public abstract class ChildEntity extends Entity {
 	protected Entity parent;
 
 	public ChildEntity(Entity parent, String name) {
-		super(parent.world, name);
+		super(parent.world, name, null);
 
 		this.parent = parent;
 	}
@@ -27,9 +27,7 @@ public abstract class ChildEntity extends Entity {
 		return false;
 	}
 
-	@Deprecated
 	@Override
-	// WO: what is this used for?
 	public float getScale() {
 		return parent.getScale();
 	}

@@ -18,7 +18,9 @@ public class ScriptApiTest {
 	private volatile boolean eventCalled = false;
 
 	@Test public void testGetBindings() {
-		Player player = new Player(new World(), "player");
+		World w = new World();
+		Player player = new Player(w, "player");
+		w.addEntity(player);
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
 		se.addBindable(player);
 		LuaInvocation luaScript = se.init("player:queueUp();");

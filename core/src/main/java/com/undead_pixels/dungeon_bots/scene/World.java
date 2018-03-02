@@ -57,12 +57,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The script that defines this world
 	 */
 	// private String levelScript;
-	private UserScript levelScript;
-
+	private UserScriptCollection levelScripts;
+	
 	/**
-	 * TODO: a script to be called when win() is invoked.
+	 * The scripts the players entities all own
 	 */
-	private UserScript onWinScript;
+	private UserScriptCollection playerTeamScripts;
 
 	/**
 	 * The LuaBindings to the World Lazy initialized
@@ -203,8 +203,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
-			levelScript = new UserScript("init", initScript.getScript());
-			onWinScript = new UserScript("onWin", "--do nothing.", SecurityLevel.AUTHOR);
+			this.levelScripts = new UserScriptCollection();
+			this.levelScripts.add(new UserScript("init", initScript.getScript()));
 			// levelScript = initScript.getScript();
 			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
 			level = new Level(initScript.getResults().get(), mapSandbox);
@@ -219,10 +219,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Perform some initializations that need to be done upon deserialization
 	 */
 	private void worldSomewhatInit() {
-		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
+		mapSandbox = new LuaSandbox(this);
 		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
 		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-		LuaInvocation initScript = mapSandbox.init(levelScript.code).join();
+		LuaInvocation initScript = mapSandbox.init().join();
 		System.out.println(initScript.getStatus());
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
@@ -380,19 +380,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
-	}
-	public void makePlayer(float x, float y) {
-		Player p = new Player(this, name);
-		p.setPosition(new Point2D.Float(x, y));
+		this.addEntity(b);
 	}
 
 	@Bind
 	public void makeBot(LuaValue name, LuaValue x, LuaValue y) {
 		makeBot(name.tojstring(), x.tofloat(), y.tofloat());
-	}
-	@Bind
-	public void makePlayer(LuaValue x, LuaValue y) {
-		makePlayer(x.tofloat(), y.tofloat());
 	}
 
 	@Bind
@@ -487,7 +480,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind
 	public Player getPlayer() {
-		return this.player != null ? this.player : new Player(this, "player");
+		if(player != null) {
+			return this.player;
+		} else {
+			player = new Player(this, "player");
+			this.addEntity(player);
+			return player;
+		}
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
@@ -924,6 +923,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		this.worldSomewhatInit();
+	}
+
+	public UserScriptCollection getScripts() {
+		return levelScripts;
 	}
 
 }

@@ -31,6 +31,7 @@ public final class LuaSandbox {
 
 	private static int id = 0;
 	
+	private final UserScriptCollection scripts;
 	private final Globals globals;
 	final Globals invokerGlobals = JsePlatform.debugGlobals();
 	private final SecurityContext securityContext; // TODO - init this
@@ -56,15 +57,18 @@ public final class LuaSandbox {
 	public LuaSandbox(SecurityLevel securityLevel) {
 		this.securityContext = new SecurityContext(new Whitelist(), securityLevel, null, null, TeamFlavor.NONE);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = new UserScriptCollection();
 	}
 
 	public LuaSandbox(Entity e) {
 		this.securityContext = new SecurityContext(e);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = e.getScripts();
 	}
 	public LuaSandbox(World w) {
 		this.securityContext = new SecurityContext(w);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = w.getScripts();
 	}
 
 
@@ -134,6 +138,17 @@ public final class LuaSandbox {
 	 */
 	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
 		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
+		scriptQueue.update(0.f);
+		
+		return ret;
+	}
+
+	/**
+	 * @param scriptFile
+	 * @return
+	 */
+	public LuaInvocation init() {
+		LuaInvocation ret = this.enqueueCodeBlock(this.scripts.get("init").code);
 		scriptQueue.update(0.f);
 		
 		return ret;

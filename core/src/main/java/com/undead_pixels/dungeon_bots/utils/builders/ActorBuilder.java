@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 
 public class ActorBuilder {
 	private World world = new World();
@@ -32,6 +33,8 @@ public class ActorBuilder {
 	}
 
 	public Actor createActor() {
-		return new Actor(world, name, tex); // TODO - what to do with script?
+		Actor ret = new Actor(world, name, tex, new UserScriptCollection()); // TODO - what to do with script?
+		world.addEntity(ret);
+		return ret;
 	}
 }

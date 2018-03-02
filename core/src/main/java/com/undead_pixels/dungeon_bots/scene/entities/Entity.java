@@ -26,24 +26,14 @@ import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, UseItem, HasEntity, HasTeam {
 
 	/**
-	 * The script associated with this entity. Access to this collection is
-	 * thread-safe and synchronized (though I've never actually concurrency-
-	 * tested the Collections.synchronizedList() function).
+	 * The scripts associated with this entity.
 	 */
-	public List<UserScript> eventScripts = Collections.synchronizedList(new ArrayList<UserScript>());
+	private final UserScriptCollection scripts;
 
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
-
-	// TODO: WO - a separate sandbox for players' events to run in?
-	protected transient LuaSandbox player_accessible_sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
-
-	/**
-	 * A string representing this Entity's script (if any)
-	 */
-	protected String scriptText;
+	protected transient LuaSandbox sandbox = new LuaSandbox(this);
 
 	/**
 	 * The queue of actions this Entity is going to take
@@ -73,12 +63,12 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 * @param name
 	 *            This entity's name
 	 */
-	public Entity(World world, String name) {
+	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
 		this.sandbox.addBindable(this);
-		this.eventScripts.add(new UserScript("onMyTurn", "--Do nothing", SecurityLevel.DEFAULT));
+		this.scripts = scripts;
 	}
 
 	/**
@@ -168,15 +158,16 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return this.name;
 	}
 
-	// WO: is this used by anything? I think view scaling was implemented at
-	// world level.
-	@Deprecated
 	public abstract float getScale();
 
 	// WO: a part of serialization?
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
-		sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
+		sandbox = new LuaSandbox(this);
 		actionQueue = new ActionQueue(this);
+	}
+
+	public UserScriptCollection getScripts() {
+		return this.scripts;
 	}
 }

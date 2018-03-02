@@ -144,7 +144,7 @@ public final class JEntityEditor extends JPanel {
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
 		_ScriptList.clear();
-		for (UserScript u : _Entity.eventScripts)
+		for (UserScript u : _Entity.getScripts())
 			_ScriptList.addElement(u.copy());
 	}
 
@@ -153,11 +153,11 @@ public final class JEntityEditor extends JPanel {
 	 * GUI.
 	 */
 	public void save() {
-		_Entity.eventScripts.clear();
+		_Entity.getScripts().clear();
 		_Editor.saveScript();
 		for (int i = 0; i < _ScriptList.getSize(); i++) {
 			UserScript script = _ScriptList.get(i);
-			_Entity.eventScripts.add(script);
+			_Entity.getScripts().add(script);
 		}
 	}
 
