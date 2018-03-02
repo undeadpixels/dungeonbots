@@ -55,7 +55,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	}
 
 
-	@Override @Bind(SecurityLevel.ENTITY)
+	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean use() {
 		return getItem()
 				.map(Useable::use)
