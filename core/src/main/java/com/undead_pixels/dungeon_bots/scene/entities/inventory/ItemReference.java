@@ -9,12 +9,12 @@ import java.io.Serializable;
 
 public final class ItemReference implements GetLuaFacade, Serializable, Useable {
 
-	final Inventory inventory;
-	final int index;
+	public final int index;
+	Item item;
 
-	public ItemReference(final Inventory inventory, int index) {
-		this.inventory = inventory;
+	public ItemReference(int index) {
 		this.index = index;
+		item = new Item.EmptyItem();
 	}
 
 	/**
@@ -22,7 +22,12 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return An Optional possibly containing the item.
 	 */
 	public Item getItem() {
-		return inventory.getItem(this);
+		return item;
+	}
+
+	public ItemReference setItem(Item i) {
+		this.item = i;
+		return this;
 	}
 
 	/**
@@ -30,7 +35,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return True if the ItemReference contains an item.
 	 */
 	public boolean hasItem() {
-		return getItem().isEmpty();
+		return item.isEmpty();
 	}
 
 	/**
@@ -40,7 +45,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	@Override
 	@Bind(SecurityLevel.DEFAULT)
 	public String getName() {
-		return getItem().getName();
+		return item.getName();
 	}
 
 	/**
@@ -49,7 +54,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public String getDescription() {
-		return getItem().getDescription();
+		return item.getDescription();
 	}
 
 	/**
@@ -58,7 +63,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getValue() {
-		return getItem().getValue();
+		return item.getValue();
 	}
 
 	/**
@@ -67,7 +72,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
-		return getItem().getWeight();
+		return item.getWeight();
 	}
 
 	/**
@@ -76,7 +81,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean use() {
-		return getItem().use();
+		return item.use();
 	}
 
 	/**
@@ -85,7 +90,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean up() {
-		return getItem().up();
+		return item.up();
 	}
 
 	/**
@@ -94,7 +99,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean down() {
-		return getItem().down();
+		return item.down();
 	}
 
 	/**
@@ -103,7 +108,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean left() {
-		return getItem().left();
+		return item.left();
 	}
 
 	/**
@@ -112,7 +117,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean right() {
-		return getItem().right();
+		return item.right();
 	}
 
 	/**
@@ -120,8 +125,8 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return
 	 */
 	public Item derefItem() {
-		Item i = getItem();
-		this.inventory.removeItem(this.index);
+		Item i = item;
+		this.item = new Item.EmptyItem();
 		return i;
 	}
 

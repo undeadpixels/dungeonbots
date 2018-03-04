@@ -45,4 +45,17 @@ public class TestItem {
 		assertEquals(NAME, itemReference.getName());
 		assertEquals(DESC, itemReference.getDescription());
 	}
+
+	@Test
+	public void testRemoveItemWithItemReference() {
+		player.getInventory().addItem(note);
+		Optional<Integer> index = player.getInventory().findIndex(note);
+		assert index.isPresent();
+		ItemReference itemReference = player.getInventory().peek(LuaValue.valueOf(index.get() + 1));
+		assertEquals(itemReference.getItem().getName(), NAME);
+		player.getInventory().removeItem(itemReference.index);
+		assertTrue(itemReference.getItem().isEmpty());
+		assertEquals(itemReference.getItem().getName(), "Empty");
+	}
+
 }

@@ -17,14 +17,7 @@ import java.util.stream.*;
  */
 public class Inventory implements GetLuaFacade, Serializable {
 
-	private class ItemPair extends Pair<Item, ItemReference> {
-		ItemPair(Item item, ItemReference second) { super(item, second); }
-		ItemReference getItemReference() { return this.second; }
-		Item getItem() { return this.first; }
-		void setItem(Item i) { this.setFirst(i); }
-	}
-
-	final ItemPair[] inventory;
+	final ItemReference[] inventory;
 
 	/**
 	 * The max size of the inventory.
@@ -38,11 +31,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 
 	public Inventory(final Entity owner, int maxSize) {
 		this.maxSize = maxSize;
-		inventory = new ItemPair[maxSize];
-		IntStream.range(0, maxSize).forEach(i ->
-				inventory[i] = new ItemPair(
-						new Item.EmptyItem(),
-						new ItemReference(this, i)));
+		inventory = new ItemReference[maxSize];
+		IntStream.range(0, maxSize).forEach(i -> inventory[i] = new ItemReference(i));
 		owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
@@ -65,7 +55,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	@Bind(SecurityLevel.DEFAULT) public ItemReference peek(LuaValue index) {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
-		return inventory[i].getItemReference();
+		return inventory[i];
 	}
 
 	/**
@@ -83,13 +73,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 	}
 
 	public Optional<Integer> findIndex(Item item) {
-		return Stream.of(inventory).filter(itemPair -> itemPair.getItem() == item)
+		return Stream.of(inventory).filter(itemReference -> itemReference.getItem() == item)
 				.findFirst()
-				.map(val -> val.getItemReference().index);
+				.map(val -> val.index);
 	}
 
-	public Item getItem(ItemReference ir) {
-		return this.inventory[ir.index].getItem();
+	public Item getItem(int index) {
+		return this.inventory[index].getItem();
 	}
 
 	/**
@@ -162,7 +152,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	public LuaTable get() {
 		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
-			table.set(i + 1, inventory[i].getItemReference().getLuaValue());
+			table.set(i + 1, inventory[i].getLuaValue());
 		}
 		return table;
 	}
@@ -179,7 +169,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	public Varargs unpack() {
 		final LuaValue[] ans = new LuaValue[inventory.length];
 		IntStream.range(0, inventory.length)
-				.forEach(i -> ans[i] = inventory[i].getItemReference().getLuaValue());
+				.forEach(i -> ans[i] = inventory[i].getLuaValue());
 		return LuaValue.varargsOf(ans);
 	}
 
@@ -196,7 +186,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	public Item[] getItems() {
 		return Stream.of(inventory)
-				.map(ItemPair::getItem)
+				.map(ItemReference::getItem)
 				.collect(Collectors.toList())
 				.toArray(new Item[inventory.length]);
 	}
