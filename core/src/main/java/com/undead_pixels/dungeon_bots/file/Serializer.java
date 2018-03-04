@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -130,9 +131,12 @@ public class Serializer {
 	 */
 	public static boolean writeToFile(String filename, byte[] bytes) {
 		try {
-			Files.write(Paths.get(filename), bytes);
+			Path path = Paths.get(filename);
+			path.toFile().getParentFile().mkdirs();
+			Files.write(path, bytes);
 			return true;
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -310,19 +314,19 @@ public class Serializer {
 		if (options.value > PrintOptions.NONE.value)
 			System.out.println(result);
 		if ((options.value & PrintOptions.MATCHED.value) == PrintOptions.MATCHED.value) {
-			System.out.print("Matched: " + matched.size());
+			System.out.println("Matched: " + matched.size());
 			for (String str : matched) {
 				System.out.println(str);
 			}
 		}
 		if ((options.value & PrintOptions.UNMATCHED.value) == PrintOptions.UNMATCHED.value) {
-			System.out.print("Unmatched: " + unmatched.size());
+			System.out.println("Unmatched: " + unmatched.size());
 			for (String str : unmatched) {
 				System.out.println(str);
 			}
 		}
 		if ((options.value & PrintOptions.UNDETERMINED.value) == PrintOptions.UNDETERMINED.value) {
-			System.out.print("Undetermined: " + undetermined.size());
+			System.out.println("Undetermined: " + undetermined.size());
 			for (String str : undetermined) {
 				System.out.println(str);
 			}
@@ -354,7 +358,7 @@ public class Serializer {
 		// From here, neither are null.
 		Class<?> classA = objectA.getClass(), classB = objectB.getClass();
 		if (!classA.equals(classB)) {
-			unmatched.add(rootName);
+			unmatched.add(rootName+" [class " + classA.getCanonicalName() + " != " + classB.getCanonicalName() + "]");
 			return;
 		}
 		if (objectA.equals(objectB)) {
@@ -379,14 +383,14 @@ public class Serializer {
 			if (((boolean) objectA) == ((boolean) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName);
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
 			return;
 		}
 		if (classA.isPrimitive()) {
 			if (((Number) objectA).equals((Number) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName);
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
 			return;
 		}
 
@@ -403,7 +407,7 @@ public class Serializer {
 						checked, rootName + "[" + i++ + "]", testTransients, testFinals);
 			}
 			if (iterA.hasNext() || iterB.hasNext())
-				unmatched.add(rootName);
+				unmatched.add(rootName +" [iterators not of same length]");
 			else
 				matched.add(rootName);
 			matched.addAll(tempMatched);
@@ -446,11 +450,11 @@ public class Serializer {
 				valB = field.get(objectB);
 			} catch (IllegalArgumentException e) {
 				System.out.println(fieldName + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalArgumentException]");
 				continue;
 			} catch (IllegalAccessException e) {
 				System.out.println(rootName + "." + field.getName() + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalAccessException]");
 				continue;
 			}
 			field.setAccessible(originalAccessible);

@@ -64,7 +64,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	public LuaInvocation(LuaSandbox env, UserScript script) {
-		this(env, script.code);
+		this(env, script == null ? "" : script.code);
 	}
 
 	/**

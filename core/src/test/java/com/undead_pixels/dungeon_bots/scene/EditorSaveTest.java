@@ -83,8 +83,8 @@ public class EditorSaveTest {
 				Serializer.PrintOptions.ALL_NON_MATCHED);
 
 		// Test save and load.
-		lp1.toFile("example.json");
-		lp2 = LevelPack.fromFile("example.json");
+		lp1.toFile("tmp/example.json");
+		lp2 = LevelPack.fromFile("tmp/example.json");
 		Serializer.validate(lp1, lp2, lp1.getName() + " LevelPack", false, true,
 				Serializer.PrintOptions.ALL_NON_MATCHED);
 

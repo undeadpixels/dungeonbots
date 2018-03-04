@@ -196,6 +196,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		
 		backgroundImage = null;
 		tiles = new Tile[0][0];
+		
+		if (luaScriptFile != null) {
+			this.levelScripts.add(new UserScript("init", luaScriptFile));
+		}
 
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
@@ -203,16 +207,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			tileTypesCollection = new TileTypes();
 
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			this.levelScripts.add(new UserScript("init", luaScriptFile));
 			LuaInvocation initScript = mapSandbox.init().join();
-			// levelScript = initScript.getScript();
 			
-			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
+			assert initScript.getStatus() == ScriptStatus.COMPLETE;
+			assert initScript.getResults().isPresent();
 			assert player != null; // XXX
 			if(player != null) {
-				getSandbox().addBindable(this,
+				mapSandbox.addBindable(
 						player.getSandbox().getWhitelist(),
-						tileTypesCollection,
 						player.getInventory());
 			}
 		}
@@ -224,14 +226,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(this);
-		//System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getDefaultWhitelist());
+		mapSandbox.registerEventType("UPDATE");
 		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
 		LuaInvocation initScript = mapSandbox.init().join();
-		System.out.println(initScript.getStatus());
+		
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
-		assert player != null;
-		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
+		assert player != null; // XXX
+		if(player != null) {
+			System.out.println(player.getSandbox().getWhitelist());
+			System.out.println(player.getInventory());
+			mapSandbox.addBindable(
+					player.getSandbox().getWhitelist(),
+					player.getInventory());
+		}
 	}
 
 	// =============================================
@@ -254,11 +262,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	public void setPlayer(Player p) {
+		int oldIdx = entities.indexOf(player);
+		if(oldIdx >= 0) {
+			entities.remove(oldIdx);
+			entities.add(oldIdx, p);
+		} else {
+			entities.add(p);
+		}
 		entities.remove(player);
 		player = p;
-		entities.add(p);
 		p.resetInventory();
-		//entities.add(p);
 	}
 
 	/**
@@ -376,6 +389,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				if(e instanceof Bot) {
 					Bot b = (Bot) e;
 					b.setPosition(new Point2D.Float(x, y));
+					System.out.println("Found pre-existing bot");
 					return;
 				}
 			}

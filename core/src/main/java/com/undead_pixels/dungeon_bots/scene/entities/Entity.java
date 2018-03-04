@@ -32,8 +32,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	/**
 	 * A user sandbox that is run on this object
+	 * 
+	 * Lazy-loaded
 	 */
-	protected transient LuaSandbox sandbox;
+	private transient LuaSandbox sandbox;
 
 	/**
 	 * The queue of actions this Entity is going to take
@@ -58,19 +60,14 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * Constructor for this entity
 	 * 
-	 * @param world
-	 *            The world
-	 * @param name
-	 *            This entity's name
+	 * @param world		The world
+	 * @param name		This entity's name
 	 */
 	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
 		this.scripts = scripts;
-		
-		this.sandbox = new LuaSandbox(this);
-		this.sandbox.addBindable(this);
 	}
 
 	/**
@@ -79,6 +76,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
+		if(sandbox == null) {
+			sandbox = new LuaSandbox(this);
+			this.sandbox.addBindable(this);
+		}
 		return sandbox;
 	}
 
@@ -87,13 +88,16 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
-		sandbox.update(dt);
+		if(sandbox != null) {
+			sandbox.update(dt);
+		}
 	}
 
 	/**
 	 * @param sandbox
 	 *            The user sandbox to set
 	 */
+	@Deprecated
 	public void setSandbox(LuaSandbox sandbox) {
 		this.sandbox = sandbox;
 	}
@@ -171,7 +175,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
-		sandbox = new LuaSandbox(this);
 		actionQueue = new ActionQueue(this);
 	}
 
