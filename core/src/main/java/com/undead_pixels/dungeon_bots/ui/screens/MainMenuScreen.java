@@ -114,20 +114,20 @@ public class MainMenuScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 
-		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("PLAY")
+		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("Play")
 				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 		bttnPlay.requestFocus();
 
 		JButton bttnCreate = UIBuilder.buildButton().image("create.gif").toolTip("Edit a game as an author.")
-				.text("CREATE").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
+				.text("Create").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
 		JButton bttnCommunity = UIBuilder.buildButton().image("community.gif").toolTip("Go to the online community.")
-				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
+				.text("Community").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
-		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("QUIT")
+		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("Quit")
 				.action("QUIT", getController()).hotkey(KeyEvent.VK_Q).margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT)
 				.create();
 

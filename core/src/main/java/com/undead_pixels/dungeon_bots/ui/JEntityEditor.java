@@ -98,11 +98,11 @@ public final class JEntityEditor extends JPanel {
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
-		JButton bttnReset = UIBuilder.buildButton().text("RESET").toolTip("Reset the entity characteristics.")
+		JButton bttnReset = UIBuilder.buildButton().text("Reset").toolTip("Reset the entity characteristics.")
 				.action("RESET", _Controller).create();
-		JButton bttnOK = UIBuilder.buildButton().text("SAVE").toolTip("Approve the changes.")
+		JButton bttnOK = UIBuilder.buildButton().text("Save").toolTip("Approve the changes.")
 				.action("SAVE", _Controller).create();
-		JButton bttnClose = UIBuilder.buildButton().text("CLOSE").toolTip("Close the editor.")
+		JButton bttnClose = UIBuilder.buildButton().text("Close").toolTip("Close the editor.")
 				.action("CLOSE", _Controller).create();
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
