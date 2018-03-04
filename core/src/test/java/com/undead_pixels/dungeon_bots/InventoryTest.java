@@ -3,8 +3,8 @@ package com.undead_pixels.dungeon_bots;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Note;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,9 +14,9 @@ import static org.junit.Assert.*;
 
 public class InventoryTest {
 
-	public World w;
-	public Player p;
-	public Item i;
+	World w;
+	Player p;
+	Item i;
 
 	@Before public void setup() {
 		w = new World();

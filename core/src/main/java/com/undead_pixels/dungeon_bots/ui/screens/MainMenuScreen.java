@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -49,7 +50,7 @@ public class MainMenuScreen extends Screen {
 					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					break;
 				case "CREATE":
-					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser());
+					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("default.lua")));
 					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 					break;
 				case "COMMUNITY":

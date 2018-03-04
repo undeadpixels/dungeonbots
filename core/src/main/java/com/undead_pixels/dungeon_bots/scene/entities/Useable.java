@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.scene.entities.inventory;
+package com.undead_pixels.dungeon_bots.scene.entities;
 
 /** Interface representing an entity or type that has a contextual use<br>
 *  method that can be invoked generically.<br>
