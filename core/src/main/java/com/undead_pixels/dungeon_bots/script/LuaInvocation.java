@@ -7,12 +7,8 @@ package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.queueing.Taskable;
 import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
-import com.undead_pixels.dungeon_bots.utils.generic.Pair;
 import org.luaj.vm2.*;
-import java.io.File;
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * @author Stewart Charles
@@ -22,7 +18,7 @@ import java.util.stream.Stream;
 public class LuaInvocation implements Taskable<LuaSandbox> {
 
 	private final LuaSandbox environment;
-	private final String script;
+	private final LuaValue[] functions;
 	private final LuaValue[] args;
 	private volatile Varargs result;
 	private volatile ScriptStatus scriptStatus;
@@ -42,22 +38,24 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
 		this.environment = env;
-		this.script = script;
+		functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
 		this.args = new LuaValue[] {};
 		scriptStatus = ScriptStatus.READY;
 	}
 
-	public LuaInvocation(LuaSandbox env, String functionName, LuaValue[] args) {
+	public LuaInvocation(LuaSandbox env, LuaValue[] functions, LuaValue[] args) {
 		this.environment = env;
-		this.script = "";
-		this.args = new LuaValue[] {};
-		// TODO - look up correct function
+		this.functions = functions;
+		this.args = args;
 		scriptStatus = ScriptStatus.READY;
-		throw new RuntimeException("Not implemented");
 	}
 
-	public LuaInvocation toFile(File f) {
-		throw new RuntimeException("Not Implemented");
+	public LuaInvocation(LuaSandbox env, Collection<LuaValue> functions, LuaValue[] args) {
+		this(env, functions.toArray(new LuaValue[0]), args);
+	}
+
+	public LuaInvocation(LuaSandbox env, UserScript script) {
+		this(env, script.code);
 	}
 
 	/**
@@ -80,29 +78,27 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
-			// TODO - probably shouldn't do this every single time
-			environment.getGlobals().set("print", environment.getPrintFunction());
-			environment.getGlobals().set("printf", environment.getPrintfFunction());
-			environment.getGlobals().set("sleep", environment.getSleepFunction());
-			LuaValue chunk = environment.invokerGlobals.load(this.script, "main", environment.getGlobals());
-			LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
-			setHook.invoke(LuaValue.varargsOf(new LuaValue[]{
-					thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)} ));
+			
+			for(LuaValue chunk : functions) {
+				LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
+				setHook.invoke(LuaValue.varargsOf(new LuaValue[]{
+						thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)} ));
 
-			// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
-			// Instead the varargs returns with a false boolean as the first result.
-			Varargs ans = thread.resume(LuaValue.NIL);
-			result = ans.subargs(2);
-			if(ans.arg1().checkboolean()) {
-				setStatus(ScriptStatus.COMPLETE);
-				luaError = null;
-			}
-			else {
-				setStatus(ans.arg(2).checkjstring().contains("ScriptInterruptException") ?
-						ScriptStatus.STOPPED :
-						ScriptStatus.LUA_ERROR);
-				luaError = new LuaError(ans.arg(2).checkjstring());
-				synchronized (this) { this.notifyAll(); }
+				// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
+				// Instead the varargs returns with a false boolean as the first result.
+				Varargs ans = thread.resume(LuaValue.NIL);
+				result = ans.subargs(2);
+				if(ans.arg1().checkboolean()) {
+					//setStatus(ScriptStatus.COMPLETE);
+					luaError = null;
+				} else {
+					setStatus(ans.arg(2).checkjstring().contains("ScriptInterruptException") ?
+							ScriptStatus.STOPPED :
+							ScriptStatus.LUA_ERROR);
+					luaError = new LuaError(ans.arg(2).checkjstring());
+					synchronized (this) { this.notifyAll(); }
+					break;
+				}
 			}
 		}
 		catch(LuaError le ) {
@@ -116,6 +112,10 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		}
 		catch (Exception e) {
 			setStatus(ScriptStatus.ERROR);
+		}
+		
+		if(getStatus() == ScriptStatus.RUNNING) {
+			setStatus(ScriptStatus.COMPLETE);
 		}
 	}
 
@@ -267,9 +267,5 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	
 	public void addListener(ScriptEventStatusListener listener) {
 		listeners.add(listener);
-	}
-
-	public String getScript() {
-		return this.script;
 	}
 }

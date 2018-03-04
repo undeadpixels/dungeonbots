@@ -60,12 +60,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The script that defines this world
 	 */
 	// private String levelScript;
-	private UserScriptCollection levelScripts;
+	private UserScriptCollection levelScripts = new UserScriptCollection();
 	
 	/**
 	 * The scripts the players entities all own
 	 */
-	private UserScriptCollection playerTeamScripts;
+	private UserScriptCollection playerTeamScripts = new UserScriptCollection();
 
 	/**
 	 * The LuaBindings to the World Lazy initialized
@@ -202,19 +202,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
-			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
-			this.levelScripts = new UserScriptCollection();
-			this.levelScripts.add(new UserScript("init", initScript.getScript()));
+			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+			this.levelScripts.add(new UserScript("init", luaScriptFile));
+			LuaInvocation initScript = mapSandbox.init().join();
 			// levelScript = initScript.getScript();
+			
 			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
-			//level = new Level(initScript.getResults().get(), mapSandbox);
-			//level.init();
-			assert player != null;
-			if(player == null) {
-				getSandbox().addBindable(this,
-						tileTypesCollection);
-			} else {
+			assert player != null; // XXX
+			if(player != null) {
 				getSandbox().addBindable(this,
 						player.getSandbox().getWhitelist(),
 						tileTypesCollection,
