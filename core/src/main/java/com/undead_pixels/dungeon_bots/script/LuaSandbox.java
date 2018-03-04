@@ -6,16 +6,20 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
+import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.*;
@@ -40,6 +44,7 @@ public final class LuaSandbox {
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 	private final ThreadGroup threadGroup = new ThreadGroup("lua-"+(id++));
+	private final HashMap<String, HashSet<LuaValue>> eventListeners = new HashMap<>();
 
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -340,5 +345,51 @@ public final class LuaSandbox {
 
 	public ThreadGroup getThreadGroup() {
 		return threadGroup;
+	}
+
+	public void registerEventType(String eventName) {
+		// TODO
+		
+		eventListeners.put(eventName, new HashSet<LuaValue>());
+		
+		
+		
+		OneArgFunction registerEventListenerFunction = new OneArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg) {
+				
+				return LuaValue.NIL;
+			}
+		};
+		
+		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
+		boolean shouldUpper = true;
+		String registerEventListernFunctionName = "";
+		String eventNameLower = eventName.toLowerCase();
+		for(int i = 0; i < eventNameLower.length(); i++) {
+			char c = eventNameLower.charAt(i);
+			if(c == '_') {
+				shouldUpper = true;
+				continue;
+			}
+			
+			if(shouldUpper) {
+				registerEventListernFunctionName += (""+c).toUpperCase();
+			} else {
+				registerEventListernFunctionName += c;
+			}
+		}
+		
+		registerEventListernFunctionName = "register" + registerEventListernFunctionName + "Listener";
+		
+		globals.set(registerEventListernFunctionName, registerEventListenerFunction);
+	}
+
+	public void fireEvent(String eventName, LuaValue... args) {
+		fireEvent(eventName, null, args);
+	}
+	public void fireEvent(String eventName, CoalescingGroup<LuaInvocation> instance, LuaValue... args) {
+		// TODO Auto-generated method stub
+		
 	}
 }

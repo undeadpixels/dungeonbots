@@ -31,6 +31,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -156,11 +157,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
 	/**
-	 *
-	 */
-	private transient Level level;
-
-	/**
 	 * Simple constructor
 	 */
 	public World() {
@@ -201,6 +197,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		tiles = new Tile[0][0];
 
 		mapSandbox = new LuaSandbox(this);
+		mapSandbox.registerEventType("UPDATE");
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
@@ -213,10 +210,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			//level = new Level(initScript.getResults().get(), mapSandbox);
 			//level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this,
-					player.getSandbox().getWhitelist(),
-					tileTypesCollection,
-					player.getInventory());
+			if(player == null) {
+				getSandbox().addBindable(this,
+						tileTypesCollection);
+			} else {
+				getSandbox().addBindable(this,
+						player.getSandbox().getWhitelist(),
+						tileTypesCollection,
+						player.getInventory());
+			}
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
@@ -232,8 +234,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		System.out.println(initScript.getStatus());
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
-		level = new Level(initScript.getResults().get(), mapSandbox);
-		level.init();
 		assert player != null;
 		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
 	}
@@ -258,8 +258,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	public void setPlayer(Player p) {
+		entities.remove(player);
 		player = p;
-		// entities.add(p);
+		entities.add(p);
 		p.resetInventory();
 		//entities.add(p);
 	}
@@ -308,8 +309,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 			playstyle.update();
 			// update level script
-			if (level != null)
-				level.update();
+			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 		} finally {
 			updateLock.unlock();
 		}
@@ -440,6 +440,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return The size of this world, in tiles
 	 */
 	public Point2D.Float getSize() {
+		if(tiles.length == 0) {
+			return new Point2D.Float(0, 0);
+		}
 		return new Point2D.Float(tiles.length, tiles[0].length);
 	}
 
@@ -450,6 +453,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (tilesAreStale) {
 
 			int w = tiles.length;
+			if(tiles.length == 0)
+				return;
+			
 			int h = tiles[0].length;
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
@@ -757,7 +763,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// tiles = new Tile[0][0];
 			// entities.clear();
 			// backgroundImage = null;
-			level.init();
+			//level.init();
+			// TODO
 		} finally {
 			updateLock.unlock();
 		}

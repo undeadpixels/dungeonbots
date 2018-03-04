@@ -80,6 +80,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
+			// TODO - probably shouldn't do this every single time
 			environment.getGlobals().set("print", environment.getPrintFunction());
 			environment.getGlobals().set("printf", environment.getPrintfFunction());
 			environment.getGlobals().set("sleep", environment.getSleepFunction());
