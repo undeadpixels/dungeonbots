@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 
 public class FloatingText extends ChildEntity {
 	
@@ -53,7 +53,7 @@ public class FloatingText extends ChildEntity {
 	}
 
 	@Override
-	public void render(SpriteBatch batch) {
+	public void render(RenderingContext batch) {
 		Point2D.Float pos = getPosition();
 		pos = new Point2D.Float(pos.x, pos.y + .4f);
 		for(Iterator<TextInfo> iter = lines.descendingIterator(); iter.hasNext(); ) {
@@ -113,7 +113,7 @@ public class FloatingText extends ChildEntity {
 			age += dt;
 		}
 		
-		private Point2D.Float render(SpriteBatch batch, Point2D.Float pos) {
+		private Point2D.Float render(RenderingContext batch, Point2D.Float pos) {
 			float fadeRatio = (duration - age) / fadeDuration;
 			if(fadeRatio > 1) {
 				fadeRatio = 1;

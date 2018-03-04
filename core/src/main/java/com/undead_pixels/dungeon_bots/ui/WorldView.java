@@ -1,7 +1,7 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -81,7 +81,7 @@ public class WorldView extends JComponent {
 			float w = this.getWidth();
 			float h = this.getHeight();
 
-			SpriteBatch batch = new SpriteBatch(g2d, w, h);
+			RenderingContext batch = new RenderingContext(g2d, w, h);
 
 			if (!didInitCam) {
 				cam = new OrthographicCamera(w, h);
@@ -190,7 +190,7 @@ public class WorldView extends JComponent {
 		selectedTiles = newTiles;
 	}
 
-	private void renderSelectedTiles(Graphics2D g2d, SpriteBatch batch) {
+	private void renderSelectedTiles(Graphics2D g2d, RenderingContext batch) {
 		Tile[] st = this.selectedTiles;
 		if (st != null && st.length > 0) {
 			g2d.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
@@ -219,7 +219,7 @@ public class WorldView extends JComponent {
 		selectedEntities = newEntities;
 	}
 
-	private void renderSelectedEntities(Graphics2D g2d, SpriteBatch batch) {
+	private void renderSelectedEntities(Graphics2D g2d, RenderingContext batch) {
 		Entity[] se = this.selectedEntities;
 		if (se != null && se.length > 0) {
 			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.4f));

@@ -1,6 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 
 /**
  * Something with both render(SpriteBatch) and update(dt) functions.
@@ -20,7 +20,7 @@ public interface BatchRenderable {
      * 
      * @param batch		The batch to insert this renderable into
      */
-    public void render(SpriteBatch batch);
+    public void render(RenderingContext batch);
     
     
     /**

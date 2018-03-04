@@ -1,6 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 
 public class HealthBar extends ChildEntity {
 
@@ -10,7 +10,7 @@ public class HealthBar extends ChildEntity {
 	}
 
 	@Override
-	public void render(SpriteBatch batch) {
+	public void render(RenderingContext batch) {
 		// TODO Auto-generated method stub
 
 	}

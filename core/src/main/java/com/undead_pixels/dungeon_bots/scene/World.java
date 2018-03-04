@@ -16,8 +16,7 @@ import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.math.Helpers2D;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
@@ -331,7 +330,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * 
 	 * @param batch	a SpriteBatch
 	 */
-	public void render(SpriteBatch batch) {
+	public void render(RenderingContext batch) {
 		refreshTiles();
 
 		// System.out.println("Rendering world");
@@ -738,7 +737,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		for (Entity e : entities) {
 			Point2D.Float pt = e.getPosition();
 			Rectangle2D.Float rectEntity = new Rectangle2D.Float(pt.x, pt.y, 1f, 1f);
-			if (Helpers2D.intersect(rect, rectEntity))
+			if (rectEntity.intersects(rect))
 				result.add(e);
 		}
 

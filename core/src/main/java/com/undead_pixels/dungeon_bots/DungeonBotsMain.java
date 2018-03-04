@@ -23,17 +23,20 @@ import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 /**
  * The main game class. Maintains the identity of the current user and a
  * reference to the visual GUI currently on display. Has helper functions to
- * manage resources associated with the game.*
+ * manage resources associated with the game.
+ * 
+ * Should be used sparingly.
  */
 public class DungeonBotsMain {
 
 	/** The screen that is currently being shown. */
-	private Screen _Screen;
+	private Screen screen;
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
-	 * constructed at a time. The game instance will be available statically in
-	 * any Java code that imports this class.
+	 * constructed at a time.
+	 * 
+	 * Should be used sparingly.
 	 */
 	public static final DungeonBotsMain instance = new DungeonBotsMain();
 
@@ -57,35 +60,27 @@ public class DungeonBotsMain {
 	public void start() {
 
 		// There will be no established screen at startup.
-		if (_Screen != null)
+		if (screen != null)
 			throw new RuntimeException("Multiple instances of the game cannot be run.");
 
 		// Fire up the main menu screen.
 		setCurrentScreen(new MainMenuScreen());
 	}
 
-	/**
-	 * Restart the game back to the main menu screen (but don't require a new
-	 * login).
-	 */
-	public void restart() {
-		throw new RuntimeException("Not implemented yet.");
-	}
-
 	/** Sets the current screen to the given screen. */
 	public void setCurrentScreen(Screen newScreen) {
 
 		// Remove the old screen.
-		if (_Screen != null) {
-			_Screen.dispose();
+		if (screen != null) {
+			screen.dispose();
 		}
 
-		_Screen = newScreen;
+		screen = newScreen;
 		// Run the new screen.
 		// _Screen.pack();
-		_Screen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		_Screen.setup();
-		_Screen.setVisible(true);
+		screen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		screen.setup();
+		screen.setVisible(true);
 	}
 
 	/*
@@ -118,9 +113,9 @@ public class DungeonBotsMain {
 	 * A function that prompts the user to log in.
 	 * 
 	 * TODO: An Internet connection will be required for access to the Sharing
-	 * Platform, but this not required to run the pre-built parts of the game.
+	 * Platform, but should not be required to run the pre-built parts of the game.
 	 * 
-	 * However, this will also be needed when we want to upload results to the
+	 * However, this will be needed when we want to upload results to the
 	 * server, or to publish a game to the server.
 	 * 
 	 * 
@@ -140,10 +135,12 @@ public class DungeonBotsMain {
 
 	}
 
-	/** Closes the game, releases all visual pieces. */
+	/**
+	 * Closes the game, releases all visual pieces.
+	 */
 	public void dispose() {
-		if (_Screen != null)
-			_Screen.dispose();
+		if (screen != null)
+			screen.dispose();
 	}
 
 }

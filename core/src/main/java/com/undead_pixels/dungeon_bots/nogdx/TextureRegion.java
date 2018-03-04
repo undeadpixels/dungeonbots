@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.nogdx;
 
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 
 /**
@@ -65,6 +66,14 @@ public class TextureRegion implements Serializable {
 	public Texture getTex() {
 		return tex;
 	}
+	
+	/**
+	 * @return	A newly-allocated image representing this TextureRegion
+	 * 			(without any of the surrounding texture cropped out by the region)
+	 */
+	public BufferedImage toImage() {
+		return tex.getImg().getSubimage(x, y, w, h);
+	}
 
 	/**
 	 * Constructor
@@ -84,6 +93,15 @@ public class TextureRegion implements Serializable {
 		this.h = h;
 	}
 	
+	/**
+	 * Creates a region within this texture region
+	 * 
+	 * @param x
+	 * @param y
+	 * @param w
+	 * @param h
+	 * @return		A new, smaller texture region
+	 */
 	public TextureRegion subregion(int x, int y, int w, int h) {
 		return new TextureRegion(tex, this.x+x, this.y+y, w, h);
 	}

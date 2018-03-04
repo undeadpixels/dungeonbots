@@ -110,7 +110,7 @@ public class Sprite implements Serializable {
 	 * 
 	 * @param batch	A SpriteBatch object to draw into
 	 */
-	public void draw(SpriteBatch batch) {
+	public void draw(RenderingContext batch) {
 		if(tex != null) {
 			AffineTransform xform;
 			if(rotation == 0) {
@@ -173,6 +173,9 @@ public class Sprite implements Serializable {
 		return rotation;
 	}
 
+	/**
+	 * @return	The current position of this sprite
+	 */
 	public Point2D.Float getPosition() {
 		return new Point2D.Float(x, y);
 	}
