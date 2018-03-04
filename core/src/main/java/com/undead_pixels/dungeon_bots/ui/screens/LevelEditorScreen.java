@@ -408,13 +408,13 @@ public final class LevelEditorScreen extends Screen {
 			case "Import":
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openFile != null) {
-					// World newWorld = new World(openFile);
-					// LevelPack lp =
-					// DungeonBotsMain.instance.getLevelPack();
+					World newWorld = new World(openFile);
+					LevelPack lp = new LevelPack(newWorld.getName(), DungeonBotsMain.instance.getUser(), newWorld);
 					// lp._levels.add(newWorld);
 					// DungeonBotsMain.instance.setWorld(lp.levels.size() -
 					// 1);
 					// _CurrentFile = openFile;
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(lp));
 				} else
 					System.out.println("Open cancelled.");
 

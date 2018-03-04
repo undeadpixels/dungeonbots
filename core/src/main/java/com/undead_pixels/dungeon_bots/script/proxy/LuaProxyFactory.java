@@ -175,6 +175,7 @@ public class LuaProxyFactory {
 	}
 
 	private static <T extends GetLuaFacade> LuaValue evalMethod(final T caller, final Method m) {
+		assert m != null;
 		m.setAccessible(true);
 		final Class<?> returnType = m.getReturnType();
 
@@ -187,7 +188,6 @@ public class LuaProxyFactory {
 					//if(sandbox == null) {
 						//throw new RuntimeException("Sandbox was null");
 					//}
-					assert m != null;
 					return invokeWhitelist(m, returnType, sandbox==null?null : sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
 				catch (Exception me) {
