@@ -4,7 +4,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.utils.generic.Pair;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
@@ -89,7 +88,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
 		return Stream.of(inventory)
-				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : item.getItem().getWeight()), (a, b) -> a + b);
+				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
 	}
 
 	/**
@@ -177,7 +176,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 */
 	public void reset() {
-		Stream.of(inventory).forEach(itemPair -> itemPair.setItem(new Item.EmptyItem()));
+		Stream.of(inventory).forEach(itemRef -> itemRef.setItem(new Item.EmptyItem()));
 	}
 
 	/**

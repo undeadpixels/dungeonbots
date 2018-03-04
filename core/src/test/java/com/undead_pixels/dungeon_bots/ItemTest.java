@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 
-public class TestItem {
+public class ItemTest {
 
 	private World world;
 	private Player player;
