@@ -264,6 +264,8 @@ public final class LuaSandbox {
 				args.add(v.arg(i).tojstring());
 			}
 			String fmt = String.format(tofmt, args.toArray());
+			
+			System.out.println("printf: "+fmt);
 			try { bufferedOutputStream.write(fmt.getBytes()); }
 			catch (IOException io) { }
 			outputEventListeners.forEach(cn -> cn.accept(fmt));
@@ -319,6 +321,12 @@ public final class LuaSandbox {
 		return threadGroup;
 	}
 
+	/**
+	 * Registers an event type and allows this sandbox to request to listen to it
+	 * 
+	 * @param eventName		Something of the form FOO_BAR_BLAH,
+	 * 						which would create a function in the lua environment named registerFooBarBlahListener
+	 */
 	public void registerEventType(String eventName) {
 		eventListeners.put(eventName, new HashSet<LuaValue>());
 		
@@ -326,6 +334,7 @@ public final class LuaSandbox {
 		OneArgFunction registerEventListenerFunction = new OneArgFunction() {
 			@Override
 			public LuaValue call(LuaValue arg) {
+				System.out.println("Added a listener for "+eventName);
 				if(!arg.isfunction()) {
 					throw new LuaError("Expected a function");
 				}
@@ -336,7 +345,7 @@ public final class LuaSandbox {
 		
 		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
 		boolean shouldUpper = true;
-		String registerEventListernFunctionName = "";
+		String registerEventListenerFunctionName = "";
 		String eventNameLower = eventName.toLowerCase();
 		for(int i = 0; i < eventNameLower.length(); i++) {
 			char c = eventNameLower.charAt(i);
@@ -346,21 +355,25 @@ public final class LuaSandbox {
 			}
 			
 			if(shouldUpper) {
-				registerEventListernFunctionName += (""+c).toUpperCase();
+				registerEventListenerFunctionName += (""+c).toUpperCase();
+				shouldUpper = false;
 			} else {
-				registerEventListernFunctionName += c;
+				registerEventListenerFunctionName += c;
 			}
 		}
 		
-		registerEventListernFunctionName = "register" + registerEventListernFunctionName + "Listener";
+		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
+		System.out.println("Registering register function: "+registerEventListenerFunctionName);
 		
-		globals.set(registerEventListernFunctionName, registerEventListenerFunction);
+		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
 
-	public void fireEvent(String eventName, LuaValue... args) {
-		fireEvent(eventName, null, args);
+	public LuaInvocation fireEvent(String eventName, LuaValue... args) {
+		return fireEvent(eventName, null, args);
 	}
-	public void fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
-		scriptQueue.enqueue(new LuaInvocation(this, eventListeners.get(eventName), args), coalescingGroup);
+	public LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
+		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
+		scriptQueue.enqueue(invocation, coalescingGroup);
+		return invocation;
 	}
 }

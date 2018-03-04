@@ -27,6 +27,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	private final static int MAX_INSTRUCTIONS = 1000;
 	private HookFunction hookFunction;
 	private InterruptedDebug scriptInterrupt = new InterruptedDebug();
+	private final String name;
 	
 	private final Object joinNotificationObj = new Object();
 
@@ -38,16 +39,18 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
 		this.environment = env;
-		functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
+		this.functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
 		this.args = new LuaValue[] {};
-		scriptStatus = ScriptStatus.READY;
+		this.scriptStatus = ScriptStatus.READY;
+		this.name = "string invocation";
 	}
 
 	public LuaInvocation(LuaSandbox env, LuaValue[] functions, LuaValue[] args) {
 		this.environment = env;
 		this.functions = functions;
 		this.args = args;
-		scriptStatus = ScriptStatus.READY;
+		this.scriptStatus = ScriptStatus.READY;
+		this.name = "functionarr invocation";
 	}
 
 	public LuaInvocation(LuaSandbox env, Collection<LuaValue> functions, LuaValue[] args) {
@@ -65,6 +68,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		if(scriptStatus == ScriptStatus.LUA_ERROR) {
 			return;
 		}
+		System.out.println("Invoking "+name+" ("+functions.length+" count)");
 		
 		// TODO - maybe add the current thread to the sandbox map?
 		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?

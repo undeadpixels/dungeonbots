@@ -60,7 +60,9 @@ tbl.init = function()
 end
 
 
+print("Declaring update!")
 tbl.update = function()
+    print("UPDATE!")
     local x, y = world:getPlayer():position()
     local gx, gy = world:getGoal()
     if x == gx and y == gy then
@@ -80,7 +82,10 @@ tbl.update = function()
     end
 end
 
+print("Init'ing")
 tbl.init()
-registerUpdateFunction(tbl.update)
+print(registerUpdateListener)
+registerUpdateListener(tbl.update)
+print("registered update!")
 
 return tbl
