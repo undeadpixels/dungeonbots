@@ -27,7 +27,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	private final static int MAX_INSTRUCTIONS = 1000;
 	private HookFunction hookFunction;
 	private InterruptedDebug scriptInterrupt = new InterruptedDebug();
-	private final String name;
 	
 	private final Object joinNotificationObj = new Object();
 
@@ -39,10 +38,18 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
 		this.environment = env;
-		this.functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
 		this.args = new LuaValue[] {};
 		this.scriptStatus = ScriptStatus.READY;
-		this.name = "string invocation";
+		LuaValue[] functions;
+		try {
+			functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
+		} catch(LuaError e) {
+			luaError = e;
+			scriptStatus = ScriptStatus.LUA_ERROR;
+			functions = new LuaValue[] {};
+			// TODO - why not just duck this error?
+		}
+		this.functions = functions;
 	}
 
 	public LuaInvocation(LuaSandbox env, LuaValue[] functions, LuaValue[] args) {
@@ -50,7 +57,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		this.functions = functions;
 		this.args = args;
 		this.scriptStatus = ScriptStatus.READY;
-		this.name = "functionarr invocation";
 	}
 
 	public LuaInvocation(LuaSandbox env, Collection<LuaValue> functions, LuaValue[] args) {
@@ -68,7 +74,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		if(scriptStatus == ScriptStatus.LUA_ERROR) {
 			return;
 		}
-		System.out.println("Invoking "+name+" ("+functions.length+" count)");
 		
 		// TODO - maybe add the current thread to the sandbox map?
 		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?

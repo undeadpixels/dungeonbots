@@ -78,4 +78,8 @@ tbl.update = function()
     end
 end
 
+tbl.init()
+registerUpdateListener(tbl.update)
+
+
 return tbl

@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -7,7 +8,7 @@ import java.util.Iterator;
  * A collection of UserScripts
  *
  */
-public class UserScriptCollection implements Iterable<UserScript> {
+public class UserScriptCollection implements Iterable<UserScript>, Serializable {
 	
 	private HashMap<String, UserScript> storage = new HashMap<>();
 

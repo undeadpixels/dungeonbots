@@ -276,6 +276,7 @@ public final class LuaSandbox {
 	public class PrintFunction extends VarArgFunction {
 		@Override public LuaValue invoke(Varargs v) {
 			String ans = v.tojstring();
+			System.out.println("print: "+ans);
 			try { bufferedOutputStream.write(ans.getBytes()); }
 			catch (IOException io) { }
 			outputEventListeners.forEach(cn -> cn.accept(ans));
@@ -334,7 +335,6 @@ public final class LuaSandbox {
 		OneArgFunction registerEventListenerFunction = new OneArgFunction() {
 			@Override
 			public LuaValue call(LuaValue arg) {
-				System.out.println("Added a listener for "+eventName);
 				if(!arg.isfunction()) {
 					throw new LuaError("Expected a function");
 				}
@@ -363,7 +363,6 @@ public final class LuaSandbox {
 		}
 		
 		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
-		System.out.println("Registering register function: "+registerEventListenerFunctionName);
 		
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}

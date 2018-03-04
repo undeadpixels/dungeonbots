@@ -53,4 +53,8 @@ lvl.update = function()
     end
 end
 
+lvl.init()
+registerUpdateListener(lvl.update)
+
+
 return lvl
