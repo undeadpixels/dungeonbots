@@ -150,7 +150,7 @@ public class ResultsScreen extends Screen {
 				.create());
 		bttnPanel.add(UIBuilder.buildButton().text("Publish").action("PUBLISH", getController()).create());
 
-		Map<String, Object> endingState = _World.getState();
+		Map<String, Object> endingState = this.world.getState();
 		Vector<Entry<String, Object>> entries = new Vector<Entry<String, Object>>(endingState.entrySet());
 		JList<Entry<String, Object>> statsList = new JList<Entry<String, Object>>(entries);
 		statsList.setLayoutOrientation(JList.VERTICAL);
@@ -159,7 +159,7 @@ public class ResultsScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 		pane.add(statsList, BorderLayout.CENTER);
 		pane.add(bttnPanel, BorderLayout.PAGE_END);
-		_World.reset();
+		this.world.reset();
 	}
 
 	@Override

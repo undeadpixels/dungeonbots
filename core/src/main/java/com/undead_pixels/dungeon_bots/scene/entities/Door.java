@@ -31,6 +31,7 @@ public class Door extends SpriteEntity {
 
 	@Bind Key genKey() {
 		this.key = new Key(
+				this.world,
 				getName() + "key",
 				String.format("A key that unlocks the door for %s", getName()));
 		return this.key;

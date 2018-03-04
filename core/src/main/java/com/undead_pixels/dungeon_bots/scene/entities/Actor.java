@@ -2,23 +2,17 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
+import java.awt.geom.Point2D;
 
 import static org.luaj.vm2.LuaValue.*;
 
-import java.awt.geom.Point2D;
-import java.io.Serializable;
 
 /**
  * @author Kevin Parker
