@@ -3,8 +3,10 @@ package com.undead_pixels.dungeon_bots.scene.level;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.Serializer;
@@ -43,7 +45,7 @@ public class LevelPack {
 	 * author. The transition script will simple be a default script, and the
 	 * first World will be a default first World.
 	 */
-	public LevelPack(String name, User author) {
+	public LevelPack(String name, User author, World... worlds) {
 		this.name = name;
 
 		this.transitionScript = new UserScript("onTransition",
@@ -51,7 +53,8 @@ public class LevelPack {
 				SecurityLevel.AUTHOR);
 
 		this.levels = new WorldList();
-		this.levels.add(new World(new File("default.lua")));
+		//this.levels.add(new World(new File("default.lua")));
+		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
 
 		this.authors = new ArrayList<>();

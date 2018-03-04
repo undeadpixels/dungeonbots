@@ -14,9 +14,9 @@ import static org.junit.Assert.*;
 
 public class InventoryTest {
 
-	public World w;
-	public Player p;
-	public Item i;
+	World w;
+	Player p;
+	Item i;
 
 	@Before public void setup() {
 		w = new World();
