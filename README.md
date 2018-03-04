@@ -4,7 +4,7 @@ The DungeonBots game
 #### Build status:
 [![BuildStatus](https://travis-ci.com/cyanpelican/DungeonBots.svg?token=e8xGyuEnZZSykp8ymA16&branch=master)](https://travis-ci.com/cyanpelican/DungeonBots/builds)
 
-####Import/run in Eclipse:
+#### Import/run in Eclipse:
 
 1. File > Import … “gradle project”
 2. Once it imports, go into `DungeonBots-desktop` > `src/main/java` > `com.undead\_pixels.dungeon\_bots.desktop` > `DesktopLauncher.java`
