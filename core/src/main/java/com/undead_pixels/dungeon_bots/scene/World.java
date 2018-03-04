@@ -35,6 +35,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -83,6 +84,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The of this world (may be user-readable)
 	 */
 	private String name = "world";
+	
+	private Whitelist sharedWhitelist = new Whitelist();
 
 	// =============================================
 	// ====== World CTOR AND STARTUP STUFF
@@ -201,16 +204,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+			mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
 			this.levelScripts = new UserScriptCollection();
 			this.levelScripts.add(new UserScript("init", initScript.getScript()));
 			// levelScript = initScript.getScript();
 			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
-			level = new Level(initScript.getResults().get(), mapSandbox);
-			level.init();
+			//level = new Level(initScript.getResults().get(), mapSandbox);
+			//level.init();
 			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
+			player.getSandbox().addBindable(this,
+					player.getSandbox().getWhitelist(),
+					tileTypesCollection,
+					player.getInventory());
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
@@ -220,8 +226,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(this);
-		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
-		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+		//System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getDefaultWhitelist());
+		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
 		LuaInvocation initScript = mapSandbox.init().join();
 		System.out.println(initScript.getStatus());
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
@@ -927,6 +933,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public UserScriptCollection getScripts() {
 		return levelScripts;
+	}
+
+	public Whitelist getWhitelist() {
+		return sharedWhitelist;
 	}
 
 }

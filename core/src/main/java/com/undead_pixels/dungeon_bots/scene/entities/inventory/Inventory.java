@@ -45,7 +45,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 		inventory = new Item[maxSize];
 		itemReferences = new ItemReference[maxSize];
 		IntStream.range(0, maxSize).forEach(i -> itemReferences[i] = new ItemReference(this, i));
-		owner.getWhitelist().addAutoLevelsForBindables(ItemReference.class);
+		//owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
 	@Override

@@ -127,14 +127,16 @@ public class LuaProxyFactory {
 
 	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Exception {
 		if(context == null || context.canExecute(caller, m)) {
-			if(returnType.isAssignableFrom(Varargs.class))
+			if(returnType.isAssignableFrom(Varargs.class)) {
 				return Varargs.class.cast(m.invoke(caller, args));
-			else if(returnType.isAssignableFrom(LuaValue.class))
+			} else if(returnType.isAssignableFrom(LuaValue.class)) {
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
-			else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))
+			} else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom)) {
 				return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
-			else
-				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
+			} else {
+				Object ret = m.invoke(caller, args);
+				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(ret)});
+			}
 		} else {
 			throw new MethodNotOnWhitelistException(m);
 		}
@@ -185,6 +187,7 @@ public class LuaProxyFactory {
 					//if(sandbox == null) {
 						//throw new RuntimeException("Sandbox was null");
 					//}
+					assert m != null;
 					return invokeWhitelist(m, returnType, sandbox==null?null : sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
 				catch (Exception me) {

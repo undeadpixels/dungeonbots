@@ -39,7 +39,7 @@ public class Bot extends RpgActor {
 		steps = 0;
 		bumps = 0;
 
-		world.getWhitelist().addAutoLevelsForBindables(this);
+		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	public void setPosition(Point2D.Float v) {

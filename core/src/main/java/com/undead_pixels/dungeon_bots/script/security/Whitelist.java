@@ -40,7 +40,7 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final T... bindables) {
 		for(T t : bindables) {
-			this.addWhitelistNoReplace(t.getWhitelist());
+			this.addWhitelistNoReplace(t.getDefaultWhitelist());
 		}
 		return this;
 	}
