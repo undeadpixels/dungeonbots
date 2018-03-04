@@ -17,14 +17,26 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 		this.index = index;
 	}
 
+	/**
+	 * Returns the item associated with the ItemReference if it exists.
+	 * @return An Optional possibly containing the item.
+	 */
 	public Optional<Item> getItem() {
 		return Optional.ofNullable(inventory.inventory[this.index]);
 	}
 
+	/**
+	 * Returns true if the ItemReference contains an item.
+	 * @return True if the ItemReference contains an item.
+	 */
 	public boolean hasItem() {
-		return inventory.inventory[index] != null;
+		return getItem().isPresent();
 	}
 
+	/**
+	 * Returns a String name of the associated Item
+	 * @return The Name of the Item
+	 */
 	@Override
 	@Bind(SecurityLevel.DEFAULT)
 	public String getName() {
@@ -33,6 +45,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse("Empty");
 	}
 
+	/**
+	 * Returns a Description of the Item
+	 * @return A Description of the Item
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public String getDescription() {
 		return getItem()
@@ -40,6 +56,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse("An empty item slot");
 	}
 
+	/**
+	 * Returns the Value of the Item.
+	 * @return An Integer value of the Item.
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getValue() {
 		return getItem()
@@ -47,6 +67,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(0);
 	}
 
+	/**
+	 * Returns the Weight of the Item.
+	 * @return An Integer weight of the Item.
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
 		return getItem()
@@ -54,7 +78,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(0);
 	}
 
-
+	/**
+	 * Contextually uses the Item. Action varies depending on the Item.
+	 * @return True if the Item was successfully used.
+	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean use() {
 		return getItem()
@@ -62,6 +89,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(false);
 	}
 
+	/**
+	 * Uses the Item at the Location up relative to owner of the Item.
+	 * @return True if the Item was successfully used.
+	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean up() {
 		return getItem()
@@ -69,6 +100,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(false);
 	}
 
+	/**
+	 * Uses the Item at the Location down relative to the owner of the Item.
+	 * @return True if the Item was successfully used.
+	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean down() {
 		return getItem()
@@ -76,6 +111,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(false);
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean left() {
 		return getItem()
@@ -83,6 +122,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(false);
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean right() {
 		return getItem()
@@ -90,6 +133,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				.orElse(false);
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public Optional<Item> derefItem() {
 		Optional<Item> i = getItem();
 		this.inventory.removeItem(this.index);

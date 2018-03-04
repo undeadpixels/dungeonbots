@@ -1,10 +1,12 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
-/* Interface representing an entity or type that has a contextual use<br>
+/** Interface representing an entity or type that has a contextual use<br>
 *  method that can be invoked generically.<br>
-*  <em>Examples:</em><br>
+*  <h2>Examples:</h2>
+*  <em>
 *  Using a switch toggles the switch.<br>
 *  Using a door opens the door
+*  </em>
 *  */
 public interface Useable {
 	default Boolean use()   { return false; }

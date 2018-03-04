@@ -16,7 +16,7 @@ import java.util.stream.*;
 public class Inventory implements GetLuaFacade, Serializable {
 
 	/**
-	 * The underlying array if Items of the inventory.
+	 * The underlying array of Items.
 	 */
 	final Item[] inventory;
 

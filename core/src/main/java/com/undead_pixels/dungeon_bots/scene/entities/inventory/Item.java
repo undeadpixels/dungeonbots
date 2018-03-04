@@ -23,6 +23,7 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 		this.weight = weight;
 	}
 
+
 	@Bind(SecurityLevel.DEFAULT) public String getDescription() {
 		return description;
 	}
