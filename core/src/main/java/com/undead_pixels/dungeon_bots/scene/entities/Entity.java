@@ -178,6 +178,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue = new ActionQueue(this);
 	}
 
+	/**
+	 * @return	The collection of scripts that this entity can run
+	 */
 	public UserScriptCollection getScripts() {
 		return this.scripts;
 	}

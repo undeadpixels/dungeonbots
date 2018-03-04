@@ -5,6 +5,7 @@ import org.luaj.vm2.Varargs;
 
 import java.util.function.Function;
 
+@Deprecated
 public class SandboxedValue {
 	private final Varargs varargs;
 	private final LuaSandbox luaSandbox;

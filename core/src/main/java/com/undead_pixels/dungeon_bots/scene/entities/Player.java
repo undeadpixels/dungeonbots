@@ -22,7 +22,7 @@ import org.luaj.vm2.LuaValue;
  */
 public class Player extends RpgActor {
 
-
+	@Deprecated
 	protected String defaultCode;
 
 	/**

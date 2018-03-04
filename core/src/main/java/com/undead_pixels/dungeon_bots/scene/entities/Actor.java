@@ -24,11 +24,31 @@ import static org.luaj.vm2.LuaValue.*;
  */
 public class Actor extends SpriteEntity implements HasInventory {
 
+	/**
+	 * Number of steps taken
+	 */
 	protected int steps = 0;
+	
+	/**
+	 * Number of times bumped into a wall
+	 */
 	protected int bumps = 0;
 
-	protected Inventory inventory = new Inventory(this,10);
+	/**
+	 * Inventory
+	 */
+	protected Inventory inventory = new Inventory(this, 10);
+	
+	/**
+	 * Lazy-loaded lua value
+	 */
 	private transient LuaValue luaBinding;
+	
+	/**
+	 * The text associated with this actor
+	 * 
+	 * TODO - this might want to be refactored eventually
+	 */
 	private FloatingText floatingText;
 
 	/**
@@ -157,6 +177,11 @@ public class Actor extends SpriteEntity implements HasInventory {
 		}
 	}
 	
+	/**
+	 * Put some text above this entity's head
+	 * 
+	 * @param text
+	 */
 	public void addText(String text) {
 		this.floatingText.addLine(text);
 	}
@@ -186,6 +211,14 @@ public class Actor extends SpriteEntity implements HasInventory {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	/**
+	 * Move a given amount
+	 * 
+	 * @param amt
+	 * @param direction
+	 * @param blocking		Whether this call should block until the movement has finished
+	 * @return
+	 */
 	private Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
 		int SIZE = amt.narg();
 		int n;
@@ -318,8 +351,13 @@ public class Actor extends SpriteEntity implements HasInventory {
 		this.addText(text);
 	}
 
+	/**
+	 * Remove an item from this Actor's inventory
+	 * 
+	 * @param i
+	 */
 	public void removeItem(Item i) {
-
+		// TODO
 	}
 
 	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override

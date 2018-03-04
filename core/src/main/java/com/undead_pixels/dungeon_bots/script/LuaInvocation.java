@@ -17,17 +17,59 @@ import java.util.*;
  */
 public class LuaInvocation implements Taskable<LuaSandbox> {
 
+	/**
+	 * The environment this lives in
+	 */
 	private final LuaSandbox environment;
+	
+	/**
+	 * The function calls this invocation makes 
+	 */
 	private final LuaValue[] functions;
+	
+	/**
+	 * The arguments passed to those functions
+	 */
 	private final LuaValue[] args;
+	
+	/**
+	 * The result of this invocation
+	 */
 	private volatile Varargs result;
+	
+	/**
+	 * The status of this invocation
+	 */
 	private volatile ScriptStatus scriptStatus;
+	
+	/**
+	 * The error thrown by this invocation (if any)
+	 */
 	private volatile LuaError luaError;
+	
+	/**
+	 * Things listening for the status of this invocation
+	 */
 	private ArrayList<ScriptEventStatusListener> listeners = new ArrayList<>();
+	
+	/**
+	 * Max number of instructions
+	 */
 	private final static int MAX_INSTRUCTIONS = 1000;
+	
+	/**
+	 * The hook function that is called after new instructions are executed
+	 */
 	private HookFunction hookFunction;
+	
+	/**
+	 * A handle to interrupt the execution of this invocation
+	 */
 	private InterruptedDebug scriptInterrupt = new InterruptedDebug();
 	
+	/**
+	 * An object that is notified (Object.notify()) when execution has completed 
+	 */
 	private final Object joinNotificationObj = new Object();
 
 	/**
@@ -156,6 +198,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		}
 	}
 
+	/**
+	 * @param newStatus	The new status of this script
+	 */
 	private synchronized void setStatus(ScriptStatus newStatus) {
 		synchronized(joinNotificationObj) {
 			scriptStatus = newStatus;
@@ -274,6 +319,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	
+	/**
+	 * @param listener	Something that will listen for when this invocation has finished
+	 */
 	public void addListener(ScriptEventStatusListener listener) {
 		listeners.add(listener);
 	}

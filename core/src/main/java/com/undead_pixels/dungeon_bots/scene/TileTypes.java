@@ -174,19 +174,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 
 	@Override
 	public Iterator<TileType> iterator() {
-		return new Iterator<TileType>(){
-
-			private Iterator<Entry<String, TileType>> _hashMapIterator = typeMap.entrySet().iterator();
-			@Override
-			public boolean hasNext() {
-				return _hashMapIterator.hasNext();
-			}
-
-			@Override
-			public TileType next() {
-				return _hashMapIterator.next().getValue();
-			}
-			
-		};
+		return typeMap.values().iterator();
 	}
 }

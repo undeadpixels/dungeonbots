@@ -15,7 +15,14 @@ import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 
 public class FloatingText extends ChildEntity {
 	
+	/**
+	 * The font of this text
+	 */
 	private static Font font = new Font("Arial", Font.BOLD, 12);
+	
+	/**
+	 * The font size of this text
+	 */
 	private static final float fontSize = 12.0f;
 	
 	/**
@@ -31,12 +38,26 @@ public class FloatingText extends ChildEntity {
 	private float fadeDuration = 2.0f;
 	
 	
+	/**
+	 * Internal storage
+	 */
 	private LinkedList<TextInfo> lines = new LinkedList<>();
 
+	/**
+	 * Constructor
+	 * 
+	 * @param parent
+	 * @param name
+	 */
 	public FloatingText(Entity parent, String name) {
 		super(parent, name);
 	}
 	
+	/**
+	 * Add a line of text
+	 * 
+	 * @param line
+	 */
 	public void addLine(String line) {
 		lines.add(new TextInfo(line));
 	}
@@ -66,10 +87,16 @@ public class FloatingText extends ChildEntity {
 		return 150;
 	}
 
+	/**
+	 * @return	How long the given text is visible for
+	 */
 	public float getDuration() {
 		return duration;
 	}
 
+	/**
+	 * @param duration	How long the given text is visible for
+	 */
 	public void setDuration(float duration) {
 		if(duration < 0) {
 			duration = 0;
@@ -81,10 +108,16 @@ public class FloatingText extends ChildEntity {
 		this.duration = duration;
 	}
 
+	/**
+	 * @return	How long the fade animation will last
+	 */
 	public float getFadeDuration() {
 		return fadeDuration;
 	}
 
+	/**
+	 * @param fadeDuration	How long the fade animation will last
+	 */
 	public void setFadeDuration(float fadeDuration) {
 		if(fadeDuration < 0) {
 			fadeDuration = 0;
@@ -95,6 +128,9 @@ public class FloatingText extends ChildEntity {
 		this.fadeDuration = fadeDuration;
 	}
 	
+	/**
+	 * Internal info/rendering about text
+	 */
 	private class TextInfo {
 		private String text;
 		private Color color = Color.white;

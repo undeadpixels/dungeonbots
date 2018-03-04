@@ -23,16 +23,14 @@ import org.luaj.vm2.LuaValue;
  */
 public class Bot extends RpgActor {
 
-
+	@Deprecated
 	protected String defaultCode;
 
 	/**
 	 * Constructor
 	 * 
-	 * @param world
-	 *            The world this player belongs to
-	 * @param name
-	 *            The name of this player
+	 * @param world	The world this player belongs to
+	 * @param name	The name of this player
 	 */
 	public Bot(World world, String name) {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 7, 1));
@@ -42,13 +40,23 @@ public class Bot extends RpgActor {
 		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
-	public void setPosition(Point2D.Float v) {
+	/**
+	 * Set the position of this bot
+	 * 
+	 * @param pos
+	 */
+	public void setPosition(Point2D.Float pos) {
 		world.getTile(this.getPosition()).setOccupiedBy(null);
-		sprite.setX(v.x);
-		sprite.setY(v.y);
+		sprite.setX(pos.x);
+		sprite.setY(pos.y);
 		world.getTile(this.getPosition()).setOccupiedBy(this);
 	}
 
+	/**
+	 * Return the number of steps this Bot has taken
+	 * 
+	 * @return
+	 */
 	public int getSteps() {
 		return steps;
 	}

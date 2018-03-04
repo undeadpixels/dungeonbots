@@ -29,7 +29,6 @@ import java.util.stream.*;
  * A LuaSandbox is a factory for creating a Sandbox of globals and methods that can be used to invoke
  * LuaScripts. A LuaSandbox is essentially a collection of allowed Lua functions.<br>
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.
- * TODO: May need to generate a return type from LuaScripts that references the source LuaSandbox
  */
 public final class LuaSandbox {
 
@@ -93,10 +92,10 @@ public final class LuaSandbox {
 	 * @return The modified LuaSandbox
 	 */
 	private LuaSandbox add(Stream<LuaBinding> bindings) {
-        bindings.forEach(binding ->
-				globals.set(binding.bindTo, binding.luaValue));
-        return this;
-    }
+		bindings.forEach(binding ->
+		globals.set(binding.bindTo, binding.luaValue));
+		return this;
+	}
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
@@ -104,8 +103,8 @@ public final class LuaSandbox {
 	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
-    @SafeVarargs
-    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
+	@SafeVarargs
+	public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
 		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
 		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
