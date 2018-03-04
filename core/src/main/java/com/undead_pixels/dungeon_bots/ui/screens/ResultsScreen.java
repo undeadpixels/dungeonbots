@@ -32,8 +32,6 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 @SuppressWarnings("serial")
 public class ResultsScreen extends Screen {
 
-	private World _World;
-
 	public ResultsScreen(World world) {
 		super(world);
 	}
