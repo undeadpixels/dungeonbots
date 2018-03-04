@@ -58,7 +58,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * The script that defines this world
 	 */
-	// private String levelScript;
 	private UserScriptCollection levelScripts = new UserScriptCollection();
 	
 	/**
@@ -86,14 +85,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private String name = "world";
 	
+	/**
+	 * The whitelist governing what functions are accessable by whom
+	 */
 	private Whitelist sharedWhitelist = new Whitelist();
 
 	// =============================================
-	// ====== World CTOR AND STARTUP STUFF
-	// =============================================
-
-	// =============================================
-	// ====== World TILE MANAGEMENT STUFF
+	// ====== World CONSTRUCTOR AND STARTUP STUFF
 	// =============================================
 
 	/**
@@ -122,9 +120,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Collection of all entities in this world
 	 */
 	private ArrayList<Entity> entities = new ArrayList<>();
-
-	// TODO: Is it worthwhile to have a ref to player object? Isn't it just an
-	// entity among the other entities?
+	
 	/**
 	 * The player object
 	 */
@@ -135,7 +131,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private Integer[] goalPosition = new Integer[] {};
 
 	/**
-	 * WO: for performance stats reporting?
+	 * The number of times the "reset" button was pressed
 	 */
 	@State
 	private int timesReset = 0;
@@ -153,6 +149,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * 
 	 * TODO - add a lua binding to be able to
 	 * configure this from the level script
+	 * 
+	 * TODO - add a knob for this in the level editor
 	 */
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
@@ -245,8 +243,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// ====== World BINDABLE METHODS
 	// =============================================
 
+	/**
+	 * @return A new world
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
+	@Deprecated
 	public static LuaValue newWorld() {
 		World w = new World();
 		return LuaProxyFactory.getLuaValue(w);
@@ -290,8 +292,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// =============================================
 	// ====== World GAME LOOP
 	// =============================================
-
-	// TODO - another constructor for specific resource paths?
 
 	/**
 	 * Updates this world and all children. Update means.... ?
@@ -382,6 +382,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	/**
+	 * Place a bot with a given name at (x,y)
+	 * 
+	 * @param name
+	 * @param x
+	 * @param y
+	 */
 	public void makeBot(String name, float x, float y) {
 		// TODO - clean up better
 		// check that we don't already have a bot by the same name
@@ -395,16 +402,30 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				}
 			}
 		}
+		
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
 		this.addEntity(b);
 	}
 
+	/**
+	 * Place a bot with a given name at (x,y)
+	 * 
+	 * @param name
+	 * @param x
+	 * @param y
+	 */
 	@Bind
 	public void makeBot(LuaValue name, LuaValue x, LuaValue y) {
 		makeBot(name.tojstring(), x.tofloat(), y.tofloat());
 	}
 
+	/**
+	 * Set the size of the world
+	 * 
+	 * @param w
+	 * @param h
+	 */
 	@Bind
 	public void setSize(LuaValue w, LuaValue h) {
 		setSize(w.checkint(), h.checkint());
@@ -555,17 +576,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return tiles[x][y];
 	}
 
+	/**
+	 * @param x
+	 * @param y
+	 * @return		The Tile at a given position
+	 */
 	public Tile getTile(float x, float y) {
 		return getTile(Math.round(x), Math.round(y));
 	}
-	
+
+	/**
+	 * @param pos
+	 * @return		The Tile at a given position
+	 */
 	public Tile getTile(Point2D.Float pos) {
 		return getTile(pos.x, pos.y);
-	}
-	
-	@Deprecated
-	public Tile getTileUnderLocation(float x, float y) {
-		return getTile(x, y);
 	}
 
 	/**
@@ -744,6 +769,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return result;
 	}
 
+	/**
+	 * For people who don't know how to use floor()
+	 * 
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public Point getTileLocation(float x, float y) {
 		return new Point((int) x, (int) y);
 	}
@@ -768,7 +800,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 *
+	 * Resets this world
+	 * 
+	 * TODO - what exactly does that mean?
 	 */
 	public synchronized void reset() {
 		updateLock.lock();
@@ -787,7 +821,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 *
-	 * @return
+	 * @return	The state of this World
 	 */
 	@Override
 	public Map<String, Object> getState() {
@@ -806,16 +840,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	@Override
+	@Deprecated
 	public String getMapScript() {
 		String script = "tbl = {}\n" + "tbl.init = function()\n%s\n\tend\n" + "tbl.update = function(dt)\n%s\n\tend\n"
 				+ "return tbl";
 		return String.format(script, createInit(), createUpdate());
 	}
 
+	@Deprecated
 	private String put(String... a) {
 		return Stream.of(a).reduce("", (c, d) -> c + "\n" + d);
 	}
 
+	@Deprecated
 	private String createUpdate() {
 		StringBuilder ans = new StringBuilder();
 		ans.append(put("\t\tlocal x, y = world:getPlayer():position()",
@@ -824,6 +861,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return ans.toString();
 	}
 
+	@Deprecated
 	private String createInit() {
 		final StringBuilder ans = new StringBuilder();
 		final int width = tiles.length;
@@ -908,6 +946,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		t.start();
 	}
 
+	/**
+	 * Opens a browser to a given url
+	 * 
+	 * @param lurl	A url to open
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void openBrowser(LuaValue lurl) {
 		try {
@@ -917,11 +960,24 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	/**
+	 * Shows a popup box'
+	 * @param alert
+	 * @param title
+	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
+	/**
+	 * Try to use an item
+	 * 
+	 * @param itemRef
+	 * @param d
+	 * @param a
+	 * @return
+	 */
 	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
 		Point2D.Float pos = a.getPosition();
 		Point2D.Float toUse = null;
@@ -948,15 +1004,28 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return false;
 	}
 
+	/**
+	 * Deserialization helper
+	 * 
+	 * @param inputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		this.worldSomewhatInit();
 	}
 
+	/**
+	 * @return	The scripts specifically associated with this level
+	 */
 	public UserScriptCollection getScripts() {
 		return levelScripts;
 	}
 
+	/**
+	 * @return	The magical whitelist governing all lua bindings to java code
+	 */
 	public Whitelist getWhitelist() {
 		return sharedWhitelist;
 	}

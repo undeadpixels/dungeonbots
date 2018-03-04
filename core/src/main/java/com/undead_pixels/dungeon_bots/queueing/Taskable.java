@@ -10,18 +10,18 @@ public interface Taskable<T> {
 	 * 
 	 * @return	true if the action will occur as planned; false if it will fail
 	 */
-	default boolean preAct() { return true; }
+	public default boolean preAct() { return true; }
 	
 	/**
 	 * Continue performing/animating this action every frame.
 	 * 
 	 * @return	true once the action is completed, at which point postAct() will be called.
 	 */
-	boolean act(float dt);
+	public boolean act(float dt);
 	
 	/**
 	 * Do any final teardown or state changes that need to happen after this action has completed
 	 */
-	default void postAct() {}
+	public default void postAct() {}
 	
 }

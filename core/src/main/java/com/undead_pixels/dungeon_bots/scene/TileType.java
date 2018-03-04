@@ -147,6 +147,9 @@ public class TileType implements GetLuaFacade, Serializable {
 		return solid;
 	}
 
+	/**
+	 * @return	The default texture of this TileType
+	 */
 	public TextureRegion getTexture() {
 		return textureRegions[0];
 	}
