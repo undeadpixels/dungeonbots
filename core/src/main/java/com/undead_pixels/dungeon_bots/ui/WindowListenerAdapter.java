@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.math;
+package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;

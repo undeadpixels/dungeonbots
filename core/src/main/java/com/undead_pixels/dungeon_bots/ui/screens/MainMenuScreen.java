@@ -20,6 +20,7 @@ import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
@@ -29,8 +30,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 public class MainMenuScreen extends Screen {
 
 	public MainMenuScreen() {
-		super(null);
-		// TODO Auto-generated constructor stub
+		super();
 	}
 
 	@Override
@@ -41,10 +41,16 @@ public class MainMenuScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "PLAY":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.GAMEPLAY);
+					// TODO - this should instead launch a level selection screen
+					LevelPack levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser());
+					if (levelPack.getCurrentPlayer() != null && !levelPack.getCurrentPlayer().equals(DungeonBotsMain.instance.getUser())) {
+						throw new RuntimeException("Cannot switch to a game being played by another player.");
+					}
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					break;
 				case "CREATE":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.LEVEL_EDITOR);
+					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser());
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new

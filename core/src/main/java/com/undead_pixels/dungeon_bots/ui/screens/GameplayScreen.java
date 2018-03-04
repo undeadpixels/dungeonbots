@@ -45,9 +45,10 @@ public class GameplayScreen extends Screen {
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
+	protected final World world;
 
 	public GameplayScreen(World world) {
-		super(world);
+		this.world = world;
 	}
 
 	/**
@@ -92,7 +93,7 @@ public class GameplayScreen extends Screen {
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-						DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 
 					break;
 				case "Quit":

@@ -32,8 +32,11 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 @SuppressWarnings("serial")
 public class ResultsScreen extends Screen {
 
+	protected final World world;
+
 	public ResultsScreen(World world) {
-		super(world);
+		super();
+		this.world = world;
 	}
 
 	@Override
@@ -105,7 +108,7 @@ public class ResultsScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "OK":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 					break;
 				case "Publish":
 				default:

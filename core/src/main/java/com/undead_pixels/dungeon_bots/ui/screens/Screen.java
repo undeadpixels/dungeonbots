@@ -17,8 +17,6 @@ import com.undead_pixels.dungeon_bots.scene.World;
  * NOTE:  inheritance is from JFrame so that items contained can be focusable.
  */
 public abstract class Screen extends JFrame {
-
-	protected final World world;
 	
 	/** Will be used for saving GUI state, later. */
 	protected final HashMap<String, Object> guiState = new HashMap<String, Object>();
@@ -27,15 +25,14 @@ public abstract class Screen extends JFrame {
 	// -------------------Screen CONSTRUCTORS-----------------------------------
 	// =========================================================================
 
-	protected Screen(World world) {
+	protected Screen() {
 		super();
-		this.world = world;
-		
-		//this.setAlwaysOnTop(true);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);	    
-		this._Controller = this.makeController();		
+	}
+
+	public void setup() {
+		this._Controller = this.makeController();
 		this.setDefaultLayout();
-		this.addComponents(this.getContentPane());	
+		this.addComponents(this.getContentPane());
 	}
 
 	/**
