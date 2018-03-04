@@ -43,7 +43,7 @@ public class MainMenuScreen extends Screen {
 				switch (e.getActionCommand()) {
 				case "PLAY":
 					// TODO - this should instead launch a level selection screen
-					LevelPack levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser());
+					LevelPack levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("default.lua")));
 					if (levelPack.getCurrentPlayer() != null && !levelPack.getCurrentPlayer().equals(DungeonBotsMain.instance.getUser())) {
 						throw new RuntimeException("Cannot switch to a game being played by another player.");
 					}
