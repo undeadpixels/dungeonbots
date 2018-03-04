@@ -12,7 +12,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
@@ -27,24 +26,16 @@ import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
 
 	/**
-	 * The script associated with this entity. Access to this collection is
-	 * thread-safe and synchronized (though I've never actually concurrency-
-	 * tested the Collections.synchronizedList() function).
+	 * The scripts associated with this entity.
 	 */
-	public List<UserScript> eventScripts = Collections.synchronizedList(new ArrayList<UserScript>());
+	private final UserScriptCollection scripts;
 
 	/**
 	 * A user sandbox that is run on this object
+	 * 
+	 * Lazy-loaded
 	 */
-	protected transient LuaSandbox sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
-
-	// TODO: WO - a separate sandbox for players' events to run in?
-	protected transient LuaSandbox player_accessible_sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
-
-	/**
-	 * A string representing this Entity's script (if any)
-	 */
-	protected String scriptText;
+	private transient LuaSandbox sandbox;
 
 	/**
 	 * The queue of actions this Entity is going to take
@@ -69,17 +60,14 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * Constructor for this entity
 	 * 
-	 * @param world
-	 *            The world
-	 * @param name
-	 *            This entity's name
+	 * @param world		The world
+	 * @param name		This entity's name
 	 */
-	public Entity(World world, String name) {
+	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
-		this.sandbox.addBindable(this);
-		this.eventScripts.add(new UserScript("onMyTurn", "--Do nothing", SecurityLevel.DEFAULT));
+		this.scripts = scripts;
 	}
 
 	/**
@@ -88,6 +76,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
+		if(sandbox == null) {
+			sandbox = new LuaSandbox(this);
+			this.sandbox.addBindable(this);
+		}
 		return sandbox;
 	}
 
@@ -96,13 +88,16 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
-		sandbox.update(dt);
+		if(sandbox != null) {
+			sandbox.update(dt);
+		}
 	}
 
 	/**
 	 * @param sandbox
 	 *            The user sandbox to set
 	 */
+	@Deprecated
 	public void setSandbox(LuaSandbox sandbox) {
 		this.sandbox = sandbox;
 	}
@@ -114,7 +109,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
-		this.sandbox.addBindable(vals);
+		this.getSandbox().addBindable(vals);
 		return this;
 	}
 
@@ -169,15 +164,21 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return this.name;
 	}
 
-	// WO: is this used by anything? I think view scaling was implemented at
-	// world level.
-	@Deprecated
 	public abstract float getScale();
 
-	// WO: a part of serialization?
+	/**
+	 * Called upon deserialization to load additional variables in a less-traditional manner
+	 * 
+	 * @param inputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
-		sandbox = new LuaSandbox(SecurityLevel.DEFAULT);
 		actionQueue = new ActionQueue(this);
+	}
+
+	public UserScriptCollection getScripts() {
+		return this.scripts;
 	}
 }

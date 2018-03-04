@@ -21,6 +21,7 @@ import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -30,13 +31,13 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
+import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -59,22 +60,34 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The script that defines this world
 	 */
 	// private String levelScript;
-	private UserScript levelScript;
+	private UserScriptCollection levelScripts = new UserScriptCollection();
+	
+	/**
+	 * The scripts the players entities all own
+	 */
+	private UserScriptCollection playerTeamScripts = new UserScriptCollection();
 
-	/** TODO: a script to be called when win() is invoked. */
-	private UserScript onWinScript;
-
-	/** The LuaBindings to the World Lazy initialized */
+	/**
+	 * The LuaBindings to the World Lazy initialized
+	 */
 	private transient LuaValue luaValue;
 
-	/** The sandbox that the levelScript runs inside of */
+	/**
+	 * The sandbox that the levelScript runs inside of
+	 */
 	private transient LuaSandbox mapSandbox;
 
-	/** The level pack of which this World is a part. */
+	/**
+	 * The level pack of which this World is a part.
+	 */
 	private transient LevelPack levelPack = null;
 
-	/** The of this world (may be user-readable) */
+	/**
+	 * The of this world (may be user-readable)
+	 */
 	private String name = "world";
+	
+	private Whitelist sharedWhitelist = new Whitelist();
 
 	// =============================================
 	// ====== World CTOR AND STARTUP STUFF
@@ -84,7 +97,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// ====== World TILE MANAGEMENT STUFF
 	// =============================================
 
-	/** A background image for this world */
+	/**
+	 * A background image for this world
+	 * Not currently used.
+	 */
 	private TextureRegion backgroundImage;
 
 	/**
@@ -93,25 +109,35 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private Tile[][] tiles;
 
-	/** The collection of available TileType's */
+	/**
+	 * The collection of available TileType's
+	 */
 	private TileTypes tileTypesCollection;
 
-	/** Indication of if the tile array needs to be refreshed */
+	/**
+	 * Indication of if the tile array needs to be refreshed
+	 * */
 	private transient boolean tilesAreStale = true;
 
-	/** Collection of all entities in this world */
+	/**
+	 * Collection of all entities in this world
+	 */
 	private ArrayList<Entity> entities = new ArrayList<>();
 
 	// TODO: Is it worthwhile to have a ref to player object? Isn't it just an
 	// entity among the other entities?
-	/** The player object */
+	/**
+	 * The player object
+	 */
 	@State
 	private Player player;
 
 	// TODO: specify the goal position with a goal entity?
 	private Integer[] goalPosition = new Integer[] {};
 
-	/** WO: for performance stats reporting? */
+	/**
+	 * WO: for performance stats reporting?
+	 */
 	@State
 	private int timesReset = 0;
 
@@ -132,11 +158,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
 	/**
-	 *
-	 */
-	private transient Level level;
-
-	/**
 	 * Simple constructor
 	 */
 	public World() {
@@ -147,8 +168,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs this world from a lua script
 	 * 
-	 * @param luaScriptFile
-	 *            The level script
+	 * @param luaScriptFile	The level script
 	 */
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
@@ -158,8 +178,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs this world with a name
 	 * 
-	 * @param name
-	 *            The name
+	 * @param name	The name
 	 */
 	public World(String name) {
 		this(null, name);
@@ -169,48 +188,58 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Constructs a world
 	 * 
-	 * @param luaScriptFile
-	 *            The level script
-	 * @param name
-	 *            The name
+	 * @param luaScriptFile	The level script
+	 * @param name			The name
 	 */
 	public World(File luaScriptFile, String name) {
 		this.name = name;
 		
 		backgroundImage = null;
 		tiles = new Tile[0][0];
+		
+		if (luaScriptFile != null) {
+			this.levelScripts.add(new UserScript("init", luaScriptFile));
+		}
 
 		mapSandbox = new LuaSandbox(this);
+		mapSandbox.registerEventType("UPDATE");
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-			LuaInvocation initScript = mapSandbox.init(luaScriptFile).join();
-			levelScript = new UserScript("init", initScript.getScript());
-			onWinScript = new UserScript("onWin", "--do nothing.", SecurityLevel.AUTHOR);
-			// levelScript = initScript.getScript();
-			assert initScript.getStatus() == ScriptStatus.COMPLETE && initScript.getResults().isPresent();
-			level = new Level(initScript.getResults().get(), mapSandbox);
-			level.init();
-			assert player != null;
-			player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection, player.getInventory());
+			LuaInvocation initScript = mapSandbox.init().join();
+			
+			assert initScript.getStatus() == ScriptStatus.COMPLETE;
+			assert initScript.getResults().isPresent();
+			assert player != null; // XXX
+			if(player != null) {
+				mapSandbox.addBindable(
+						player.getSandbox().getWhitelist(),
+						player.getInventory());
+			}
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
 
+	/**
+	 * Perform some initializations that need to be done upon deserialization
+	 */
 	private void worldSomewhatInit() {
-		// TODO: "somewhat" init?
-		mapSandbox = new LuaSandbox(SecurityLevel.DEBUG);
-		System.out.println(this + ",     " + tileTypesCollection + ",     " + this.getWhitelist());
-		mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
-		LuaInvocation initScript = mapSandbox.init(levelScript.code).join();
-		System.out.println(initScript.getStatus());
+		mapSandbox = new LuaSandbox(this);
+		mapSandbox.registerEventType("UPDATE");
+		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
+		LuaInvocation initScript = mapSandbox.init().join();
+		
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
-		level = new Level(initScript.getResults().get(), mapSandbox);
-		level.init();
-		assert player != null;
-		player.getSandbox().addBindable(this, player.getSandbox().getWhitelist(), tileTypesCollection);
+		assert player != null; // XXX
+		if(player != null) {
+			System.out.println(player.getSandbox().getWhitelist());
+			System.out.println(player.getInventory());
+			mapSandbox.addBindable(
+					player.getSandbox().getWhitelist(),
+					player.getInventory());
+		}
 	}
 
 	// =============================================
@@ -232,11 +261,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.RESULTS);
 	}
 
+	@Deprecated
 	public void setPlayer(Player p) {
+		int oldIdx = entities.indexOf(player);
+		if(oldIdx >= 0) {
+			entities.remove(oldIdx);
+			entities.add(oldIdx, p);
+		} else {
+			entities.add(p);
+			this.addEntity(p);
+		}
 		player = p;
-		// entities.add(p);
 		p.resetInventory();
-		//entities.add(p);
 	}
 
 	/**
@@ -245,6 +281,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @param luaPlayer
 	 */
+	@Deprecated
 	@Bind(SecurityLevel.AUTHOR)
 	public void setPlayer(LuaValue luaPlayer) {
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
@@ -260,8 +297,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Updates this world and all children. Update means.... ?
 	 * 
-	 * @param dt
-	 *            Delta time
+	 * @param dt		Delta time
 	 */
 	public void update(float dt) {
 		updateLock.lock();
@@ -284,8 +320,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 			playstyle.update();
 			// update level script
-			if (level != null)
-				level.update();
+			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 		} finally {
 			updateLock.unlock();
 		}
@@ -294,8 +329,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Render this world and all children
 	 * 
-	 * @param batch
-	 *            a SpriteBatch
+	 * @param batch	a SpriteBatch
 	 */
 	public void render(SpriteBatch batch) {
 		refreshTiles();
@@ -337,8 +371,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Adds an entity
 	 * 
-	 * @param e
-	 *            The entity to add
+	 * @param e	The entity to add
 	 */
 	public void addEntity(Entity e) {
 		entities.add(e);
@@ -352,30 +385,25 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void makeBot(String name, float x, float y) {
 		// TODO - clean up better
+		// check that we don't already have a bot by the same name
 		for(Entity e : entities) {
 			if(e.getName().equals(name)) {
 				if(e instanceof Bot) {
 					Bot b = (Bot) e;
 					b.setPosition(new Point2D.Float(x, y));
+					System.out.println("Found pre-existing bot");
 					return;
 				}
 			}
 		}
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
-	}
-	public void makePlayer(float x, float y) {
-		Player p = new Player(this, name);
-		p.setPosition(new Point2D.Float(x, y));
+		this.addEntity(b);
 	}
 
 	@Bind
 	public void makeBot(LuaValue name, LuaValue x, LuaValue y) {
 		makeBot(name.tojstring(), x.tofloat(), y.tofloat());
-	}
-	@Bind
-	public void makePlayer(LuaValue x, LuaValue y) {
-		makePlayer(x.tofloat(), y.tofloat());
 	}
 
 	@Bind
@@ -387,13 +415,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Sets this world's size Calls to set tiles outside of the world's size (or
 	 * before the world's size is set) may cause issues.
 	 * 
-	 * @param w
-	 *            the width, in tiles
-	 * @param h
-	 *            the height, in tiles
+	 * @param w	the width, in tiles
+	 * @param h	the height, in tiles
 	 */
 	public void setSize(int w, int h) {
-		// TODO - copy old tiles?
 		Tile[][] oldTiles = tiles;
 		tiles = new Tile[w][h];
 
@@ -414,7 +439,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			Tile t = this.getTile(e.getPosition());
 			if(e.isSolid()) {
 				if(t == null) {
-					System.out.println("Solid entity is living in missing tile"); // TODO - this is bad
+					 // TODO - this is probably bad; should we kill the entity, move it, or do something else?
+					System.out.println("Solid entity is living in missing tile");
 				} else {
 					t.setOccupiedBy(e);
 				}
@@ -426,6 +452,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return The size of this world, in tiles
 	 */
 	public Point2D.Float getSize() {
+		if(tiles.length == 0) {
+			return new Point2D.Float(0, 0);
+		}
 		return new Point2D.Float(tiles.length, tiles[0].length);
 	}
 
@@ -436,6 +465,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (tilesAreStale) {
 
 			int w = tiles.length;
+			if(tiles.length == 0)
+				return;
+			
 			int h = tiles[0].length;
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
@@ -448,8 +480,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 					current.updateTexture(l, r, u, d);
 				}
-
-				// System.out.println();
 			}
 
 			tilesAreStale = false;
@@ -474,7 +504,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind
 	public Player getPlayer() {
-		return this.player != null ? this.player : new Player(this, "player");
+		if(player != null) {
+			return this.player;
+		} else {
+			player = new Player(this, "player");
+			this.addEntity(player);
+			return player;
+		}
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
@@ -489,12 +525,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Sets a specific tile
 	 * 
-	 * @param x
-	 *            The x location, in tiles
-	 * @param y
-	 *            The y location, in tiles
-	 * @param tileType
-	 *            The type of the tile
+	 * @param x			The x location, in tiles
+	 * @param y			The y location, in tiles
+	 * @param tileType	The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
@@ -547,8 +580,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		int maxX = (int) (rect.x + rect.width);
 		int maxY = (int) (rect.y + rect.height);
 		for (int x = Math.max(0, (int) rect.x); x <= maxX && x < tiles.length; x++) {
-			Tile[] tilesAtX = tiles[x]; // Sanity check.
-			assert (tilesAtX != null);
+			Tile[] tilesAtX = tiles[x];
+			assert (tilesAtX != null); // Sanity check.
 			for (int y = Math.max(0, (int) rect.y); y <= maxY && y < tilesAtX.length; y++) {
 				Tile t = tilesAtX[y];
 				if (t != null)
@@ -621,12 +654,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Asks if an entity is allowed to move to a given tile. Locks that tile to
 	 * be owned by the given entity if it is allowed.
 	 * 
-	 * @param e
-	 *            The entity asking
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param e	The entity asking
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 * @return True if the entity is allowed to move to this location
 	 */
 	public boolean requestMoveToNewTile(Entity e, int x, int y) {
@@ -658,12 +688,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Used to release the lock that this entity previously owned on a tile
 	 * 
-	 * @param e
-	 *            The entity releasing the tile
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param e	The entity releasing the tile
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 */
 	public void didLeaveTile(Entity e, int x, int y) {
 		Tile tile = getTile(x, y);
@@ -673,10 +700,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Gets what entity is occupying a given tile
 	 * 
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param x	Location X, in tiles
+	 * @param y	Location Y, in tiles
 	 * @return The entity under the given location. Returns null if there is no
 	 *         such entity.
 	 */
@@ -689,6 +714,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 
 			if (y < p.y || y >= p.y + 1) {
+				continue;
+			}
+			
+			if(e instanceof ChildEntity) {
 				continue;
 			}
 
@@ -750,7 +779,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// tiles = new Tile[0][0];
 			// entities.clear();
 			// backgroundImage = null;
-			level.init();
+			//level.init();
+			// TODO
 		} finally {
 			updateLock.unlock();
 		}
@@ -922,6 +952,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		this.worldSomewhatInit();
+	}
+
+	public UserScriptCollection getScripts() {
+		return levelScripts;
+	}
+
+	public Whitelist getWhitelist() {
+		return sharedWhitelist;
 	}
 
 }

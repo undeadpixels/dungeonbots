@@ -59,6 +59,7 @@ tbl.init = function()
     world:makeBot("bot3", 10, 5)
 end
 
+
 tbl.update = function()
     local x, y = world:getPlayer():position()
     local gx, gy = world:getGoal()
@@ -78,5 +79,8 @@ tbl.update = function()
         world:openBrowser('https://youtu.be/MRPpYX8SOA8')
     end
 end
+
+tbl.init()
+registerUpdateListener(tbl.update)
 
 return tbl

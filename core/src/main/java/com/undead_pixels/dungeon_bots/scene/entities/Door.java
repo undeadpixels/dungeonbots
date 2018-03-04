@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Key;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 
 import java.util.Optional;
@@ -15,7 +16,7 @@ public class Door extends SpriteEntity {
 	private Key key;
 
 	public Door(World world, TextureRegion tex) {
-		super(world, "door", tex);
+		super(world, "door", tex, new UserScriptCollection());
 	}
 
 	@Override

@@ -1,5 +1,10 @@
-package com.undead_pixels.dungeon_bots.script.annotations;
+package com.undead_pixels.dungeon_bots.script;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -7,6 +12,7 @@ import javax.swing.text.BadLocationException;
 
 import com.undead_pixels.dungeon_bots.math.IntegerSet;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 /**
  * A user script associates a Lua script with the information pertaining to how
@@ -37,11 +43,17 @@ public class UserScript implements Serializable {
 	public boolean editableName = true;
 
 	private UserScript() {
+		this.name = "";
+		this.level = SecurityLevel.DEFAULT;
+		this.code = "";
+		this.locks = new IntegerSet.Interval[0];
 	}
 
 	protected UserScript(String name) {
 		this.name = name;
+		this.code = "";
 		this.level = SecurityLevel.DEFAULT;
+		this.locks = new IntegerSet.Interval[0];
 	}
 
 	public UserScript(String name, String code) {
@@ -53,6 +65,27 @@ public class UserScript implements Serializable {
 		this.code = code;
 		this.level = level;
 		this.locks = new IntegerSet.Interval[0];
+	}
+
+	public UserScript(String name, File file) {
+		this(name, file, SecurityLevel.DEFAULT);
+	}
+	
+	public UserScript(String name, File file, SecurityLevel level) {
+		this.name = name;
+		this.level = level;
+		this.locks = new IntegerSet.Interval[0];
+		try {
+			// May need to append newline to left string argument in accumulator function.
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			this.code = reader.lines().reduce("", (a, b) -> a + "\n" + b);
+			reader.close();
+		}
+		catch (IOException exception) {
+			// TODO: Consider changing contract of method to return an Optional<UserScript> or have it throw an exception
+			this.code = "";
+		}
+		
 	}
 
 	/** Returns a copy of this UserScript. */

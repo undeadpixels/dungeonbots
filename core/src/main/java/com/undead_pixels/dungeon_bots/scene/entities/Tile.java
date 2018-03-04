@@ -2,9 +2,10 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.BooleanScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import org.luaj.vm2.LuaValue;
 
@@ -46,7 +47,10 @@ public class Tile extends SpriteEntity {
 	 *            Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(), x, y);
+		super(world, tileType == null ? "tile" : tileType.getName(),
+				tileType == null ? null : tileType.getTexture(),
+				new UserScriptCollection(),
+				x, y);
 onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 		this.type = tileType;
 	}

@@ -40,7 +40,7 @@ public interface GetLuaFacade {
 	 * Generates a Whitelist of Methods for this object using the security level of the current Security context.
 	 * @return A Whitelist containing the id's of Methods of this object.
 	 */
-	default Whitelist getWhitelist() {
+	default Whitelist getDefaultWhitelist() {
 		return getWhitelist(this.getClass());
 	}
 

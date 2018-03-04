@@ -94,8 +94,8 @@ public class DungeonBotsMain {
 			_Screen = new MainMenuScreen();
 			break;
 		case GAMEPLAY:
-			if (getUser() == null && !requestLogin("Welcome Player", 3))
-				System.exit(0);
+			//if (getUser() == null && !requestLogin("Welcome Player", 3))
+			//	System.exit(0);
 			if (_LevelPack == null)
 				_LevelPack = new LevelPack("My Level Pack", getUser());
 			if (_LevelPack.getCurrentPlayer() != null && !_LevelPack.getCurrentPlayer().equals(getUser())) {
@@ -105,8 +105,8 @@ public class DungeonBotsMain {
 			_Screen = new GameplayScreen(_LevelPack.getCurrentWorld());
 			break;
 		case LEVEL_EDITOR:
-			if (getUser() == null && !requestLogin("Welcome Author", 3))
-				System.exit(0);
+			//if (getUser() == null && !requestLogin("Welcome Author", 3))
+			//	System.exit(0);
 			if (_LevelPack == null)
 				_LevelPack = new LevelPack("My Level Pack", getUser());
 			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());

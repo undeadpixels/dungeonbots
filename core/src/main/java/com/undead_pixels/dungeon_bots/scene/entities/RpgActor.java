@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -31,17 +32,13 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	protected final int[] stats = new int[] { 5, 5, 5, 5 };
 
 	public RpgActor(World world, String name, TextureRegion tex, int[] s) {
-		super(world, name, tex);
+		super(world, name, tex, new UserScriptCollection());
 		assert s.length == STAT_COUNT;
 		System.arraycopy(s, 0, stats, 0, STAT_COUNT);
 	}
 
 	public RpgActor(World world, String name, TextureRegion tex) {
-		super(world, name, tex);
-	}
-
-	public RpgActor(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, script, tex);
+		super(world, name, tex, new UserScriptCollection());
 	}
 
 	/* -- LuaBindings -- */

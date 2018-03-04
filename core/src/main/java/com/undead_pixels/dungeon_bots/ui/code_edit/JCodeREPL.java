@@ -328,9 +328,15 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		};
 
-		message(">>> " + getCode(), _EchoMessageStyle);
+		String code = getCode();
+		message(">>> " + code, _EchoMessageStyle);
 		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
 		_EditorPane.setText("");
+
+		// Update the command history records.
+		if (_CommandHistory.size() == 0 || !_CommandHistory.get(_CommandHistory.size() - 1).equals(code))
+			_CommandHistory.add(code);
+		_CommandHistoryIndex = _CommandHistory.size();
 
 		return _RunningScript;
 	}
@@ -346,11 +352,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
-
-		// Update the command history records.
-		if (_CommandHistory.size() == 0 || !_CommandHistory.get(_CommandHistory.size() - 1).equals(sender.getScript()))
-			_CommandHistory.add(sender.getScript());
-		_CommandHistoryIndex = _CommandHistory.size();
 
 		// Send a message indicating the results.
 		if (result == null)
