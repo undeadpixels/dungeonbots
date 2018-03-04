@@ -2,7 +2,6 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Useable;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 
 public class Switch extends SpriteEntity implements Useable {

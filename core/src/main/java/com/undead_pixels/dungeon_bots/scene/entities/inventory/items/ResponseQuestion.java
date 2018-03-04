@@ -1,6 +1,7 @@
-package com.undead_pixels.dungeon_bots.scene.entities.inventory;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 

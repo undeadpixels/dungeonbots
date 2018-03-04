@@ -2,9 +2,9 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Key;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 
@@ -39,17 +39,13 @@ public class Door extends SpriteEntity {
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		Optional<Item> item = itemRef.getItem();
-		return item.map(i -> {
-			if(i == key) {
-				// Consumes the key from the players inventory
-				// and unlocks the door.
-				Optional<Item> itemOpt = itemRef.derefItem();
-				itemOpt.ifPresent(key -> this.unlock());
-				return true;
-			}
-			return false;
-		}).orElse(false);
+		Item i = itemRef.getItem();
+		if(i == key) {
+			assert itemRef.derefItem() != null;
+			this.unlock();
+			return true;
+		}
+		return false;
 	}
 
 	private void unlock() {

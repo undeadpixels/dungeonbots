@@ -54,18 +54,18 @@ public class LevelPack {
 		this.levels.add(new World(new File("default.lua")));
 		this.levelIndex = 0;
 
-		this.authors = new ArrayList<User>();
+		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
 		addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
 		publishEnd = publishStart.plusYears(1);
-		audienceUsers = new ArrayList<User>();
-		audienceGroups = new ArrayList<Integer>();
+		audienceUsers = new ArrayList<>();
+		audienceGroups = new ArrayList<>();
 		feedbackModel = FeedbackModel.RATING_AND_COMMENTS;
 
 		currentPlayer = null;
-		playerVisible = new HashSet<Integer>();
+		playerVisible = new HashSet<>();
 		playerVisible.add(0);
 	}
 

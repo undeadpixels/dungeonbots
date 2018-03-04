@@ -1,16 +1,16 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Useable;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-
 import java.io.Serializable;
-import java.util.Optional;
 
 public final class ItemReference implements GetLuaFacade, Serializable, Useable {
 
 	final Inventory inventory;
-	private final int index;
+	final int index;
 
 	public ItemReference(final Inventory inventory, int index) {
 		this.inventory = inventory;
@@ -21,8 +21,8 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns the item associated with the ItemReference if it exists.
 	 * @return An Optional possibly containing the item.
 	 */
-	public Optional<Item> getItem() {
-		return Optional.ofNullable(inventory.inventory[this.index]);
+	public Item getItem() {
+		return inventory.getItem(this);
 	}
 
 	/**
@@ -30,7 +30,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return True if the ItemReference contains an item.
 	 */
 	public boolean hasItem() {
-		return getItem().isPresent();
+		return getItem().isEmpty();
 	}
 
 	/**
@@ -40,9 +40,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	@Override
 	@Bind(SecurityLevel.DEFAULT)
 	public String getName() {
-		return getItem()
-				.map(Item::getName)
-				.orElse("Empty");
+		return getItem().getName();
 	}
 
 	/**
@@ -51,9 +49,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public String getDescription() {
-		return getItem()
-				.map(Item::getDescription)
-				.orElse("An empty item slot");
+		return getItem().getDescription();
 	}
 
 	/**
@@ -62,9 +58,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getValue() {
-		return getItem()
-				.map(Item::getValue)
-				.orElse(0);
+		return getItem().getValue();
 	}
 
 	/**
@@ -73,9 +67,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Integer getWeight() {
-		return getItem()
-				.map(Item::getWeight)
-				.orElse(0);
+		return getItem().getWeight();
 	}
 
 	/**
@@ -84,9 +76,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean use() {
-		return getItem()
-				.map(Useable::use)
-				.orElse(false);
+		return getItem().use();
 	}
 
 	/**
@@ -95,9 +85,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean up() {
-		return getItem()
-				.map(Useable::up)
-				.orElse(false);
+		return getItem().up();
 	}
 
 	/**
@@ -106,9 +94,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean down() {
-		return getItem()
-				.map(Useable::down)
-				.orElse(false);
+		return getItem().down();
 	}
 
 	/**
@@ -117,9 +103,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean left() {
-		return getItem()
-				.map(Useable::left)
-				.orElse(false);
+		return getItem().left();
 	}
 
 	/**
@@ -128,17 +112,15 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.ENTITY)
 	public Boolean right() {
-		return getItem()
-				.map(Useable::right)
-				.orElse(false);
+		return getItem().right();
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	public Optional<Item> derefItem() {
-		Optional<Item> i = getItem();
+	public Item derefItem() {
+		Item i = getItem();
 		this.inventory.removeItem(this.index);
 		return i;
 	}

@@ -1,5 +1,6 @@
-package com.undead_pixels.dungeon_bots.scene.entities.inventory;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Useable;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
@@ -14,6 +15,15 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 	protected final String description;
 	protected final int value;
 	protected final int weight;
+
+	/**
+	 * A Static Empty Item class used for default Inventory Slots
+	 */
+	public static class EmptyItem extends Item {
+		public EmptyItem() {
+			super(null, "Empty", "An Empty Item Slot", 0, 0);
+		}
+	}
 
 	public Item(World w, String name, String descr, int value, int weight) {
 		this.world = w;
@@ -61,5 +71,9 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 	@Override
 	public int getId() {
 		return this.hashCode();
+	}
+
+	public boolean isEmpty() {
+		return this.getClass().equals(EmptyItem.class);
 	}
 }
