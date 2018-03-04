@@ -33,7 +33,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**
 	 * A user sandbox that is run on this object
 	 */
-	protected transient LuaSandbox sandbox = new LuaSandbox(this);
+	protected transient LuaSandbox sandbox;
 
 	/**
 	 * The queue of actions this Entity is going to take
@@ -67,8 +67,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.world = world;
 		this.name = name;
 		this.id = world.makeID();
-		this.sandbox.addBindable(this);
 		this.scripts = scripts;
+		
+		this.sandbox = new LuaSandbox(this);
+		this.sandbox.addBindable(this);
 	}
 
 	/**
@@ -103,7 +105,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
-		this.sandbox.addBindable(vals);
+		this.getSandbox().addBindable(vals);
 		return this;
 	}
 
@@ -160,7 +162,13 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	public abstract float getScale();
 
-	// WO: a part of serialization?
+	/**
+	 * Called upon deserialization to load additional variables in a less-traditional manner
+	 * 
+	 * @param inputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		sandbox = new LuaSandbox(this);

@@ -21,6 +21,7 @@ import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
@@ -702,6 +703,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 
 			if (y < p.y || y >= p.y + 1) {
+				continue;
+			}
+			
+			if(e instanceof ChildEntity) {
 				continue;
 			}
 
