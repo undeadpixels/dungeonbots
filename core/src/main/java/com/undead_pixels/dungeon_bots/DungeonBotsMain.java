@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots;
 
 import java.awt.Component;
 
+import javax.swing.JFrame;
+
 import org.jdesktop.swingx.JXLoginPane;
 import org.jdesktop.swingx.JXLoginPane.Status;
 import org.jdesktop.swingx.auth.LoginEvent;
@@ -25,18 +27,8 @@ import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
  */
 public class DungeonBotsMain {
 
-	public enum ScreenType {
-		GAMEPLAY, LEVEL_EDITOR, MAIN_MENU, RESULTS
-	}
-
 	/** The screen that is currently being shown. */
 	private Screen _Screen;
-
-	/** The LevelPack from which the current world is drawn. */
-	private LevelPack _LevelPack;
-
-	/** Caches the current user's security level. */
-	private SecurityLevel _UserSecurityLevel;
 
 	/**
 	 * Singleton instance. Only one DungeonBotsMain is capable of being
@@ -69,7 +61,7 @@ public class DungeonBotsMain {
 			throw new RuntimeException("Multiple instances of the game cannot be run.");
 
 		// Fire up the main menu screen.
-		setCurrentScreen(ScreenType.MAIN_MENU);
+		setCurrentScreen(new MainMenuScreen());
 	}
 
 	/**
@@ -81,65 +73,19 @@ public class DungeonBotsMain {
 	}
 
 	/** Sets the current screen to the given screen. */
-	public void setCurrentScreen(ScreenType screenType) {
+	public void setCurrentScreen(Screen newScreen) {
 
 		// Remove the old screen.
 		if (_Screen != null) {
 			_Screen.dispose();
 		}
 
-		// Build the appropriate type of new screen.
-		switch (screenType) {
-		case MAIN_MENU:
-			_Screen = new MainMenuScreen();
-			break;
-		case GAMEPLAY:
-			//if (getUser() == null && !requestLogin("Welcome Player", 3))
-			//	System.exit(0);
-			if (_LevelPack == null)
-				_LevelPack = new LevelPack("My Level Pack", getUser());
-			if (_LevelPack.getCurrentPlayer() != null && !_LevelPack.getCurrentPlayer().equals(getUser())) {
-				throw new RuntimeException("Cannot switch to a game being played by another player.");
-			}
-			_LevelPack.setCurrentPlayer(getUser());
-			_Screen = new GameplayScreen(_LevelPack.getCurrentWorld());
-			break;
-		case LEVEL_EDITOR:
-			//if (getUser() == null && !requestLogin("Welcome Author", 3))
-			//	System.exit(0);
-			if (_LevelPack == null)
-				_LevelPack = new LevelPack("My Level Pack", getUser());
-			_Screen = new LevelEditorScreen(_LevelPack.getCurrentWorld());
-			break;
-		case RESULTS:
-			_Screen = new ResultsScreen(_LevelPack.getCurrentWorld());
-			break;
-		default:
-			throw new RuntimeException("Have not implemented switch to screen type: " + screenType.toString());
-		}
-
+		_Screen = newScreen;
 		// Run the new screen.
 		// _Screen.pack();
+		_Screen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		_Screen.setup();
 		_Screen.setVisible(true);
-	}
-
-	/** Returns the current level pack. */
-	public LevelPack getLevelPack() {
-		return _LevelPack;
-	}
-
-	public void setLevelPack(LevelPack levelPack) {
-		assert levelPack != null;
-		_LevelPack = levelPack;
-		updateSecurity();
-	}
-
-	/** Updates the cached security status for the current user. */
-	private void updateSecurity() {
-		if (getLevelPack() == null || getUser() == null)
-			_UserSecurityLevel = SecurityLevel.DEFAULT;
-		else
-			_UserSecurityLevel = getLevelPack().isAuthor(getUser()) ? SecurityLevel.AUTHOR : SecurityLevel.DEFAULT;
 	}
 
 	/*
@@ -166,7 +112,6 @@ public class DungeonBotsMain {
 		if (user == currentUser)
 			return;
 		currentUser = user;
-		updateSecurity();
 	}
 
 	/**

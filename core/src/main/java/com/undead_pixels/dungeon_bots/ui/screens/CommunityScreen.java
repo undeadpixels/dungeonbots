@@ -9,8 +9,6 @@ import com.undead_pixels.dungeon_bots.scene.World;
 @SuppressWarnings("serial")
 public class CommunityScreen extends Screen {
 
-	
-
 	public static final URI homeURI;
 	
 	static {
@@ -24,8 +22,8 @@ public class CommunityScreen extends Screen {
 		homeURI = homeURItmp;
 	}
 	
-	protected CommunityScreen(World world) {
-		super(world);
+	protected CommunityScreen() {
+		super();
 		// TODO Auto-generated constructor stub
 	}
 

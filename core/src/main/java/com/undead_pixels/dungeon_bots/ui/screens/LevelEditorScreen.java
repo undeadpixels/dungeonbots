@@ -74,8 +74,12 @@ public final class LevelEditorScreen extends Screen {
 	private Tile[] _SelectedTiles = null;
 	private Entity[] _SelectedEntities = null;
 
-	public LevelEditorScreen(World world) {
-		super(world);
+	protected final World world;
+	protected final LevelPack levelPack;
+
+	public LevelEditorScreen(LevelPack levelPack) {
+		this.world = levelPack.getCurrentWorld();
+		this.levelPack = levelPack;
 	}
 
 	/** Change the set of selected tiles. */
@@ -377,8 +381,7 @@ public final class LevelEditorScreen extends Screen {
 			switch (e.getActionCommand()) {
 
 			case "Save to LevelPack":
-				LevelPack lp = DungeonBotsMain.instance.getLevelPack();
-				String json = lp.toJson();
+				String json = levelPack.toJson();
 				Serializer.writeToFile("example.json", json);
 				break;
 			/*
@@ -419,7 +422,7 @@ public final class LevelEditorScreen extends Screen {
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 				break;
 			case "Quit":
 				/*
