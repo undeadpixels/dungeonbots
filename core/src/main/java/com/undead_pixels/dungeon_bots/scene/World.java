@@ -261,6 +261,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.RESULTS);
 	}
 
+	@Deprecated
 	public void setPlayer(Player p) {
 		int oldIdx = entities.indexOf(player);
 		if(oldIdx >= 0) {
@@ -268,8 +269,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			entities.add(oldIdx, p);
 		} else {
 			entities.add(p);
+			this.addEntity(p);
 		}
-		entities.remove(player);
 		player = p;
 		p.resetInventory();
 	}
@@ -280,6 +281,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @param luaPlayer
 	 */
+	@Deprecated
 	@Bind(SecurityLevel.AUTHOR)
 	public void setPlayer(LuaValue luaPlayer) {
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
