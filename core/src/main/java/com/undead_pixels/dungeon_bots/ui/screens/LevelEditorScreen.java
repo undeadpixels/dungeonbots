@@ -451,6 +451,12 @@ public final class LevelEditorScreen extends Screen {
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this));
 		toolList.setModel(tm);
 		toolList.setSelectedValue(selections.tool = _Selector, true);
+		
+		// Create the zoom slider.
+				JSlider zoomSlider = new JSlider();
+				zoomSlider.setName("zoomSlider");
+				zoomSlider.addChangeListener(getController());
+				zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
@@ -458,6 +464,7 @@ public final class LevelEditorScreen extends Screen {
 		controlPanel.add(toolCollapser);
 		controlPanel.add(tilesCollapser);
 		controlPanel.add(entitiesCollapser);
+		controlPanel.add(zoomSlider);
 
 		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
@@ -505,19 +512,14 @@ public final class LevelEditorScreen extends Screen {
 		helpMenu.setPreferredSize(new Dimension(50, 30));
 		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
 
-		// Create the zoom slider.
-		JSlider zoomSlider = new JSlider();
-		zoomSlider.setName("zoomSlider");
-		zoomSlider.addChangeListener(getController());
-		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		
 
 		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
 		menuBar.add(publishMenu);
-		menuBar.add(helpMenu);
-		menuBar.add(zoomSlider);
+		menuBar.add(helpMenu);		
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
