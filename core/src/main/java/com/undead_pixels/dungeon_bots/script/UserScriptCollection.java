@@ -20,6 +20,9 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	public UserScript get(String name) {
 		return storage.getOrDefault(name, null);
 	}
+	public void remove(String name) {
+		storage.remove(name);
+	}
 
 	public void clear() {
 		storage.clear();

@@ -30,7 +30,7 @@ import java.util.stream.*;
  * LuaScripts. A LuaSandbox is essentially a collection of allowed Lua functions.<br>
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.
  */
-public final class LuaSandbox {
+public final class LuaSandbox implements Serializable {
 
 	private static int id = 0;
 	
@@ -99,7 +99,7 @@ public final class LuaSandbox {
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
-	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
+	 * @param bindables A Collection of Objects that implement the GetLuaFacade interface
 	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
@@ -158,11 +158,11 @@ public final class LuaSandbox {
 	}
 
 	/**
-	 * @param scriptFile
 	 * @return
 	 */
 	public LuaInvocation init() {
 		UserScript script = this.scripts.get("init");
+		assert script != null;
 		LuaInvocation ret = this.enqueueCodeBlock(script.code);
 		scriptQueue.update(0.f);
 		

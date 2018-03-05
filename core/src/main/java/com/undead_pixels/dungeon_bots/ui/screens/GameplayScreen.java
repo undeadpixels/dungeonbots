@@ -32,6 +32,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -84,8 +85,12 @@ public class GameplayScreen extends Screen {
 				case "Open":
 					 File openFile = FileControl.openDialog(GameplayScreen.this);
 					 if (openFile != null) {
-						 World newWorld = new World(openFile);
-						 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(newWorld));
+						 if(openFile.getName().endsWith(".lua")) {
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
+						 } else {
+							 LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						 }
 					 }
 
 					break;

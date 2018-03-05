@@ -21,8 +21,6 @@ public class LuaReflection {
 	/**
 	 * Generates a Whitelist of Methods for the target object not exceeding the given security level.
 	 * @param bindableMethods An argument stream of bindable methods
-	 * @param caller The object that invokes the bindable methods
-	 * @param securityLevel The desired Security Level of the whitelist
 	 * @return A Whitelist that contains ID's of all bindable methods matching the security level
 	 */
 	public static Whitelist getWhitelist(final Stream<Method> bindableMethods) {
@@ -48,7 +46,6 @@ public class LuaReflection {
 	/**
 	 * Returns a collection of Bindable methods found for the argument object.
 	 * A Bindable method is any method that has been tagged with the @Bind annotation.
-	 * @param o The Object to get all Bindable methods of
 	 * @return A Stream of the Objects Bindable Methods
 	 */
 	public static Stream<Method> getBindableInstanceMethods(final Class<?> c) {

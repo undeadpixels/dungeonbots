@@ -52,17 +52,17 @@ import org.luaj.vm2.*;
  */
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
 
-	private transient ReentrantLock updateLock = new ReentrantLock();
+	// private transient ReentrantLock updateLock = new ReentrantLock();
 
 	/**
 	 * The script that defines this world
 	 */
-	private UserScriptCollection levelScripts = new UserScriptCollection();
+	private final UserScriptCollection levelScripts = new UserScriptCollection();
 	
 	/**
 	 * The scripts the players entities all own
 	 */
-	private UserScriptCollection playerTeamScripts = new UserScriptCollection();
+	private final UserScriptCollection playerTeamScripts = new UserScriptCollection();
 
 	/**
 	 * The LuaBindings to the World Lazy initialized
@@ -88,6 +88,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The whitelist governing what functions are accessible by whom
 	 */
 	private Whitelist sharedWhitelist = new Whitelist();
+
+	public boolean serialized = false;
 
 	// =============================================
 	// ====== World CONSTRUCTOR AND STARTUP STUFF
@@ -298,9 +300,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param dt		Delta time
 	 */
 	public void update(float dt) {
-		updateLock.lock();
-		try {
-			// update tiles from tileTypes, if dirty
+		// update tiles from tileTypes, if dirty
+		synchronized (this) {
 			refreshTiles();
 
 			// update tiles
@@ -319,9 +320,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			playstyle.update();
 			// update level script
 			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
-		} finally {
-			updateLock.unlock();
 		}
+
 	}
 
 	/**
@@ -552,7 +552,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
 			return; // out of bounds; TODO - should something else happen?
 		}
-
+		else if(this.serialized) {
+			return;
+		}
 		if (tileType.getName().equals("goal"))
 			setGoal(x, y);
 		tilesAreStale = true;
@@ -804,8 +806,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * TODO - what exactly does that mean?
 	 */
 	public synchronized void reset() {
-		updateLock.lock();
-		try {
+		synchronized(this){
 			timesReset++;
 			// levelScript = null;
 			// tiles = new Tile[0][0];
@@ -813,8 +814,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// backgroundImage = null;
 			//level.init();
 			// TODO
-		} finally {
-			updateLock.unlock();
 		}
 	}
 
@@ -1027,6 +1026,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Whitelist getWhitelist() {
 		return sharedWhitelist;
+	}
+
+	public UserScriptCollection getLevelScripts() {
+		return levelScripts;
+	}
+
+	public UserScriptCollection getPlayerTeamScripts() {
+		return playerTeamScripts;
 	}
 
 }

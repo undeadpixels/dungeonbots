@@ -20,6 +20,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -409,8 +413,8 @@ public final class LevelEditorScreen extends Screen {
 			case "Import":
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openFile != null) {
-					World newWorld = new World(openFile);
-					LevelPack lp = new LevelPack(newWorld.getName(), DungeonBotsMain.instance.getUser(), newWorld);
+					//World newWorld = new World(openFile);
+					final LevelPack lp = LevelPack.fromFile(openFile.getPath());
 					// lp._levels.add(newWorld);
 					// DungeonBotsMain.instance.setWorld(lp.levels.size() -
 					// 1);
@@ -444,6 +448,13 @@ public final class LevelEditorScreen extends Screen {
 
 				break;
 			case "Export":
+				try {
+					File f = FileControl.saveAsDialog(LevelEditorScreen.this);
+					f.getParentFile().mkdirs();
+					Files.write(Paths.get(f.getPath()), Serializer.serializeLevelPack(levelPack).getBytes());
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 				break;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());
