@@ -253,16 +253,9 @@ public class Serializer {
 	public static String serializeLevelPack(LevelPack levelPack) {
 		// Pause for serialization... wtf is stream.of?
 		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
-		
-		// Serialize
-		String json = serializeToJSON(levelPack);
-		
-		// Unpause now that serialization is done.
-		for (World w : levelPack.getAllWorlds())
-			w.serialized = false;
-		
-		// Return the json.
-		return json;
+		String ans = serializeToJSON(levelPack);
+		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = false);
+		return ans;
 	}
 
 	public static LevelPack deserializeLevelPack(String json) {
