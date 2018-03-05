@@ -391,19 +391,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param y
 	 */
 	public void makeBot(String name, float x, float y) {
-		// TODO - clean up better
-		// check that we don't already have a bot by the same name
-		for(Entity e : entities) {
-			if(e.getName().equals(name)) {
-				if(e instanceof Bot) {
-					Bot b = (Bot) e;
-					b.setPosition(new Point2D.Float(x, y));
-					System.out.println("Found pre-existing bot");
-					return;
-				}
-			}
-		}
-		
+
+		if(Stream.of(entities).flatMap(Collection::stream)
+				.anyMatch(e -> e.getPosition().x == x && e.getPosition().y == y))
+			return;
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
 		this.addEntity(b);
@@ -411,14 +402,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * Place a bot with a given name at (x,y)
-	 * 
-	 * @param name
+	 *
 	 * @param x
 	 * @param y
 	 */
 	@Bind
-	public void makeBot(LuaValue name, LuaValue x, LuaValue y) {
-		makeBot(name.tojstring(), x.tofloat(), y.tofloat());
+	public void makeBot(LuaValue x, LuaValue y) {
+		makeBot("bot", x.tofloat(), y.tofloat());
 	}
 
 	/**
@@ -1014,6 +1004,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		this.worldSomewhatInit();
+		this.serialized = false;
 	}
 
 	/**
