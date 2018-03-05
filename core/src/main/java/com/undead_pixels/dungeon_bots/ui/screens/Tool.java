@@ -23,6 +23,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
@@ -38,24 +39,19 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public final String name;
 	public final Image image;
-	public final World world;
-	public final WorldView view;
-	public final Window owner;
 
-	public Tool(String name, Image image, WorldView view, Window owner) {
+	public Tool(String name, Image image) {
 		this.name = name;
 		this.image = image;
-		this.world = view.getWorld();
-		this.view = view;
-		this.owner = owner;
 	}
 
 	public Tool(String name, Image image, World world, WorldView view, Window owner) {
 		this.name = name;
 		this.image = image;
-		this.world = world;
-		this.view = view;
-		this.owner = owner;
+	}
+
+	public Tool(String name, Image image, World world) {
+		this(name, image, world, null, null);
 	}
 
 	@Override
@@ -102,10 +98,30 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	public void render(Graphics2D g) {
 	}
 
+	public static class SelectionModel {
+		private TileType tileType = null;
+		private EntityType entityType = null;
+
+		public void setTileType(TileType type) {
+			this.tileType = type;
+		}
+
+		public void setEntityType(EntityType type) {
+			this.entityType = type;
+		}
+	}
+
 	public static class Selector extends Tool {
 
+		private final WorldView view;
+		private final Window owner;
+		private final World world;
+
 		public Selector(WorldView view, Window owner) {
-			super("Selector", UIBuilder.getImage("selector.gif"), view, owner);
+			super("Selector", UIBuilder.getImage("selector.gif"));
+			this.view = view;
+			this.owner = owner;
+			this.world = view.getWorld();
 		}
 
 		private Point cornerA = null;
@@ -213,35 +229,51 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public static class TilePen extends Tool {
 
-		private final JList<TileType> typeList;
+		private final WorldView view;
+		private final World world;
 
-		public TilePen(WorldView view, JList<TileType> typeList) {
-			super("Tile Pen", null, view, null);
-			this.typeList = typeList;
+		public final SelectionModel selection;
+
+		public TilePen(WorldView view, SelectionModel selection) {
+			super("Tile Pen", null);
+			this.view = view;
+			this.world = view.getWorld();
+			this.selection = selection;
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
-			Tile existingTile = world.getTile(gamePos);
-			if (existingTile == null)
-				throw new RuntimeException("Have not implemented drawing a tile where one does not already exist.");
-			TileType type = typeList.getSelectedValue();
-			Point2D.Float existingPoint = existingTile.getPosition();
-			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), type);
+			drawTile(e.getX(), e.getY(), selection.tileType);
 		}
-		
+
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+			drawTile(e.getX(), e.getY(), selection.tileType);
+		}
+
+		public void drawTile(int screenX, int screenY, TileType tileType) {
+			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
 			Tile existingTile = world.getTile(gamePos);
 			if (existingTile == null)
 				throw new RuntimeException("Have not implemented drawing a tile where one does not already exist.");
-			TileType type = typeList.getSelectedValue();
+			assert (tileType != null);
 			Point2D.Float existingPoint = existingTile.getPosition();
-			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), type);
+			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), tileType);
 		}
 
 	}
 
+	public static class EntityPlacer extends Tool {
+
+		private final WorldView view;
+		private final World world;
+
+		public EntityPlacer(WorldView view, Window owner) {
+			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
+			this.view = view;
+			this.world = view.getWorld();
+			// TODO Auto-generated constructor stub
+		}
+
+	}
 }

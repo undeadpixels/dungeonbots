@@ -69,20 +69,24 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  *
  */
 public final class LevelEditorScreen extends Screen {
-
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
 	private WorldView _View;
-
 	protected final World world;
 	protected final LevelPack levelPack;
+	public final Tool.SelectionModel selections = new Tool.SelectionModel();
+
+	// Special tools
+	private Tool.Selector _Selector;
+	private Tool.TilePen _TilePen;
+	private Tool.EntityPlacer _EntityPlacer;
 
 	public LevelEditorScreen(LevelPack levelPack) {
-		this.world = levelPack.getCurrentWorld();
 		this.levelPack = levelPack;
+		this.world = levelPack.getCurrentWorld();
 	}
 
 	@Override
@@ -114,15 +118,6 @@ public final class LevelEditorScreen extends Screen {
 
 		/** The current Tool provides handlers for inputs. */
 		private Tool currentTool = null;
-		/**
-		 * The current entity type to place. If the tool is the entity placer.
-		 */
-		private EntityType currentEntityType = null;
-		/**
-		 * The current tile that will be drawn if the tool is the tile drawing
-		 * tool.
-		 */
-		private TileType currentTileType = null;
 
 		// ===========================================================
 		// ======== LevelEditorScreen.Controller TOOL STUFF
@@ -152,10 +147,7 @@ public final class LevelEditorScreen extends Screen {
 						tilePalette.clearSelection();
 						_PropogateChange = true;
 					}
-
 					currentTool = toolPalette.getSelectedValue();
-					currentTileType = null;
-					currentEntityType = null;
 				}
 				// Handle clicking on the tile palette.
 				else if (e.getSource() == tilePalette) {
@@ -165,11 +157,9 @@ public final class LevelEditorScreen extends Screen {
 						entityPalette.clearSelection();
 						_PropogateChange = true;
 					}
-					JList<TileType> tp = tilePalette;
-					currentTileType = tilePalette.getSelectedValue();
-					currentEntityType = null;
-					// TODO: any selected tile should be changed.
-					// TODO: tool should be changed to a tile draw tool.
+					if (tilePalette.getSelectedValue() != null)
+						selections.setTileType(tilePalette.getSelectedValue());
+					toolPalette.setSelectedValue(_TilePen, true);
 				}
 				// Handle clicking on the entity palette.
 				else if (e.getSource() == entityPalette) {
@@ -179,9 +169,9 @@ public final class LevelEditorScreen extends Screen {
 						tilePalette.clearSelection();
 						_PropogateChange = true;
 					}
-					currentTileType = null;
-					currentEntityType = entityPalette.getSelectedValue();
-					// TODO: entity placer should become the new tool.
+					if (entityPalette.getSelectedValue() != null)
+						selections.setEntityType(entityPalette.getSelectedValue());
+					toolPalette.setSelectedValue(_EntityPlacer,  true);
 				}
 
 			}
@@ -207,10 +197,12 @@ public final class LevelEditorScreen extends Screen {
 			switch (e.getActionCommand()) {
 
 			case "Save to LevelPack":
-				File savingFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (savingFile == null)
+				File saveLevelPackFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (saveLevelPackFile == null) {
+					System.out.println("Save cancelled.");
 					return;
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(savingFile))) {
+				}
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveLevelPackFile))) {
 					String json = levelPack.toJson();
 					writer.write(json);
 				} catch (IOException ioex) {
@@ -218,29 +210,40 @@ public final class LevelEditorScreen extends Screen {
 				}
 				break;
 			case "Open LevelPack":
+				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
+				if (openLevelPackFile == null) {
+					System.out.println("Open cancelled.");
+					return;
+				} else if (openLevelPackFile.getName().endsWith(".json")) {
+					LevelPack levelPack = LevelPack.fromFile(openLevelPackFile.getPath());
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+				} else {
+					System.out.println("Unsupported file type: " + openLevelPackFile.getName());
+					return;
+				}
 				break;
 			case "Save to Stand-Alone":
-				File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveFile == null)
+				File saveStandAloneFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (saveStandAloneFile == null)
 					return;
 				String lua = world.getMapScript();
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveStandAloneFile))) {
 					writer.write(lua);
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
 				break;
 			case "Open Stand-Alone":
-				File openFile = FileControl.openDialog(LevelEditorScreen.this);
-				if (openFile == null) {
+				File openStandAloneFile = FileControl.openDialog(LevelEditorScreen.this);
+				if (openStandAloneFile == null) {
 					System.out.println("Open cancelled.");
 					return;
-				} else if (openFile.getName().endsWith(".lua")) {
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(
-							new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
+				} else if (openStandAloneFile.getName().endsWith(".lua")) {
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level",
+							DungeonBotsMain.instance.getUser(), new World(openStandAloneFile))));
 				} else {
-					LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					System.out.println("Unsupported Stand-Alone file type: " + openStandAloneFile.getName());
+					return;
 				}
 				break;
 			case "Exit to Main":
@@ -412,43 +415,45 @@ public final class LevelEditorScreen extends Screen {
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
 
-		// Create the tool palette GUI.
-		JList<Tool> tl = ((Controller) getController()).toolPalette = new JList<Tool>();
-		tl.setCellRenderer(_ToolItemRenderer);
-		tl.setMinimumSize(new Dimension(150, 400));
-		tl.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel toolCollapser = UIBuilder.makeCollapser(new JScrollPane(tl), "Tools", "Tools", "", false);
-		// Set up the members of the lists.
-		tl.addListSelectionListener((LevelEditorScreen.Controller) getController());
-		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(new Tool.Selector(_View, this));
-		tl.setModel(tm);
-
 		// Create the tile palette GUI.
-		JList<TileType> il = ((Controller) getController()).tilePalette = new JList<TileType>();
-		il.setCellRenderer(_TileTypeItemRenderer);
-		il.setMinimumSize(new Dimension(150, 400));
-		il.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(il), "Tiles", "Tiles", "", false);
+		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
+		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
+		tileTypeList.setMinimumSize(new Dimension(150, 400));
+		tileTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(tileTypeList), "Tiles", "Tiles", "", false);
 		// Set up the tile list.
-		il.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		tileTypeList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
 		for (TileType i : world.getTileTypes())
 			im.addElement(i);
-		il.setModel(im);
+		tileTypeList.setModel(im);
 
 		// Create the entity palette GUI.
-		JList<EntityType> el = ((Controller) getController()).entityPalette = new JList<EntityType>();
-		el.setCellRenderer(_EntityItemRenderer);
-		el.setPreferredSize(new Dimension(150, 400));
-		el.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(el), "Entities", "Entities", "", false);
+		JList<EntityType> entityList = ((Controller) getController()).entityPalette = new JList<EntityType>();
+		entityList.setCellRenderer(_EntityItemRenderer);
+		entityList.setPreferredSize(new Dimension(150, 400));
+		entityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(entityList), "Entities", "Entities", "",
+				false);
 		// Set up the entity list.
-		el.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		entityList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
 		for (EntityType e : createEntityTypes())
 			em.addElement(e);
-		el.setModel(em);
+		entityList.setModel(em);
+
+		// Create the tool palette GUI.
+		JList<Tool> toolList = ((Controller) getController()).toolPalette = new JList<Tool>();
+		toolList.setCellRenderer(_ToolItemRenderer);
+		toolList.setMinimumSize(new Dimension(150, 400));
+		toolList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JPanel toolCollapser = UIBuilder.makeCollapser(new JScrollPane(toolList), "Tools", "Tools", "", false);
+		// Set up the members of the lists.
+		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
+		tm.addElement(_Selector = new Tool.Selector(_View, this));
+		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
+		toolList.setModel(tm);
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
@@ -470,11 +475,6 @@ public final class LevelEditorScreen extends Screen {
 				KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK), KeyEvent.VK_O, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Open Stand-Alone", getController()));
-		/*
-		 * fileMenu.add(UIBuilder.makeMenuItem("Save As",
-		 * KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK |
-		 * ActionEvent.ALT_MASK), 0, getController()));
-		 */
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_E, getController()));
