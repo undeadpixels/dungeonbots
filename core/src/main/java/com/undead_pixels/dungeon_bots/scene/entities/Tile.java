@@ -17,12 +17,11 @@ import org.luaj.vm2.LuaValue;
  * some kind of github issue
  */
 public class Tile extends SpriteEntity {
-
+	
 	/**
-	 * The script that should be executed when a bot enters.
-	 * TODO: implement this functionality.
+	 * 
 	 */
-	private UserScript onEnter;
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Lazily-loaded LuaValue representing this tile
@@ -34,24 +33,22 @@ public class Tile extends SpriteEntity {
 	 */
 	private TileType type;
 	
+	/**
+	 * The entity that is currently occupying this Tile
+	 */
 	private Entity occupiedBy = null;
 
 	/**
-	 * @param world
-	 *            The world that contains this tile
-	 * @param tileType
-	 *            The (initial) type of tile
-	 * @param x
-	 *            Location X, in tiles
-	 * @param y
-	 *            Location Y, in tiles
+	 * @param world		The world that contains this tile
+	 * @param tileType	The (initial) type of tile
+	 * @param x			Location X, in tiles
+	 * @param y			Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
 		super(world, tileType == null ? "tile" : tileType.getName(),
 				tileType == null ? null : tileType.getTexture(),
 				new UserScriptCollection(),
 				x, y);
-onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 		this.type = tileType;
 	}
 
@@ -72,33 +69,9 @@ onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 		return this.luaValue;
 	}
 
-	/*
-	 * @Bind
-	 * 
-	 * @Deprecated public static LuaValue Wall(LuaValue lworld, LuaValue lx,
-	 * LuaValue ly) { Tile t = new Tile((World)
-	 * lworld.checktable().checkuserdata(World.class), "wall", null,
-	 * lx.tofloat(), ly.tofloat(), true); return LuaProxyFactory.getLuaValue(t);
-	 * }
-	 * 
-	 * @Bind
-	 * 
-	 * @Deprecated public static LuaValue Floor(LuaValue lworld, LuaValue lx,
-	 * LuaValue ly) { Tile t = new Tile((World)
-	 * lworld.checktable().checkuserdata(World.class), "floor", null,
-	 * lx.tofloat(), ly.tofloat(), false); return
-	 * LuaProxyFactory.getLuaValue(t); }
-	 * 
-	 * @Bind
-	 * 
-	 * @Deprecated public static LuaValue Goal(LuaValue lworld, LuaValue lx,
-	 * LuaValue ly) { Tile t = new Tile((World)
-	 * lworld.checktable().checkuserdata(World.class), "goal", null,
-	 * lx.tofloat(), ly.tofloat(), false); return
-	 * LuaProxyFactory.getLuaValue(t); }
+	/**
+	 * @param tileType The new type of this Tile
 	 */
-
-	/** Sets the TileType of this Tile. */
 	public void setType(TileType tileType) {
 		this.type = tileType;
 	}
@@ -106,12 +79,21 @@ onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 	/**
 	 * Returns the TileType (which contains image display information and other
 	 * default characteristics) of this tile.
+	 * 
+	 * @return	The current TileType
 	 */
 	public TileType getType() {
 		return type;
 	}
 
-	/** Updates the image texture of the tile based on its neighbors. */
+	/**
+	 * Updates the texture of the tile based on its neighbors.
+	 * 
+	 * @param l
+	 * @param r
+	 * @param u
+	 * @param d
+	 */
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
 		if(type == null) {
 			this.sprite.setTexture(null);
@@ -120,12 +102,23 @@ onEnter = new UserScript("onEnter", "--Do nothing.", SecurityLevel.AUTHOR);
 		}
 	}
 
+	/**
+	 * @param e	The entity now occupying this tile
+	 */
 	public void setOccupiedBy(Entity e) {
 		occupiedBy = e;
 	}
+	
+	/**
+	 * @return	The entity currently occupying this tile
+	 */
 	public Entity getOccupiedBy() {
 		return occupiedBy;
 	}
+	
+	/**
+	 * @return	True if something is occupying this tile
+	 */
 	public boolean isOccupied() {
 		return occupiedBy != null;
 	}

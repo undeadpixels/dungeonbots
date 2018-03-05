@@ -5,6 +5,11 @@ import java.awt.geom.Point2D;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 
 public abstract class ChildEntity extends Entity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The entity that this child attaches to

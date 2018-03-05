@@ -29,8 +29,12 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  * The screen that shows users how well they did on the challenge they were
  * given
  */
-@SuppressWarnings("serial")
 public class ResultsScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	protected final World world;
 
@@ -130,6 +134,11 @@ public class ResultsScreen extends Screen {
 
 	/** Handles the rendering of stats entries. */
 	private class EntryRenderer extends JLabel implements ListCellRenderer<Entry<String, Object>> {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends Entry<String, Object>> list,

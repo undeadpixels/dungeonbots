@@ -18,14 +18,14 @@ public class ItemTest {
 	private World world;
 	private Player player;
 	private Item note;
-	private final String NAME = "Test Item";
+	private final String NAME = "Note";
 	private final String DESC = "This is a test";
 
 	@Before
 	public void setup() {
 		world = new World();
 		player = new Player(world, "player");
-		note = new Note(world, NAME, DESC);
+		note = new Note(world, DESC);
 		player.getInventory().reset();
 	}
 

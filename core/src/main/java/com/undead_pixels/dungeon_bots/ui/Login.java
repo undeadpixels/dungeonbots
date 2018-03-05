@@ -29,8 +29,12 @@ import com.undead_pixels.dungeon_bots.User;
  * A login component that returns a user by calling the Login.challenge()
  * method. If login is invalid, the Login.challenge() method returns null.
  */
-@SuppressWarnings("serial")
 public class Login extends JDialog {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/*
 	 * This class drawn from tutorial at
@@ -158,6 +162,11 @@ public class Login extends JDialog {
 		});
 
 		Action return_action = new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {

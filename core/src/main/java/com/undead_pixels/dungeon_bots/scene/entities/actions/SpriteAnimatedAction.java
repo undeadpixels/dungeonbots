@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.nogdx.Sprite;
  * An action that involves animating a sprite
  */
 public abstract class SpriteAnimatedAction extends AnimatedAction {
+	
 	/**
 	 * Constructor
 	 * 

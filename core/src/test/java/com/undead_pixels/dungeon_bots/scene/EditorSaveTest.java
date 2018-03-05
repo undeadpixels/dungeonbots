@@ -1,23 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.User;
@@ -77,7 +62,8 @@ public class EditorSaveTest {
 	@Test
 	public void testSerializeLevelPack() throws Exception {
 		LevelPack lp1 = new LevelPack("lp01", User.dummy());
-		String serialized = Serializer.serializeLevelPack(lp1);
+		lp1.getCurrentWorld().setGoal(0,0);
+		//String serialized = Serializer.serializeLevelPack(lp1);
 		LevelPack lp2 = Serializer.deserializeLevelPack(Serializer.serializeLevelPack(lp1));
 		Serializer.validate(lp1, lp2, lp1.getName() + " LevelPack", false, true,
 				Serializer.PrintOptions.ALL_NON_MATCHED);

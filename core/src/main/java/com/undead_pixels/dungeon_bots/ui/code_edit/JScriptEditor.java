@@ -40,8 +40,12 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  * @author Wesley
  *
  */
-@SuppressWarnings("serial")
 public final class JScriptEditor extends JPanel {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/** The script being edited. */
 	private UserScript _Script = null;

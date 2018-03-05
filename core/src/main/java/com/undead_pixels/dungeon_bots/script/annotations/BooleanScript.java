@@ -8,8 +8,12 @@ import com.undead_pixels.dungeon_bots.script.UserScript;
  * return a value do not get executed in the game loop, but get executed for
  * other purposes.
  */
-@SuppressWarnings("serial")
 public class BooleanScript extends UserScript {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public BooleanScript(String name, boolean defaultValue) {
 		super(name);

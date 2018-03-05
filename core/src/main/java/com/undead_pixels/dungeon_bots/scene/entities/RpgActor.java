@@ -23,6 +23,11 @@ import java.util.stream.Stream;
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
 public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final int STAT_COUNT = 4;
 	protected int health = 10;
 	protected int mana = 10;

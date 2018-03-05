@@ -7,8 +7,12 @@ import com.undead_pixels.dungeon_bots.scene.World;
 /**
  * The screen where a user selects what level/pack they want to play
  */
-@SuppressWarnings("serial")
 public class LevelSelectMenuScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	protected LevelSelectMenuScreen() {
 		super();

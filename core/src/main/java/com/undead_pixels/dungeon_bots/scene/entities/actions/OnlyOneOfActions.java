@@ -13,6 +13,9 @@ public class OnlyOneOfActions implements Action {
 	 */
 	private Action[] innerActions;
 	
+	/**
+	 * @param actions	The possible actions to execute (attempted in order)
+	 */
 	public OnlyOneOfActions(Action... actions) {
 		innerActions = actions;
 	}

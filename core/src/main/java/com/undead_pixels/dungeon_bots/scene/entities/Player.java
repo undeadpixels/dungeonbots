@@ -21,8 +21,13 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 public class Player extends RpgActor {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-
+	@Deprecated
 	protected String defaultCode;
 
 	/**
@@ -93,7 +98,7 @@ public class Player extends RpgActor {
 	
 	public void resetInventory() {
 		this.inventory.reset();
-		this.inventory.addItem(new Note(this.world,"Greetings", "Welcome to Dungeonbots!"));
+		this.inventory.addItem(new Note(this.world,"Welcome to Dungeonbots!"));
 	}
 
 	/**

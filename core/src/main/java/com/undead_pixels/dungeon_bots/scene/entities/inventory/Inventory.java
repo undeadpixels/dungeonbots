@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.*;
 
@@ -15,6 +16,11 @@ import java.util.stream.*;
  * an inventory for an entity.
  */
 public class Inventory implements GetLuaFacade, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	final ItemReference[] inventory;
 
@@ -86,7 +92,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public Integer getWeight() {
+	public Integer weight() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
 	}
@@ -97,7 +103,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return An integer representing the number of items currently held in the inventory
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public Integer currentCapacity() {
+	public Integer capacity() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : 1), (a,b) -> a + b);
 	}
@@ -109,7 +115,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	public boolean addItem(Item item) {
 		synchronized (this.inventory) {
-			if(getWeight() + item.getWeight() > maxWeight)
+			if(weight() + item.getWeight() > maxWeight)
 				return false;
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
@@ -122,7 +128,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	}
 
 	public boolean containsItem(Item i) {
-		return Stream.of(getItems()).collect(Collectors.toSet()).contains(i);
+		return getItems().contains(i);
 	}
 
 	/**
@@ -139,7 +145,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Integer capacity() {
+	@Bind(SecurityLevel.DEFAULT) public Integer size() {
 		return this.maxSize;
 	}
 
@@ -176,17 +182,17 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 */
 	public void reset() {
-		Stream.of(inventory).forEach(itemRef -> itemRef.setItem(new Item.EmptyItem()));
+		Stream.of(inventory).forEach(itemRef ->
+				itemRef.setItem(new Item.EmptyItem()));
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	public Item[] getItems() {
+	public List<Item> getItems() {
 		return Stream.of(inventory)
 				.map(ItemReference::getItem)
-				.collect(Collectors.toList())
-				.toArray(new Item[inventory.length]);
+				.collect(Collectors.toList());
 	}
 }

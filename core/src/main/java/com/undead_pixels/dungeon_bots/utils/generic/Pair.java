@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public class Pair<T,U> implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected T first;
 	protected U second;
 
@@ -12,12 +16,12 @@ public class Pair<T,U> implements Serializable {
 		this.second = second;
 	}
 
-	public Pair setFirst(T first) {
+	public Pair<T,U> setFirst(T first) {
 		this.first = first;
 		return this;
 	}
 
-	public Pair setSecond(U second) {
+	public Pair<T,U> setSecond(U second) {
 		this.second = second;
 		return this;
 	}

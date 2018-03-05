@@ -10,6 +10,11 @@ import java.util.Iterator;
  */
 public class UserScriptCollection implements Iterable<UserScript>, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private HashMap<String, UserScript> storage = new HashMap<>();
 
 	public void add(UserScript script) {
@@ -19,6 +24,9 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	
 	public UserScript get(String name) {
 		return storage.getOrDefault(name, null);
+	}
+	public void remove(String name) {
+		storage.remove(name);
 	}
 
 	public void clear() {

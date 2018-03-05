@@ -9,15 +9,26 @@ import org.luaj.vm2.lib.DebugLib;
  * This will be helpful: http://www.luaj.org/luaj/3.0/examples/jse/SampleSandboxed.java
  */
 public class InstructionHook extends DebugLib {
-    public boolean interrupted = false;
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	public boolean interrupted = false;
 
-    @Override
-    public void onInstruction(int pc, Varargs v, int top) {
-        if (interrupted) {
-            throw new ScriptInterruptException();
-        }
-        super.onInstruction(pc, v, top);
-    }
+	@Override
+	public void onInstruction(int pc, Varargs v, int top) {
+		if (interrupted) {
+			throw new ScriptInterruptException();
+		}
+		super.onInstruction(pc, v, top);
+	}
 
-    public static class ScriptInterruptException extends RuntimeException {}
+	public static class ScriptInterruptException extends RuntimeException {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+	}
 }

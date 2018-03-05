@@ -2,11 +2,9 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.Container;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -16,7 +14,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
@@ -27,8 +24,12 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 /**
  * The menu where users select Play, Create, or Community
  */
-@SuppressWarnings("serial")
 public class MainMenuScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public MainMenuScreen() {
 		super();
@@ -50,7 +51,7 @@ public class MainMenuScreen extends Screen {
 					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					break;
 				case "CREATE":
-					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("default.lua")));
+					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("blank.lua")));
 					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 					break;
 				case "COMMUNITY":

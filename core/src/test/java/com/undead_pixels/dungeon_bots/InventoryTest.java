@@ -21,7 +21,7 @@ public class InventoryTest {
 	@Before public void setup() {
 		w = new World();
 		p = new Player(w, "player");
-		i = new Note(w, "Test Note", "This is a test");
+		i = new Note(w, "This is a test");
 	}
 
 	@Test public void testCreateInventory() {
@@ -52,6 +52,6 @@ public class InventoryTest {
 	@Test public void testResetInventory() {
 		p.getInventory().addItem(i);
 		p.getInventory().reset();
-		assertEquals("Inventory was not reset", 0, (int)p.getInventory().currentCapacity());
+		assertEquals("Inventory was not reset", 0, (int)p.getInventory().capacity());
 	}
 }

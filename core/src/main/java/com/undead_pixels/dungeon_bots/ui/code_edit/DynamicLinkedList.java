@@ -14,10 +14,38 @@ import java.util.NoSuchElementException;
  * then make changes there. This list facilitates that functionality by
  * returning references to the nodes containing date in the middle of the list.
  * 
+ * ============================================================================
+ * ============================================================================
+ * ============================================================================
+ * ============================================================================
+ * Why did you reimplement a LinkedList???
+ * 
+ * Instead use java.util.LinkedList
+ * Then call myLinkedList.listIterator()
+ * Using that, you can call .remove() or .add() while iterating
+ * 
+ * However, for 99% of cases, literally just using an ArrayList and using its
+ * add and remove methods (even though they take O(N) time) is probably good enough.
+ * 
+ * It's not worth spending time over unless it makes a serious performance hit.
+ * Because writing all code so that none of it makes a performance hit on execution
+ * means a *massive* performance hit on our productivity.
+ * 
+ * Much easier, and much less code to test.
+ * ============================================================================
+ * ============================================================================
+ * ============================================================================
+ * ============================================================================
+ * 
  * @author Wesley Oates
  */
-@SuppressWarnings("serial")
+@Deprecated
 public class DynamicLinkedList<T> implements Serializable, Iterable<T>, Collection<T> {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private DynamicListNode _Head;
 	private DynamicListNode _Tail;

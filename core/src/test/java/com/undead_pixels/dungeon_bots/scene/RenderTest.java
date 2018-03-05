@@ -10,7 +10,7 @@ import java.util.HashMap;
 import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 
 import org.junit.Assert;
 
@@ -132,7 +132,7 @@ public class RenderTest {
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
 		World world = new World(new File(levelName));
-		SpriteBatch batch = new SpriteBatch(img.createGraphics(), img.getWidth(), img.getHeight());
+		RenderingContext batch = new RenderingContext(img.createGraphics(), img.getWidth(), img.getHeight());
 		OrthographicCamera cam = new OrthographicCamera(w, h);
 		
 		cam.zoomFor(world.getSize());

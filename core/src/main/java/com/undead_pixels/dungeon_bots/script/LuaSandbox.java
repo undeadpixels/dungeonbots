@@ -6,7 +6,6 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
-import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -29,9 +28,13 @@ import java.util.stream.*;
  * A LuaSandbox is a factory for creating a Sandbox of globals and methods that can be used to invoke
  * LuaScripts. A LuaSandbox is essentially a collection of allowed Lua functions.<br>
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.
- * TODO: May need to generate a return type from LuaScripts that references the source LuaSandbox
  */
-public final class LuaSandbox {
+public final class LuaSandbox implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static int id = 0;
 	
@@ -93,19 +96,19 @@ public final class LuaSandbox {
 	 * @return The modified LuaSandbox
 	 */
 	private LuaSandbox add(Stream<LuaBinding> bindings) {
-        bindings.forEach(binding ->
-				globals.set(binding.bindTo, binding.luaValue));
-        return this;
-    }
+		bindings.forEach(binding ->
+		globals.set(binding.bindTo, binding.luaValue));
+		return this;
+	}
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
-	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
+	 * @param bindables A Collection of Objects that implement the GetLuaFacade interface
 	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
-    @SafeVarargs
-    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
+	@SafeVarargs
+	public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
 		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
 		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
@@ -159,11 +162,11 @@ public final class LuaSandbox {
 	}
 
 	/**
-	 * @param scriptFile
 	 * @return
 	 */
 	public LuaInvocation init() {
 		UserScript script = this.scripts.get("init");
+		assert script != null;
 		LuaInvocation ret = this.enqueueCodeBlock(script.code);
 		scriptQueue.update(0.f);
 		
