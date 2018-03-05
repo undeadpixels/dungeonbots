@@ -32,6 +32,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -40,14 +41,19 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 /**
  * A screen for gameplay
  */
-@SuppressWarnings("serial")
 public class GameplayScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
+	protected final World world;
 
 	public GameplayScreen(World world) {
-		super(world);
+		this.world = world;
 	}
 
 	/**
@@ -97,18 +103,21 @@ public class GameplayScreen extends Screen {
 				switch (e.getActionCommand()) {
 
 				case "Open":
-					/*
-					 * File openFile =
-					 * FileControl.openDialog(GameplayScreen.this); if (openFile
-					 * != null) { World newWorld = new World(openFile);
-					 * DungeonBotsMain.instance.setWorld(newWorld); } else
-					 * System.out.println("Open cancelled.");
-					 */
+					 File openFile = FileControl.openDialog(GameplayScreen.this);
+					 if (openFile != null) {
+						 if(openFile.getName().endsWith(".lua")) {
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
+						 } else {
+							 LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						 }
+					 }
+
 					break;
 				case "Exit to Main":
 					if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-						DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+						DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 
 					break;
 				case "Quit":

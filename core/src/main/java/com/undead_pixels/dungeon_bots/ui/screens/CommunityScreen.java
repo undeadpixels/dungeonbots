@@ -6,10 +6,12 @@ import java.net.URISyntaxException;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 
-@SuppressWarnings("serial")
 public class CommunityScreen extends Screen {
-
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public static final URI homeURI;
 	
@@ -24,8 +26,8 @@ public class CommunityScreen extends Screen {
 		homeURI = homeURItmp;
 	}
 	
-	protected CommunityScreen(World world) {
-		super(world);
+	protected CommunityScreen() {
+		super();
 		// TODO Auto-generated constructor stub
 	}
 

@@ -2,36 +2,58 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.OnlyOneOfActions;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.SequentialActions;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.SpriteAnimatedAction;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
-import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
+import java.awt.geom.Point2D;
 
 import static org.luaj.vm2.LuaValue.*;
 
-import java.awt.geom.Point2D;
-import java.io.Serializable;
 
 /**
  * @author Kevin Parker
  * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
+ * 
+ * TODO - mark as abstract
  */
 public class Actor extends SpriteEntity implements HasInventory {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Number of steps taken
+	 */
 	protected int steps = 0;
+	
+	/**
+	 * Number of times bumped into a wall
+	 */
 	protected int bumps = 0;
 
-	protected Inventory inventory = new Inventory(this,10);
+	/**
+	 * Inventory
+	 */
+	protected Inventory inventory = new Inventory(this, 10);
+	
+	/**
+	 * Lazy-loaded lua value
+	 */
 	private transient LuaValue luaBinding;
+	
+	/**
+	 * The text associated with this actor
+	 * 
+	 * TODO - this might want to be refactored eventually
+	 */
 	private FloatingText floatingText;
 
 	/**
@@ -45,31 +67,14 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @param world		The world to contain this Actor
 	 * @param tex		A texture for this Actor
 	 */
-	public Actor(World world, String name, TextureRegion tex) {
-		super(world, name, tex);
-		this.world.addEntity(this); // TODO - XXX
+	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
+		super(world, name, tex, scripts);
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
-		// TODO Auto-generated constructor stub
-	}
-	
-	/**
-	 * @param world		The world to contain this Actor
-	 * @param script		A user sandbox that is run on this object
-	 * @param tex		A texture for this Actor
-	 */
-	@Deprecated
-	public Actor(World world, String name, LuaSandbox script, TextureRegion tex) {
-		super(world, name, tex);
-		this.world.addEntity(this);
-		// TODO Auto-generated constructor stub
-		/// XXX
-		// DELETEME
 	}
 
 	@Override
 	public float getZ() {
-		// TODO Auto-generated method stub
 		return 10;
 	}
 
@@ -177,6 +182,11 @@ public class Actor extends SpriteEntity implements HasInventory {
 		}
 	}
 	
+	/**
+	 * Put some text above this entity's head
+	 * 
+	 * @param text
+	 */
 	public void addText(String text) {
 		this.floatingText.addLine(text);
 	}
@@ -206,6 +216,14 @@ public class Actor extends SpriteEntity implements HasInventory {
 		System.out.println(String.format("Position: {%.2f, %.2f}", this.getPosition().x, this.getPosition().y));
 	}
 
+	/**
+	 * Move a given amount
+	 * 
+	 * @param amt
+	 * @param direction
+	 * @param blocking		Whether this call should block until the movement has finished
+	 * @return
+	 */
 	private Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
 		int SIZE = amt.narg();
 		int n;
@@ -338,8 +356,13 @@ public class Actor extends SpriteEntity implements HasInventory {
 		this.addText(text);
 	}
 
+	/**
+	 * Remove an item from this Actor's inventory
+	 * 
+	 * @param i
+	 */
 	public void removeItem(Item i) {
-
+		// TODO
 	}
 
 	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override

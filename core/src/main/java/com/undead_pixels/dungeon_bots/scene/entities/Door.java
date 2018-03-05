@@ -2,20 +2,26 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Key;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 
 import java.util.Optional;
 
 public class Door extends SpriteEntity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private boolean solid = false;
 	private Key key;
 
 	public Door(World world, TextureRegion tex) {
-		super(world, "door", tex);
+		super(world, "door", tex, new UserScriptCollection());
 	}
 
 	@Override
@@ -30,6 +36,7 @@ public class Door extends SpriteEntity {
 
 	@Bind Key genKey() {
 		this.key = new Key(
+				this.world,
 				getName() + "key",
 				String.format("A key that unlocks the door for %s", getName()));
 		return this.key;
@@ -37,17 +44,13 @@ public class Door extends SpriteEntity {
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		Optional<Item> item = itemRef.getItem();
-		return item.map(i -> {
-			if(i == key) {
-				// Consumes the key from the players inventory
-				// and unlocks the door.
-				Optional<Item> itemOpt = itemRef.derefItem();
-				itemOpt.ifPresent(key -> this.unlock());
-				return true;
-			}
-			return false;
-		}).orElse(false);
+		Item i = itemRef.getItem();
+		if(i == key) {
+			assert itemRef.derefItem() != null;
+			this.unlock();
+			return true;
+		}
+		return false;
 	}
 
 	private void unlock() {

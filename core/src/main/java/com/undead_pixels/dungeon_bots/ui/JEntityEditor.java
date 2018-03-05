@@ -24,10 +24,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import com.undead_pixels.dungeon_bots.math.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
@@ -35,8 +34,12 @@ import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
  * A GUI object whose purpose is to give users a way to change the contents of
  * an entity, including any associated scripts.
  */
-@SuppressWarnings("serial")
 public final class JEntityEditor extends JPanel {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static final HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
 
@@ -98,11 +101,11 @@ public final class JEntityEditor extends JPanel {
 
 		JPanel bttnPanel = new JPanel();
 		bttnPanel.setLayout(new GridLayout(1, 3, 10, 10));
-		JButton bttnReset = UIBuilder.buildButton().text("RESET").toolTip("Reset the entity characteristics.")
+		JButton bttnReset = UIBuilder.buildButton().text("Reset").toolTip("Reset the entity characteristics.")
 				.action("RESET", _Controller).create();
-		JButton bttnOK = UIBuilder.buildButton().text("SAVE").toolTip("Approve the changes.")
+		JButton bttnOK = UIBuilder.buildButton().text("Save").toolTip("Approve the changes.")
 				.action("SAVE", _Controller).create();
-		JButton bttnClose = UIBuilder.buildButton().text("CLOSE").toolTip("Close the editor.")
+		JButton bttnClose = UIBuilder.buildButton().text("Close").toolTip("Close the editor.")
 				.action("CLOSE", _Controller).create();
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
@@ -144,7 +147,7 @@ public final class JEntityEditor extends JPanel {
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
 		_ScriptList.clear();
-		for (UserScript u : _Entity.eventScripts)
+		for (UserScript u : _Entity.getScripts())
 			_ScriptList.addElement(u.copy());
 	}
 
@@ -153,11 +156,11 @@ public final class JEntityEditor extends JPanel {
 	 * GUI.
 	 */
 	public void save() {
-		_Entity.eventScripts.clear();
+		_Entity.getScripts().clear();
 		_Editor.saveScript();
 		for (int i = 0; i < _ScriptList.getSize(); i++) {
 			UserScript script = _ScriptList.get(i);
-			_Entity.eventScripts.add(script);
+			_Entity.getScripts().add(script);
 		}
 	}
 

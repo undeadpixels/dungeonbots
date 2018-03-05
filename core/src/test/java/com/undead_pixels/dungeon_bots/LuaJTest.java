@@ -71,8 +71,7 @@ public class LuaJTest {
                 script.getStatus() == ScriptStatus.TIMEOUT);
     }
 
-@Test
-    public void testCustomGlobals() {
+@Test public void testCustomGlobals() {
     		// TODO - the globals aren't actually custom
         LuaSandbox scriptEnv = new LuaSandbox();
         Globals globals = scriptEnv.getGlobals();

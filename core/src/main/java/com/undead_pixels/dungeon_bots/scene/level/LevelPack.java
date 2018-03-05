@@ -3,14 +3,16 @@ package com.undead_pixels.dungeon_bots.scene.level;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.UserScript;
 
 /**
  * A collection of levels, potentially loaded from a file and sharable with
@@ -43,7 +45,7 @@ public class LevelPack {
 	 * author. The transition script will simple be a default script, and the
 	 * first World will be a default first World.
 	 */
-	public LevelPack(String name, User author) {
+	public LevelPack(String name, User author, World... worlds) {
 		this.name = name;
 
 		this.transitionScript = new UserScript("onTransition",
@@ -51,21 +53,25 @@ public class LevelPack {
 				SecurityLevel.AUTHOR);
 
 		this.levels = new WorldList();
-		this.levels.add(new World(new File("maze1.lua")));
+		//this.levels.add(new World(new File("default.lua")));
+		if(worlds.length == 0)
+			worlds = new World[] { new World(new File("default.lua")) };
+
+		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
 
-		this.authors = new ArrayList<User>();
+		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
 		addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
 		publishEnd = publishStart.plusYears(1);
-		audienceUsers = new ArrayList<User>();
-		audienceGroups = new ArrayList<Integer>();
+		audienceUsers = new ArrayList<>();
+		audienceGroups = new ArrayList<>();
 		feedbackModel = FeedbackModel.RATING_AND_COMMENTS;
 
 		currentPlayer = null;
-		playerVisible = new HashSet<Integer>();
+		playerVisible = new HashSet<>();
 		playerVisible.add(0);
 	}
 

@@ -9,8 +9,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -20,14 +18,14 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -49,14 +47,12 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
+import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
@@ -66,16 +62,24 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  * @author Wesley
  *
  */
-@SuppressWarnings("serial")
 public final class LevelEditorScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private WorldView _View;
 
 	private Tile[] _SelectedTiles = null;
 	private Entity[] _SelectedEntities = null;
 
-	public LevelEditorScreen(World world) {
-		super(world);
+	protected final World world;
+	protected final LevelPack levelPack;
+
+	public LevelEditorScreen(LevelPack levelPack) {
+		this.world = levelPack.getCurrentWorld();
+		this.levelPack = levelPack;
 	}
 
 	/** Change the set of selected tiles. */
@@ -413,8 +417,7 @@ public final class LevelEditorScreen extends Screen {
 			switch (e.getActionCommand()) {
 
 			case "Save to LevelPack":
-				LevelPack lp = DungeonBotsMain.instance.getLevelPack();
-				String json = lp.toJson();
+				String json = levelPack.toJson();
 				Serializer.writeToFile("example.json", json);
 				break;
 			/*
@@ -441,13 +444,13 @@ public final class LevelEditorScreen extends Screen {
 			case "Import":
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openFile != null) {
-					// World newWorld = new World(openFile);
-					// LevelPack lp =
-					// DungeonBotsMain.instance.getLevelPack();
-					// lp._levels.add(newWorld);
-					// DungeonBotsMain.instance.setWorld(lp.levels.size() -
-					// 1);
-					// _CurrentFile = openFile;
+					//World newWorld = new World(openFile);
+					if(openFile.getName().endsWith(".lua")) {
+						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
+					} else {
+						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					}
 				} else
 					System.out.println("Open cancelled.");
 
@@ -455,7 +458,7 @@ public final class LevelEditorScreen extends Screen {
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 				break;
 			case "Quit":
 				/*
@@ -476,6 +479,13 @@ public final class LevelEditorScreen extends Screen {
 
 				break;
 			case "Export":
+				try {
+					File f = FileControl.saveAsDialog(LevelEditorScreen.this);
+					f.getParentFile().mkdirs();
+					Files.write(Paths.get(f.getPath()), Serializer.serializeLevelPack(levelPack).getBytes());
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 				break;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());

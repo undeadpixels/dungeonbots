@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.ui.screens;
+package com.undead_pixels.dungeon_bots.scene;
 
 import java.awt.Image;
 

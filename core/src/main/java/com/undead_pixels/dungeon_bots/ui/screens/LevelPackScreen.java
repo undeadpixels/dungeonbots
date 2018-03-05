@@ -5,9 +5,14 @@ import java.awt.Container;
 import com.undead_pixels.dungeon_bots.scene.World;
 
 public class LevelPackScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public LevelPackScreen() {
-		super(null);
+		super();
 		// TODO Auto-generated constructor stub
 	}
 

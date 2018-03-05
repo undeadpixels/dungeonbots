@@ -1,26 +1,21 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
-import com.undead_pixels.dungeon_bots.nogdx.Texture;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Collection;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -29,6 +24,11 @@ import javax.swing.Timer;
  * The screen for the regular game
  */
 public class WorldView extends JComponent {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private OrthographicCamera cam;
 	private boolean didInitCam = false;
@@ -81,7 +81,7 @@ public class WorldView extends JComponent {
 			float w = this.getWidth();
 			float h = this.getHeight();
 
-			SpriteBatch batch = new SpriteBatch(g2d, w, h);
+			RenderingContext batch = new RenderingContext(g2d, w, h);
 
 			if (!didInitCam) {
 				cam = new OrthographicCamera(w, h);
@@ -196,7 +196,7 @@ public class WorldView extends JComponent {
 		selectedTiles = newTiles;
 	}
 
-	private void renderSelectedTiles(Graphics2D g2d, SpriteBatch batch) {
+	private void renderSelectedTiles(Graphics2D g2d, RenderingContext batch) {
 		Tile[] st = this.selectedTiles;
 		if (st != null && st.length > 0) {
 			g2d.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
@@ -225,7 +225,7 @@ public class WorldView extends JComponent {
 		selectedEntities = newEntities;
 	}
 
-	private void renderSelectedEntities(Graphics2D g2d, SpriteBatch batch) {
+	private void renderSelectedEntities(Graphics2D g2d, RenderingContext batch) {
 		Entity[] se = this.selectedEntities;
 		if (se != null && se.length > 0) {
 			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.4f));

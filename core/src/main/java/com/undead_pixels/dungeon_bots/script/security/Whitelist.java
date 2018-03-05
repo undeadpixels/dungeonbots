@@ -23,6 +23,11 @@ import java.util.stream.Stream;
  */
 public class Whitelist implements GetLuaFacade, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private HashMap<String, SecurityLevel> whitelist;
 	private transient LuaValue luaValue;
 
@@ -40,7 +45,8 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final T... bindables) {
 		for(T t : bindables) {
-			this.addWhitelistNoReplace(t.getWhitelist());
+			Whitelist w = t.getDefaultWhitelist();
+			this.addWhitelistNoReplace(w);
 		}
 		return this;
 	}

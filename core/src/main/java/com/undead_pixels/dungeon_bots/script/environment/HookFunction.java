@@ -33,5 +33,11 @@ public class HookFunction extends ZeroArgFunction {
 		isKilled = true;
 	}
 
-	public static class ScriptInterruptException extends RuntimeException { }
+	public static class ScriptInterruptException extends RuntimeException {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+	}
 }

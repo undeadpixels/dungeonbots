@@ -126,15 +126,17 @@ public class LuaProxyFactory {
 	}
 
 	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Exception {
-		if(context != null && context.canExecute(caller, m)) {
-			if(returnType.isAssignableFrom(Varargs.class))
+		if(context == null || context.canExecute(caller, m)) {
+			if(returnType.isAssignableFrom(Varargs.class)) {
 				return Varargs.class.cast(m.invoke(caller, args));
-			else if(returnType.isAssignableFrom(LuaValue.class))
+			} else if(returnType.isAssignableFrom(LuaValue.class)) {
 				return LuaValue.varargsOf(new LuaValue[] { (LuaValue) m.invoke(caller, args)});
-			else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom))
+			} else if(getAllInterfaces(returnType).anyMatch(GetLuaFacade.class::isAssignableFrom)) {
 				return ((GetLuaFacade) m.invoke(caller, args)).getLuaValue();
-			else
-				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(m.invoke(caller, args))});
+			} else {
+				Object ret = m.invoke(caller, args);
+				return LuaValue.varargsOf(new LuaValue[] {CoerceJavaToLua.coerce(ret)});
+			}
 		} else {
 			throw new MethodNotOnWhitelistException(m);
 		}
@@ -173,6 +175,7 @@ public class LuaProxyFactory {
 	}
 
 	private static <T extends GetLuaFacade> LuaValue evalMethod(final T caller, final Method m) {
+		assert m != null;
 		m.setAccessible(true);
 		final Class<?> returnType = m.getReturnType();
 

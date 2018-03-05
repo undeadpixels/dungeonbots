@@ -29,13 +29,18 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  * The screen that shows users how well they did on the challenge they were
  * given
  */
-@SuppressWarnings("serial")
 public class ResultsScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-	private World _World;
+	protected final World world;
 
 	public ResultsScreen(World world) {
-		super(world);
+		super();
+		this.world = world;
 	}
 
 	@Override
@@ -107,7 +112,7 @@ public class ResultsScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "OK":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.MAIN_MENU);
+					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 					break;
 				case "Publish":
 				default:
@@ -129,6 +134,11 @@ public class ResultsScreen extends Screen {
 
 	/** Handles the rendering of stats entries. */
 	private class EntryRenderer extends JLabel implements ListCellRenderer<Entry<String, Object>> {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends Entry<String, Object>> list,
@@ -150,7 +160,7 @@ public class ResultsScreen extends Screen {
 				.create());
 		bttnPanel.add(UIBuilder.buildButton().text("Publish").action("PUBLISH", getController()).create());
 
-		Map<String, Object> endingState = _World.getState();
+		Map<String, Object> endingState = this.world.getState();
 		Vector<Entry<String, Object>> entries = new Vector<Entry<String, Object>>(endingState.entrySet());
 		JList<Entry<String, Object>> statsList = new JList<Entry<String, Object>>(entries);
 		statsList.setLayoutOrientation(JList.VERTICAL);
@@ -159,7 +169,7 @@ public class ResultsScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 		pane.add(statsList, BorderLayout.CENTER);
 		pane.add(bttnPanel, BorderLayout.PAGE_END);
-		_World.reset();
+		this.world.reset();
 	}
 
 	@Override

@@ -267,4 +267,9 @@ tbl.update = function(dt)
 			world.win()
 		end
 	end
+
+tbl.init()
+registerUpdateListener(tbl.update)
+
+
 return tbl

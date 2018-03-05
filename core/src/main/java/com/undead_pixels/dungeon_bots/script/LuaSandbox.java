@@ -11,11 +11,14 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.*;
@@ -25,12 +28,17 @@ import java.util.stream.*;
  * A LuaSandbox is a factory for creating a Sandbox of globals and methods that can be used to invoke
  * LuaScripts. A LuaSandbox is essentially a collection of allowed Lua functions.<br>
  * LuaSandbox's manage setting up the SecurityContext for the invoked LuaScripts when they are called.
- * TODO: May need to generate a return type from LuaScripts that references the source LuaSandbox
  */
-public class LuaSandbox {
+public final class LuaSandbox implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static int id = 0;
 	
+	private final UserScriptCollection scripts;
 	private final Globals globals;
 	final Globals invokerGlobals = JsePlatform.debugGlobals();
 	private final SecurityContext securityContext; // TODO - init this
@@ -39,6 +47,7 @@ public class LuaSandbox {
 	private final ScriptEventQueue scriptQueue = new ScriptEventQueue(this);
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 	private final ThreadGroup threadGroup = new ThreadGroup("lua-"+(id++));
+	private final HashMap<String, HashSet<LuaValue>> eventListeners = new HashMap<>();
 
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -46,6 +55,7 @@ public class LuaSandbox {
 	@Deprecated
 	public LuaSandbox() {
 		this(SecurityLevel.DEFAULT);
+		registerGlobalFunctions();
 	}
 
 	/**
@@ -56,15 +66,27 @@ public class LuaSandbox {
 	public LuaSandbox(SecurityLevel securityLevel) {
 		this.securityContext = new SecurityContext(new Whitelist(), securityLevel, null, null, TeamFlavor.NONE);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = new UserScriptCollection();
+		registerGlobalFunctions();
 	}
 
 	public LuaSandbox(Entity e) {
 		this.securityContext = new SecurityContext(e);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = e.getScripts();
+		registerGlobalFunctions();
 	}
 	public LuaSandbox(World w) {
 		this.securityContext = new SecurityContext(w);
 		this.globals = securityContext.getSecurityLevel().getGlobals();
+		this.scripts = w.getScripts();
+		registerGlobalFunctions();
+	}
+	
+	private void registerGlobalFunctions() {
+		globals.set("print", getPrintFunction());
+		globals.set("printf", getPrintfFunction());
+		globals.set("sleep", getSleepFunction());
 	}
 
 
@@ -74,19 +96,19 @@ public class LuaSandbox {
 	 * @return The modified LuaSandbox
 	 */
 	private LuaSandbox add(Stream<LuaBinding> bindings) {
-        bindings.forEach(binding ->
-				globals.set(binding.bindTo, binding.luaValue));
-        return this;
-    }
+		bindings.forEach(binding ->
+		globals.set(binding.bindTo, binding.luaValue));
+		return this;
+	}
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
-	 * @param bindable A Collection of Objects that implement the GetLuaFacade interface
+	 * @param bindables A Collection of Objects that implement the GetLuaFacade interface
 	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
-    @SafeVarargs
-    public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
+	@SafeVarargs
+	public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
 		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
 		add(Stream.of(bindables)
 				.map(GetLuaFacade::getLuaBinding));
@@ -138,6 +160,18 @@ public class LuaSandbox {
 		
 		return ret;
 	}
+
+	/**
+	 * @return
+	 */
+	public LuaInvocation init() {
+		UserScript script = this.scripts.get("init");
+		assert script != null;
+		LuaInvocation ret = this.enqueueCodeBlock(script.code);
+		scriptQueue.update(0.f);
+		
+		return ret;
+	}
 	
     /**
      * Accessor for the Globals for the LuaSandbox
@@ -167,19 +201,6 @@ public class LuaSandbox {
 		return scriptQueue;
 	}
 
-	
-	/**
-	 * Enqueues a lua function call
-	 * 
-	 * @param functionName	Name of the function to call
-	 * @param args			Args to pass the function
-	 * @param listeners		Things that might want to listen to the status of this event (if any)
-	 * @return				The event that was enqueued
-	 */
-	public LuaInvocation enqueueFunctionCall(String functionName, LuaValue[] args, ScriptEventStatusListener... listeners) {
-		return enqueueFunctionCall(functionName, args, null, listeners);
-	}
-
 	/**
 	 * @param codeBlock			A block of lua code to execute
 	 * @param listeners			Things that might want to listen to the status of this event (if any)
@@ -199,23 +220,6 @@ public class LuaSandbox {
 	}
 	
 	/**
-	 * Enqueues a lua function call
-	 * 
-	 * @param functionName		Name of the function to call
-	 * @param args				Args to pass the function
-	 * @param coalescingGroup	A group to coalesce events into
-	 * @param listeners			Things that might want to listen to the status of this event (if any)
-	 * @return				The event that was enqueued
-	 */
-	public LuaInvocation enqueueFunctionCall(String functionName, LuaValue[] args, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
-		LuaInvocation event = new LuaInvocation(this, functionName, args);
-		
-		scriptQueue.enqueue(event, coalescingGroup, listeners);
-		
-		return event;
-	}
-	
-	/**
 	 * @param codeBlock			A block of lua code to execute
 	 * @param coalescingGroup	A group to coalesce events into
 	 * @param listeners			Things that might want to listen to the status of this event (if any)
@@ -232,23 +236,14 @@ public class LuaSandbox {
 
 		
 		/**
-		 * @param codeBlock			A block of lua code to execute
+		 * @param file				A file containing lua code to execute
 		 * @param coalescingGroup	A group to coalesce events into
 		 * @param listeners			Things that might want to listen to the status of this event (if any)
 		 * @return					The event that was enqueued
 		 */
-		public LuaInvocation enqueueCodeBlock(File codeBlock, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
-			LuaInvocation script;
-			try {
-				// May need to append newline to left string argument in accumulator function.
-				script = new LuaInvocation(this,
-						new BufferedReader(new FileReader(codeBlock)).lines()
-						.reduce("", (a, b) -> a + "\n" + b));
-			}
-			catch (FileNotFoundException fileNotFound) {
-				// TODO: Consider changing contract of method to return an Optional<LuaScript> or have it throw an exception
-				script = new LuaInvocation(this, "");
-			}
+		public LuaInvocation enqueueCodeBlock(File file, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
+			UserScript codeBlock = new UserScript("init", file);
+			LuaInvocation script = new LuaInvocation(this, codeBlock);
 			scriptQueue.enqueue(script, coalescingGroup, listeners);
 			
 			return script;
@@ -272,6 +267,8 @@ public class LuaSandbox {
 				args.add(v.arg(i).tojstring());
 			}
 			String fmt = String.format(tofmt, args.toArray());
+			
+			System.out.println("printf: "+fmt);
 			try { bufferedOutputStream.write(fmt.getBytes()); }
 			catch (IOException io) { }
 			outputEventListeners.forEach(cn -> cn.accept(fmt));
@@ -282,6 +279,7 @@ public class LuaSandbox {
 	public class PrintFunction extends VarArgFunction {
 		@Override public LuaValue invoke(Varargs v) {
 			String ans = v.tojstring();
+			System.out.println("print: "+ans);
 			try { bufferedOutputStream.write(ans.getBytes()); }
 			catch (IOException io) { }
 			outputEventListeners.forEach(cn -> cn.accept(ans));
@@ -325,5 +323,59 @@ public class LuaSandbox {
 
 	public ThreadGroup getThreadGroup() {
 		return threadGroup;
+	}
+
+	/**
+	 * Registers an event type and allows this sandbox to request to listen to it
+	 * 
+	 * @param eventName		Something of the form FOO_BAR_BLAH,
+	 * 						which would create a function in the lua environment named registerFooBarBlahListener
+	 */
+	public void registerEventType(String eventName) {
+		eventListeners.put(eventName, new HashSet<LuaValue>());
+		
+		
+		OneArgFunction registerEventListenerFunction = new OneArgFunction() {
+			@Override
+			public LuaValue call(LuaValue arg) {
+				if(!arg.isfunction()) {
+					throw new LuaError("Expected a function");
+				}
+				eventListeners.get(eventName).add(arg);
+				return LuaValue.NIL;
+			}
+		};
+		
+		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
+		boolean shouldUpper = true;
+		String registerEventListenerFunctionName = "";
+		String eventNameLower = eventName.toLowerCase();
+		for(int i = 0; i < eventNameLower.length(); i++) {
+			char c = eventNameLower.charAt(i);
+			if(c == '_') {
+				shouldUpper = true;
+				continue;
+			}
+			
+			if(shouldUpper) {
+				registerEventListenerFunctionName += (""+c).toUpperCase();
+				shouldUpper = false;
+			} else {
+				registerEventListenerFunctionName += c;
+			}
+		}
+		
+		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
+		
+		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
+	}
+
+	public LuaInvocation fireEvent(String eventName, LuaValue... args) {
+		return fireEvent(eventName, null, args);
+	}
+	public LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
+		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
+		scriptQueue.enqueue(invocation, coalescingGroup);
+		return invocation;
 	}
 }

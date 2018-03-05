@@ -10,6 +10,9 @@ public final class SequentialActions implements Action {
 	 */
 	private Action[] innerActions;
 	
+	/**
+	 * @param actions	The list of actions that will be performed in order
+	 */
 	public SequentialActions(Action... actions) {
 		innerActions = actions;
 	}

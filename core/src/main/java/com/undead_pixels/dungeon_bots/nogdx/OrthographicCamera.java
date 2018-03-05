@@ -6,6 +6,11 @@ import java.awt.geom.Point2D;
 import java.io.Serializable;
 
 public class OrthographicCamera implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Zoom factor (size of each tile compared to the viewport)
@@ -32,18 +37,23 @@ public class OrthographicCamera implements Serializable {
 		viewportHeight = h;
 	}
 
-/*	@Deprecated
-	public void update() {
-		// TODO Auto-generated method stub
-
-	}
-*/
-	/**Returns the described point in screen coordinates.*/
+	/**
+	 * Returns the described point in screen coordinates.
+	 * 
+	 * @param pt		An original point in world space
+	 * @return		That point mapped to screen space
+	 */
 	public Point2D.Float unproject(Point2D.Float pt) {
 		return unproject(pt.x, pt.y);
 	}
 
-	/** Returns the described point in screen coordinates. */
+	/**
+	 * Returns the described point in screen coordinates.
+	 * 
+	 * @param x		An original point in world space
+	 * @param y		An original point in world space
+	 * @return		That point mapped to screen space
+	 */
 	public Point2D.Float unproject(float x, float y) {
 		AffineTransform xform = getTransform();
 		Point2D.Float ret = new Point2D.Float();
@@ -55,6 +65,9 @@ public class OrthographicCamera implements Serializable {
 		return new Point2D.Float(ret.x, ret.y);
 	}
 
+	/**
+	 * @return	The current transform of this camera
+	 */
 	public AffineTransform getTransform() {
 
 		float maxPixelsPerTileX = viewportWidth / mapSize.x;
@@ -71,8 +84,7 @@ public class OrthographicCamera implements Serializable {
 	/**
 	 * Sets up the zoom of this camera to fit a map of a given size
 	 * 
-	 * @param size
-	 *            Size of a map
+	 * @param size		Size of a map
 	 */
 	public void zoomFor(Point2D.Float size) {
 		mapSize = size;
@@ -82,19 +94,34 @@ public class OrthographicCamera implements Serializable {
 		position = new Point2D.Float(size.x / 2, size.y / 2);
 	}
 
+	/**
+	 * Notifies this camera of the size of the view it is outputting
+	 * 
+	 * @param w		width
+	 * @param h		height
+	 */
 	public void setViewportSize(float w, float h) {
 		viewportWidth = w;
 		viewportHeight = h;
 	}
 
+	/**
+	 * @return	The current zoom level
+	 */
 	public float getZoom() {
 		return zoom;
 	}
 
+	/**
+	 * @param newZoom	A new zoom level
+	 */
 	public void setZoom(float newZoom) {
 		zoom = newZoom;
 	}
 
+	/**
+	 * @param newZoom	A number between 0 and 1, indicating min to max zoom
+	 */
 	public void setZoomOnMinMaxRange(float newZoom) {
 		float leftThing = (float) Math.log(getMinZoom());
 		float rightThing = (float) Math.log(getMaxZoom());
@@ -102,18 +129,33 @@ public class OrthographicCamera implements Serializable {
 		setZoom((float) Math.exp(zoomT));
 	}
 
+	/**
+	 * @return	Minimum allowable zoom
+	 */
 	public float getMinZoom() {
 		return 0.25f;
 	}
 
+	/**
+	 * @return	Maximum allowable zoom
+	 */
 	public float getMaxZoom() {
 		return 4.0f;
 	}
 
+	/**
+	 * @return	The central position of this camera
+	 */
 	public Point2D.Float getPosition() {
 		return position;
 	}
 
+	/**
+	 * Change where this camera is centered
+	 * 
+	 * @param x
+	 * @param y
+	 */
 	public void setPosition(float x, float y) {
 		position = new Point2D.Float(x, y);
 	}

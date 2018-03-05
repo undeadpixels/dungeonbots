@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -17,6 +18,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -130,9 +132,12 @@ public class Serializer {
 	 */
 	public static boolean writeToFile(String filename, byte[] bytes) {
 		try {
-			Files.write(Paths.get(filename), bytes);
+			Path path = Paths.get(filename);
+			path.toFile().getParentFile().mkdirs();
+			Files.write(path, bytes);
 			return true;
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -246,6 +251,7 @@ public class Serializer {
 	};
 
 	public static String serializeLevelPack(LevelPack levelPack) {
+		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
 		return serializeToJSON(levelPack);
 	}
 
@@ -310,19 +316,19 @@ public class Serializer {
 		if (options.value > PrintOptions.NONE.value)
 			System.out.println(result);
 		if ((options.value & PrintOptions.MATCHED.value) == PrintOptions.MATCHED.value) {
-			System.out.print("Matched: " + matched.size());
+			System.out.println("Matched: " + matched.size());
 			for (String str : matched) {
 				System.out.println(str);
 			}
 		}
 		if ((options.value & PrintOptions.UNMATCHED.value) == PrintOptions.UNMATCHED.value) {
-			System.out.print("Unmatched: " + unmatched.size());
+			System.out.println("Unmatched: " + unmatched.size());
 			for (String str : unmatched) {
 				System.out.println(str);
 			}
 		}
 		if ((options.value & PrintOptions.UNDETERMINED.value) == PrintOptions.UNDETERMINED.value) {
-			System.out.print("Undetermined: " + undetermined.size());
+			System.out.println("Undetermined: " + undetermined.size());
 			for (String str : undetermined) {
 				System.out.println(str);
 			}
@@ -341,20 +347,21 @@ public class Serializer {
 			return;
 
 		if (objectA == null) {
-			if (objectB == null)
+			if (objectB == null) {
 				matched.add(rootName);
-			else
-				unmatched.add(rootName);
+			} else {
+				unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
+			}
 			return;
 		} else if (objectB == null) {
-			unmatched.add(rootName);
+			unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
 			return;
 		}
 
 		// From here, neither are null.
 		Class<?> classA = objectA.getClass(), classB = objectB.getClass();
 		if (!classA.equals(classB)) {
-			unmatched.add(rootName);
+			unmatched.add(rootName+" [class " + classA.getCanonicalName() + " != " + classB.getCanonicalName() + "]");
 			return;
 		}
 		if (objectA.equals(objectB)) {
@@ -366,7 +373,7 @@ public class Serializer {
 		if (classA.isArray()) {
 			int lengthA = Array.getLength(objectA), lengthB = Array.getLength(objectB);
 			if (lengthA != lengthB)
-				unmatched.add(rootName + ".length");
+				unmatched.add(rootName + ".length"+ "["+lengthA +" != "+lengthB+"]");
 			else {
 				for (int i = 0; i < lengthA; i++) {
 					validateReflectedEqualityRecursive(Array.get(objectA, i), Array.get(objectB, i), matched, unmatched,
@@ -375,18 +382,26 @@ public class Serializer {
 			}
 			return;
 		}
+		if(classA == String.class) {
+			if(objectA.equals(objectB)) {
+				matched.add(rootName);
+			} else {
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
+			}
+			return;
+		}
 		if (classA == boolean.class) {
 			if (((boolean) objectA) == ((boolean) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName);
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
 			return;
 		}
 		if (classA.isPrimitive()) {
 			if (((Number) objectA).equals((Number) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName);
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
 			return;
 		}
 
@@ -403,7 +418,7 @@ public class Serializer {
 						checked, rootName + "[" + i++ + "]", testTransients, testFinals);
 			}
 			if (iterA.hasNext() || iterB.hasNext())
-				unmatched.add(rootName);
+				unmatched.add(rootName +" [iterators not of same length]");
 			else
 				matched.add(rootName);
 			matched.addAll(tempMatched);
@@ -446,11 +461,11 @@ public class Serializer {
 				valB = field.get(objectB);
 			} catch (IllegalArgumentException e) {
 				System.out.println(fieldName + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalArgumentException]");
 				continue;
 			} catch (IllegalAccessException e) {
 				System.out.println(rootName + "." + field.getName() + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()));
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalAccessException]");
 				continue;
 			}
 			field.setAccessible(originalAccessible);

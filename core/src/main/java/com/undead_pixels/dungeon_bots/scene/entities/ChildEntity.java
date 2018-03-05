@@ -5,6 +5,11 @@ import java.awt.geom.Point2D;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 
 public abstract class ChildEntity extends Entity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The entity that this child attaches to
@@ -12,7 +17,7 @@ public abstract class ChildEntity extends Entity {
 	protected Entity parent;
 
 	public ChildEntity(Entity parent, String name) {
-		super(parent.world, name);
+		super(parent.world, name, null);
 
 		this.parent = parent;
 	}
@@ -27,9 +32,7 @@ public abstract class ChildEntity extends Entity {
 		return false;
 	}
 
-	@Deprecated
 	@Override
-	// WO: what is this used for?
 	public float getScale() {
 		return parent.getScale();
 	}

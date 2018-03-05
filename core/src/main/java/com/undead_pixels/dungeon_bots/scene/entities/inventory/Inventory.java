@@ -1,11 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.*;
 
 /**
@@ -13,23 +16,29 @@ import java.util.stream.*;
  * an inventory for an entity.
  */
 public class Inventory implements GetLuaFacade, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-	final Entity owner;
-	final Item[] inventory;
+	final ItemReference[] inventory;
+
+	/**
+	 * The max size of the inventory.
+	 */
 	private final int maxSize;
+
+	/**
+	 * The max weight of the inventory.
+	 */
 	private final int maxWeight = 100;
 
 	public Inventory(final Entity owner, int maxSize) {
-		this.owner = owner;
 		this.maxSize = maxSize;
-		inventory = new Item[maxSize];
-		owner.getWhitelist().addAutoLevelsForBindables(ItemReference.class);
-	}
-
-	public Inventory(final Entity entity, final Item[] items) {
-		this.owner = entity;
-		this.maxSize = 25;
-		this.inventory = items;
+		inventory = new ItemReference[maxSize];
+		IntStream.range(0, maxSize).forEach(i -> inventory[i] = new ItemReference(i));
+		owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
 	@Override
@@ -51,8 +60,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	@Bind(SecurityLevel.DEFAULT) public ItemReference peek(LuaValue index) {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
-		ItemReference ir = new ItemReference(this, i);
-		return ir;
+		return inventory[i];
 	}
 
 	/**
@@ -63,10 +71,20 @@ public class Inventory implements GetLuaFacade, Serializable {
 	public Item removeItem(int i) {
 		assert i < this.inventory.length;
 		synchronized (this.inventory) {
-			Item item = this.inventory[i - 1];
-			this.inventory[i - 1] = null;
+			Item item = this.inventory[i].getItem();
+			this.inventory[i].setItem(new Item.EmptyItem());
 			return item;
 		}
+	}
+
+	public Optional<Integer> findIndex(Item item) {
+		return Stream.of(inventory).filter(itemReference -> itemReference.getItem() == item)
+				.findFirst()
+				.map(val -> val.index);
+	}
+
+	public Item getItem(int index) {
+		return this.inventory[index].getItem();
 	}
 
 	/**
@@ -74,20 +92,20 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public Integer getWeight() {
+	public Integer weight() {
 		return Stream.of(inventory)
-				.reduce(0, (num, item) -> num + (item == null ? 0 : item.getWeight()), (a, b) -> a + b);
+				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
 	}
 
 	/**
-	 * Calculate the current capacity of the Inventory by calculating the number of non-null<br>
+	 * Calculate the current capacity of the Inventory by calculating the number of non-empty<br>
 	 * items held within.
 	 * @return An integer representing the number of items currently held in the inventory
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	public Integer currentCapacity() {
+	public Integer capacity() {
 		return Stream.of(inventory)
-				.reduce(0, (num, item) -> num + (item == null ? 0 : 1), (a,b) -> a + b);
+				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : 1), (a,b) -> a + b);
 	}
 
 	/**
@@ -97,16 +115,20 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	public boolean addItem(Item item) {
 		synchronized (this.inventory) {
-			if(getWeight() + item.getWeight() > maxWeight)
+			if(weight() + item.getWeight() > maxWeight)
 				return false;
 			for(int i = 0; i < this.inventory.length; i++) {
-				if(inventory[i] == null) {
-					inventory[i] = item;
+				if(inventory[i].getItem().isEmpty()) {
+					inventory[i].setItem(item);
 					return true;
 				}
 			}
 			return false;
 		}
+	}
+
+	public boolean containsItem(Item i) {
+		return getItems().contains(i);
 	}
 
 	/**
@@ -115,17 +137,15 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return If the item was added to the inventory
 	 */
 	@Bind(SecurityLevel.DEFAULT) public Boolean putItem(LuaValue luaItem) {
-		return ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class))
-				.derefItem()
-				.map(item -> addItem(item))
-				.orElse(false);
+		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class))
+				.derefItem());
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Integer capacity() {
+	@Bind(SecurityLevel.DEFAULT) public Integer size() {
 		return this.maxSize;
 	}
 
@@ -135,21 +155,26 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public LuaTable get() {
-		LuaTable table = new LuaTable();
+		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
-			ItemReference ir = new ItemReference(this, i);
-			table.set(i + 1, ir.getLuaValue());
+			table.set(i + 1, inventory[i].getLuaValue());
 		}
 		return table;
 	}
 
+	/**
+	 * Binding that unpacks the contents of an inventory in to Varargs.<br>
+	 * Example of use<br>
+	 * <pre>{@code
+	 * 	i1, i2 = player:inventory():unpack()
+	 * }</pre>
+	 * @return
+	 */
 	@Bind(SecurityLevel.DEFAULT)
 	public Varargs unpack() {
-		LuaValue[] ans = new LuaValue[inventory.length];
-		IntStream.range(0, inventory.length).forEach(i -> {
-			ItemReference ir = new ItemReference(this, i);
-			ans[i] = ir.getLuaValue();
-		});
+		final LuaValue[] ans = new LuaValue[inventory.length];
+		IntStream.range(0, inventory.length)
+				.forEach(i -> ans[i] = inventory[i].getLuaValue());
 		return LuaValue.varargsOf(ans);
 	}
 
@@ -157,8 +182,17 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 */
 	public void reset() {
-		for(int i = 0; i < inventory.length; i++) {
-			inventory[i] = null;
-		}
+		Stream.of(inventory).forEach(itemRef ->
+				itemRef.setItem(new Item.EmptyItem()));
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public List<Item> getItems() {
+		return Stream.of(inventory)
+				.map(ItemReference::getItem)
+				.collect(Collectors.toList());
 	}
 }

@@ -2,11 +2,10 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.Container;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -15,22 +14,25 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * The menu where users select Play, Create, or Community
  */
-@SuppressWarnings("serial")
 public class MainMenuScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public MainMenuScreen() {
-		super(null);
-		// TODO Auto-generated constructor stub
+		super();
 	}
 
 	@Override
@@ -41,10 +43,16 @@ public class MainMenuScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "PLAY":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.GAMEPLAY);
+					// TODO - this should instead launch a level selection screen
+					LevelPack levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("default.lua")));
+					if (levelPack.getCurrentPlayer() != null && !levelPack.getCurrentPlayer().equals(DungeonBotsMain.instance.getUser())) {
+						throw new RuntimeException("Cannot switch to a game being played by another player.");
+					}
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					break;
 				case "CREATE":
-					DungeonBotsMain.instance.setCurrentScreen(DungeonBotsMain.ScreenType.LEVEL_EDITOR);
+					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World(new File("blank.lua")));
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new
@@ -114,20 +122,20 @@ public class MainMenuScreen extends Screen {
 	@Override
 	protected void addComponents(Container pane) {
 
-		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("PLAY")
+		JButton bttnPlay = UIBuilder.buildButton().image("play.gif").toolTip("Start a game as a player.").text("Play")
 				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 		bttnPlay.requestFocus();
 
 		JButton bttnCreate = UIBuilder.buildButton().image("create.gif").toolTip("Edit a game as an author.")
-				.text("CREATE").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
+				.text("Create").action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
 		JButton bttnCommunity = UIBuilder.buildButton().image("community.gif").toolTip("Go to the online community.")
-				.text("COMMUNITY").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
+				.text("Community").action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
-		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("QUIT")
+		JButton bttnQuit = UIBuilder.buildButton().image("quit.gif").toolTip("Quit the game.").text("Quit")
 				.action("QUIT", getController()).hotkey(KeyEvent.VK_Q).margin(5, 5, 5, 5).alignmentX(CENTER_ALIGNMENT)
 				.create();
 
