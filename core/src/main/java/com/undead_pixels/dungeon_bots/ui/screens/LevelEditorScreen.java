@@ -50,6 +50,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -149,6 +150,16 @@ public final class LevelEditorScreen extends Screen {
 		}
 		return false;
 	}
+	
+	public boolean isSelectedActor(Entity e){
+		if (!(e instanceof Actor)) return false;
+		Entity[] selected = _SelectedEntities;
+		if (selected==null) return false;		
+		for (int i = 0; i < selected.length; i++) {
+			if (e==selected[i]) return true;
+		}
+		return false;
+	}
 
 	@Override
 	protected ScreenController makeController() {
@@ -193,6 +204,8 @@ public final class LevelEditorScreen extends Screen {
 
 				// What is the current lasso in game space?
 				Rectangle2D.Float rect = _View.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
+				if (rect.width==0.0f) rect.width = 0.01f;
+				if (rect.height==0.0f) rect.height = 0.01f;
 
 				// Find the entities (first) or tiles (second) that are lassoed.
 				// If only one entity is lassoed and that entity is already
@@ -202,9 +215,9 @@ public final class LevelEditorScreen extends Screen {
 				// selection, just update the tile selection. Otherwise, nothing
 				// is selected.
 
-				List<Entity> se = world.getEntitiesUnderLocation(rect);
+				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
-				if (st.size() == 1 && se.size() > 0 && isSelectedEntity(se.get(0))) {
+				if (st.size() == 1 && se.size() == 1 && isSelectedEntity(se.get(0))) {
 					// Clicked on an entity. Open its editor.
 					setSelectedEntities(new Entity[] { se.get(0) });
 					JEntityEditor.create(LevelEditorScreen.this, se.get(0), SecurityLevel.DEFAULT, "Entity Editor");
