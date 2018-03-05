@@ -116,9 +116,6 @@ public final class LevelEditorScreen extends Screen {
 		/** The list managing the selection of an entity type. */
 		public JList<EntityType> entityPalette;
 
-		/** The current Tool provides handlers for inputs. */
-		private Tool currentTool = null;
-
 		// ===========================================================
 		// ======== LevelEditorScreen.Controller TOOL STUFF
 		// ===========================================================
@@ -147,7 +144,7 @@ public final class LevelEditorScreen extends Screen {
 						tilePalette.clearSelection();
 						_PropogateChange = true;
 					}
-					currentTool = toolPalette.getSelectedValue();
+					selections.tool = toolPalette.getSelectedValue();
 				}
 				// Handle clicking on the tile palette.
 				else if (e.getSource() == tilePalette) {
@@ -158,7 +155,7 @@ public final class LevelEditorScreen extends Screen {
 						_PropogateChange = true;
 					}
 					if (tilePalette.getSelectedValue() != null)
-						selections.setTileType(tilePalette.getSelectedValue());
+						selections.tileType = tilePalette.getSelectedValue();
 					toolPalette.setSelectedValue(_TilePen, true);
 				}
 				// Handle clicking on the entity palette.
@@ -170,7 +167,7 @@ public final class LevelEditorScreen extends Screen {
 						_PropogateChange = true;
 					}
 					if (entityPalette.getSelectedValue() != null)
-						selections.setEntityType(entityPalette.getSelectedValue());
+						selections.entityType = entityPalette.getSelectedValue();
 					toolPalette.setSelectedValue(_EntityPlacer, true);
 				}
 
@@ -198,30 +195,28 @@ public final class LevelEditorScreen extends Screen {
 
 			case "Save to LevelPack":
 				File saveLevelPackFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveLevelPackFile == null) {
+				if (saveLevelPackFile == null)
 					System.out.println("Save cancelled.");
-					return;
-				}
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveLevelPackFile))) {
 					String json = levelPack.toJson();
 					writer.write(json);
+					System.out.println("Save LevelPack complete.");
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
-				break;
+				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
-				if (openLevelPackFile == null) {
+				if (openLevelPackFile == null)
 					System.out.println("Open cancelled.");
-					return;
-				} else if (openLevelPackFile.getName().endsWith(".json")) {
+				else if (openLevelPackFile.getName().endsWith(".json")) {
 					LevelPack levelPack = LevelPack.fromFile(openLevelPackFile.getPath());
 					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					System.out.println("Open LevelPack complete.");
 				} else {
 					System.out.println("Unsupported file type: " + openLevelPackFile.getName());
-					return;
 				}
-				break;
+				return;
 			case "Save to Stand-Alone":
 				File saveStandAloneFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 				if (saveStandAloneFile == null)
@@ -229,10 +224,11 @@ public final class LevelEditorScreen extends Screen {
 				String lua = world.getMapScript();
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveStandAloneFile))) {
 					writer.write(lua);
+					System.out.println("Save to Stand-Alone complete.");
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
-				break;
+				return;
 			case "Open Stand-Alone":
 				File openStandAloneFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openStandAloneFile == null) {
@@ -241,23 +237,22 @@ public final class LevelEditorScreen extends Screen {
 				} else if (openStandAloneFile.getName().endsWith(".lua")) {
 					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level",
 							DungeonBotsMain.instance.getUser(), new World(openStandAloneFile))));
-				} else {
+					System.out.println("Open from Stand-Alone complete.");
+				} else
 					System.out.println("Unsupported Stand-Alone file type: " + openStandAloneFile.getName());
-					return;
-				}
-				break;
+				return;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
-				break;
+				return;
 			case "Quit":
 				int dialogResult = JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Quit",
 						JOptionPane.YES_NO_OPTION);
 				if (dialogResult == JOptionPane.YES_OPTION) {
 					System.exit(0);
 				}
-				break;
+				return;
 			case "Export":
 				try {
 					File f = FileControl.saveAsDialog(LevelEditorScreen.this);
@@ -266,10 +261,10 @@ public final class LevelEditorScreen extends Screen {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-				break;
+				return;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());
-				break;
+				return;
 			}
 		}
 
@@ -277,8 +272,8 @@ public final class LevelEditorScreen extends Screen {
 		public void mouseClicked(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
-			if (currentTool != null)
-				currentTool.mouseClicked(e);
+			if (selections.tool != null)
+				selections.tool.mouseClicked(e);
 			if (e.isConsumed())
 				return;
 		}
@@ -287,32 +282,32 @@ public final class LevelEditorScreen extends Screen {
 		public void mouseDragged(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
-			if (currentTool != null)
-				currentTool.mouseDragged(e);
+			if (selections.tool != null)
+				selections.tool.mouseDragged(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseMoved(e);
+			if (selections.tool != null)
+				selections.tool.mouseMoved(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseEntered(e);
+			if (selections.tool != null)
+				selections.tool.mouseEntered(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			if (currentTool != null)
-				currentTool.mouseExited(e);
+			if (selections.tool != null)
+				selections.tool.mouseExited(e);
 			if (e.isConsumed())
 				return;
 		}
@@ -321,8 +316,8 @@ public final class LevelEditorScreen extends Screen {
 		public void mousePressed(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
-			if (currentTool != null)
-				currentTool.mousePressed(e);
+			if (selections.tool != null)
+				selections.tool.mousePressed(e);
 			if (e.isConsumed())
 				return;
 
@@ -332,32 +327,32 @@ public final class LevelEditorScreen extends Screen {
 		public void mouseReleased(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
-			if (currentTool != null)
-				currentTool.mouseReleased(e);
+			if (selections.tool != null)
+				selections.tool.mouseReleased(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			if (currentTool != null)
-				currentTool.keyPressed(e);
+			if (selections.tool != null)
+				selections.tool.keyPressed(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void keyReleased(KeyEvent e) {
-			if (currentTool != null)
-				currentTool.keyPressed(e);
+			if (selections.tool != null)
+				selections.tool.keyPressed(e);
 			if (e.isConsumed())
 				return;
 		}
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			if (currentTool != null)
-				currentTool.keyPressed(e);
+			if (selections.tool != null)
+				selections.tool.keyPressed(e);
 			if (e.isConsumed())
 				return;
 		}
@@ -455,6 +450,7 @@ public final class LevelEditorScreen extends Screen {
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this));
 		toolList.setModel(tm);
+		toolList.setSelectedValue(selections.tool = _Selector, true);
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);

@@ -100,17 +100,14 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	public void render(Graphics2D g) {
 	}
 
+	/** The editor state? */
 	public static class SelectionModel {
-		private TileType tileType = null;
-		private EntityType entityType = null;
+		public TileType tileType = null;
+		public EntityType entityType = null;
 
-		public void setTileType(TileType type) {
-			this.tileType = type;
-		}
+		/** The current Tool. */
+		public Tool tool = null;
 
-		public void setEntityType(EntityType type) {
-			this.entityType = type;
-		}
 	}
 
 	public static class Selector extends Tool {
@@ -245,12 +242,14 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			drawTile(e.getX(), e.getY(), selection.tileType);
+			if (selection.tileType != null)
+				drawTile(e.getX(), e.getY(), selection.tileType);
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			drawTile(e.getX(), e.getY(), selection.tileType);
+			if (selection.tileType != null)
+				drawTile(e.getX(), e.getY(), selection.tileType);
 		}
 
 		public void drawTile(int screenX, int screenY, TileType tileType) {
@@ -285,7 +284,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
 			EntityType type = selection.entityType;
 			assert (type != null);
-			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int)gamePos.x, (int)gamePos.y);
+			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
 			view.setSelectedEntities(new Entity[] { actor });
 			JEntityEditor.create(owner, actor, SecurityLevel.DEFAULT, "Entity Editor");
