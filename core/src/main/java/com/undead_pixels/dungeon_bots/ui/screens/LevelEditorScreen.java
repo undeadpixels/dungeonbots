@@ -409,12 +409,12 @@ public final class LevelEditorScreen extends Screen {
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openFile != null) {
 					//World newWorld = new World(openFile);
-					final LevelPack lp = LevelPack.fromFile(openFile.getPath());
-					// lp._levels.add(newWorld);
-					// DungeonBotsMain.instance.setWorld(lp.levels.size() -
-					// 1);
-					// _CurrentFile = openFile;
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(lp));
+					if(openFile.getName().endsWith(".lua")) {
+						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
+					} else {
+						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					}
 				} else
 					System.out.println("Open cancelled.");
 
