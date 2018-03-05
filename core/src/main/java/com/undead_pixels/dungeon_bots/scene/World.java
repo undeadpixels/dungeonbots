@@ -228,6 +228,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		mapSandbox.registerEventType("UPDATE");
 		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
 		LuaInvocation initScript = mapSandbox.init().join();
+		this.serialized = false;
 		
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
