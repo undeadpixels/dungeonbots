@@ -28,7 +28,9 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.RpgActor;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -267,12 +269,26 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 		private final WorldView view;
 		private final World world;
+		private final SelectionModel selection;
+		private final Window owner;
 
-		public EntityPlacer(WorldView view, Window owner) {
+		public EntityPlacer(WorldView view, SelectionModel selection, Window owner) {
 			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
 			this.view = view;
 			this.world = view.getWorld();
-			// TODO Auto-generated constructor stub
+			this.selection = selection;
+			this.owner = owner;
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+			EntityType type = selection.entityType;
+			assert (type != null);
+			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int)gamePos.x, (int)gamePos.y);
+			world.addEntity(actor);
+			view.setSelectedEntities(new Entity[] { actor });
+			JEntityEditor.create(owner, actor, SecurityLevel.DEFAULT, "Entity Editor");
 		}
 
 	}

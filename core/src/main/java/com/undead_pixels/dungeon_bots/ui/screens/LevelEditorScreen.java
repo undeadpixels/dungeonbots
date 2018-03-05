@@ -171,7 +171,7 @@ public final class LevelEditorScreen extends Screen {
 					}
 					if (entityPalette.getSelectedValue() != null)
 						selections.setEntityType(entityPalette.getSelectedValue());
-					toolPalette.setSelectedValue(_EntityPlacer,  true);
+					toolPalette.setSelectedValue(_EntityPlacer, true);
 				}
 
 			}
@@ -453,6 +453,7 @@ public final class LevelEditorScreen extends Screen {
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
 		tm.addElement(_Selector = new Tool.Selector(_View, this));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
+		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this));
 		toolList.setModel(tm);
 
 		JPanel controlPanel = new JPanel();
