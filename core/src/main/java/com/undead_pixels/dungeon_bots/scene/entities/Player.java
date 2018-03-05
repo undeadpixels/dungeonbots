@@ -93,7 +93,7 @@ public class Player extends RpgActor {
 	
 	public void resetInventory() {
 		this.inventory.reset();
-		this.inventory.addItem(new Note(this.world,"Greetings", "Welcome to Dungeonbots!"));
+		this.inventory.addItem(new Note(this.world,"Welcome to Dungeonbots!"));
 	}
 
 	/**

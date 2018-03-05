@@ -3,13 +3,21 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.Useable;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import java.io.Serializable;
 
 public final class ItemReference implements GetLuaFacade, Serializable, Useable {
 
+	/**
+	 * All ItemReferences are associated with a corresponding index into an Inventory.
+	 */
 	public final int index;
+
+	/**
+	 * The Underlying item referenced by the ItemReference.
+	 */
 	Item item;
 
 	public ItemReference(int index) {
@@ -43,7 +51,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return The Name of the Item
 	 */
 	@Override
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(SecurityLevel.DEFAULT) @BindTo("name")
 	public String getName() {
 		return item.getName();
 	}
@@ -52,7 +60,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns a Description of the Item
 	 * @return A Description of the Item
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(SecurityLevel.DEFAULT) @BindTo("description")
 	public String getDescription() {
 		return item.getDescription();
 	}
@@ -61,7 +69,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns the Value of the Item.
 	 * @return An Integer value of the Item.
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(SecurityLevel.DEFAULT) @BindTo("value")
 	public Integer getValue() {
 		return item.getValue();
 	}
@@ -70,7 +78,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns the Weight of the Item.
 	 * @return An Integer weight of the Item.
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(SecurityLevel.DEFAULT) @BindTo("weight")
 	public Integer getWeight() {
 		return item.getWeight();
 	}

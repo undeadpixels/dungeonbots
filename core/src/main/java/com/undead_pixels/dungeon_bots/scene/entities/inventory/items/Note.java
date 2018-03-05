@@ -9,8 +9,8 @@ import javax.swing.*;
 
 public class Note extends Item {
 
-	public Note(World world, String name, String descr) {
-		super(world,name, descr, 0, 0);
+	public Note(World world, String descr) {
+		super(world,"Note", descr, 0, 0);
 	}
 
 	@Override @Bind(SecurityLevel.DEFAULT) public Boolean use() {

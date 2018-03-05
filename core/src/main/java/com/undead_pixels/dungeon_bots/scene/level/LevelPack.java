@@ -54,6 +54,9 @@ public class LevelPack {
 
 		this.levels = new WorldList();
 		//this.levels.add(new World(new File("default.lua")));
+		if(worlds.length == 0)
+			worlds = new World[] { new World(new File("default.lua")) };
+
 		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
 

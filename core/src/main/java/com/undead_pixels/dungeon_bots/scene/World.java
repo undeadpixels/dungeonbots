@@ -54,7 +54,7 @@ import org.luaj.vm2.*;
  */
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
 
-	private transient ReentrantLock updateLock = new ReentrantLock();
+	// private transient ReentrantLock updateLock = new ReentrantLock();
 
 	/**
 	 * The script that defines this world
@@ -300,9 +300,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param dt		Delta time
 	 */
 	public void update(float dt) {
-		updateLock.lock();
-		try {
-			// update tiles from tileTypes, if dirty
+		// update tiles from tileTypes, if dirty
+		synchronized (this) {
 			refreshTiles();
 
 			// update tiles
@@ -321,9 +320,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			playstyle.update();
 			// update level script
 			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
-		} finally {
-			updateLock.unlock();
 		}
+
 	}
 
 	/**
@@ -772,8 +770,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 */
 	public synchronized void reset() {
-		updateLock.lock();
-		try {
+		synchronized(this){
 			timesReset++;
 			// levelScript = null;
 			// tiles = new Tile[0][0];
@@ -781,8 +778,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// backgroundImage = null;
 			//level.init();
 			// TODO
-		} finally {
-			updateLock.unlock();
 		}
 	}
 
