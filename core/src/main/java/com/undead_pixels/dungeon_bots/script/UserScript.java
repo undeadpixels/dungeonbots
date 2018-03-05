@@ -26,6 +26,11 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
  * will inherit from this and add to the entity's collection of scripts.
  */
 public class UserScript implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public String code;
 

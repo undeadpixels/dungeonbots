@@ -21,6 +21,11 @@ import org.luaj.vm2.LuaValue;
  * A collection of TileType's
  */
 public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Internal storage

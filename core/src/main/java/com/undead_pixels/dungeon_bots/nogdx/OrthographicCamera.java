@@ -6,6 +6,11 @@ import java.awt.geom.Point2D;
 import java.io.Serializable;
 
 public class OrthographicCamera implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Zoom factor (size of each tile compared to the viewport)

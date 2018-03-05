@@ -12,33 +12,23 @@ import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -63,8 +53,12 @@ public class UIBuilder {
 	 * A class whose sole purpose is to assure that buttons get filled by their
 	 * images, and the images shrink with the buttons.
 	 */
-	@SuppressWarnings("serial")
 	private static class ResizingIcon extends ImageIcon implements ComponentListener {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		private Image _OriginalImage;
 		private AbstractButton _Host;

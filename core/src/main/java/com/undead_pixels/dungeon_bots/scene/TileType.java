@@ -16,6 +16,11 @@ import org.luaj.vm2.LuaValue;
 public class TileType implements GetLuaFacade, Serializable {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * Possible textures
 	 */
 	private final TextureRegion[] textureRegions;

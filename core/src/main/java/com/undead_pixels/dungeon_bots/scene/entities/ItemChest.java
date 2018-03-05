@@ -8,6 +8,11 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 
 public class ItemChest extends SpriteEntity implements HasInventory {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private final Inventory inventory = new Inventory(this, 100);
 

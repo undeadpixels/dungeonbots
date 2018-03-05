@@ -35,8 +35,12 @@ import javax.swing.ImageIcon;
  * @version 1.0 03/27/12
  * @author Darryl
  */
-@SuppressWarnings("serial")
 public class StretchIcon extends ImageIcon {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
   /**
    * Determines whether the aspect ratio of the image is maintained.

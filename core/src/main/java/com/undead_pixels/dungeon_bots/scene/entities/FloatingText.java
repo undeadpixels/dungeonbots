@@ -16,6 +16,11 @@ import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 public class FloatingText extends ChildEntity {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * The font of this text
 	 */
 	private static Font font = new Font("Arial", Font.BOLD, 12);

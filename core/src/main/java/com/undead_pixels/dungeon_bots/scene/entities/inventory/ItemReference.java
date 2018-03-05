@@ -9,6 +9,11 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import java.io.Serializable;
 
 public final class ItemReference implements GetLuaFacade, Serializable, Useable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * All ItemReferences are associated with a corresponding index into an Inventory.

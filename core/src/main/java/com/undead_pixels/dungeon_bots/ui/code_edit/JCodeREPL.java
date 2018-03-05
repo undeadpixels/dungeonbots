@@ -41,8 +41,12 @@ import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
-@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
@@ -138,6 +142,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// On CTRL+ENTER, should execute.
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
 		actionMap.put("EXECUTE", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				execute(MAX_EXECUTION_TIME);
@@ -147,6 +157,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// On ESC, should clear the command line.
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
 		actionMap.put("CLEAR", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				_EditorPane.setText("");
@@ -155,6 +171,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
 		actionMap.put("STOP", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -166,6 +187,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
 		actionMap.put("CLOSE", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -185,6 +211,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
 		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -199,6 +230,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
 		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {

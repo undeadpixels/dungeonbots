@@ -16,6 +16,11 @@ import java.util.stream.*;
  * an inventory for an entity.
  */
 public class Inventory implements GetLuaFacade, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	final ItemReference[] inventory;
 

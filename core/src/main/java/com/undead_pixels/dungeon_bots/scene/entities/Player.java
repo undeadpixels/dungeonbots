@@ -21,6 +21,11 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 public class Player extends RpgActor {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Deprecated
 	protected String defaultCode;

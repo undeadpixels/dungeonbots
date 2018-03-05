@@ -15,6 +15,11 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 public class TexturedButton extends JButton {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private Font font = new Font("Arial", Font.BOLD, 52);
 	private TextureRegion[][] textures = new TextureRegion[3][3];

@@ -17,6 +17,11 @@ import java.util.Optional;
  * but is mostly intended for use for survey questions that aren't graded.
  */
 public class ResponseQuestion extends Question {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The question that is presented.

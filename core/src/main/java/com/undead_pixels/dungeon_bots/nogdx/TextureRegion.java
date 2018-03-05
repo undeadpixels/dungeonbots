@@ -9,6 +9,11 @@ import java.io.Serializable;
 public class TextureRegion implements Serializable {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * The internal Texture
 	 */
 	private final Texture tex;

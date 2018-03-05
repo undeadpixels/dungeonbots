@@ -1,23 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.User;

@@ -41,8 +41,12 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 /**
  * A screen for gameplay
  */
-@SuppressWarnings("serial")
 public class GameplayScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;

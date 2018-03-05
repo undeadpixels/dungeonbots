@@ -2,25 +2,20 @@ package com.undead_pixels.dungeon_bots.ui;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
-import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Collection;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -29,6 +24,11 @@ import javax.swing.Timer;
  * The screen for the regular game
  */
 public class WorldView extends JComponent {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private OrthographicCamera cam;
 	private boolean didInitCam = false;

@@ -12,6 +12,11 @@ import java.util.List;
  * answer in the Question Item which can be submitted or returned to a requester.
  */
 public class MultipleChoiceQuestion extends Question {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * A List of answers that are supplied to the Question form.

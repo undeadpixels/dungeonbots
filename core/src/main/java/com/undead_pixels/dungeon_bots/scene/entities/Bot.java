@@ -1,18 +1,11 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.scene.GetState;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
-import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.geom.Point2D;
 
-import org.luaj.vm2.LuaValue;
 
 /**
  * An Actor intended to be scripted and controlled by player users in a code
@@ -22,6 +15,11 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 public class Bot extends RpgActor {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Deprecated
 	protected String defaultCode;
