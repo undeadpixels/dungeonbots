@@ -20,6 +20,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -212,45 +213,35 @@ public final class LevelEditorScreen extends Screen {
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(savingFile))) {
 					String json = levelPack.toJson();
 					writer.write(json);
-				} catch (Exception ioex) {
+				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}
 				break;
-			/*
-			 * // If there is not a cached file, treat as a SaveAs instead. if
-			 * (_CurrentFile == null) _CurrentFile =
-			 * FileControl.saveAsDialog(LevelEditorScreen.this); if
-			 * (_CurrentFile != null) { String lua = world.getMapScript(); try
-			 * (BufferedWriter writer = new BufferedWriter(new
-			 * FileWriter(_CurrentFile))) { writer.write(lua); } catch
-			 * (IOException e1) { e1.printStackTrace(); } } else
-			 * System.out.println("Save cancelled."); break;
-			 */
-			case "Save As":
-				System.err.println("SaveAs might be deprecated for LevelEditorScreen.");
+			case "Open LevelPack":
 				break;
-			/*
-			 * File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-			 * if (saveFile != null) { String lua = world.getMapScript(); try
-			 * (BufferedWriter writer = new BufferedWriter(new
-			 * FileWriter(saveFile))) { writer.write(lua); } catch (IOException
-			 * e1) { e1.printStackTrace(); } _CurrentFile = saveFile; } else
-			 * System.out.println("SaveAs cancelled."); break;
-			 */
-			case "Import":
+			case "Save to Stand-Alone":
+				File saveFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (saveFile == null)
+					return;
+				String lua = world.getMapScript();
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile))) {
+					writer.write(lua);
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+				break;
+			case "Open Stand-Alone":
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
-				if (openFile != null) {
-					// World newWorld = new World(openFile);
-					if (openFile.getName().endsWith(".lua")) {
-						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(
-								new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
-					} else {
-						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
-					}
-				} else
+				if (openFile == null) {
 					System.out.println("Open cancelled.");
-
+					return;
+				} else if (openFile.getName().endsWith(".lua")) {
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(
+							new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
+				} else {
+					LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+				}
 				break;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
@@ -258,22 +249,11 @@ public final class LevelEditorScreen extends Screen {
 					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 				break;
 			case "Quit":
-				/*
-				 * int dialogResult =
-				 * JOptionPane.showConfirmDialog(LevelEditorScreen.this,
-				 * "Would you like to save before quitting?", "Quit",
-				 * JOptionPane.YES_NO_CANCEL_OPTION); if (dialogResult ==
-				 * JOptionPane.YES_OPTION) { if (_CurrentFile == null)
-				 * _CurrentFile =
-				 * FileControl.saveAsDialog(LevelEditorScreen.this); if
-				 * (_CurrentFile != null) { String lua = world.getMapScript();
-				 * try (BufferedWriter writer = new BufferedWriter(new
-				 * FileWriter(_CurrentFile))) { writer.write(lua); } catch
-				 * (IOException e1) { e1.printStackTrace(); } } else
-				 * System.out.println("Save cancelled."); System.exit(0); } else
-				 * if (dialogResult == JOptionPane.NO_OPTION) System.exit(0);
-				 */
-
+				int dialogResult = JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Quit",
+						JOptionPane.YES_NO_OPTION);
+				if (dialogResult == JOptionPane.YES_OPTION) {
+					System.exit(0);
+				}
 				break;
 			case "Export":
 				try {
@@ -486,7 +466,10 @@ public final class LevelEditorScreen extends Screen {
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Open LevelPack",
+				KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK), KeyEvent.VK_O, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
+		fileMenu.add(UIBuilder.makeMenuItem("Open Stand-Alone", getController()));
 		/*
 		 * fileMenu.add(UIBuilder.makeMenuItem("Save As",
 		 * KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK |
