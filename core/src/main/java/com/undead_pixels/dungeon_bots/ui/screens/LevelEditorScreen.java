@@ -53,6 +53,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
@@ -63,7 +65,7 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  *
  */
 public final class LevelEditorScreen extends Screen {
-	
+
 	/**
 	 * 
 	 */
@@ -139,6 +141,8 @@ public final class LevelEditorScreen extends Screen {
 	/** Returns whether the given entity is selected. */
 	public boolean isSelectedEntity(Entity e) {
 		Entity[] selected = _SelectedEntities;
+		if (selected == null)
+			return false;
 		for (int i = 0; i < selected.length; i++) {
 			if (e == selected[i])
 				return true;
@@ -200,7 +204,7 @@ public final class LevelEditorScreen extends Screen {
 
 				List<Entity> se = world.getEntitiesUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
-				if (st.size() == 1 && isSelectedEntity(se.get(0))) {
+				if (st.size() == 1 && se.size() > 0 && isSelectedEntity(se.get(0))) {
 					// Clicked on an entity. Open its editor.
 					setSelectedEntities(new Entity[] { se.get(0) });
 					JEntityEditor.create(LevelEditorScreen.this, se.get(0), SecurityLevel.DEFAULT, "Entity Editor");
@@ -444,9 +448,10 @@ public final class LevelEditorScreen extends Screen {
 			case "Import":
 				File openFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openFile != null) {
-					//World newWorld = new World(openFile);
-					if(openFile.getName().endsWith(".lua")) {
-						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
+					// World newWorld = new World(openFile);
+					if (openFile.getName().endsWith(".lua")) {
+						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(
+								new LevelPack("New Level", DungeonBotsMain.instance.getUser(), new World(openFile))));
 					} else {
 						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
 						DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));

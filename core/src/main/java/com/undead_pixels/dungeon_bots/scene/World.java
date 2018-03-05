@@ -617,7 +617,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return		The Tile at a given position
 	 */
 	public Tile getTile(float x, float y) {
-		return getTile(Math.round(x), Math.round(y));
+		return getTileUnderLocation((int)Math.round(x), (int)Math.round(y));
 	}
 
 	/**
