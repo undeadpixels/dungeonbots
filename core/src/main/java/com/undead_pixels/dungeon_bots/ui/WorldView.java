@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.ui;
 
+import com.undead_pixels.dungeon_bots.math.Cartesian;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -24,7 +25,7 @@ import javax.swing.Timer;
  * The screen for the regular game
  */
 public class WorldView extends JComponent {
-	
+
 	/**
 	 * 
 	 */
@@ -37,8 +38,8 @@ public class WorldView extends JComponent {
 	private World world;
 
 	private long lastTime;
-	private Tile[] selectedTiles = null;
-	private Entity[] selectedEntities = null;
+	private transient Tile[] selectedTiles = null;
+	private transient Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
 
 	/*
@@ -149,12 +150,11 @@ public class WorldView extends JComponent {
 		return cam;
 	}
 
-	
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(double screenX, double screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
 	}
-	
+
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
@@ -168,8 +168,8 @@ public class WorldView extends JComponent {
 		Point2D.Float pt1 = cam.unproject((float) x1, (float) y1);
 		Point2D.Float pt2 = cam.unproject((float) x2, (float) y2);
 
-		return new Rectangle2D.Float(Math.min(pt1.x, pt2.x), Math.min(pt1.y, pt2.y), Math.abs(pt1.x - pt2.x),
-				(pt1.y - pt2.y));
+		return Cartesian.makeRectangle(pt1,  pt2);
+		
 	}
 
 	/** Returns the world currently being viewed. */
@@ -250,6 +250,52 @@ public class WorldView extends JComponent {
 	/** Sets the scribbling render tool. */
 	public void setRenderingTool(Tool tool) {
 		this.renderingTool = tool;
+	}
+
+	/** Returns whether the given entity is selected. */
+	public boolean isSelectedEntity(Entity e) {
+		Entity[] selected = selectedEntities;
+		if (selected == null)
+			return false;
+		for (int i = 0; i < selected.length; i++) {
+			if (e == selected[i])
+				return true;
+		}
+		return false;
+	}
+
+	/** Returns whether the given tile is selected. */
+	public boolean isSelectedTile(Tile tile) {
+		Tile[] selected = selectedTiles;
+		if (selected == null)
+			return false;
+		for (Tile t : selected)
+			if (t == tile)
+				return true;
+		return false;
+	}
+	
+
+
+
+	/**
+	 * Returns whether the tile at the given game space location is selected.
+	 */
+	public boolean isSelectedTile(float x, float y) {
+		Tile[] selected = selectedTiles;
+		if (selected == null)
+			return false;
+		int xi = (int) x, yi = (int) y;
+		for (int i = 0; i < selected.length; i++) {
+			Tile t = selected[i];
+			int tx = (int) t.getPosition().getX();
+			if (tx != xi)
+				continue;
+			int ty = (int) t.getPosition().getY();
+			if (ty == yi)
+				return true;
+		}
+		return false;
 	}
 
 }

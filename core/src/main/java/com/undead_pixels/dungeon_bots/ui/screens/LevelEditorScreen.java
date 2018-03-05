@@ -74,9 +74,6 @@ public final class LevelEditorScreen extends Screen {
 
 	private WorldView _View;
 
-	private Tile[] _SelectedTiles = null;
-	private Entity[] _SelectedEntities = null;
-
 	protected final World world;
 	protected final LevelPack levelPack;
 
@@ -85,198 +82,12 @@ public final class LevelEditorScreen extends Screen {
 		this.levelPack = levelPack;
 	}
 
-	/** Change the set of selected tiles. */
-	public void setSelectedTiles(Tile[] newSelection) {
-		_View.setSelectedTiles(_SelectedTiles = newSelection);
-		if (newSelection != null)
-			_View.setSelectedEntities(_SelectedEntities = null);
-		// TODO: throw an event for listeners?
-	}
-
-	/** Returns whether the given tile is selected. */
-	public boolean isSelectedTile(Tile tile) {
-		Tile[] selected = _SelectedTiles;
-		if (selected == null)
-			return false;
-		for (Tile t : selected)
-			if (t == tile)
-				return true;
-		return false;
-	}
-
-	/**
-	 * Returns whether the tile at the given game space location is selected.
-	 */
-	public boolean isSelectedTile(double x, double y) {
-		return isSelectedTile((float) x, (float) y);
-	}
-
-	/**
-	 * Returns whether the tile at the given game space location is selected.
-	 */
-	public boolean isSelectedTile(float x, float y) {
-		Tile[] selected = _SelectedTiles;
-		if (selected == null)
-			return false;
-		int xi = (int) x, yi = (int) y;
-		for (int i = 0; i < selected.length; i++) {
-			Tile t = selected[i];
-			int tx = (int) t.getPosition().getX();
-			if (tx != xi)
-				continue;
-			int ty = (int) t.getPosition().getY();
-			if (ty == yi)
-				return true;
-		}
-		return false;
-	}
-
-	/** Sets the selected entities as indicated. */
-	public void setSelectedEntities(Entity[] newSelection) {
-		_View.setSelectedEntities(_SelectedEntities = newSelection);
-		if (newSelection != null)
-			_View.setSelectedTiles(_SelectedTiles = null);
-		// TODO: throw an event for listeners?
-	}
-
-	/** Returns whether the given entity is selected. */
-	public boolean isSelectedEntity(Entity e) {
-		Entity[] selected = _SelectedEntities;
-		if (selected == null)
-			return false;
-		for (int i = 0; i < selected.length; i++) {
-			if (e == selected[i])
-				return true;
-		}
-		return false;
-	}
-	
-	public boolean isSelectedActor(Entity e){
-		if (!(e instanceof Actor)) return false;
-		Entity[] selected = _SelectedEntities;
-		if (selected==null) return false;		
-		for (int i = 0; i < selected.length; i++) {
-			if (e==selected[i]) return true;
-		}
-		return false;
-	}
-
 	@Override
 	protected ScreenController makeController() {
 		return new LevelEditorScreen.Controller();
 	}
 
-	/** Creates all the tools available in this Level Editor. */
-	public ArrayList<Tool> createTools() {
-		ArrayList<Tool> result = new ArrayList<Tool>();
-
-		// The first tool: the Selector.
-		result.add(new Tool("Selector", UIBuilder.getImage("selection.gif")) {
-
-			Point cornerA = null;
-			Point cornerB = null;
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-
-				// If there is a cornerA, it means selection has started
-				// already.
-				if (cornerA != null)
-					return;
-
-				assert (_View.getRenderingTool() == null); // sanity check.
-
-				// Set the selection corner in screen coordinates.
-				cornerB = cornerA = new Point(e.getX(), e.getY());
-
-				// The view should start rendering the lasso.
-				_View.setRenderingTool(this);
-				e.consume();
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-
-				// If there is no cornerA, it means selection hasn't started
-				// yet.
-				if (cornerA == null)
-					return;
-
-				// What is the current lasso in game space?
-				Rectangle2D.Float rect = _View.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
-				if (rect.width==0.0f) rect.width = 0.01f;
-				if (rect.height==0.0f) rect.height = 0.01f;
-
-				// Find the entities (first) or tiles (second) that are lassoed.
-				// If only one entity is lassoed and that entity is already
-				// selected, open its editor. Otherwise if any entities are
-				// lassoed, select them. But if no entities are lassoed, look to
-				// tiles. If selecting tiles that are already part of the
-				// selection, just update the tile selection. Otherwise, nothing
-				// is selected.
-
-				List<Actor> se = world.getActorsUnderLocation(rect);
-				List<Tile> st = world.getTilesUnderLocation(rect);
-				if (st.size() == 1 && se.size() == 1 && isSelectedEntity(se.get(0))) {
-					// Clicked on an entity. Open its editor.
-					setSelectedEntities(new Entity[] { se.get(0) });
-					JEntityEditor.create(LevelEditorScreen.this, se.get(0), SecurityLevel.DEFAULT, "Entity Editor");
-					setSelectedTiles(null);
-				} else if (se.size() > 0) {
-					// One or more unselected entities are lassoed. Select them
-					// all.
-					setSelectedEntities(se.toArray(new Entity[se.size()]));
-					setSelectedTiles(null);
-				} else if (st.size() == 1 && !isSelectedTile(st.get(0))) {
-					// Clicked on an unselected tile. Clear the tile selection.
-					setSelectedTiles(null);
-					setSelectedEntities(null);
-				} else if (st.size() > 0) {
-					// More than one tile lassoed. Select them all.
-					setSelectedTiles(st.toArray(new Tile[st.size()]));
-					setSelectedEntities(null);
-				} else {
-					// Neither tile nor entity selected.
-					setSelectedTiles(null);
-					setSelectedEntities(null);
-				}
-
-				// The view should no longer render the lasso.
-				_View.setRenderingTool(null);
-
-				// Show that selection is complete, and re-selection hasn't
-				// started.
-				cornerB = cornerA = null;
-				e.consume();
-			}
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-
-				// If there's no cornerA, selection isn't happening.
-				if (cornerA == null)
-					return;
-
-				// Set cornerB to the screen coordinates.
-				cornerB = new Point(e.getX(), e.getY());
-				e.consume();
-			}
-
-			/** Does the actual rendering. */
-			@Override
-			public void render(Graphics2D g) {
-				int x = (int) Math.min(cornerA.getX(), cornerB.getX());
-				int y = (int) Math.min(cornerA.getY(), cornerB.getY());
-				int width = (int) Math.abs(cornerA.getX() - cornerB.getX());
-				int height = (int) Math.abs(cornerA.getY() - cornerB.getY());
-				g.setColor(Color.RED);
-				g.setStroke(new BasicStroke(2));
-				g.drawRect(x, y, width, height);
-			}
-		});
-
-		return result;
-	}
+	
 
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
@@ -315,40 +126,9 @@ public final class LevelEditorScreen extends Screen {
 		// ===========================================================
 		// ======== LevelEditorScreen.Controller TOOL STUFF
 		// ===========================================================
-		private final Tool _EntityPlacerTool = new Tool("Entity placer tool", null) {
+		
 
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				Point2D.Float gamePosition = _View.getScreenToGameCoords(e.getX(), e.getY());
-				Entity existing = world.getEntityUnderLocation(gamePosition.x, gamePosition.y);
-				if (existing != null) {
-					setSelectedEntities(new Entity[] { existing });
-				}
-			}
-		};
-
-		private final Tool _TileDrawTool = new Tool("Tile draw tool", null) {
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (drawTile(e.getX(), e.getY()))
-					e.consume();
-			}
-
-			@Override
-			public void mouseDragged(MouseEvent e) {
-				if (drawTile(e.getX(), e.getY()))
-					e.consume();
-			}
-
-			private boolean drawTile(int x, int y) {
-				if (currentTileType == null)
-					return false;
-				Point2D.Float gameCoords = _View.getScreenToGameCoords(x, y);
-				world.setTile((int) gameCoords.x, (int) gameCoords.y, currentTileType);
-				return true;
-			}
-		};
+		
 
 		/**
 		 * This stupid boolean is there just to flag a list's clearSelection()
@@ -386,17 +166,12 @@ public final class LevelEditorScreen extends Screen {
 						toolPalette.clearSelection();
 						entityPalette.clearSelection();
 						_PropogateChange = true;
-					}
-					currentTool = _TileDrawTool;
+					}					
 					JList<TileType> tp = tilePalette;
 					currentTileType = tilePalette.getSelectedValue();
 					currentEntityType = null;
-					if (_SelectedTiles != null && currentTileType != null) {
-						for (Tile t : _SelectedTiles) {
-							Point2D.Float pos = t.getPosition();
-							world.setTile((int) pos.x, (int) pos.y, currentTileType);
-						}
-					}
+					//TODO:  any selected tile should be changed.
+					//TODO:  tool should be changed to a tile draw tool.
 				}
 				// Handle clicking on the entity palette.
 				else if (e.getSource() == entityPalette) {
@@ -405,10 +180,10 @@ public final class LevelEditorScreen extends Screen {
 						toolPalette.clearSelection();
 						tilePalette.clearSelection();
 						_PropogateChange = true;
-					}
-					currentTool = _EntityPlacerTool;
+					}					
 					currentTileType = null;
 					currentEntityType = entityPalette.getSelectedValue();
+					//TODO:  entity placer should become the new tool.
 				}
 
 			}
@@ -662,8 +437,7 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the lists.
 		tl.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		for (Tool t : createTools())
-			tm.addElement(t);
+		tm.addElement(new Tool.Selector(world,  _View,  this));
 		tl.setModel(tm);
 
 		// Create the tile palette GUI.
