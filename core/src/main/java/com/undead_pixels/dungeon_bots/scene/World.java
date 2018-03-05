@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import javax.swing.JOptionPane;
@@ -18,7 +17,6 @@ import javax.swing.JOptionPane;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.math.Helpers2D;
 import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
-import com.undead_pixels.dungeon_bots.nogdx.Texture;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
@@ -29,20 +27,17 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.level.Level;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 
 /**
@@ -53,6 +48,11 @@ import org.luaj.vm2.*;
  * some parts shouldn't. Need to figure out what parts.
  */
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	// private transient ReentrantLock updateLock = new ReentrantLock();
 

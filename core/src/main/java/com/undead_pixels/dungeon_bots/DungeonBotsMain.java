@@ -1,24 +1,13 @@
 package com.undead_pixels.dungeon_bots;
 
-import java.awt.Component;
-
 import javax.swing.JFrame;
 
-import org.jdesktop.swingx.JXLoginPane;
 import org.jdesktop.swingx.JXLoginPane.Status;
-import org.jdesktop.swingx.auth.LoginEvent;
-import org.jdesktop.swingx.auth.LoginListener;
 import org.jdesktop.swingx.auth.LoginService;
 
-import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.Login;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.screens.Screen;
-import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
-import com.undead_pixels.dungeon_bots.ui.screens.LevelEditorScreen;
 import com.undead_pixels.dungeon_bots.ui.screens.MainMenuScreen;
-import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 
 /**
  * The main game class. Maintains the identity of the current user and a

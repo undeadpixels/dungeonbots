@@ -23,6 +23,11 @@ import static org.luaj.vm2.LuaValue.*;
  * TODO - mark as abstract
  */
 public class Actor extends SpriteEntity implements HasInventory {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	protected int steps = 0;
 	protected int bumps = 0;

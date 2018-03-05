@@ -17,6 +17,11 @@ import org.luaj.vm2.LuaValue;
  * some kind of github issue
  */
 public class Tile extends SpriteEntity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The script that should be executed when a bot enters.

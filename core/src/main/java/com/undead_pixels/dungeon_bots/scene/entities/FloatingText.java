@@ -15,6 +15,11 @@ import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
 
 public class FloatingText extends ChildEntity {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private static Font font = new Font("Arial", Font.BOLD, 12);
 	private static final float fontSize = 12.0f;
 	

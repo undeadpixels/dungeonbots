@@ -18,6 +18,11 @@ import com.undead_pixels.dungeon_bots.scene.World;
  */
 public abstract class Screen extends JFrame {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	/** Will be used for saving GUI state, later. */
 	protected final HashMap<String, Object> guiState = new HashMap<String, Object>();
 

@@ -10,6 +10,11 @@ import java.util.Iterator;
  */
 public class UserScriptCollection implements Iterable<UserScript>, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private HashMap<String, UserScript> storage = new HashMap<>();
 
 	public void add(UserScript script) {

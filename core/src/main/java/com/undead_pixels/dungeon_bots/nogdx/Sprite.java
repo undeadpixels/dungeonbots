@@ -11,6 +11,11 @@ import java.io.Serializable;
 public class Sprite implements Serializable {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * Location of the bottom-left corner
 	 */
 	private float x, y;

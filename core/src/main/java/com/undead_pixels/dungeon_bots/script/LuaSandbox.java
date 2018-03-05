@@ -6,7 +6,6 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
-import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -32,6 +31,11 @@ import java.util.stream.*;
  * TODO: May need to generate a return type from LuaScripts that references the source LuaSandbox
  */
 public final class LuaSandbox implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static int id = 0;
 	

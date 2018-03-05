@@ -8,6 +8,11 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import javax.swing.*;
 
 public class Note extends Item {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public Note(World world, String descr) {
 		super(world,"Note", descr, 0, 0);

@@ -14,6 +14,11 @@ import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 public abstract class SpriteEntity extends Entity {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * The sprite for this Entity. Also keeps track of its location.
 	 */
 	protected Sprite sprite;

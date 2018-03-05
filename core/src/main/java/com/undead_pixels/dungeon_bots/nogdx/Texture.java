@@ -17,6 +17,11 @@ import javax.imageio.ImageIO;
 public class Texture implements Serializable {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * Internal backing image
 	 */
 	private transient BufferedImage img;

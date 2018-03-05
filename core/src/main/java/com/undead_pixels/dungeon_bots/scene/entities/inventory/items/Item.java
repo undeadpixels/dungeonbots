@@ -10,6 +10,11 @@ import java.io.Serializable;
  * A type representing an immaterial game item.
  */
 public abstract class Item implements GetLuaFacade, Serializable, Useable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected final World world;
 	protected final String name;
 	protected final String description;
@@ -20,6 +25,11 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 	 * A Static Empty Item class used for default Inventory Slots
 	 */
 	public static class EmptyItem extends Item {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public EmptyItem() {
 			super(null, "Empty", "An Empty Item Slot", 0, 0);
 		}

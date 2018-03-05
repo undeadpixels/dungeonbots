@@ -11,6 +11,11 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import java.util.Optional;
 
 public class Door extends SpriteEntity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private boolean solid = false;
 	private Key key;

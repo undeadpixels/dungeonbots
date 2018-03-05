@@ -34,8 +34,12 @@ import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
  * A GUI object whose purpose is to give users a way to change the contents of
  * an entity, including any associated scripts.
  */
-@SuppressWarnings("serial")
 public final class JEntityEditor extends JPanel {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private static final HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
 

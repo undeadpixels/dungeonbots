@@ -19,4 +19,9 @@ import com.undead_pixels.dungeon_bots.scene.World;
 
 public class WorldList extends ArrayList<World> implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 }
