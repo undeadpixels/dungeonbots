@@ -30,6 +30,11 @@ import com.undead_pixels.dungeon_bots.User;
  * method. If login is invalid, the Login.challenge() method returns null.
  */
 public class Login extends JDialog {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/*
 	 * This class drawn from tutorial at
@@ -156,8 +161,12 @@ public class Login extends JDialog {
 			}
 		});
 
-		@SuppressWarnings("serial")
 		Action return_action = new AbstractAction() {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -184,9 +193,9 @@ public class Login extends JDialog {
 	}
 
 	private User fetchUser(String username, char[] password) {
-		User fetched = null;
+		//User fetched = null;
 		try {
-			return fetched.fromJSON("");
+			return User.fromJSON("");
 			// return null;
 			// TODO: get the User from remote source as JSON, and then build a
 			// User object from it thru User.FromJSON(String).

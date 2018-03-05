@@ -12,10 +12,10 @@ import static com.undead_pixels.dungeon_bots.script.ScriptStatus.*;
 public class EntityScriptTest {
 
 	@Test public void testEntitySandbox() {
-		SecurityContext.set(SecurityLevel.DEBUG);
 		World w = new World();
-		Player p = new Player(w, "player");
 		w.setSize(16,16);
+		Player p = new Player(w, "player");
+		w.addEntity(p);
 		LuaInvocation luaScript = p.getSandbox().init("player:queueUp()").join();
 		assertTrue(luaScript.getStatus() == COMPLETE);
 		w.update(1.f);

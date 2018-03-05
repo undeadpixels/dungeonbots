@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -20,6 +21,11 @@ import org.luaj.vm2.LuaValue;
  * A collection of TileType's
  */
 public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Internal storage
@@ -80,7 +86,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		final int TILESIZE = 16;
 		
 		// register some default tile types
-		// TODO - how do we handle this if we're running 'headless' (for testing)
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
 		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
@@ -97,7 +102,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	@Bind @BindTo("new")
 	public static LuaValue generate() {
 		TileTypes tileTypes = new TileTypes();
-		SecurityContext.getWhitelist().add(tileTypes);
 		return LuaProxyFactory.getLuaValue(tileTypes);
 	}
 
@@ -147,7 +151,7 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		typeMap.put(name, new TileType(regions, name, random, solid));
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public TileType getTile(LuaValue luaValue) {
 		return getTile(luaValue.checkjstring());
 	}
@@ -175,19 +179,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 
 	@Override
 	public Iterator<TileType> iterator() {
-		return new Iterator<TileType>(){
-
-			private Iterator<Entry<String, TileType>> _hashMapIterator = typeMap.entrySet().iterator();
-			@Override
-			public boolean hasNext() {
-				return _hashMapIterator.hasNext();
-			}
-
-			@Override
-			public TileType next() {
-				return _hashMapIterator.next().getValue();
-			}
-			
-		};
+		return typeMap.values().iterator();
 	}
 }

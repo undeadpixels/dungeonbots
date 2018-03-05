@@ -5,6 +5,11 @@ import java.awt.LayoutManager;
 import javax.swing.JPanel;
 
 public class JCollapsePanel extends JPanel {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public JCollapsePanel() {
 		// TODO Auto-generated constructor stub

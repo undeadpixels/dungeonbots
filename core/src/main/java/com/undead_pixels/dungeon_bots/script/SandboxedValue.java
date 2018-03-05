@@ -5,6 +5,7 @@ import org.luaj.vm2.Varargs;
 
 import java.util.function.Function;
 
+@Deprecated
 public class SandboxedValue {
 	private final Varargs varargs;
 	private final LuaSandbox luaSandbox;
@@ -28,7 +29,7 @@ public class SandboxedValue {
 	 * @return
 	 */
 	public SandboxedValue invoke(Function<Varargs,Varargs> fn) {
-		SecurityContext.set(luaSandbox);
+		// TODO - is this still valid even?
 		return new SandboxedValue(fn.apply(varargs), luaSandbox);
 	}
 }

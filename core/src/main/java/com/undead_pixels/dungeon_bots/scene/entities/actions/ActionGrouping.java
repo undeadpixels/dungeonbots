@@ -46,6 +46,11 @@ public abstract interface ActionGrouping extends Serializable {
 	 * Actions are allowed to begin at any time, regardless of what else is performing actions.
 	 */
 	public static class RTSGrouping implements ActionGrouping {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public boolean allowsDequeueAction(ActionQueue q) {
@@ -65,6 +70,11 @@ public abstract interface ActionGrouping extends Serializable {
 	 * then once those moves all finish, Enemies will all begin their moves.
 	 */
 	public static class TeamTurnsGrouping implements ActionGrouping {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		
 		/**
 		 * A lock that waits for all actions of a team to finish before allowing the next team to start.
@@ -103,9 +113,9 @@ public abstract interface ActionGrouping extends Serializable {
 					currentTeam = TeamFlavor.PLAYER;
 					break;
 				case PLAYER:
-					currentTeam = TeamFlavor.ENEMY;
+					currentTeam = TeamFlavor.AUTHOR;
 					break;
-				case ENEMY:
+				case AUTHOR:
 					currentTeam = TeamFlavor.NONE;
 					break;
 				}
@@ -128,6 +138,11 @@ public abstract interface ActionGrouping extends Serializable {
 	 * the given entity was added to the world.
 	 */
 	public static class EntityTurnsGrouping implements ActionGrouping {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		
 		/**
 		 * A lock for all of the entities in the World

@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import org.luaj.vm2.LuaValue;
 
@@ -13,6 +14,11 @@ import org.luaj.vm2.LuaValue;
  * A layer of abstraction beyond regular tiles. These can be different textures depending on what's around them.
  */
 public class TileType implements GetLuaFacade, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * Possible textures
@@ -59,7 +65,7 @@ public class TileType implements GetLuaFacade, Serializable {
 	}
 
 	/**
-	 * Get the texture of this, depending on the surrounding tiles
+	 * Get the image texture for a tile, depending on the surrounding tiles
 	 * 
 	 * @param left		Tile to the left
 	 * @param right		Tile to the right
@@ -76,13 +82,44 @@ public class TileType implements GetLuaFacade, Serializable {
 				return textureRegions[0];
 			}
 		} else {
-			int idx = (this == left  ? 1: 0)
-					| (this == right ? 2: 0)
-					| (this == up    ? 4: 0)
-					| (this == down  ? 8: 0);
+			int idx = (this.equals(left)  ? 1: 0)
+					| (this.equals(right) ? 2: 0)
+					| (this.equals(up)    ? 4: 0)
+					| (this.equals(down)  ? 8: 0);
 
 			return textureRegions[idx];
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (random ? 1231 : 1237);
+		result = prime * result + (solid ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TileType other = (TileType) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (random != other.random)
+			return false;
+		if (solid != other.solid)
+			return false;
+		return true;
 	}
 
 	public TextureRegion getTexture(Tile left, Tile right, Tile up, Tile down) {
@@ -115,6 +152,9 @@ public class TileType implements GetLuaFacade, Serializable {
 		return solid;
 	}
 
+	/**
+	 * @return	The default texture of this TileType
+	 */
 	public TextureRegion getTexture() {
 		return textureRegions[0];
 	}

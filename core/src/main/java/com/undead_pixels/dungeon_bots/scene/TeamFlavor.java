@@ -14,7 +14,7 @@ public enum TeamFlavor implements Serializable {
 	/**
 	 * The enemy and anything they own
 	 */
-	ENEMY,
+	AUTHOR,
 	
 	/**
 	 * No team (such as terrain)

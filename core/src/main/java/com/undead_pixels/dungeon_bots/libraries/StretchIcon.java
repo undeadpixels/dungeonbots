@@ -2,7 +2,7 @@
  * 
  * this java file available from 
  * https://tips4java.wordpress.com/2012/03/31/stretch-icon/
- * Last download 2/4/18
+ * By Darryl Burke, posted 3/31/12, last download 2/4/18
  * */
 
 /**
@@ -36,6 +36,11 @@ import javax.swing.ImageIcon;
  * @author Darryl
  */
 public class StretchIcon extends ImageIcon {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
   /**
    * Determines whether the aspect ratio of the image is maintained.

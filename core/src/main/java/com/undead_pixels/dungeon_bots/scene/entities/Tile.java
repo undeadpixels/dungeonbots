@@ -2,6 +2,10 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
+import com.undead_pixels.dungeon_bots.script.annotations.BooleanScript;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import org.luaj.vm2.LuaValue;
 
@@ -13,6 +17,11 @@ import org.luaj.vm2.LuaValue;
  * some kind of github issue
  */
 public class Tile extends SpriteEntity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Lazily-loaded LuaValue representing this tile
@@ -23,6 +32,11 @@ public class Tile extends SpriteEntity {
 	 * The type of this tile
 	 */
 	private TileType type;
+	
+	/**
+	 * The entity that is currently occupying this Tile
+	 */
+	private Entity occupiedBy = null;
 
 	/**
 	 * @param world		The world that contains this tile
@@ -31,25 +45,21 @@ public class Tile extends SpriteEntity {
 	 * @param y			Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType.getName(), tileType.getTexture(), x, y);
+		super(world, tileType == null ? "tile" : tileType.getName(),
+				tileType == null ? null : tileType.getTexture(),
+				new UserScriptCollection(),
+				x, y);
 		this.type = tileType;
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public float getZ() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public boolean isSolid() {
-		return type.isSolid();
-	}
-
-	@Override
-	public String getName() {
-		return name;
+		return type != null && type.isSolid();
 	}
 
 	@Override
@@ -59,54 +69,57 @@ public class Tile extends SpriteEntity {
 		return this.luaValue;
 	}
 
-	@Override
-	public int getId() {
-		return id;
-	}
-
 	/**
-	 * Used exclusively for creating an exemplar tile to put in the Level
-	 * Editor's palette.
+	 * @param tileType The new type of this Tile
 	 */
-	public static Tile worldlessTile(String name, boolean solid) {
-		return null;
-	}
-
-	/*
-	@Bind
-	@Deprecated
-	public static LuaValue Wall(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "wall", null, lx.tofloat(),
-				ly.tofloat(), true);
-		return LuaProxyFactory.getLuaValue(t);
-	}
-
-	@Bind
-	@Deprecated
-	public static LuaValue Floor(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "floor", null, lx.tofloat(),
-				ly.tofloat(), false);
-		return LuaProxyFactory.getLuaValue(t);
-	}
-
-	@Bind
-	@Deprecated
-	public static LuaValue Goal(LuaValue lworld, LuaValue lx, LuaValue ly) {
-		Tile t = new Tile((World) lworld.checktable().checkuserdata(World.class), "goal", null, lx.tofloat(),
-				ly.tofloat(), false);
-		return LuaProxyFactory.getLuaValue(t);
-	}
-	*/
-
 	public void setType(TileType tileType) {
 		this.type = tileType;
 	}
 
+	/**
+	 * Returns the TileType (which contains image display information and other
+	 * default characteristics) of this tile.
+	 * 
+	 * @return	The current TileType
+	 */
 	public TileType getType() {
 		return type;
 	}
 
+	/**
+	 * Updates the texture of the tile based on its neighbors.
+	 * 
+	 * @param l
+	 * @param r
+	 * @param u
+	 * @param d
+	 */
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
-		this.sprite.setTexture(type.getTexture(l, r, u, d));
+		if(type == null) {
+			this.sprite.setTexture(null);
+		} else {
+			this.sprite.setTexture(type.getTexture(l, r, u, d));
+		}
+	}
+
+	/**
+	 * @param e	The entity now occupying this tile
+	 */
+	public void setOccupiedBy(Entity e) {
+		occupiedBy = e;
+	}
+	
+	/**
+	 * @return	The entity currently occupying this tile
+	 */
+	public Entity getOccupiedBy() {
+		return occupiedBy;
+	}
+	
+	/**
+	 * @return	True if something is occupying this tile
+	 */
+	public boolean isOccupied() {
+		return occupiedBy != null;
 	}
 }

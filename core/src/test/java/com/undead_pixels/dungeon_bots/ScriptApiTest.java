@@ -15,20 +15,23 @@ import static java.lang.String.*;
 public class ScriptApiTest {
 
 	private final double EPSILON = 0.00001;
-	private boolean eventCalled = false;
-    @Test public void testGetBindings() {
-        Player player = new Player(new World(), "player");
-        LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
-        se.addBindable(player);
-        LuaInvocation luaScript = se.init("player:queueUp();");
-        luaScript.join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+	private volatile boolean eventCalled = false;
+
+	@Test public void testGetBindings() {
+		World w = new World();
+		Player player = new Player(w, "player");
+		w.addEntity(player);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
+		se.addBindable(player);
+		LuaInvocation luaScript = se.init("player:queueUp();");
+		luaScript.join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		player.getWorld().setSize(16,16);
 		player.getWorld().update(1.f);
-        Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
-    }
+		Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
+	}
 
-    @Test public void testScriptApiSingleArgumentFunction() {
+	@Test public void testScriptApiSingleArgumentFunction() {
 		class OneArg implements GetLuaFacade {
 
 			String name;
@@ -62,9 +65,9 @@ public class ScriptApiTest {
 				&& luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
 		Assert.assertTrue(ans.tojstring(1).equals("Hello player"));
-    }
+	}
 
-    @Test public void testSecurityLevel() {
+	@Test public void testSecurityLevel() {
 		class DebugError implements GetLuaFacade {
 
 			String name;
@@ -74,7 +77,7 @@ public class ScriptApiTest {
 			}
 
 			// Tag the error function with a 'high' security level
-			@Bind(SecurityLevel.DEBUG)
+			@Bind(SecurityLevel.AUTHOR)
 			public LuaValue error() {
 				return LuaValue.NIL;
 			}
@@ -90,30 +93,30 @@ public class ScriptApiTest {
 			}
 		}
 
-        DebugError player = new DebugError( "player");
+		DebugError player = new DebugError( "player");
 		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
-        LuaSandbox se = new LuaSandbox(SecurityLevel.AUTHOR).addBindable(player);
-        LuaInvocation luaScript = se.init("return player:error();");
-        luaScript.join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.LUA_ERROR);
-    }
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(player);
+		LuaInvocation luaScript = se.init("return player:error();");
+		luaScript.join();
+		Assert.assertEquals(ScriptStatus.LUA_ERROR, luaScript.getStatus());
+	}
 
-    @Test public void testActorMovement() {
-        Actor player = new ActorBuilder().setName("player").createActor();
-        World w = player.getWorld();
-        w.setSize(16,16);
-        LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
+	@Test public void testActorMovement() {
+		Actor player = new ActorBuilder().setName("player").createActor();
+		World w = player.getWorld();
+		w.setSize(16,16);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
 
-        LuaInvocation luaScript = se.init("player:queueUp();").join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
-        w.update(1.f);
-        Assert.assertEquals("Player Y Position not moved 'UP'",
-                 1.0, player.getPosition().y, EPSILON);
-
-        luaScript = se.init("player:queueDown();").join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		LuaInvocation luaScript = se.init("player:queueUp();").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
-        Assert.assertEquals("Player Y Position not moved 'DOWN'",
+		Assert.assertEquals("Player Y Position not moved 'UP'",
+				1.0, player.getPosition().y, EPSILON);
+
+		luaScript = se.init("player:queueDown();").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		w.update(1.f);
+		Assert.assertEquals("Player Y Position not moved 'DOWN'",
 				0.0, player.getPosition().y, EPSILON);
 
 		luaScript = se.init("player:queueRight();").join();
@@ -122,13 +125,13 @@ public class ScriptApiTest {
 		Assert.assertEquals("Player X Position not moved 'RIGHT'",
 				1.0, player.getPosition().x, EPSILON);
 
-        luaScript = se.init("player:queueLeft();").join();
-        Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
+		luaScript = se.init("player:queueLeft();").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
-        Assert.assertEquals("Player X Position not moved 'LEFT'",
+		Assert.assertEquals("Player X Position not moved 'LEFT'",
 				0.0, player.getPosition().x, EPSILON);
 
-    }
+	}
 
 	@Test public void testActorPosition() {
 		Actor player = new ActorBuilder().setName("player").createActor();
@@ -143,20 +146,20 @@ public class ScriptApiTest {
 		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
 	}
 
-    @Test public void testTwoArgFunction() {
-    	class TestEntity implements GetLuaFacade {
+	@Test public void testTwoArgFunction() {
+		class TestEntity implements GetLuaFacade {
 
-    		int number = 0;
+			int number = 0;
 			String name;
 
-    		TestEntity(String name) {
-    			this.name = name;
+			TestEntity(String name) {
+				this.name = name;
 			}
 
 			@Bind @BindTo("add")
 			public LuaValue setValues(LuaValue a, LuaValue b) {
-    			number = a.checkint() + b.checkint();
-    			return CoerceJavaToLua.coerce(number);
+				number = a.checkint() + b.checkint();
+				return CoerceJavaToLua.coerce(number);
 			}
 
 			@Override
@@ -171,12 +174,12 @@ public class ScriptApiTest {
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-    	LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(testEntity);
-    	LuaInvocation luaScript = scriptEnvironment.init("return test:add(15,23);").join();
-    	Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
-    	int ans = luaScript.getResults().get().toint(1);
-    	Assert.assertTrue(ans == 38);
-    	Assert.assertTrue(testEntity.number == 38);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(testEntity);
+		LuaInvocation luaScript = scriptEnvironment.init("return test:add(15,23);").join();
+		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
+		int ans = luaScript.getResults().get().toint(1);
+		Assert.assertTrue(ans == 38);
+		Assert.assertTrue(testEntity.number == 38);
 	}
 
 	@Test public void testThreeArgFunction() {
@@ -351,11 +354,11 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testStaticMethods() {
-    	LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindableClass(Player.class)
 				.addBindableClass(World.class);
-    	LuaInvocation script = se.init("w = World.new(); return Player.new(w,1.0,1.0);").join();
-    	Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
+		LuaInvocation script = se.init("w = World.new(); return Player.new(w,1.0,1.0);").join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
 	}
 
 	@Test public void testGetUserData() {
@@ -371,9 +374,8 @@ public class ScriptApiTest {
 		Assert.assertEquals(p.getPosition().y, 1.0, 0.001);
 	}
 
-	@Test
-	public void testGetAndUseUserData() {
-    	World w = new World("world");
+	@Test public void testGetAndUseUserData() {
+		World w = new World("world");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindable(w)
 				.addBindableClass(Player.class);
@@ -393,44 +395,37 @@ public class ScriptApiTest {
 		Assert.assertEquals(2.0, ans.arg(2).todouble(), EPSILON);
 	}
 
-	@Test
-	public void testReadOnlyTables() {
+	@Test public void testReadOnlyTables() {
 		World world = new World("w");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
 				.addBindable(world)
 				.addBindableClass(Player.class);
-
 		LuaInvocation script = se.init("p = Player.new(w,1.0,1.0); p.this = nil; return p;").join();
-		//Assert.assertEquals(ScriptStatus.LUA_ERROR, script.getStatus());
 		Assert.assertTrue(script.getError().getMessage().contains("Attempt to update readonly table"));
 	}
 
-	@Test
-	public void testPrintFunction() {
-    	LuaSandbox luaSandbox = new LuaSandbox();
-    	LuaInvocation script = luaSandbox.init("print('Hello World')");
-    	script.join();
-    	Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
-    	String output = luaSandbox.getOutput();
-    	Assert.assertEquals(output, "Hello World");
+	@Test public void testPrintFunction() {
+		LuaSandbox luaSandbox = new LuaSandbox();
+		LuaInvocation script = luaSandbox.init("print('Hello World')");
+		script.join();
+		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE);
+		String output = luaSandbox.getOutput();
+		Assert.assertEquals(output, "Hello World");
 	}
 
-	@Test
-	public void testPrintEventListener() {
-    	eventCalled = false;
-    	LuaSandbox luaSandbox = new LuaSandbox();
+	@Test public void testPrintEventListener() {
+		eventCalled = false;
+		LuaSandbox luaSandbox = new LuaSandbox();
 		final String expected = "Hello World";
 		luaSandbox.addOutputEventListener((s) -> {
 			eventCalled = true;
-			Assert.assertEquals(s, expected);
-		});
+			Assert.assertEquals(s, expected); });
 		LuaInvocation script = luaSandbox.init(String.format("print('%s')", expected));
 		script.join();
 		Assert.assertTrue(eventCalled);
 	}
 
-	@Test
-	public void testPrintfFunction() {
+	@Test public void testPrintfFunction() {
 		LuaSandbox luaSandbox = new LuaSandbox();
 		LuaInvocation script = luaSandbox.init("printf('Hello %s', 'World')");
 		script.join();
@@ -439,15 +434,13 @@ public class ScriptApiTest {
 		Assert.assertEquals(output, "Hello World");
 	}
 
-	@Test
-	public void testPrintfEventListener() {
+	@Test public void testPrintfEventListener() {
 		eventCalled = false;
 		LuaSandbox luaSandbox = new LuaSandbox();
 		final String expected = "Hello World";
 		luaSandbox.addOutputEventListener((s) -> {
 			eventCalled = true;
-			Assert.assertEquals(s, expected);
-		});
+			Assert.assertEquals(s, expected); });
 		LuaInvocation script = luaSandbox.init("printf('Hello ', 'World')");
 		script.join();
 		Assert.assertTrue(eventCalled);

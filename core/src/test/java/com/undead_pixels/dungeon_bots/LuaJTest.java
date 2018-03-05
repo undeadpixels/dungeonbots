@@ -71,10 +71,10 @@ public class LuaJTest {
                 script.getStatus() == ScriptStatus.TIMEOUT);
     }
 
-    @Test
-    public void testCustomGlobals() {
-        Globals globals = JsePlatform.standardGlobals();
-        LuaSandbox scriptEnv = new LuaSandbox(globals);
+@Test public void testCustomGlobals() {
+    		// TODO - the globals aren't actually custom
+        LuaSandbox scriptEnv = new LuaSandbox();
+        Globals globals = scriptEnv.getGlobals();
         LuaTestMethod testMethod = new LuaTestMethod();
         scriptEnv.add(new LuaBinding("addNum", CoerceJavaToLua.coerce(testMethod)));
         List<LuaInvocation> scripts = new ArrayList<>();

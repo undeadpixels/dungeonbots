@@ -2,8 +2,6 @@ package com.undead_pixels.dungeon_bots;
 
 import static org.junit.Assert.*;
 
-import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import org.junit.Test;
 
@@ -18,13 +16,13 @@ public class JCodeREPLTest {
 		LuaSandbox luaSandbox = new LuaSandbox();
 		JCodeREPL editor = new JCodeREPL(luaSandbox);
 		editor.setCode("x = 2 + 1; return x;");
-		assertFalse(editor.getMessages().contains("3"));      
+		assertFalse("Before execution, editor messages should not contain 3", editor.getMessages().contains("3"));
 
-		editor.executeSynchronized(100);
+		editor.executeSynchronized(250);
 		luaSandbox.getQueue().update(0.0f);
 		String message = editor.getMessages();
 		System.out.println("Message = "+message);
-		assertTrue(message.contains("3"));
+		assertTrue("After execution, editor messages should contain 3", message.contains("3"));
 
 	}
 

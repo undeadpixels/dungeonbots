@@ -3,14 +3,20 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 
 /**
  * A regular Entity that is based upon a Sprite, not some other form of graphic
  */
 public abstract class SpriteEntity extends Entity {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	/**
 	 * The sprite for this Entity. Also keeps track of its location.
@@ -21,8 +27,8 @@ public abstract class SpriteEntity extends Entity {
 	 * @param world		The world to contain this Actor
 	 * @param tex		A texture for this Actor. May be null.
 	 */
-	public SpriteEntity(World world, String name, TextureRegion tex) {
-		this(world, name, tex, 0, 0);
+	public SpriteEntity(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
+		this(world, name, tex, scripts, 0, 0);
 	}
 
 	/**
@@ -34,8 +40,8 @@ public abstract class SpriteEntity extends Entity {
 	 * @param x		Location X, in tiles
 	 * @param y		Location Y, in tiles
 	 */
-	public SpriteEntity(World world, String name, TextureRegion tex, float x, float y) {
-		super(world, name);
+	public SpriteEntity(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
+		super(world, name, scripts);
 		if(tex == null)
 			sprite = new Sprite();
 		else {
@@ -50,12 +56,12 @@ public abstract class SpriteEntity extends Entity {
 	}
 
 	@Override
-	public void render(SpriteBatch batch) {
+	public void render(RenderingContext batch) {
 		if(sprite != null && sprite.getTexture() != null) {
 			//sprite.setRotation((float) ((System.currentTimeMillis() % 5000l) * (360f / 5000)));
 			//System.out.println("Rendering sprite "+name+" @ "+getPosition() + ", scale = " + sprite.getScaleX()+", origin = "+sprite.getOriginX());
 			sprite.draw(batch);
-		}
+		}		
 	}
 
 	@Override

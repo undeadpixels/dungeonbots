@@ -52,6 +52,10 @@ tbl.init = function()
     world:setPlayer(player)
     world:setTile(6,6, tileTypes:getTile("goal"))
     world:setTile(4,4, tileTypes:getTile("grass"))
+    
+    world:makeBot(10, 3)
+    world:makeBot(10, 4)
+    world:makeBot(10, 5)
 end
 
 tbl.update = function()
@@ -73,5 +77,9 @@ tbl.update = function()
         world:openBrowser('https://youtu.be/MRPpYX8SOA8')
     end
 end
+
+tbl.init()
+registerUpdateListener(tbl.update)
+
 
 return tbl

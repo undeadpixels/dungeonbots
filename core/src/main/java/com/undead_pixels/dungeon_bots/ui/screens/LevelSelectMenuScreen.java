@@ -2,10 +2,22 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.Container;
 
+import com.undead_pixels.dungeon_bots.scene.World;
+
 /**
  * The screen where a user selects what level/pack they want to play
  */
 public class LevelSelectMenuScreen extends Screen {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	protected LevelSelectMenuScreen() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	protected ScreenController makeController() {

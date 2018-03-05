@@ -40,10 +40,18 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	protected O owner;
 	
 
+	/**
+	 * Constructor
+	 * 
+	 * @param owner
+	 */
 	public AbstractTaskQueue(O owner) {
 		this.owner = owner;
 	}
 
+	/**
+	 * @return	The owner of this AbstractTaskQueue
+	 */
 	public O getOwner() {
 		return owner;
 	}

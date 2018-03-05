@@ -37,30 +37,11 @@ public interface GetLuaFacade {
 	}
 
 	/**
-	 * Generates a Whitelist of Methods for the target class not exceeding the given security level.
-	 * @param clz The Class to create a template Whitelist of.
-	 * @param securityLevel The desired SecurityLevel of the Whitelist.
-	 * @return A Whitelist containing the id's of Methods of the target Class.
-	 */
-	static Whitelist getWhitelist(final Class<?> clz, final SecurityLevel securityLevel) {
-		return LuaReflection.getWhitelist(LuaReflection.getBindableStaticMethods(clz), securityLevel);
-	}
-
-	/**
-	 * Generates a Whitelist of Methods for this object not exceeding the given security level.
-	 * @param securityLevel The desired SecurityLevel of the Whitelist.
-	 * @return A Whitelist containing the id's of Methods of this object.
-	 */
-	default Whitelist getWhitelist(final SecurityLevel securityLevel) {
-		return LuaReflection.getWhitelist(LuaReflection.getBindableMethods(this), this, securityLevel);
-	}
-
-	/**
 	 * Generates a Whitelist of Methods for this object using the security level of the current Security context.
 	 * @return A Whitelist containing the id's of Methods of this object.
 	 */
-	default Whitelist getWhitelist() {
-		return this.getWhitelist(SecurityContext.getActiveSecurityLevel());
+	default Whitelist getDefaultWhitelist() {
+		return getWhitelist(this.getClass());
 	}
 
 	/**
@@ -69,7 +50,11 @@ public interface GetLuaFacade {
 	 * @return A Whitelist containing the id's of Methods of the target class.
 	 */
 	static Whitelist getWhitelist(final Class<?> clz) {
-		return GetLuaFacade.getWhitelist(clz, SecurityContext.getActiveSecurityLevel());
+		Stream<Method> methods = LuaReflection.getBindableInstanceMethods(clz);
+		methods = Stream.concat(methods, LuaReflection.getBindableStaticMethods(clz));
+		//methods = Stream.concat(methods, LuaReflection.getBindableFields(clz));
+		//methods = Stream.concat(methods, LuaReflection.getBindableStaticFields(clz));
+		return LuaReflection.getWhitelist(methods);
 	}
 
 	/**
@@ -93,7 +78,7 @@ public interface GetLuaFacade {
 	 * @return A Stream of Methods
 	 */
 	default Stream<Method> getBindableMethods() {
-		return LuaReflection.getBindableMethods(this);
+		return LuaReflection.getBindableInstanceMethods(this);
 	}
 
 	/**

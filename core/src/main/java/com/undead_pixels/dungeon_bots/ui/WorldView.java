@@ -1,11 +1,13 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
-import com.undead_pixels.dungeon_bots.nogdx.SpriteBatch;
-import com.undead_pixels.dungeon_bots.nogdx.Texture;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.ui.screens.Tool;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -13,7 +15,7 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
-import java.io.File;
+import java.awt.geom.Rectangle2D;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -22,6 +24,11 @@ import javax.swing.Timer;
  * The screen for the regular game
  */
 public class WorldView extends JComponent {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private OrthographicCamera cam;
 	private boolean didInitCam = false;
@@ -30,22 +37,21 @@ public class WorldView extends JComponent {
 	private World world;
 
 	private long lastTime;
+	private Tile[] selectedTiles = null;
+	private Entity[] selectedEntities = null;
+	private Tool renderingTool = null;
 
-	@Deprecated
-	public WorldView() {
-		// world = new World(new
-		// File("sample-level-packs/sample-pack-1/levels/level1.lua"));
-		world = new World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
-
-		this.setPreferredSize(new Dimension(9999, 9999));
-
-		this.setFocusable(true);
-		this.requestFocusInWindow();
-	}
+	/*
+	 * @Deprecated public WorldView() { // world = new World(new //
+	 * File("sample-level-packs/sample-pack-1/levels/level1.lua")); world = new
+	 * World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
+	 * 
+	 * this.setPreferredSize(new Dimension(9999, 9999));
+	 * 
+	 * this.setFocusable(true); this.requestFocusInWindow(); }
+	 */
 
 	public WorldView(World world) {
-		AssetManager.loadAsset(AssetManager.AssetSrc.Player, Texture.class);
-		AssetManager.finishLoading();
 		this.world = world;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
@@ -64,10 +70,7 @@ public class WorldView extends JComponent {
 		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 		lastTime = nowTime;
 
-		// TODO - move this update() thing elsewhere. Pretty please.
-		// TODO
-		// TODO
-		// TODO
+		// TODO - move this update() thing elsewhere.
 		if (world != null) {
 			world.update(dt);
 		}
@@ -78,7 +81,7 @@ public class WorldView extends JComponent {
 			float w = this.getWidth();
 			float h = this.getHeight();
 
-			SpriteBatch batch = new SpriteBatch(g2d, w, h);
+			RenderingContext batch = new RenderingContext(g2d, w, h);
 
 			if (!didInitCam) {
 				cam = new OrthographicCamera(w, h);
@@ -90,26 +93,34 @@ public class WorldView extends JComponent {
 
 			cam.setViewportSize(w, h);
 
-			cam.update();
+			// cam.update(); //Nothing in this function call.
 			batch.setProjectionMatrix(cam);
-			// batch.setTransformMatrix(cam.view);
 
 			if (world != null) {
 				world.render(batch);
 			}
-			
-			if(showGrid) {
+
+			// Render the grid.
+			if (showGrid) {
+				g2d.setStroke(new BasicStroke(1));
 				g.setColor(new Color(1.0f, 1.0f, 1.0f, 0.5f));
 				Point2D.Float size = world.getSize();
 				// draw Y lines
-				for(int i = 0; i <= size.y+.5f; i++) {
+				for (int i = 0; i <= size.y + .5f; i++) {
 					batch.drawLine(0, i, size.x, i);
 				}
 				// draw X lines
-				for(int j = 0; j <= size.x+.5f; j++) {
+				for (int j = 0; j <= size.x + .5f; j++) {
 					batch.drawLine(j, 0, j, size.y);
 				}
 			}
+
+			// Render selection stuff.
+			renderSelectedTiles(g2d, batch);
+			renderSelectedEntities(g2d, batch);
+			if (renderingTool != null)
+				renderingTool.render(g2d);
+
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
@@ -140,8 +151,19 @@ public class WorldView extends JComponent {
 
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
-		Point2D.Float gameSpace = cam.unproject(new Point2D.Float(screenX, screenY));
-		return new Point2D.Float(gameSpace.x, gameSpace.y);
+		return cam.unproject((float) screenX, (float) screenY);
+	}
+
+	/**
+	 * Returns a rectangle defined by the given corner points, translated into
+	 * game space.
+	 */
+	public Rectangle2D.Float getScreenToGameRect(int x1, int y1, int x2, int y2) {
+		Point2D.Float pt1 = cam.unproject((float) x1, (float) y1);
+		Point2D.Float pt2 = cam.unproject((float) x2, (float) y2);
+
+		return new Rectangle2D.Float(Math.min(pt1.x, pt2.x), Math.min(pt1.y, pt2.y), Math.abs(pt1.x - pt2.x),
+				(pt1.y - pt2.y));
 	}
 
 	/** Returns the world currently being viewed. */
@@ -153,4 +175,75 @@ public class WorldView extends JComponent {
 	public void setWorld(World world) {
 		this.world = world;
 	}
+
+	// ==================================================
+	// ======= WorldView SELECTION STUFF ================
+	// ==================================================
+
+	/** Returns a copied array of the selected tiles positions. */
+	public Tile[] getSelectedTiles() {
+		return selectedTiles.clone();
+	}
+
+	/** Sets the selected tiles to an array copy of the indicated collection. */
+	public void setSelectedTiles(Tile[] newTiles) {
+		selectedTiles = newTiles;
+	}
+
+	private void renderSelectedTiles(Graphics2D g2d, RenderingContext batch) {
+		Tile[] st = this.selectedTiles;
+		if (st != null && st.length > 0) {
+			g2d.setColor(new Color(1.0f, 0.3f, 0.0f, 0.4f));
+			for (Tile tile : st) {
+				Point2D.Float pt = tile.getPosition();
+				batch.fillRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+			g2d.setColor(new Color(1.0f, 0.0f, 0.0f, 0.8f));
+			g2d.setStroke(new BasicStroke(3));
+			for (Tile tile : st) {
+				Point2D.Float pt = tile.getPosition();
+				batch.drawRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+		}
+	}
+
+	/** Returns a copied array of the selected entities. */
+	public Entity[] getSelectedEntities() {
+		return selectedEntities.clone();
+	}
+
+	/**
+	 * Sets the selected entities to an array copy of the indicated collection.
+	 */
+	public void setSelectedEntities(Entity[] newEntities) {
+		selectedEntities = newEntities;
+	}
+
+	private void renderSelectedEntities(Graphics2D g2d, RenderingContext batch) {
+		Entity[] se = this.selectedEntities;
+		if (se != null && se.length > 0) {
+			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.4f));
+			for (Entity e : se) {
+				Point2D.Float pt = e.getPosition();
+				batch.fillRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+			g2d.setStroke(new BasicStroke(3));
+			g2d.setColor(new Color(1.0f, 1.0f, 0.0f, 0.8f));
+			for (Entity e : se) {
+				Point2D.Float pt = e.getPosition();
+				batch.drawRect(pt.x, pt.y + 1f, 1f, 1f);
+			}
+		}
+	}
+
+	/** Returns the scribbling render tool. */
+	public Tool getRenderingTool() {
+		return renderingTool;
+	}
+
+	/** Sets the scribbling render tool. */
+	public void setRenderingTool(Tool tool) {
+		this.renderingTool = tool;
+	}
+
 }

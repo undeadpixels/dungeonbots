@@ -1,10 +1,10 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import com.undead_pixels.dungeon_bots.scene.GetState;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.actions.Action;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -21,40 +21,39 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 public class Player extends RpgActor {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-
+	@Deprecated
 	protected String defaultCode;
 
 	/**
 	 * Constructor
-	 * 
-	 * @param world
-	 *            The world this player belongs to
-	 * @param name
-	 *            The name of this player
+	 * @param world The world this player belongs to
+	 * @param name The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getAsset("player", AssetManager.AssetSrc.Player, 3, 1).orElse(null));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+
+		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	/**
 	 * Static LuaBinding used to generate new players
-	 * 
-	 * @param world
-	 *            The world to assign to the player
-	 * @param x
-	 *            The initial x position of the player
-	 * @param y
-	 *            The initial y position of the player
-	 * @return A newly constructed Player that has been coerced into it's
-	 *         associated LuaValue
+	 * @param world The world to assign to the player
+	 * @param x The initial x position of the player
+	 * @param y The initial y position of the player
+	 * @return A newly constructed Player that has been coerced into it's<br>
+	 * associated LuaValue
 	 */
 	@Bind
 	@BindTo("new")
 	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
-		SecurityContext.getWhitelist().add(p);
 		p.steps = 0;
 		p.bumps = 0;
 		p.sprite.setX((float) x.checkdouble() - 1.0f);
@@ -90,6 +89,31 @@ public class Player extends RpgActor {
 
 	public int getSteps() {
 		return steps;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.PLAYER;
+	}
+	
+	public void resetInventory() {
+		this.inventory.reset();
+		this.inventory.addItem(new Note(this.world,"Welcome to Dungeonbots!"));
+	}
+
+	/**
+	 *
+	 * @param luaDir
+	 * @param itemReference
+	 * @return
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
+		String dir = luaDir.checkjstring().toUpperCase();
+		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
+				.checkuserdata(ItemReference.class);
+		Direction direction = Direction.valueOf(dir);
+		return this.world.tryUse(itemRef, direction, this);
 	}
 
 }

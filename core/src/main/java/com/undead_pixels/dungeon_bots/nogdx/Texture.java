@@ -17,6 +17,11 @@ import javax.imageio.ImageIO;
 public class Texture implements Serializable {
 	
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	/**
 	 * Internal backing image
 	 */
 	private transient BufferedImage img;
@@ -31,10 +36,10 @@ public class Texture implements Serializable {
 	/**
 	 * Constructor
 	 * 
-	 * @param string		A file path
+	 * @param string			A file path
 	 * @throws IOException	If the image cannot be loaded
 	 */
-	public Texture(String string) throws IOException {
+	public Texture(String string) throws IOException {		
 		img = ImageIO.read(new File(string));
 	}
 	
@@ -47,11 +52,27 @@ public class Texture implements Serializable {
 		this.img = img;
 	}
 
+	/**
+	 * Called upon deserialization.
+	 * Used to load this texture from that data stream
+	 * 
+	 * @param inputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		img = ImageIO.read(inputStream);
 	}
 
+	/**
+	 * Called upon serialization.
+	 * Used to save this texture to that data stream
+	 * 
+	 * @param outputStream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	private void writeObject(ObjectOutputStream outputStream) throws IOException, ClassNotFoundException {
 		outputStream.defaultWriteObject();
 		ImageIO.write(img, "png", outputStream); // TODO - handle typical images with file path?

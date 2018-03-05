@@ -21,51 +21,35 @@ public class LuaReflection {
 	/**
 	 * Generates a Whitelist of Methods for the target object not exceeding the given security level.
 	 * @param bindableMethods An argument stream of bindable methods
-	 * @param caller The object that invokes the bindable methods
-	 * @param securityLevel The desired Security Level of the whitelist
 	 * @return A Whitelist that contains ID's of all bindable methods matching the security level
 	 */
-	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final Object caller, final SecurityLevel securityLevel) {
-		return new Whitelist()
-				.addId(bindableMethods.filter(method ->
-						method.getDeclaredAnnotation(Bind.class) != null
-								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
-						.map(method ->genId(caller, method)));
-	}
-
-	/**
-	 * Generates a Whitelist of Methods for the target class not exceeding the given security level.
-	 * @param bindableMethods
-	 * @param securityLevel
-	 * @return
-	 */
-	public static Whitelist getWhitelist(final Stream<Method> bindableMethods, final SecurityLevel securityLevel) {
-		return new Whitelist()
-				.addId(bindableMethods.filter(method ->
-						method.getDeclaredAnnotation(Bind.class) != null
-								&& method.getDeclaredAnnotation(Bind.class).value().level <= securityLevel.level)
-						.map(method ->genId(null, method)));
+	public static Whitelist getWhitelist(final Stream<Method> bindableMethods) {
+		Whitelist ret = new Whitelist();
+		bindableMethods.forEach(method -> {
+			if(method.getDeclaredAnnotation(Bind.class) != null) {
+				ret.setLevel(method, method.getDeclaredAnnotation(Bind.class).value());
+			}
+		});
+		
+		return ret;
 	}
 
 	/**
 	 * Generates a unique String ID for the Member of the source Object
-	 * @param o An object, can be null for static Members
 	 * @param m A member (Field or Method)
 	 * @return A String ID that specifically refers to the member of the specific object
 	 */
-	public static String genId(final Object o, final Member m) {
-		return Optional.ofNullable(o).map(val -> Integer.toString(val.hashCode())).orElse("")
-				+ Integer.toString(m.hashCode());
+	public static String genId(final Member m) {
+		return m.getDeclaringClass().getName() +":"+ m.getName();
 	}
 
 	/**
 	 * Returns a collection of Bindable methods found for the argument object.
 	 * A Bindable method is any method that has been tagged with the @Bind annotation.
-	 * @param o The Object to get all Bindable methods of
 	 * @return A Stream of the Objects Bindable Methods
 	 */
-	public static Stream<Method> getBindableMethods(final Object o) {
-		return getAllMethods(o.getClass())
+	public static Stream<Method> getBindableInstanceMethods(final Class<?> c) {
+		return getAllMethods(c)
 				.filter(method -> {
 					Bind annotation = method.getDeclaredAnnotation(Bind.class);
 					return annotation != null
@@ -80,6 +64,9 @@ public class LuaReflection {
 						},
 						HashMap::putAll)
 				.values().stream();
+	}
+	public static Stream<Method> getBindableInstanceMethods(final Object o) {
+		return getBindableInstanceMethods(o.getClass());
 	}
 
 	/**
@@ -132,7 +119,7 @@ public class LuaReflection {
 	 * @return An optional that possibly contains the Method if it is found.
 	 */
 	public static Optional<Method> getMethodWithName(Object o, String name) {
-		return getBindableMethods(o)
+		return getBindableInstanceMethods(o)
 				.filter(m -> GetLuaFacade.bindTo(m).equals(name))
 				.findFirst();
 	}
