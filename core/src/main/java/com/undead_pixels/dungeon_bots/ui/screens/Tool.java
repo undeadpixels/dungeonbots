@@ -12,12 +12,18 @@ import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 
+import javax.swing.AbstractListModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -35,6 +41,14 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	public final World world;
 	public final WorldView view;
 	public final Window owner;
+
+	public Tool(String name, Image image, WorldView view, Window owner) {
+		this.name = name;
+		this.image = image;
+		this.world = view.getWorld();
+		this.view = view;
+		this.owner = owner;
+	}
 
 	public Tool(String name, Image image, World world, WorldView view, Window owner) {
 		this.name = name;
@@ -87,18 +101,16 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public void render(Graphics2D g) {
 	}
-	
-	public static class Selector extends Tool{
-		
-		public Selector(World world, WorldView view, Window owner) {
-			super("Selector", UIBuilder.getImage("selector.gif"), world, view, owner);			
+
+	public static class Selector extends Tool {
+
+		public Selector(WorldView view, Window owner) {
+			super("Selector", UIBuilder.getImage("selector.gif"), view, owner);
 		}
 
 		private Point cornerA = null;
 		private Point cornerB = null;
-		
-		
-		
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 
@@ -116,19 +128,20 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			view.setRenderingTool(this);
 			e.consume();
 		}
-		
+
 		@Override
-		public void mouseDragged(MouseEvent e){
-			//If drawing isn't happening, just return.
-			if (cornerA==null) return;
-			
-			assert (view.getRenderingTool()==this); //Sanity check.
-			
+		public void mouseDragged(MouseEvent e) {
+			// If drawing isn't happening, just return.
+			if (cornerA == null)
+				return;
+
+			assert (view.getRenderingTool() == this); // Sanity check.
+
 			cornerB = new Point(e.getX(), e.getY());
-			
+
 			e.consume();
 		}
-		
+
 		@Override
 		public void mouseReleased(MouseEvent e) {
 
@@ -139,8 +152,10 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 			// What is the current lasso in game space?
 			Rectangle2D.Float rect = view.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
-			if (rect.width==0.0f) rect.width = 0.01f;
-			if (rect.height==0.0f) rect.height = 0.01f;
+			if (rect.width == 0.0f)
+				rect.width = 0.01f;
+			if (rect.height == 0.0f)
+				rect.height = 0.01f;
 
 			// Find the entities (first) or tiles (second) that are lassoed.
 			// If only one entity is lassoed and that entity is already
@@ -184,16 +199,49 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			cornerB = cornerA = null;
 			e.consume();
 		}
-		
+
 		@Override
-		public void render(Graphics2D g){
+		public void render(Graphics2D g) {
 			g.setStroke(new BasicStroke(2));
 			g.setColor(Color.red);
-			Rectangle rect = Cartesian.makeRectangle(cornerA,  cornerB);
-			//System.out.println(rect.toString());
+			Rectangle rect = Cartesian.makeRectangle(cornerA, cornerB);
+			// System.out.println(rect.toString());
 			g.drawRect(rect.x, rect.y, rect.width, rect.height);
 		}
+
+	}
+
+	public static class TilePen extends Tool {
+
+		private final JList<TileType> typeList;
+
+		public TilePen(WorldView view, JList<TileType> typeList) {
+			super("Tile Pen", null, view, null);
+			this.typeList = typeList;
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+			Tile existingTile = world.getTile(gamePos);
+			if (existingTile == null)
+				throw new RuntimeException("Have not implemented drawing a tile where one does not already exist.");
+			TileType type = typeList.getSelectedValue();
+			Point2D.Float existingPoint = existingTile.getPosition();
+			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), type);
+		}
 		
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+			Tile existingTile = world.getTile(gamePos);
+			if (existingTile == null)
+				throw new RuntimeException("Have not implemented drawing a tile where one does not already exist.");
+			TileType type = typeList.getSelectedValue();
+			Point2D.Float existingPoint = existingTile.getPosition();
+			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), type);
+		}
+
 	}
 
 }

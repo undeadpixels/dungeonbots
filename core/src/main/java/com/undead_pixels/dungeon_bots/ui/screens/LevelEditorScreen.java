@@ -17,7 +17,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -87,8 +89,6 @@ public final class LevelEditorScreen extends Screen {
 		return new LevelEditorScreen.Controller();
 	}
 
-	
-
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
@@ -126,9 +126,6 @@ public final class LevelEditorScreen extends Screen {
 		// ===========================================================
 		// ======== LevelEditorScreen.Controller TOOL STUFF
 		// ===========================================================
-		
-
-		
 
 		/**
 		 * This stupid boolean is there just to flag a list's clearSelection()
@@ -166,12 +163,12 @@ public final class LevelEditorScreen extends Screen {
 						toolPalette.clearSelection();
 						entityPalette.clearSelection();
 						_PropogateChange = true;
-					}					
+					}
 					JList<TileType> tp = tilePalette;
 					currentTileType = tilePalette.getSelectedValue();
 					currentEntityType = null;
-					//TODO:  any selected tile should be changed.
-					//TODO:  tool should be changed to a tile draw tool.
+					// TODO: any selected tile should be changed.
+					// TODO: tool should be changed to a tile draw tool.
 				}
 				// Handle clicking on the entity palette.
 				else if (e.getSource() == entityPalette) {
@@ -180,10 +177,10 @@ public final class LevelEditorScreen extends Screen {
 						toolPalette.clearSelection();
 						tilePalette.clearSelection();
 						_PropogateChange = true;
-					}					
+					}
 					currentTileType = null;
 					currentEntityType = entityPalette.getSelectedValue();
-					//TODO:  entity placer should become the new tool.
+					// TODO: entity placer should become the new tool.
 				}
 
 			}
@@ -209,8 +206,15 @@ public final class LevelEditorScreen extends Screen {
 			switch (e.getActionCommand()) {
 
 			case "Save to LevelPack":
-				String json = levelPack.toJson();
-				Serializer.writeToFile("example.json", json);
+				File savingFile = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (savingFile == null)
+					return;
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(savingFile))) {
+					String json = levelPack.toJson();
+					writer.write(json);
+				} catch (Exception ioex) {
+					ioex.printStackTrace();
+				}
 				break;
 			/*
 			 * // If there is not a cached file, treat as a SaveAs instead. if
@@ -437,7 +441,7 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the lists.
 		tl.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(new Tool.Selector(world,  _View,  this));
+		tm.addElement(new Tool.Selector(_View, this));
 		tl.setModel(tm);
 
 		// Create the tile palette GUI.
