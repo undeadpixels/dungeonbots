@@ -54,9 +54,9 @@ tbl.init = function()
     world:setTile(4,4, tileTypes:getTile("grass"))
 
 
-    world:makeBot("bot", 10, 3)
-    world:makeBot("bot", 10, 4)
-    world:makeBot("bot", 10, 5)
+    world:makeBot("bot1", 10, 3)
+    world:makeBot("bot2", 10, 4)
+    world:makeBot("bot3", 10, 5)
 end
 
 
