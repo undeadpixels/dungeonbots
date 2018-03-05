@@ -18,6 +18,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -250,6 +251,7 @@ public class Serializer {
 	};
 
 	public static String serializeLevelPack(LevelPack levelPack) {
+		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
 		return serializeToJSON(levelPack);
 	}
 

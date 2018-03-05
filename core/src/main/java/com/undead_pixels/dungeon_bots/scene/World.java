@@ -60,12 +60,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The script that defines this world
 	 */
 	// private String levelScript;
-	private UserScriptCollection levelScripts = new UserScriptCollection();
+	private final UserScriptCollection levelScripts = new UserScriptCollection();
 	
 	/**
 	 * The scripts the players entities all own
 	 */
-	private UserScriptCollection playerTeamScripts = new UserScriptCollection();
+	private final UserScriptCollection playerTeamScripts = new UserScriptCollection();
 
 	/**
 	 * The LuaBindings to the World Lazy initialized
@@ -88,6 +88,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private String name = "world";
 	
 	private Whitelist sharedWhitelist = new Whitelist();
+
+	public boolean serialized = false;
 
 	// =============================================
 	// ====== World CTOR AND STARTUP STUFF
@@ -531,7 +533,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
 			return; // out of bounds; TODO - should something else happen?
 		}
-
+		else if(this.serialized) {
+			return;
+		}
 		if (tileType.getName().equals("goal"))
 			setGoal(x, y);
 		tilesAreStale = true;
@@ -955,6 +959,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public Whitelist getWhitelist() {
 		return sharedWhitelist;
+	}
+
+	public UserScriptCollection getLevelScripts() {
+		return levelScripts;
+	}
+
+	public UserScriptCollection getPlayerTeamScripts() {
+		return playerTeamScripts;
 	}
 
 }
