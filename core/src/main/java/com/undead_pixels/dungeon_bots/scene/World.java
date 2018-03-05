@@ -85,7 +85,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private String name = "world";
 	
 	/**
-	 * The whitelist governing what functions are accessable by whom
+	 * The whitelist governing what functions are accessible by whom
 	 */
 	private Whitelist sharedWhitelist = new Whitelist();
 

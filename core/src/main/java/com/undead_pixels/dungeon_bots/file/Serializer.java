@@ -345,13 +345,14 @@ public class Serializer {
 			return;
 
 		if (objectA == null) {
-			if (objectB == null)
+			if (objectB == null) {
 				matched.add(rootName);
-			else
-				unmatched.add(rootName);
+			} else {
+				unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
+			}
 			return;
 		} else if (objectB == null) {
-			unmatched.add(rootName);
+			unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
 			return;
 		}
 
@@ -370,12 +371,20 @@ public class Serializer {
 		if (classA.isArray()) {
 			int lengthA = Array.getLength(objectA), lengthB = Array.getLength(objectB);
 			if (lengthA != lengthB)
-				unmatched.add(rootName + ".length");
+				unmatched.add(rootName + ".length"+ "["+lengthA +" != "+lengthB+"]");
 			else {
 				for (int i = 0; i < lengthA; i++) {
 					validateReflectedEqualityRecursive(Array.get(objectA, i), Array.get(objectB, i), matched, unmatched,
 							undetermined, checked, rootName + "[" + i + "]", testTransients, testFinals);
 				}
+			}
+			return;
+		}
+		if(classA == String.class) {
+			if(objectA.equals(objectB)) {
+				matched.add(rootName);
+			} else {
+				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
 			}
 			return;
 		}
