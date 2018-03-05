@@ -85,8 +85,12 @@ public class GameplayScreen extends Screen {
 				case "Open":
 					 File openFile = FileControl.openDialog(GameplayScreen.this);
 					 if (openFile != null) {
-						 LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-						 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						 if(openFile.getName().endsWith(".lua")) {
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
+						 } else {
+							 LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						 }
 					 }
 
 					break;
