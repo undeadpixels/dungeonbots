@@ -1,0 +1,68 @@
+{
+  "levels": "rO0ABXNyADRjb20udW5kZWFkX3BpeGVscy5kdW5nZW9uX2JvdHMuc2NlbmUubGV2ZWwuV29ybGRMaXN0pivrbTVJTmcCAAB4cgATamF2YS51dGlsLkFycmF5TGlzdHiB0h2Zx2GdAwABSQAEc2l6ZXhwAAAAAHcEAAAAAHg\u003d",
+  "levelIndex": 0,
+  "name": "lp01",
+  "currentPlayer": null,
+  "playerVisible": [
+    0
+  ],
+  "transitionScript": {
+    "code": "--This script will be run to return an LuaInt specifying the next world to proceed to, given the current world state.",
+    "level": "AUTHOR",
+    "name": "onTransition",
+    "locks": [],
+    "editableName": true
+  },
+  "originalAuthor": {
+    "_UserName": "dummy",
+    "_ID": -123456789
+  },
+  "authors": [
+    {
+      "_UserName": "dummy",
+      "_ID": -123456789
+    }
+  ],
+  "audienceUsers": [],
+  "audienceGroups": [],
+  "creationDate": {
+    "date": {
+      "year": 2018,
+      "month": 3,
+      "day": 4
+    },
+    "time": {
+      "hour": 16,
+      "minute": 47,
+      "second": 39,
+      "nano": 244000000
+    }
+  },
+  "publishEnd": {
+    "date": {
+      "year": 2019,
+      "month": 3,
+      "day": 4
+    },
+    "time": {
+      "hour": 16,
+      "minute": 47,
+      "second": 39,
+      "nano": 254000000
+    }
+  },
+  "publishStart": {
+    "date": {
+      "year": 2018,
+      "month": 3,
+      "day": 4
+    },
+    "time": {
+      "hour": 16,
+      "minute": 47,
+      "second": 39,
+      "nano": 254000000
+    }
+  },
+  "feedbackModel": "RATING_AND_COMMENTS"
+}
