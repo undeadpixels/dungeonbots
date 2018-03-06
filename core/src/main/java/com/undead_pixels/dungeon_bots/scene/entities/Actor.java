@@ -72,6 +72,16 @@ public class Actor extends SpriteEntity implements HasInventory {
 		floatingText = new FloatingText(this, name+"-text");
 		world.addEntity(floatingText);
 	}
+	
+	/**
+	 * @param world		The world to contain this Actor
+	 * @param tex		A texture for this Actor
+	 */
+	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
+		super(world, name, tex, scripts, x, y);
+		floatingText = new FloatingText(this, name+"-text");
+		world.addEntity(floatingText);
+	}
 
 	@Override
 	public float getZ() {

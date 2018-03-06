@@ -41,7 +41,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  *
  */
 public final class JScriptEditor extends JPanel {
-	
+
 	/**
 	 * 
 	 */
@@ -53,11 +53,10 @@ public final class JScriptEditor extends JPanel {
 	private SecurityLevel _SecurityLevel;
 	private Controller _Controller;
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeEditor CONSTRUCTION MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	public JScriptEditor(SecurityLevel securityLevel) {
 
@@ -69,12 +68,12 @@ public final class JScriptEditor extends JPanel {
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
-		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
-				.action("CUT", _Controller).preferredSize(40, 50).create();
-		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
-				.action("COPY", _Controller).preferredSize(40, 50).create();
-		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
-				.action("PASTE", _Controller).preferredSize(40, 50).create();
+		JButton bttnCut = UIBuilder.buildButton().image("icons/cut.png").toolTip("Cut a selected section.")
+				.action("CUT", _Controller).create();
+		JButton bttnCopy = UIBuilder.buildButton().image("icons/copy.png").toolTip("Copy a selected section.")
+				.action("COPY", _Controller).create();
+		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
+				.action("PASTE", _Controller).create();
 
 		_Editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(_Editor);
@@ -89,7 +88,7 @@ public final class JScriptEditor extends JPanel {
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
-			JToggleButton lockButton = UIBuilder.buildToggleButton().image("lock.jpg").text("Lock")
+			JToggleButton lockButton = UIBuilder.buildToggleButton().image("icons/lock.png").text("Lock")
 					.toolTip("Lock selected text.").action("TOGGLE_LOCK", _Controller).create();
 			toolBar.add(lockButton);
 			_Controller.setLockButton(lockButton);
@@ -99,10 +98,12 @@ public final class JScriptEditor extends JPanel {
 		add(toolBar, BorderLayout.PAGE_START);
 	}
 
+
 	/** Returns a reference to the script currently being edited. */
 	public UserScript getScript() {
 		return _Script;
 	}
+
 
 	/**
 	 * Sets the editor to modify the given script. Note that the script object
@@ -124,6 +125,7 @@ public final class JScriptEditor extends JPanel {
 		_Controller.setFiltering(true);
 	}
 
+
 	/**
 	 * Overwrites the current script with the contents of this editor.
 	 */
@@ -139,16 +141,16 @@ public final class JScriptEditor extends JPanel {
 
 	}
 
+
 	public void setLiveEditing(boolean value) {
 		if (_Controller._LockFilter != null)
 			_Controller._LockFilter.setLive(value);
 	}
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JScriptEditor CONTROLLER
-	 * ================================================================
-	 */
+	 * ================================================================ */
 	/** The controller class for the JScriptEditor. */
 	private class Controller implements CaretListener, ActionListener {
 
@@ -160,11 +162,13 @@ public final class JScriptEditor extends JPanel {
 		private int _SelectionStart = -1;
 		private int _SelectionEnd = -1;
 
+
 		public Controller() {
 			this._Painter = new UnderlinePainter(Color.blue);
 			this._Highlighter = new DefaultHighlighter();
 			_Highlighter.setDrawsLayeredHighlights(true);
 		}
+
 
 		/** Called when buttons are hit. */
 		@Override
@@ -189,6 +193,7 @@ public final class JScriptEditor extends JPanel {
 
 		}
 
+
 		/** Called when selection changes. */
 		@Override
 		public void caretUpdate(CaretEvent e) {
@@ -207,11 +212,10 @@ public final class JScriptEditor extends JPanel {
 			updateButton();
 		}
 
-		/*
-		 * ================================================================
+
+		/* ================================================================
 		 * JScriptEditor.Controller CODE LOCK MEMBERS
-		 * ================================================================
-		 */
+		 * ================================================================ */
 
 		/** Determine whether the controller should be lock-filtering or not. */
 		public void setFiltering(boolean value) {
@@ -223,10 +227,12 @@ public final class JScriptEditor extends JPanel {
 
 		}
 
+
 		/** Sets the button that will control locking for this controller. */
 		public void setLockButton(JToggleButton button) {
 			this._LockButton = button;
 		}
+
 
 		/** Sets the lock color for this controller. */
 		public void setLockColor(Color color) {
@@ -234,12 +240,14 @@ public final class JScriptEditor extends JPanel {
 
 		}
 
+
 		private IntegerSet getHighlightIntervals() {
 			IntegerSet result = new IntegerSet();
 			for (DefaultHighlighter.Highlight h : _Highlighter.getHighlights())
 				result.add(h.getStartOffset(), h.getEndOffset() - 1);
 			return result;
 		}
+
 
 		/** Removes all locks. */
 		public void clearLocks() {
@@ -250,6 +258,7 @@ public final class JScriptEditor extends JPanel {
 			updateButton();
 		}
 
+
 		/**
 		 * Locks everything from the selection start to the selection end,
 		 * exclusive.
@@ -257,6 +266,7 @@ public final class JScriptEditor extends JPanel {
 		public boolean lock() {
 			return lock(_SelectionStart, _SelectionEnd - 1);
 		}
+
 
 		/**
 		 * Locks everything from the indicated start to the indicated end,
@@ -283,6 +293,7 @@ public final class JScriptEditor extends JPanel {
 			return true;
 		}
 
+
 		/**
 		 * Sets all locks as specified in the original UserScript. Note that the
 		 * code may have changed since then, so an error may be thrown.
@@ -302,6 +313,7 @@ public final class JScriptEditor extends JPanel {
 			updateButton();
 		}
 
+
 		/**
 		 * Unlocks everything from the selection start to the selection end,
 		 * exclusive.
@@ -309,6 +321,7 @@ public final class JScriptEditor extends JPanel {
 		public boolean unlock() {
 			return unlock(_SelectionStart, _SelectionEnd - 1);
 		}
+
 
 		/**
 		 * Unlocks everything from the indicated start to the indicated end,
@@ -334,6 +347,7 @@ public final class JScriptEditor extends JPanel {
 			return true;
 		}
 
+
 		/** Updates the status of the GUI locking button. */
 		public void updateButton() {
 			if (_LockButton == null)
@@ -351,9 +365,12 @@ public final class JScriptEditor extends JPanel {
 			}
 		}
 
+
 		/** Can turn text editing on or off. */
 		private class LockFilter extends DocumentFilter {
+
 			private boolean _Live = true;
+
 
 			/**
 			 * Determine whether the filter will allow editing of the attached
@@ -363,12 +380,14 @@ public final class JScriptEditor extends JPanel {
 				_Live = value;
 			}
 
+
 			@Override
 			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
 					throws BadLocationException {
 				if (_Live)
 					super.insertString(fb, offset, text, attr);
 			}
+
 
 			@Override
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
@@ -378,12 +397,14 @@ public final class JScriptEditor extends JPanel {
 
 			}
 
+
 			@Override
 			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
 				if (_Live)
 					super.remove(fb, offset, length);
 			}
 		}
+
 
 		private class UnderlinePainter extends LayeredHighlighter.LayerPainter {
 
@@ -393,6 +414,7 @@ public final class JScriptEditor extends JPanel {
 
 			private Color _Color;
 
+
 			public UnderlinePainter(Color color) {
 				if (color == null)
 					throw new IllegalStateException("Color cannot be null.");
@@ -400,10 +422,12 @@ public final class JScriptEditor extends JPanel {
 
 			}
 
+
 			@Override
 			public void paint(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c) {
 				// No painting - using an underline instead.
 			}
+
 
 			@Override
 			public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c, View view) {

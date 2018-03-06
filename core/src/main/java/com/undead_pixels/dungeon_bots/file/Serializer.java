@@ -352,18 +352,18 @@ public class Serializer {
 			if (objectB == null) {
 				matched.add(rootName);
 			} else {
-				unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
+				unmatched.add(rootName + "[" + objectA + " != " + objectB + "]");
 			}
 			return;
 		} else if (objectB == null) {
-			unmatched.add(rootName+ "["+objectA +" != "+objectB+"]");
+			unmatched.add(rootName + "[" + objectA + " != " + objectB + "]");
 			return;
 		}
 
 		// From here, neither are null.
 		Class<?> classA = objectA.getClass(), classB = objectB.getClass();
 		if (!classA.equals(classB)) {
-			unmatched.add(rootName+" [class " + classA.getCanonicalName() + " != " + classB.getCanonicalName() + "]");
+			unmatched.add(rootName + " [class " + classA.getCanonicalName() + " != " + classB.getCanonicalName() + "]");
 			return;
 		}
 		if (objectA.equals(objectB)) {
@@ -375,7 +375,7 @@ public class Serializer {
 		if (classA.isArray()) {
 			int lengthA = Array.getLength(objectA), lengthB = Array.getLength(objectB);
 			if (lengthA != lengthB)
-				unmatched.add(rootName + ".length"+ "["+lengthA +" != "+lengthB+"]");
+				unmatched.add(rootName + ".length" + "[" + lengthA + " != " + lengthB + "]");
 			else {
 				for (int i = 0; i < lengthA; i++) {
 					validateReflectedEqualityRecursive(Array.get(objectA, i), Array.get(objectB, i), matched, unmatched,
@@ -384,11 +384,11 @@ public class Serializer {
 			}
 			return;
 		}
-		if(classA == String.class) {
-			if(objectA.equals(objectB)) {
+		if (classA == String.class) {
+			if (objectA.equals(objectB)) {
 				matched.add(rootName);
 			} else {
-				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
+				unmatched.add(rootName + " [" + objectA + "!=" + objectB + "]");
 			}
 			return;
 		}
@@ -396,14 +396,14 @@ public class Serializer {
 			if (((boolean) objectA) == ((boolean) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
+				unmatched.add(rootName + " [" + objectA + "!=" + objectB + "]");
 			return;
 		}
 		if (classA.isPrimitive()) {
 			if (((Number) objectA).equals((Number) objectB))
 				matched.add(rootName);
 			else
-				unmatched.add(rootName+" ["+objectA +"!="+ objectB+"]");
+				unmatched.add(rootName + " [" + objectA + "!=" + objectB + "]");
 			return;
 		}
 
@@ -420,7 +420,7 @@ public class Serializer {
 						checked, rootName + "[" + i++ + "]", testTransients, testFinals);
 			}
 			if (iterA.hasNext() || iterB.hasNext())
-				unmatched.add(rootName +" [iterators not of same length]");
+				unmatched.add(rootName + " [iterators not of same length]");
 			else
 				matched.add(rootName);
 			matched.addAll(tempMatched);
@@ -463,11 +463,11 @@ public class Serializer {
 				valB = field.get(objectB);
 			} catch (IllegalArgumentException e) {
 				System.out.println(fieldName + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalArgumentException]");
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) + " [IllegalArgumentException]");
 				continue;
 			} catch (IllegalAccessException e) {
 				System.out.println(rootName + "." + field.getName() + ": " + e.getMessage());
-				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) +" [IllegalAccessException]");
+				undetermined.add(fieldName + getStringModifiers(field.getModifiers()) + " [IllegalAccessException]");
 				continue;
 			}
 			field.setAccessible(originalAccessible);

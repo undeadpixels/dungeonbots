@@ -42,7 +42,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 public class JCodeREPL extends JPanel implements ActionListener {
-	
+
 	/**
 	 * 
 	 */
@@ -64,11 +64,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
 	private int _CommandHistoryIndex = 0;
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeREPL CONSTRUCTION MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	/** Creates a new REPL. All code will execute in the given sandbox. */
 	public JCodeREPL(LuaSandbox sandbox) {
@@ -92,6 +91,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		addKeyBindings();
 	}
 
+
 	private void addComponents() {
 		this.setLayout(new BorderLayout());
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
@@ -112,9 +112,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.buildButton().image("executeButton.gif").minSize(50, 80).toolTip("Click to execute.")
+		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").minSize(50, 80).toolTip("Click to execute.")
 				.action("EXECUTE", this).focusable(false).preferredSize(50, 80).create();
-		_CancelBttn = UIBuilder.buildButton().image("cancelButton.gif").toolTip("Click to cancel.")
+		_CancelBttn = UIBuilder.buildButton().image("icons/abort.png", true).toolTip("Click to cancel.")
 				.action("CANCEL", this).focusable(false).preferredSize(30, 40).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
@@ -133,6 +133,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane.requestFocusInWindow();
 	}
 
+
 	/** Binds the CTRL+Enter key to execute the code. */
 	private void addKeyBindings() {
 
@@ -142,12 +143,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// On CTRL+ENTER, should execute.
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
 		actionMap.put("EXECUTE", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
-			
+
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				execute(MAX_EXECUTION_TIME);
@@ -157,12 +159,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// On ESC, should clear the command line.
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
 		actionMap.put("CLEAR", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
-			
+
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				_EditorPane.setText("");
@@ -171,11 +174,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
 		actionMap.put("STOP", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -187,11 +191,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
 		actionMap.put("CLOSE", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -211,11 +216,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
 		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -230,11 +236,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
 		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
-			
+
 			/**
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
+
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -252,6 +259,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// code suggestion.
 	}
 
+
 	/**
 	 * Just trying to keep the code a little organized. This is called by
 	 * addComponents().
@@ -259,14 +267,15 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private JToolBar makeREPLToolBar() {
 
 		JToolBar result = new JToolBar();
-		JButton bttnCut = UIBuilder.buildButton().image("cut.jpg").toolTip("Cut a selected section.")
+		JButton bttnCut = UIBuilder.buildButton().image("icons/cut.png").toolTip("Cut a selected section.")
 				.action("CUT", this).focusable(false).preferredSize(30, 30).create();
-		JButton bttnCopy = UIBuilder.buildButton().image("copy.jpg").toolTip("Copy a selected section.")
+		JButton bttnCopy = UIBuilder.buildButton().image("icons/copy.png").toolTip("Copy a selected section.")
 				.action("COPY", this).focusable(false).preferredSize(30, 30).create();
-		JButton bttnPaste = UIBuilder.buildButton().image("paste.jpg").toolTip("Paste at the cursor.")
+		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
 				.action("PASTE", this).focusable(false).preferredSize(30, 30).create();
-		JButton bttnHelp = UIBuilder.buildButton().image("help.jpg").toolTip("Get help with the command line.")
-				.action("HELP", this).focusable(false).preferredSize(30, 30).create();
+		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
+				.toolTip("Get help with the command line.").action("HELP", this).focusable(false).preferredSize(30, 30)
+				.create();
 
 		result.add(bttnCut);
 		result.add(bttnCopy);
@@ -276,15 +285,15 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return result;
 	}
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeREPL APPEARANCE MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	private AttributeSet _EchoMessageStyle = null;
 	private AttributeSet _SystemMessageStyle = null;
 	private AttributeSet _ErrorMessageStyle = null;
+
 
 	public static AttributeSet putSimpleAttributeSet(Color foreground, Color background, boolean bold) {
 
@@ -295,11 +304,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return result;
 	}
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeREPL CODING INTERFACE MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	/** Stops any running script by forcing an interrupt. */
 	public void stop() {
@@ -308,6 +316,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			return;
 		toBeCancelled.stop();
 	}
+
 
 	/**
 	 * Starts execution of the code contained in the code editor, on a
@@ -358,6 +367,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				}
 			}
 
+
 			@Override
 			public void scriptEventStarted(LuaInvocation script, ScriptStatus status) {
 			}
@@ -377,6 +387,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return _RunningScript;
 	}
 
+
 	/**
 	 * Executes the contents of the code editor, on the main thread. Useful for
 	 * testing purposes.
@@ -385,6 +396,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		LuaInvocation inv = execute(executionTime);
 		inv.join(executionTime);
 	}
+
 
 	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
@@ -401,6 +413,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		setIsExecuting(false);
 	}
 
+
 	/** Sets the GUI to correctly reflect the execution status. */
 	private void setIsExecuting(boolean value) {
 		// if (_IsExecuting == value)
@@ -412,6 +425,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	}
 
+
 	/**
 	 * Interprets the result of a LuaScript execution and converts it into a
 	 * suitable Java object.
@@ -419,6 +433,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	protected static Object interpret(Varargs result) {
 		return result instanceof LuaNil ? "Ok" : result.tojstring();
 	}
+
 
 	/** Returns the code contents being edited in this REPL. */
 	public String getCode() {
@@ -430,6 +445,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			return "";
 		}
 	}
+
 
 	/**
 	 * Sets the code as indicated. If running the code is intended, don't forget
@@ -445,16 +461,16 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 	}
 
+
 	/** Returns the last result that came from execution of the REPL. */
 	public Object getLastResult() {
 		return _LastResult;
 	}
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeREPL MESSAGING MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	/**
 	 * Posts a message to the message pane.
@@ -462,6 +478,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	public void message(String message) {
 		message(message, _SystemMessageStyle);
 	}
+
 
 	/**
 	 * Posts a message to the message pane. The identity of the sender will
@@ -474,10 +491,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			message(message, _SystemMessageStyle);
 	}
 
+
 	/** Cause a message to display as an error in the REPL. */
 	public void messageError(String message) {
 		message(message, _ErrorMessageStyle);
 	}
+
 
 	/** Posts a message to the message pane, with the indicated style. */
 	protected void message(String message, AttributeSet attribs) {
@@ -497,8 +516,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	}
 
+
 	private static void pageHome(JScrollPane scroller) {
 		EventQueue.invokeLater(new Runnable() {
+
 			@Override
 			public void run() {
 				JScrollBar vert = scroller.getVerticalScrollBar();
@@ -509,9 +530,11 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		});
 	}
 
+
 	private static void pageEnd(JScrollPane scroller) {
 
 		EventQueue.invokeLater(new Runnable() {
+
 			public void run() {
 				try {
 					JScrollBar vert = scroller.getVerticalScrollBar();
@@ -527,15 +550,18 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		});
 	}
 
+
 	/** Scrolls the message pane to the end of the messages. */
 	public void pageEnd() {
 		pageEnd(_MessageScroller);
 	}
 
+
 	/** Scrolls the message pane to the beginning of the messages. */
 	public void pageHome() {
 		pageHome(_MessageScroller);
 	}
+
 
 	/** Returns all the messages contained in this REPL. */
 	public String getMessages() {
@@ -551,11 +577,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		}
 	}
 
-	/*
-	 * ================================================================
+
+	/* ================================================================
 	 * JCodeREPL ACTION HANDLING MEMBERS
-	 * ================================================================
-	 */
+	 * ================================================================ */
 
 	@Override
 	public void actionPerformed(ActionEvent action) {
@@ -587,6 +612,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		// TODO Auto-generated method stub
 
 	}
+
 
 	/** Called when there is a new visual parent for this REPL. */
 	@Override

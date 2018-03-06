@@ -1,5 +1,0 @@
-dungeon_room.jpg:
-https://www.thedungeons.com/blackpool/en/escaperooms/images/escape-room-bg.jpg
-
-rewind.jpg, play.jpg, stop.jpg
-https://www.scottishborderswebsitedesign.co.uk/blog/free-music-icons-to-download/

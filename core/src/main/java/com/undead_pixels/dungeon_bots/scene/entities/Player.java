@@ -113,7 +113,8 @@ public class Player extends RpgActor {
 		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
 				.checkuserdata(ItemReference.class);
 		Direction direction = Direction.valueOf(dir);
-		return this.world.tryUse(itemRef, direction, this);
+		return false;
+		//return this.world.tryUse(itemRef, direction, this);
 	}
 
 }
