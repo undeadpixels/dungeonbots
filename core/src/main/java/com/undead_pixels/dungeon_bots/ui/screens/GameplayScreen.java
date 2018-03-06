@@ -42,7 +42,7 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  * A screen for gameplay
  */
 public class GameplayScreen extends Screen {
-	
+
 	/**
 	 * 
 	 */
@@ -52,18 +52,18 @@ public class GameplayScreen extends Screen {
 	private WorldView view;
 	protected final World world;
 
+
 	public GameplayScreen(World world) {
 		this.world = world;
 	}
+
 
 	/**
 	 * On closing the screen, each open editor will also need to be closed.
 	 * Additionally, it makes no sense to open an editor twice for the same
 	 * Entity. That's why the open editors are tracked.
-	 *//*
-		 * private final HashMap<Entity, JDialog> _OpenEditors = new
-		 * HashMap<Entity, JDialog>();
-		 */
+	 *//* private final HashMap<Entity, JDialog> _OpenEditors = new
+		 * HashMap<Entity, JDialog>(); */
 
 	@Override
 	protected ScreenController makeController() {
@@ -81,7 +81,7 @@ public class GameplayScreen extends Screen {
 					e.consume();
 				}
 			}
-			
+
 
 			/** Called when the zoom slider's state changes. */
 			@Override
@@ -103,15 +103,15 @@ public class GameplayScreen extends Screen {
 				switch (e.getActionCommand()) {
 
 				case "Open":
-					 File openFile = FileControl.openDialog(GameplayScreen.this);
-					 if (openFile != null) {
-						 if(openFile.getName().endsWith(".lua")) {
-							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
-						 } else {
-							 LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-							 DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
-						 }
-					 }
+					File openFile = FileControl.openDialog(GameplayScreen.this);
+					if (openFile != null) {
+						if (openFile.getName().endsWith(".lua")) {
+							DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
+						} else {
+							LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+							DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						}
+					}
 
 					break;
 				case "Exit to Main":
@@ -148,38 +148,47 @@ public class GameplayScreen extends Screen {
 				}
 			}
 
+
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
 			}
 
+
 			@Override
 			public void mouseExited(MouseEvent arg0) {
 			}
+
 
 			@Override
 			public void mousePressed(MouseEvent e) {
 
 			}
 
+
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
 			}
+
 
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 			}
 
+
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 			}
+
 
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 			}
 
+
 			@Override
 			public void mouseDragged(MouseEvent arg0) {
 			}
+
 
 			@Override
 			public void mouseMoved(MouseEvent arg0) {
@@ -189,6 +198,7 @@ public class GameplayScreen extends Screen {
 		};
 
 	}
+
 
 	@Override
 	protected void addComponents(Container pane) {
@@ -204,11 +214,11 @@ public class GameplayScreen extends Screen {
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
-		JButton playBttn = UIBuilder.buildButton().image("play.jpg").toolTip("Start the game.")
+		JButton playBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
 				.action("PLAY", getController()).preferredSize(50, 50).create();
-		JButton stopBttn = UIBuilder.buildButton().image("stop.jpg").toolTip("Stop the game.")
+		JButton stopBttn = UIBuilder.buildButton().image("icons/stop.png").toolTip("Stop the game.")
 				.action("STOP", getController()).preferredSize(50, 50).create();
-		JButton rewindBttn = UIBuilder.buildButton().image("rewind.jpg").toolTip("Rewind the game.")
+		JButton rewindBttn = UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
 				.action("REWIND", getController()).preferredSize(50, 50).create();
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
@@ -275,11 +285,12 @@ public class GameplayScreen extends Screen {
 		menuBar.add(fileMenu);
 		menuBar.add(feedbackMenu);
 
-		pane.add(menuBar, BorderLayout.PAGE_START);
+		// pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
-
+		this.setJMenuBar(menuBar);
 	}
+
 
 	@Override
 	protected void setDefaultLayout() {

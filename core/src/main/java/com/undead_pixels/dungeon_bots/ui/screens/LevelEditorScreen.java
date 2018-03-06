@@ -69,6 +69,7 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
  *
  */
 public final class LevelEditorScreen extends Screen {
+
 	/**
 	 * 
 	 */
@@ -84,15 +85,18 @@ public final class LevelEditorScreen extends Screen {
 	private Tool.TilePen _TilePen;
 	private Tool.EntityPlacer _EntityPlacer;
 
+
 	public LevelEditorScreen(LevelPack levelPack) {
 		this.levelPack = levelPack;
 		this.world = levelPack.getCurrentWorld();
 	}
 
+
 	@Override
 	protected ScreenController makeController() {
 		return new LevelEditorScreen.Controller();
 	}
+
 
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
@@ -101,6 +105,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("goal", UIBuilder.getImage("goal_entity.gif")));
 		return result;
 	}
+
 
 	/**
 	 * The Level Editor controller works by maintaining a reference to a Tool to
@@ -125,6 +130,7 @@ public final class LevelEditorScreen extends Screen {
 		 * call from in turn clearing other lists.
 		 */
 		private boolean _PropogateChange = true;
+
 
 		/** Handle the palette list changes. */
 		@Override
@@ -175,6 +181,7 @@ public final class LevelEditorScreen extends Screen {
 
 		}
 
+
 		/** Handle changes in the state of the zoom slider. */
 		@Override
 		public void stateChanged(ChangeEvent e) {
@@ -188,6 +195,7 @@ public final class LevelEditorScreen extends Screen {
 				}
 			}
 		}
+
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -268,6 +276,7 @@ public final class LevelEditorScreen extends Screen {
 			}
 		}
 
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (e.getSource() != _View)
@@ -277,6 +286,7 @@ public final class LevelEditorScreen extends Screen {
 			if (e.isConsumed())
 				return;
 		}
+
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
@@ -288,6 +298,7 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			if (selections.tool != null)
@@ -295,6 +306,7 @@ public final class LevelEditorScreen extends Screen {
 			if (e.isConsumed())
 				return;
 		}
+
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
@@ -304,6 +316,7 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+
 		@Override
 		public void mouseExited(MouseEvent e) {
 			if (selections.tool != null)
@@ -311,6 +324,7 @@ public final class LevelEditorScreen extends Screen {
 			if (e.isConsumed())
 				return;
 		}
+
 
 		@Override
 		public void mousePressed(MouseEvent e) {
@@ -323,6 +337,7 @@ public final class LevelEditorScreen extends Screen {
 
 		}
 
+
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			if (e.getSource() != _View)
@@ -333,6 +348,7 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+
 		@Override
 		public void keyPressed(KeyEvent e) {
 			if (selections.tool != null)
@@ -341,6 +357,7 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+
 		@Override
 		public void keyReleased(KeyEvent e) {
 			if (selections.tool != null)
@@ -348,6 +365,7 @@ public final class LevelEditorScreen extends Screen {
 			if (e.isConsumed())
 				return;
 		}
+
 
 		@Override
 		public void keyTyped(KeyEvent e) {
@@ -359,8 +377,10 @@ public final class LevelEditorScreen extends Screen {
 
 	}
 
+
 	/** Handles the rendering of an item in the TileType palette. */
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
+
 		@Override
 		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType item, int index,
 				boolean isSelected, boolean cellHasFocus) {
@@ -373,6 +393,7 @@ public final class LevelEditorScreen extends Screen {
 	};
 	/** Handles the rendering of an item in the EntityType palette. */
 	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
+
 		@Override
 		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType item, int index,
 				boolean isSelected, boolean cellHasFocus) {
@@ -397,6 +418,7 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 	};
+
 
 	/** Build the actual GUI for the Level Editor. */
 	@Override
@@ -451,20 +473,21 @@ public final class LevelEditorScreen extends Screen {
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this));
 		toolList.setModel(tm);
 		toolList.setSelectedValue(selections.tool = _Selector, true);
-		
+
 		// Create the zoom slider.
-				JSlider zoomSlider = new JSlider();
-				zoomSlider.setName("zoomSlider");
-				zoomSlider.addChangeListener(getController());
-				zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		JSlider zoomSlider = new JSlider();
+		zoomSlider.setName("zoomSlider");
+		zoomSlider.addChangeListener(getController());
+		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
 		controlPanel.setLayout(new VerticalLayout());
+		controlPanel.add(zoomSlider);
 		controlPanel.add(toolCollapser);
 		controlPanel.add(tilesCollapser);
 		controlPanel.add(entitiesCollapser);
-		controlPanel.add(zoomSlider);
+
 
 		// Create the file menu
 		JMenu fileMenu = new JMenu("File");
@@ -512,31 +535,24 @@ public final class LevelEditorScreen extends Screen {
 		helpMenu.setPreferredSize(new Dimension(50, 30));
 		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
 
-		
-
 		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
 		menuBar.add(publishMenu);
-		menuBar.add(helpMenu);		
+		menuBar.add(helpMenu);
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
-		pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(_View, BorderLayout.CENTER);
-
+		this.setJMenuBar(menuBar);
 	}
+
 
 	@Override
 	protected void setDefaultLayout() {
 		this.setSize(1024, 768);
 		this.setLocationRelativeTo(null);
-		Image img = UIBuilder.getImage("LevelEditorScreen_background.jpg");
-		if (img != null) {
-			img = img.getScaledInstance(this.getSize().width, this.getSize().height, Image.SCALE_SMOOTH);
-			this.setContentPane(new JLabel(new ImageIcon(img)));
-		}
 		this.setUndecorated(false);
 		this.setTitle("Create a game or lesson...");
 	}

@@ -254,7 +254,7 @@ public class UIBuilder {
 		 * The image will fill the entire button.
 		 */
 		public final ButtonBuilder<T> image(String filename) {
-			return image(filename, false);
+			return image(filename, true);
 		}
 
 		/**
@@ -279,7 +279,7 @@ public class UIBuilder {
 		 * button.
 		 */
 		public final ButtonBuilder<T> image(Image image) {
-			return image(image, false);
+			return image(image, true);
 		}
 
 		/**
@@ -449,6 +449,7 @@ public class UIBuilder {
 			if (unhandled.containsKey(FIELD_IMAGE)) {
 				ImageProportionality ip = (ImageProportionality) unhandled.remove(FIELD_IMAGE);
 				bttn.setIcon(new ResizingIcon(ip.image, bttn));
+				//bttn.setIcon(new ImageIcon(ip.image));
 			}
 			if (unhandled.containsKey(FIELD_INSETS))
 				bttn.setMargin((Insets) unhandled.remove(FIELD_INSETS));
@@ -662,7 +663,7 @@ public class UIBuilder {
 		if (_Images.containsKey(filename))
 			return _Images.get(filename);
 
-		String path = System.getProperty("user.dir") + "/images/" + filename;
+		String path = System.getProperty("user.dir") +"/"+ filename;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(path));

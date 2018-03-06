@@ -42,66 +42,82 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	public final String name;
 	public final Image image;
 
+
 	public Tool(String name, Image image) {
 		this.name = name;
 		this.image = image;
 	}
+
 
 	public Tool(String name, Image image, World world, WorldView view, Window owner) {
 		this.name = name;
 		this.image = image;
 	}
 
+
 	public Tool(String name, Image image, World world) {
 		this(name, image, world, null, null);
 	}
+
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
 
+
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
+
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 	}
 
+
 	@Override
 	public void mousePressed(MouseEvent e) {
 	}
 
+
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
+
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
 
 	}
 
+
 	@Override
 	public void mouseMoved(MouseEvent e) {
 	}
+
 
 	@Override
 	public void keyPressed(KeyEvent e) {
 	}
 
+
 	@Override
 	public void keyReleased(KeyEvent e) {
 	}
+
 
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}
 
+
 	public void render(Graphics2D g) {
 	}
 
+
 	/** The editor state? */
 	public static class SelectionModel {
+
 		public TileType tileType = null;
 		public EntityType entityType = null;
 
@@ -110,11 +126,15 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	}
 
+
 	public static class Selector extends Tool {
 
 		private final WorldView view;
 		private final Window owner;
 		private final World world;
+		private Point cornerA = null;
+		private Point cornerB = null;
+
 
 		public Selector(WorldView view, Window owner) {
 			super("Selector", UIBuilder.getImage("selector.gif"));
@@ -123,8 +143,6 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			this.world = view.getWorld();
 		}
 
-		private Point cornerA = null;
-		private Point cornerB = null;
 
 		@Override
 		public void mousePressed(MouseEvent e) {
@@ -144,6 +162,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			e.consume();
 		}
 
+
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// If drawing isn't happening, just return.
@@ -156,6 +175,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 			e.consume();
 		}
+
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
@@ -215,6 +235,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			e.consume();
 		}
 
+
 		@Override
 		public void render(Graphics2D g) {
 			g.setStroke(new BasicStroke(2));
@@ -226,12 +247,14 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	}
 
+
 	public static class TilePen extends Tool {
 
 		private final WorldView view;
 		private final World world;
 
 		public final SelectionModel selection;
+
 
 		public TilePen(WorldView view, SelectionModel selection) {
 			super("Tile Pen", null);
@@ -240,17 +263,20 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			this.selection = selection;
 		}
 
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 			if (selection.tileType != null)
 				drawTile(e.getX(), e.getY(), selection.tileType);
 		}
 
+
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			if (selection.tileType != null)
 				drawTile(e.getX(), e.getY(), selection.tileType);
 		}
+
 
 		public void drawTile(int screenX, int screenY, TileType tileType) {
 			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
@@ -264,12 +290,14 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	}
 
+
 	public static class EntityPlacer extends Tool {
 
 		private final WorldView view;
 		private final World world;
 		private final SelectionModel selection;
 		private final Window owner;
+
 
 		public EntityPlacer(WorldView view, SelectionModel selection, Window owner) {
 			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
@@ -278,6 +306,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			this.selection = selection;
 			this.owner = owner;
 		}
+
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
