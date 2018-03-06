@@ -15,6 +15,8 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
@@ -84,6 +86,7 @@ public final class LevelEditorScreen extends Screen {
 	private Tool.Selector _Selector;
 	private Tool.TilePen _TilePen;
 	private Tool.EntityPlacer _EntityPlacer;
+	private Tool.ViewControl _ViewControl;
 
 
 	public LevelEditorScreen(LevelPack levelPack) {
@@ -112,7 +115,7 @@ public final class LevelEditorScreen extends Screen {
 	 * correctly handle inputs in the game view, whereas the controller itself
 	 * handles Level Editor-related actions.
 	 */
-	protected final class Controller extends ScreenController implements ListSelectionListener {
+	protected final class Controller extends ScreenController implements ListSelectionListener, MouseWheelListener {
 
 		/** The list managing the selection of a tool. */
 		public JList<Tool> toolPalette;
@@ -188,10 +191,8 @@ public final class LevelEditorScreen extends Screen {
 			if (e.getSource() instanceof JSlider) {
 				JSlider sldr = (JSlider) e.getSource();
 				if (sldr.getName().equals("zoomSlider")) {
-					OrthographicCamera cam = _View.getCamera();
-					if (cam != null) {
-						cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
-					}
+					_ViewControl.setZoomAsPercentage((float) (sldr.getValue()) / sldr.getMaximum());
+
 				}
 			}
 		}
@@ -375,6 +376,13 @@ public final class LevelEditorScreen extends Screen {
 				return;
 		}
 
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (_ViewControl != null)
+				_ViewControl.mouseWheelMoved(e);
+		}
+
 	}
 
 
@@ -422,15 +430,19 @@ public final class LevelEditorScreen extends Screen {
 
 	/** Build the actual GUI for the Level Editor. */
 	@Override
+
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
 		_View.addMouseListener(getController());
-		_View.addMouseMotionListener(getController());
+		_View.addMouseMotionListener(getController());		
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
+		_ViewControl = new Tool.ViewControl(_View);
+		_View.addMouseWheelListener(_ViewControl);
+
 
 		// Create the tile palette GUI.
 		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
@@ -468,9 +480,10 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the lists.
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR));
-		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
-		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
+		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl));
+		tm.addElement(_TilePen = new Tool.TilePen(_View, selections, _ViewControl));
+		tm.addElement(
+				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
 		toolList.setModel(tm);
 		toolList.setSelectedValue(selections.tool = _Selector, true);
 
@@ -480,6 +493,7 @@ public final class LevelEditorScreen extends Screen {
 		zoomSlider.addChangeListener(getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
+		// Build the control panel.
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
 		controlPanel.setLayout(new VerticalLayout());

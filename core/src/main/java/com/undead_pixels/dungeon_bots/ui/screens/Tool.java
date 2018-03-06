@@ -12,6 +12,8 @@ import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
@@ -37,7 +39,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
 /** A tool is a class which determines how input is handled. */
-public abstract class Tool implements MouseInputListener, KeyListener {
+public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
 
 	public final String name;
 	public final Image image;
@@ -57,6 +59,11 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public Tool(String name, Image image, World world) {
 		this(name, image, world, null, null);
+	}
+
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
 	}
 
 
@@ -128,9 +135,8 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	}
 
 
-	/** A view grabber allows user to right-click-and-drag to move a view around.  It is private because 
-	 * it is intended to function as an overload to other tools' functions.*/
-	private static class ViewGrabber extends Tool {
+	/** A view grabber allows user to right-click-and-drag to move a view around.*/
+	public static class ViewControl extends Tool {
 
 		private final WorldView view;
 
@@ -139,9 +145,17 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		private Point screenCurrent = null;
 
 
-		public ViewGrabber(WorldView view) {
+		public ViewControl(WorldView view) {
 			super("ViewGrabber", null);
 			this.view = view;
+		}
+
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * e.getWheelRotation());
+			newZoom /= 100f;
+			setZoom(newZoom);
 		}
 
 
@@ -177,10 +191,27 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			float movedX = -(gameWorldB.x - gameWorldA.x);
 			float movedY = -(gameWorldB.y - gameWorldA.y);
 			Point2D.Float newGameCenter = new Point2D.Float(gameCenterOrigin.x + movedX, gameCenterOrigin.y + movedY);
-			view.getCamera().setPosition(newGameCenter.x, newGameCenter.y);
+			setCenter(newGameCenter);
 
 			e.consume();
 
+		}
+
+
+		/**Sets the zoom where 'f' is the distance between 0 and 1, 0 representing the min zoom and 1 representing the max zoom.*/
+		public void setZoomAsPercentage(float newZoom) {
+			view.getCamera().setZoomOnMinMaxRange(newZoom);
+		}
+
+
+		/**Sets the zoom to the absolute value given.*/
+		public void setZoom(float newZoom) {
+			view.getCamera().setZoom(newZoom);
+		}
+
+
+		public void setCenter(Point2D.Float newCenter) {
+			view.getCamera().setPosition(newCenter.x, newCenter.y);
 		}
 
 	}
@@ -188,7 +219,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public static class Selector extends Tool {
 
-		private final ViewGrabber viewGrabber;
+		private final ViewControl viewControl;
 		private final WorldView view;
 		private final Window owner;
 		private final World world;
@@ -197,13 +228,13 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		private final SecurityLevel securityLevel;
 
 
-		public Selector(WorldView view, Window owner, SecurityLevel securityLevel) {
+		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
 			super("Selector", UIBuilder.getImage("selector.gif"));
 			this.view = view;
 			this.owner = owner;
 			this.world = view.getWorld();
 			this.securityLevel = securityLevel;
-			this.viewGrabber = new ViewGrabber(view);
+			this.viewControl = viewControl;
 		}
 
 
@@ -226,7 +257,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 				view.setRenderingTool(this);
 				e.consume();
 			} else if (e.getButton() == MouseEvent.BUTTON3) {
-				this.viewGrabber.mousePressed(e);
+				this.viewControl.mousePressed(e);
 			}
 
 		}
@@ -236,7 +267,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		public void mouseDragged(MouseEvent e) {
 			// If drawing isn't happening, just return.
 			if (cornerA == null) {
-				this.viewGrabber.mouseDragged(e);
+				this.viewControl.mouseDragged(e);
 				return;
 			}
 
@@ -306,7 +337,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 				cornerB = cornerA = null;
 				e.consume();
 			} else if (e.getButton() == MouseEvent.BUTTON3) {
-				viewGrabber.mouseReleased(e);
+				viewControl.mouseReleased(e);
 			}
 
 		}
@@ -326,17 +357,19 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 
 	public static class TilePen extends Tool {
 
+		private final ViewControl viewControl;
 		private final WorldView view;
 		private final World world;
 
 		public final SelectionModel selection;
 
 
-		public TilePen(WorldView view, SelectionModel selection) {
+		public TilePen(WorldView view, SelectionModel selection, ViewControl viewControl) {
 			super("Tile Pen", null);
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
+			this.viewControl = viewControl;
 		}
 
 
@@ -374,15 +407,18 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		private final SelectionModel selection;
 		private final Window owner;
 		private final SecurityLevel securityLevel;
+		private final ViewControl viewControl;
 
 
-		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel) {
+		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel,
+				ViewControl viewControl) {
 			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
 			this.owner = owner;
 			this.securityLevel = securityLevel;
+			this.viewControl = viewControl;
 		}
 
 
