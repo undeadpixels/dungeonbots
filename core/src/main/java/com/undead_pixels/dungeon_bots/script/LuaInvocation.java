@@ -178,7 +178,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return The source LuaScript
 	 */
-	public synchronized LuaInvocation stop() {
+	public LuaInvocation stop() {
 		scriptInterrupt.kill();
 		
 		try { this.wait(); }
@@ -192,7 +192,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return Returns the status of this sandbox.
 	 */
-	public synchronized ScriptStatus getStatus() {
+	public ScriptStatus getStatus() {
 		synchronized(joinNotificationObj) {
 			return scriptStatus;
 		}
@@ -201,7 +201,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	/**
 	 * @param newStatus	The new status of this script
 	 */
-	private synchronized void setStatus(ScriptStatus newStatus) {
+	private void setStatus(ScriptStatus newStatus) {
 		synchronized(joinNotificationObj) {
 			scriptStatus = newStatus;
 		}
@@ -234,7 +234,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 						joinNotificationObj.wait(timeout);
 
 						if(scriptStatus == ScriptStatus.READY ||
-								scriptStatus == ScriptStatus.RUNNING) {
+								scriptStatus ==  ScriptStatus.RUNNING) {
 							scriptInterrupt.kill();
 							scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
 						}
