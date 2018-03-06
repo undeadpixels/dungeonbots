@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashSet;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -74,6 +75,10 @@ public final class JScriptEditor extends JPanel {
 				.action("COPY", _Controller).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
 				.action("PASTE", _Controller).create();
+		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
+				.toolTip("Get help with the command line.").action("HELP", _Controller).focusable(false)
+				.preferredSize(30, 30).create();		
+
 
 		_Editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(_Editor);
@@ -87,6 +92,7 @@ public final class JScriptEditor extends JPanel {
 		toolBar.add(bttnCut);
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);
+		toolBar.add(bttnHelp);
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
 			JToggleButton lockButton = UIBuilder.buildToggleButton().image("icons/lock.png").text("Lock")
 					.toolTip("Lock selected text.").action("TOGGLE_LOCK", _Controller).create();
@@ -148,6 +154,15 @@ public final class JScriptEditor extends JPanel {
 	}
 
 
+	private final HashSet<ActionListener> _ActionListeners = new HashSet<ActionListener>();
+
+
+	// This class fires action events. Add a listener to receive those events.
+	public void addActionListener(ActionListener l) {
+		_ActionListeners.add(l);
+	}
+
+
 	/* ================================================================
 	 * JScriptEditor CONTROLLER
 	 * ================================================================ */
@@ -189,6 +204,14 @@ public final class JScriptEditor extends JPanel {
 			case "PASTE":
 				_Editor.paste();
 				break;
+			case "HELP":
+				// Pass on the event to every listener.
+				e = new ActionEvent(this, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
+				for (ActionListener l : _ActionListeners)
+					l.actionPerformed(e);
+				break;
+			default:
+				System.out.println("JScriptEditor has not implemented command: " + e.getActionCommand());
 			}
 
 		}

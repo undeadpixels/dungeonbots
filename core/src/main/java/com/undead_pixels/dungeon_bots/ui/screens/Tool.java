@@ -134,13 +134,15 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		private final World world;
 		private Point cornerA = null;
 		private Point cornerB = null;
+		private final SecurityLevel securityLevel;
 
 
-		public Selector(WorldView view, Window owner) {
+		public Selector(WorldView view, Window owner, SecurityLevel securityLevel) {
 			super("Selector", UIBuilder.getImage("selector.gif"));
 			this.view = view;
 			this.owner = owner;
 			this.world = view.getWorld();
+			this.securityLevel = securityLevel;
 		}
 
 
@@ -205,7 +207,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				// Clicked on an entity. Open its editor.
 				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor.create(owner, se.get(0), SecurityLevel.DEFAULT, "Entity Editor");
+				JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor");
 				view.setSelectedTiles(null);
 			} else if (se.size() > 0) {
 				// One or more unselected entities are lassoed. Select them
@@ -297,14 +299,16 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		private final World world;
 		private final SelectionModel selection;
 		private final Window owner;
+		private final SecurityLevel securityLevel;
 
 
-		public EntityPlacer(WorldView view, SelectionModel selection, Window owner) {
+		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel) {
 			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
 			this.owner = owner;
+			this.securityLevel = securityLevel;
 		}
 
 
@@ -316,7 +320,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
 			view.setSelectedEntities(new Entity[] { actor });
-			JEntityEditor.create(owner, actor, SecurityLevel.DEFAULT, "Entity Editor");
+			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor");
 		}
 
 	}

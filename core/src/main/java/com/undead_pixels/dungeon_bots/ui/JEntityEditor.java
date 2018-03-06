@@ -1,28 +1,43 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
+import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+
+import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
@@ -35,7 +50,7 @@ import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
  * an entity, including any associated scripts.
  */
 public final class JEntityEditor extends JPanel {
-	
+
 	/**
 	 * 
 	 */
@@ -47,6 +62,9 @@ public final class JEntityEditor extends JPanel {
 	private final Entity _Entity;
 	private final JScriptEditor _Editor;
 	private final Controller _Controller;
+	private SecurityLevel _SecurityLevel;
+	private JTextPane _InstructionPane = null;
+
 
 	/**
 	 * Creates a new entity editor in a modeless dialog. Only one such dialog
@@ -69,11 +87,15 @@ public final class JEntityEditor extends JPanel {
 		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
+
 			@Override
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
 				_OpenEditors.remove(entity);
+				if (jee != null && jee._CurrentHelpFrame != null) {
+					jee._CurrentHelpFrame.dispose();
+				}
 			}
 		});
 		dialog.setVisible(true);
@@ -81,12 +103,14 @@ public final class JEntityEditor extends JPanel {
 		return jee;
 	}
 
+
 	private JEntityEditor(Entity entity, SecurityLevel securityLevel) {
 		super(new BorderLayout());
 
 		_Entity = entity;
 		_Controller = new Controller();
 		_ScriptList = new DefaultListModel<UserScript>();
+		_SecurityLevel = securityLevel;
 
 		reset();
 
@@ -110,6 +134,7 @@ public final class JEntityEditor extends JPanel {
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		SwingUtilities.invokeLater(new Runnable() {
+
 			@Override
 			public void run() {
 				// Invoke later because there will be no containing parent at
@@ -122,6 +147,7 @@ public final class JEntityEditor extends JPanel {
 		_Editor = new JScriptEditor(securityLevel);
 		_Editor.setPreferredSize(new Dimension(550, 500));
 		_Editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
+		_Editor.addActionListener(_Controller);
 
 		JPanel scriptPanel = new JPanel();
 		scriptPanel.setLayout(new BorderLayout());
@@ -134,15 +160,21 @@ public final class JEntityEditor extends JPanel {
 		propertiesPanel.add(new JLabel("To be determined..."), BorderLayout.CENTER);
 
 		JCodeREPL repl = new JCodeREPL(entity.getSandbox());
+		repl.addActionListener(_Controller);
+
 
 		JTabbedPane tabPane = new JTabbedPane();
-		tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");	
+		tabPane.addTab("Command Line", null, repl, "Instantaneous script runner.");
 		tabPane.addTab("Scripts", null, scriptPanel, "Scripts relating to this entity.");
 		tabPane.addTab("Properties", propertiesPanel);
 
+
+		this.setLayout(new HorizontalLayout());
 		this.add(tabPane, BorderLayout.LINE_START);
 
+
 	}
+
 
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
@@ -150,6 +182,7 @@ public final class JEntityEditor extends JPanel {
 		for (UserScript u : _Entity.getScripts())
 			_ScriptList.addElement(u.copy());
 	}
+
 
 	/**
 	 * Saves all characteristics to the Entity as they are presented in this
@@ -163,6 +196,57 @@ public final class JEntityEditor extends JPanel {
 			_Entity.getScripts().add(script);
 		}
 	}
+
+
+	// ===================================================
+	// ========= JEntityEditor help stuff ================
+	// ===================================================
+
+
+	private JFrame _CurrentHelpFrame = null;
+	private Document _CurrentHelpDocument = null;
+
+
+	// Shows the help frame, if there is not one showing already.
+	private void showHelp() {
+		if (_CurrentHelpFrame != null)
+			return;
+		_CurrentHelpFrame = new JFrame();
+		_CurrentHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
+		JEditorPane textPane = new JEditorPane();
+		SecurityLevel securityLevel = JEntityEditor.this._SecurityLevel;
+		textPane.setEditable(securityLevel.level >= SecurityLevel.AUTHOR.level);
+		textPane.setText(_Entity.help);
+		_CurrentHelpDocument = textPane.getDocument();
+		JScrollPane scroller = new JScrollPane(textPane);
+		scroller.setPreferredSize(new Dimension(400, this.getHeight()));
+		_CurrentHelpFrame.add(scroller);
+		_CurrentHelpFrame.setAlwaysOnTop(true);
+		_CurrentHelpFrame.pack();
+		_CurrentHelpFrame.setLocationRelativeTo(this);
+		_CurrentHelpFrame.setLocation(this.getWidth(), 0);
+		_CurrentHelpFrame.setTitle("Help");
+		_CurrentHelpFrame.addWindowListener(new WindowListenerAdapter() {
+
+			@Override
+			protected void event(WindowEvent e) {
+				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+					return;
+				try {
+					if (_SecurityLevel.level >= SecurityLevel.AUTHOR.level)
+						_Entity.help = _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength());
+				} catch (BadLocationException e1) {
+					e1.printStackTrace();
+				}
+				_CurrentHelpFrame = null;
+				_CurrentHelpDocument = null;
+			}
+		});
+		_CurrentHelpFrame.setVisible(true);
+
+
+	}
+
 
 	/**
 	 * Used to find the containing dialog parent, if there is one. A
@@ -179,24 +263,33 @@ public final class JEntityEditor extends JPanel {
 		return null;
 	}
 
+
 	/** The controller for this editor. */
 	private class Controller implements ActionListener, ListSelectionListener {
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "RESET":
 				reset();
-				break;
+				return;
 			case "SAVE":
 				save();
-				break;
+				return;
 			case "CLOSE":
 				JDialog dialog = getContainingDialog();
 				if (dialog != null)
 					dialog.dispose();
+				return;
+			case "HELP":
+				showHelp();
+				return;
+			default:
+				System.out.println("JEntityEditor has not implemented command " + e.getActionCommand());
+				return;
 			}
-
 		}
+
 
 		/** Called when the script selection list changes its selection. */
 		@Override
@@ -215,5 +308,6 @@ public final class JEntityEditor extends JPanel {
 			_Editor.setBorder(BorderFactory.createTitledBorder(script.name));
 		}
 	}
+
 
 }
