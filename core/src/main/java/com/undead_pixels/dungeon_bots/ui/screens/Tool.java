@@ -60,6 +60,7 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	}
 
 
+	/**A click is a full press-and-release of a mouse button.*/
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
@@ -127,8 +128,67 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 	}
 
 
+	/** A view grabber allows user to right-click-and-drag to move a view around.  It is private because 
+	 * it is intended to function as an overload to other tools' functions.*/
+	private static class ViewGrabber extends Tool {
+
+		private final WorldView view;
+
+		private Point2D.Float gameCenterOrigin = null;
+		private Point screenOrigin = null;
+		private Point screenCurrent = null;
+
+
+		public ViewGrabber(WorldView view) {
+			super("ViewGrabber", null);
+			this.view = view;
+		}
+
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (screenOrigin != null)
+				return;
+			screenOrigin = new Point(e.getX(), e.getY());
+			gameCenterOrigin = view.getCamera().getPosition();
+			e.consume();
+		}
+
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (screenOrigin == null)
+				return;
+			screenOrigin = null;
+			gameCenterOrigin = null;
+			screenCurrent = null;
+			e.consume();
+		}
+
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			if (screenOrigin == null)
+				return;
+
+			screenCurrent = new Point(e.getX(), e.getY());
+			Point2D.Float gameWorldA = view.getScreenToGameCoords(screenOrigin.x, screenOrigin.y);
+			Point2D.Float gameWorldB = view.getScreenToGameCoords(screenCurrent.x, screenCurrent.y);
+			float movedX = -(gameWorldB.x - gameWorldA.x);
+			float movedY = -(gameWorldB.y - gameWorldA.y);
+			Point2D.Float newGameCenter = new Point2D.Float(gameCenterOrigin.x + movedX, gameCenterOrigin.y + movedY);
+			view.getCamera().setPosition(newGameCenter.x, newGameCenter.y);
+
+			e.consume();
+
+		}
+
+	}
+
+
 	public static class Selector extends Tool {
 
+		private final ViewGrabber viewGrabber;
 		private final WorldView view;
 		private final Window owner;
 		private final World world;
@@ -143,33 +203,42 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 			this.owner = owner;
 			this.world = view.getWorld();
 			this.securityLevel = securityLevel;
+			this.viewGrabber = new ViewGrabber(view);
 		}
 
 
 		@Override
 		public void mousePressed(MouseEvent e) {
 
-			// If there is a cornerA, it means selection has started
-			// already.
-			if (cornerA != null)
-				return;
 
-			assert (view.getRenderingTool() == null); // sanity check.
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				// If there is a cornerA, it means selection has started
+				// already.
+				if (cornerA != null)
+					return;
 
-			// Set the selection corner in screen coordinates.
-			cornerB = cornerA = new Point(e.getX(), e.getY());
+				assert (view.getRenderingTool() == null); // sanity check.
 
-			// The view should start rendering the lasso.
-			view.setRenderingTool(this);
-			e.consume();
+				// Set the selection corner in screen coordinates.
+				cornerB = cornerA = new Point(e.getX(), e.getY());
+
+				// The view should start rendering the lasso.
+				view.setRenderingTool(this);
+				e.consume();
+			} else if (e.getButton() == MouseEvent.BUTTON3) {
+				this.viewGrabber.mousePressed(e);
+			}
+
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// If drawing isn't happening, just return.
-			if (cornerA == null)
+			if (cornerA == null) {
+				this.viewGrabber.mouseDragged(e);
 				return;
+			}
 
 			assert (view.getRenderingTool() == this); // Sanity check.
 
@@ -182,59 +251,64 @@ public abstract class Tool implements MouseInputListener, KeyListener {
 		@Override
 		public void mouseReleased(MouseEvent e) {
 
-			// If there is no cornerA, it means selection hasn't started
-			// yet.
-			if (cornerA == null)
-				return;
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				// If there is no cornerA, it means selection hasn't started
+				// yet.
+				if (cornerA == null)
+					return;
 
-			// What is the current lasso in game space?
-			Rectangle2D.Float rect = view.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
-			if (rect.width == 0.0f)
-				rect.width = 0.01f;
-			if (rect.height == 0.0f)
-				rect.height = 0.01f;
+				// What is the current lasso in game space?
+				Rectangle2D.Float rect = view.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
+				if (rect.width == 0.0f)
+					rect.width = 0.01f;
+				if (rect.height == 0.0f)
+					rect.height = 0.01f;
 
-			// Find the entities (first) or tiles (second) that are lassoed.
-			// If only one entity is lassoed and that entity is already
-			// selected, open its editor. Otherwise if any entities are
-			// lassoed, select them. But if no entities are lassoed, look to
-			// tiles. If selecting tiles that are already part of the
-			// selection, just update the tile selection. Otherwise, nothing
-			// is selected.
+				// Find the entities (first) or tiles (second) that are lassoed.
+				// If only one entity is lassoed and that entity is already
+				// selected, open its editor. Otherwise if any entities are
+				// lassoed, select them. But if no entities are lassoed, look to
+				// tiles. If selecting tiles that are already part of the
+				// selection, just update the tile selection. Otherwise, nothing
+				// is selected.
 
-			List<Actor> se = world.getActorsUnderLocation(rect);
-			List<Tile> st = world.getTilesUnderLocation(rect);
-			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
-				// Clicked on an entity. Open its editor.
-				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor");
-				view.setSelectedTiles(null);
-			} else if (se.size() > 0) {
-				// One or more unselected entities are lassoed. Select them
-				// all.
-				view.setSelectedEntities(se.toArray(new Entity[se.size()]));
-				view.setSelectedTiles(null);
-			} else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
-				// Clicked on an unselected tile. Clear the tile selection.
-				view.setSelectedTiles(null);
-				view.setSelectedEntities(null);
-			} else if (st.size() > 0) {
-				// More than one tile lassoed. Select them all.
-				view.setSelectedTiles(st.toArray(new Tile[st.size()]));
-				view.setSelectedEntities(null);
-			} else {
-				// Neither tile nor entity selected.
-				view.setSelectedTiles(null);
-				view.setSelectedEntities(null);
+				List<Actor> se = world.getActorsUnderLocation(rect);
+				List<Tile> st = world.getTilesUnderLocation(rect);
+				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
+					// Clicked on an entity. Open its editor.
+					view.setSelectedEntities(new Entity[] { se.get(0) });
+					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor");
+					view.setSelectedTiles(null);
+				} else if (se.size() > 0) {
+					// One or more unselected entities are lassoed. Select them
+					// all.
+					view.setSelectedEntities(se.toArray(new Entity[se.size()]));
+					view.setSelectedTiles(null);
+				} else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
+					// Clicked on an unselected tile. Clear the tile selection.
+					view.setSelectedTiles(null);
+					view.setSelectedEntities(null);
+				} else if (st.size() > 0) {
+					// More than one tile lassoed. Select them all.
+					view.setSelectedTiles(st.toArray(new Tile[st.size()]));
+					view.setSelectedEntities(null);
+				} else {
+					// Neither tile nor entity selected.
+					view.setSelectedTiles(null);
+					view.setSelectedEntities(null);
+				}
+
+				// The view should no longer render the lasso.
+				view.setRenderingTool(null);
+
+				// Show that selection is complete, and re-selection hasn't
+				// started.
+				cornerB = cornerA = null;
+				e.consume();
+			} else if (e.getButton() == MouseEvent.BUTTON3) {
+				viewGrabber.mouseReleased(e);
 			}
 
-			// The view should no longer render the lasso.
-			view.setRenderingTool(null);
-
-			// Show that selection is complete, and re-selection hasn't
-			// started.
-			cornerB = cornerA = null;
-			e.consume();
 		}
 
 
