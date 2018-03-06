@@ -112,10 +112,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").minSize(50, 80).toolTip("Click to execute.")
-				.action("EXECUTE", this).focusable(false).preferredSize(50, 80).create();
+		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").minSize(40, 40).toolTip("Click to execute.")
+				.action("EXECUTE", this).focusable(false).preferredSize(40, 40).create();
 		_CancelBttn = UIBuilder.buildButton().image("icons/abort.png", true).toolTip("Click to cancel.")
-				.action("CANCEL", this).focusable(false).preferredSize(30, 40).enabled(false).create();
+				.action("CANCEL", this).focusable(false).preferredSize(40, 40).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
