@@ -16,7 +16,9 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListModel;
@@ -41,6 +43,8 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
 
+	private final HashMap<Object, Stack<Undoable>> undoables = new HashMap<Object, Stack<Undoable>>();
+	private final HashMap<Object, Stack<Undoable>> redoables = new HashMap<Object, Stack<Undoable>>();
 	public final String name;
 	public final Image image;
 
@@ -51,16 +55,21 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	}
 
 
-	public Tool(String name, Image image, World world, WorldView view, Window owner) {
-		this.name = name;
-		this.image = image;
+	/** The editor state */
+	public static class SelectionModel {
+
+		public TileType tileType = null;
+		public EntityType entityType = null;
+
+		/** The current Tool. */
+		public Tool tool = null;
+
 	}
 
 
-	public Tool(String name, Image image, World world) {
-		this(name, image, world, null, null);
-	}
-
+	// ===============================================
+	// ========== Tool UI HANDLING ===================
+	// ===============================================
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
@@ -119,18 +128,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	}
 
 
+	// ===============================================
+	// ========== Tool GRAPHICS ======================
+	// ===============================================
 	public void render(Graphics2D g) {
 	}
 
 
-	/** The editor state? */
-	public static class SelectionModel {
+	// ===============================================
+	// ========== Tool TOOL IMPLEMENTATIONS===========
+	// ===============================================
+	public static class EntityEditorTool extends Tool {
 
-		public TileType tileType = null;
-		public EntityType entityType = null;
+		World world;
 
-		/** The current Tool. */
-		public Tool tool = null;
+
+		public EntityEditorTool(World world) {
+			super("EntityEditor", null);
+		}
+
 
 	}
 
@@ -259,7 +275,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			} else if (e.getButton() == MouseEvent.BUTTON3) {
 				this.viewControl.mousePressed(e);
 			}
-
 		}
 
 
@@ -375,15 +390,39 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if (selection.tileType != null)
+			if (selection.tileType != null) {
 				drawTile(e.getX(), e.getY(), selection.tileType);
+				e.consume();
+			}
+		}
+
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (e.isConsumed())
+				return;
+			else if (e.getButton() == MouseEvent.BUTTON3)
+				viewControl.mousePressed(e);
+		}
+
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (e.isConsumed())
+				return;
+			else if (e.getButton() == MouseEvent.BUTTON3)
+				viewControl.mouseReleased(e);
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (selection.tileType != null)
+			if (e.getButton() == MouseEvent.BUTTON3)
+				viewControl.mouseDragged(e);
+			else if (selection.tileType != null) {
 				drawTile(e.getX(), e.getY(), selection.tileType);
+				e.consume();
+			}
 		}
 
 
@@ -395,6 +434,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			assert (tileType != null);
 			Point2D.Float existingPoint = existingTile.getPosition();
 			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), tileType);
+
+			Undoable u = new Undoable(existingTile.getType(), tileType) {
+
+				@Override
+				public void Undo() {
+					if (!existingTile.getType().equals(after))
+						error();
+					world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), (TileType) before);
+				}
+
+
+				@Override
+				public void Redo() {
+					if (!existingTile.getType().equals(before))
+						error();
+					world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), (TileType) after);
+				}
+			};
+			addUndo(world, u);
 		}
 
 	}
@@ -429,9 +487,117 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			assert (type != null);
 			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
+
+			Undoable u = new Undoable(null, actor) {
+
+				@Override
+				public void Undo() {
+					if (!world.containsEntity((Entity) after))
+						error();
+					world.removeEntity(actor);
+				}
+
+
+				@Override
+				public void Redo() {
+					if (world.containsEntity((Entity) after))
+						error();
+					world.addEntity(actor);
+				}
+			};
+			addUndo(world, u);
+
 			view.setSelectedEntities(new Entity[] { actor });
 			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor");
 		}
 
 	}
+
+
+	// ===============================================
+	// ========== Tool UNDO/REDO HANDLING ============
+	// ===============================================
+
+	/**Implement this to specify an undo process.*/
+	protected abstract class Undoable {
+
+		protected final Object before;
+		protected final Object after;
+
+
+		/**Stores the given 'before' and 'after' value within the Undoable object.*/
+		public Undoable(Object before, Object after) {
+			this.before = before;
+			this.after = after;
+		}
+
+
+		/**Creates a stateless Undoable, or an Undoable that relies on values supplied by a closure.*/
+		public Undoable() {
+			this.before = null;
+			this.after = null;
+		}
+
+
+		/**Throws an exception indicating possible undo stack corruption.*/
+		protected void error() {
+			throw new RuntimeException("Possible undo stack corruption.");
+		}
+
+
+		public abstract void Undo();
+
+
+		public abstract void Redo();
+	}
+
+
+	/**Adds the undo item to the undo stack related to the given context, and clears the associated redo stack.*/
+	public void addUndo(Object context, Undoable undoable) {
+
+		// Add the undoable to the stack.
+		Stack<Undoable> stack;
+		if (undoables.containsKey(context))
+			stack = undoables.get(context);
+		else
+			undoables.put(context, stack = new Stack<Undoable>());
+		stack.push(undoable);
+
+		// Putting something on the undoable stack means the redoable stack is
+		// now cleared.
+		if (redoables.containsKey(context))
+			redoables.get(context).clear();
+		else
+			redoables.put(context, new Stack<Undoable>());
+	}
+
+
+	/**Causes the last action associated with the given context to undo.*/
+	public void undo(Object context) {
+		// Add the undoable to the stack.
+		Stack<Undoable> stack;
+		if (undoables.containsKey(context))
+			stack = undoables.get(context);
+		else
+			throw new RuntimeException("No undo stack is associated with the context: " + context.toString());
+
+		Undoable u = stack.pop();
+		u.Undo();
+		redoables.get(context).push(u);
+	}
+
+
+	/**Causes the last redone action associated with the given context to redo. */
+	public void redo(Object context) {
+		Stack<Undoable> stack;
+		if (redoables.containsKey(context))
+			stack = redoables.get(context);
+		else
+			throw new RuntimeException("No redo stack is associated with the context: " + context.toString());
+
+		Undoable r = stack.pop();
+		r.Redo();
+		undoables.get(context).push(r);
+	}
+
 }
