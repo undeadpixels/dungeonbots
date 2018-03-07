@@ -40,8 +40,6 @@ public class MultipleChoiceQuestion extends Question {
 	 */
 	private volatile String submittedAnswer;
 
-	private Button submit;
-
 	public MultipleChoiceQuestion(World w, String descr,  String... answers) {
 		super(w, "Multiple Choice Question", descr, 0, 0);
 		this.answers = answers;
@@ -91,7 +89,7 @@ public class MultipleChoiceQuestion extends Question {
 			radio.addActionListener(e -> selectedAnswer = e.getActionCommand()); });
 
 		// Listen for the Submit button event
-		submit = new Button("Submit");
+		final Button submit = new Button("Submit");
 		submit.addActionListener(e -> {
 			submittedAnswer = selectedAnswer;
 			localForm.setVisible(false); });

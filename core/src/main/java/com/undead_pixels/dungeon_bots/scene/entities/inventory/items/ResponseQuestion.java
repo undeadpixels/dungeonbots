@@ -36,7 +36,6 @@ public class ResponseQuestion extends Question {
 	private final String[] questions;
 	private final Map<String,String> results = new HashMap<>();
 	private volatile boolean submitted = false;
-	private Button submit;
 
 	/**
 	 *
@@ -97,7 +96,7 @@ public class ResponseQuestion extends Question {
 		}
 		frame.add(body, BorderLayout.CENTER);
 
-		submit = new Button("Submit");
+		final Button submit = new Button("Submit");
 		submit.addActionListener(e -> {
 			submitted = true;
 			pairs.forEach(p -> results.put(p.getFirst(), p.getSecond().getText()));
