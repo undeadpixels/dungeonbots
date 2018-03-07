@@ -3,7 +3,10 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.MultipleChoiceQuestion;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.ResponseQuestion;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Website;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -98,7 +101,11 @@ public class Player extends RpgActor {
 	
 	public void resetInventory() {
 		this.inventory.reset();
-		this.inventory.addItem(new Note(this.world,"Welcome to Dungeonbots!"));
+		this.inventory.addItems(
+				new Note(this.world,"Welcome to Dungeonbots!"),
+				new Website(this.world, "Youtube", "https://www.youtube.com/"),
+				new MultipleChoiceQuestion(this.world, "What is the correct answer", "This", "or this"),
+				new ResponseQuestion(this.world, "What's your favorite?", "Movie", "Game"));
 	}
 
 	/**

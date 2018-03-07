@@ -1,10 +1,12 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import java.awt.*;
 
 public class Question extends Item {
-	
+
+	protected final Button submit = new Button("Submit");
+
 	/**
 	 * 
 	 */
@@ -12,4 +14,5 @@ public class Question extends Item {
 	public Question(World w, String name, String descr, int value, int weight) {
 		super(w, name, descr, value, weight);
 	}
+
 }

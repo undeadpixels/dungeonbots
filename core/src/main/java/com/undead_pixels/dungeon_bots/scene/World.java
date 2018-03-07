@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Stream;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
@@ -26,6 +26,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
@@ -994,9 +995,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void openBrowser(LuaValue lurl) {
+		openBrowser(lurl.checkjstring());
+	}
+
+	public void openBrowser(String url) {
 		try {
-			java.awt.Desktop.getDesktop().browse(new URI(lurl.checkjstring()));
-		} catch (Exception e1) {
+			java.awt.Desktop.getDesktop().browse(new URI(url));
+		}
+		catch (Exception e1) {
 			throw new LuaError("Invalid URL!");
 		}
 	}

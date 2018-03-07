@@ -4,8 +4,13 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.generic.Pair;
 
-import java.util.Optional;
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Question Item type that prompts a UI Window containing a question and a
@@ -24,25 +29,23 @@ public class ResponseQuestion extends Question {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The question that is presented.
-	 */
-	private final String question;
-
-	/**
 	 * The response that is submitted to the question.
 	 */
 	private String questionResponse;
 
+	private transient JFrame form;
+
+	private final String[] questions;
+	private final Map<String,String> results = new HashMap<>();
+	private volatile boolean submitted = false;
+
 	/**
 	 *
-	 * @param name
 	 * @param descr
-	 * @param value
-	 * @param weight
 	 */
-	public ResponseQuestion(World w, String name, String descr, int value, int weight, String question) {
-		super(w, name, descr, value, weight);
-		this.question = question;
+	public ResponseQuestion(World w,String descr, String... questions) {
+		super(w, "Response Questions", descr, 0, 0);
+		this.questions = questions;
 	}
 
 	/**
@@ -53,31 +56,54 @@ public class ResponseQuestion extends Question {
 	 */
 	@Bind(SecurityLevel.DEFAULT) @Override
 	public Boolean use() {
-		// TODO: Create UI form with Textarea input for response
+		if(form == null) {
+			form = getForm(this.questions);
+			form.pack();
+		}
+		form.setVisible(true);
 		return true;
-	}
-
-	/**
-	 * Get's the ResponseQuestion's underlying question.
-	 * @return A String corresponding to the ResponseQuestion's underlying question.
-	 */
-	public String getQuestion() {
-		return this.question;
 	}
 
 	/**
 	 * Get's the ResponseQuestion's underlying response.
 	 * @return An optional containing a response if present
 	 */
-	public Optional<String> getQuestionResponse() {
-		return Optional.ofNullable(this.questionResponse);
+	public Map<String,String> getResonseQuestions() {
+		return results;
 	}
 
-	/**
-	 * Set's the ResponseQuestions response value
-	 * @param response The desired response to the ResponseQuestion
-	 */
-	public void setQuestionResponse(String response) {
-		this.questionResponse = response;
+	@Override
+	public String getDescription() {
+		StringBuilder ans = new StringBuilder(this.description);
+		ans.append("\n");
+		results.forEach((k,v) ->
+				ans.append(String.format("{ '%s' : '%s' }\n", k, v)));
+		return ans.toString();
+	}
+
+	private JFrame getForm(String[] questions) {
+		final JFrame frame = new JFrame();
+		final JPanel body = new JPanel();
+		final List<Pair<String,JTextField>> pairs = new ArrayList<>();
+
+		frame.setLayout(new BorderLayout());
+		body.setLayout(new GridLayout(0,2));
+
+		frame.add(new JLabel(this.description), BorderLayout.NORTH);
+		for(String str: questions) {
+			final JTextField jTextField = new JTextField();
+			body.add(new JLabel(str));
+			pairs.add(new Pair<>(str, jTextField));
+			body.add(jTextField);
+		}
+		frame.add(body, BorderLayout.CENTER);
+
+		submit.addActionListener(e -> {
+			submitted = true;
+			pairs.forEach(p -> results.put(p.getFirst(), p.getSecond().getText()));
+			frame.setVisible(false);
+		});
+		frame.add(submit, BorderLayout.SOUTH);
+		return frame;
 	}
 }

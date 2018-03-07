@@ -101,7 +101,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Uses the Item at the Location up relative to owner of the Item.
 	 * @return True if the Item was successfully used.
 	 */
-	@Override @Bind(SecurityLevel.ENTITY)
+	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean up() {
 		return item.up();
 	}
@@ -110,7 +110,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Uses the Item at the Location down relative to the owner of the Item.
 	 * @return True if the Item was successfully used.
 	 */
-	@Override @Bind(SecurityLevel.ENTITY)
+	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean down() {
 		return item.down();
 	}
@@ -119,7 +119,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 *
 	 * @return
 	 */
-	@Override @Bind(SecurityLevel.ENTITY)
+	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean left() {
 		return item.left();
 	}
@@ -128,7 +128,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 *
 	 * @return
 	 */
-	@Override @Bind(SecurityLevel.ENTITY)
+	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean right() {
 		return item.right();
 	}

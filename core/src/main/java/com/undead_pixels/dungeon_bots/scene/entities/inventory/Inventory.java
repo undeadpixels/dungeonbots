@@ -127,6 +127,15 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
+	public boolean addItems(Item... items) {
+		for(Item i : items) {
+			if(!addItem(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean containsItem(Item i) {
 		return getItems().contains(i);
 	}
