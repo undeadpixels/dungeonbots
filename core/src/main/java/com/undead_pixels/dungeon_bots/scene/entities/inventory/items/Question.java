@@ -5,8 +5,6 @@ import java.awt.*;
 
 public class Question extends Item {
 
-	protected final Button submit = new Button("Submit");
-
 	/**
 	 * 
 	 */

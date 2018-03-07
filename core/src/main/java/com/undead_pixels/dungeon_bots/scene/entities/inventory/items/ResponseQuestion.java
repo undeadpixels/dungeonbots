@@ -1,7 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.generic.Pair;
@@ -10,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Question Item type that prompts a UI Window containing a question and a
@@ -38,6 +36,7 @@ public class ResponseQuestion extends Question {
 	private final String[] questions;
 	private final Map<String,String> results = new HashMap<>();
 	private volatile boolean submitted = false;
+	private Button submit;
 
 	/**
 	 *
@@ -98,6 +97,7 @@ public class ResponseQuestion extends Question {
 		}
 		frame.add(body, BorderLayout.CENTER);
 
+		submit = new Button("Submit");
 		submit.addActionListener(e -> {
 			submitted = true;
 			pairs.forEach(p -> results.put(p.getFirst(), p.getSecond().getText()));
