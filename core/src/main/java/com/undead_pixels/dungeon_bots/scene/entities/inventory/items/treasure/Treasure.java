@@ -1,7 +1,7 @@
-package com.undead_pixels.dungeon_bots.scene.entities.items.treasure;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure;
 
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 
 public abstract class Treasure extends Item {
 	public Treasure(World w, String descr, int value, int weight) {

@@ -1,4 +1,4 @@
-package com.undead_pixels.dungeon_bots.scene.entities.items.weapons;
+package com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 

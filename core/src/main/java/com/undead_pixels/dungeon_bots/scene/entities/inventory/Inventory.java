@@ -1,7 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.*;
