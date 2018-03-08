@@ -4,7 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.items.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;

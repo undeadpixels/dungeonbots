@@ -2,13 +2,11 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.scene.entities.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
-
-import java.util.Optional;
 
 public class Door extends SpriteEntity {
 	

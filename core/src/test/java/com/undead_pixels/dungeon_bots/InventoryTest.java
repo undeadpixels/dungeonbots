@@ -3,8 +3,8 @@ package com.undead_pixels.dungeon_bots;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.scene.entities.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.items.Note;
 import org.junit.Before;
 import org.junit.Test;
 
