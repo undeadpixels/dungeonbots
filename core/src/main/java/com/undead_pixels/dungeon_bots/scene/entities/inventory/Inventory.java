@@ -34,10 +34,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	private final int maxWeight = 100;
 
+	final Entity owner;
+
 	public Inventory(final Entity owner, int maxSize) {
 		this.maxSize = maxSize;
 		inventory = new ItemReference[maxSize];
-		IntStream.range(0, maxSize).forEach(i -> inventory[i] = new ItemReference(i));
+		this.owner = owner;
+		IntStream.range(0, maxSize).forEach(i -> inventory[i] = new ItemReference(this, i));
 		owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 

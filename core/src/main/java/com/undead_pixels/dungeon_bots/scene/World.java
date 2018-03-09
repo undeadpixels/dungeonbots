@@ -26,6 +26,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -1051,6 +1052,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 		return false;
+	}
+
+	public Boolean tryUse(ItemReference itemReference, Point2D location) {
+		entities.stream()
+				.filter(e -> e.getPosition().distance(location) < 0.01)
+				.forEach(e -> e.useItem(itemReference));
+		return true;
 	}
 
 	/**

@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Useable;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ApplyItem;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 
@@ -9,7 +11,7 @@ import java.io.Serializable;
 /**
  * A type representing an immaterial game item.
  */
-public abstract class Item implements GetLuaFacade, Serializable, Useable {
+public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 	
 	/**
 	 * 
@@ -56,21 +58,8 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 		return weight;
 	}
 
-	@Bind(SecurityLevel.DEFAULT) public Boolean up() {
-		return true;
-	}
-
-	@Bind(SecurityLevel.DEFAULT) public Boolean down() {
-		return true;
-	}
-
-
-	@Bind(SecurityLevel.DEFAULT) public Boolean left() {
-		return true;
-	}
-
-	@Bind(SecurityLevel.DEFAULT) public Boolean right() {
-		return true;
+	@Override public Boolean applyItem(Entity entity) {
+		return false;
 	}
 
 	@Override

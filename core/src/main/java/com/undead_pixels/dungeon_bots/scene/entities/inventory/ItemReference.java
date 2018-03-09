@@ -1,11 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Useable;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+
+import java.awt.geom.Point2D;
 import java.io.Serializable;
 
 public final class ItemReference implements GetLuaFacade, Serializable, Useable {
@@ -20,13 +23,16 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	public final int index;
 
+	final Inventory inventory;
+
 	/**
 	 * The Underlying item referenced by the ItemReference.
 	 */
 	Item item;
 
-	public ItemReference(int index) {
+	public ItemReference(Inventory inventory, int index) {
 		this.index = index;
+		this.inventory = inventory;
 		item = new Item.EmptyItem();
 	}
 
@@ -94,7 +100,8 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean use() {
-		return item.use();
+		return inventory.owner.getWorld()
+				.tryUse(this, inventory.owner.getPosition());
 	}
 
 	/**
@@ -103,7 +110,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean up() {
-		return item.up();
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
+		return owner.getWorld().tryUse(this, newPos);
 	}
 
 	/**
@@ -112,7 +122,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean down() {
-		return item.down();
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
+		return owner.getWorld().tryUse(this, newPos);
 	}
 
 	/**
@@ -121,7 +134,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean left() {
-		return item.left();
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
+		return owner.getWorld().tryUse(this, newPos);
 	}
 
 	/**
@@ -130,7 +146,10 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	@Override @Bind(SecurityLevel.DEFAULT)
 	public Boolean right() {
-		return item.right();
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
+		return owner.getWorld().tryUse(this, newPos);
 	}
 
 	/**
