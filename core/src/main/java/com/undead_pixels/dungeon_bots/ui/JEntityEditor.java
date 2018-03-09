@@ -147,8 +147,9 @@ public final class JEntityEditor extends JPanel {
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
 		_ScriptList.clear();
-		for (UserScript u : _Entity.getScripts())
+		for (UserScript u : _Entity.getScripts()) {
 			_ScriptList.addElement(u.copy());
+		}
 	}
 
 	/**
