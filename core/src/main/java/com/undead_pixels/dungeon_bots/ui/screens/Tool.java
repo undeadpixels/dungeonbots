@@ -39,12 +39,13 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
+import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
 
-	private final HashMap<Object, Stack<Undoable>> undoables = new HashMap<Object, Stack<Undoable>>();
-	private final HashMap<Object, Stack<Undoable>> redoables = new HashMap<Object, Stack<Undoable>>();
+
 	public final String name;
 	public final Image image;
 
@@ -63,7 +64,59 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		/** The current Tool. */
 		public Tool tool = null;
+	}
 
+
+	// ===============================================
+	// ========== Tool UNDO STUFF ===================
+	// ===============================================
+
+	private static final HashMap<World, UndoStack> undoStacks = new HashMap<World, UndoStack>();
+
+
+	public static void pushUndo(World world, Undoable u) {
+		if (!undoStacks.containsKey(world))
+			undoStacks.put(world, new UndoStack());
+		UndoStack stack = undoStacks.get(world);
+		stack.push(u);
+	}
+
+
+	/**Un-does the most recent change with respect to the given world.  Returns 
+	 * true or false based on whether undo occurred.*/
+	public static boolean undo(World world) {
+		UndoStack stack = undoStacks.get(world);
+		if (stack == null)
+			return false;
+		Undoable u = stack.nextUndo();
+		if (u == null)
+			return false;
+		try {
+			u.undo();
+			return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return false;
+	}
+
+
+	/**Re-does the most recent change with respect to the given world.  Returns true 
+	 * or false based on whether redo occurred.*/
+	public static boolean redo(World world) {
+		UndoStack stack = undoStacks.get(world);
+		if (stack == null)
+			return false;
+		Undoable r = stack.nextRedo();
+		if (r == null)
+			return false;
+		try {
+			r.redo();
+			return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return false;
 	}
 
 
@@ -138,17 +191,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	// ===============================================
 	// ========== Tool TOOL IMPLEMENTATIONS===========
 	// ===============================================
-	public static class EntityEditorTool extends Tool {
-
-		World world;
-
-
-		public EntityEditorTool(World world) {
-			super("EntityEditor", null);
-		}
-
-
-	}
 
 
 	/** A view grabber allows user to right-click-and-drag to move a view around.*/
@@ -317,13 +359,18 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// tiles. If selecting tiles that are already part of the
 				// selection, just update the tile selection. Otherwise, nothing
 				// is selected.
-
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
 				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 					// Clicked on an entity. Open its editor.
 					view.setSelectedEntities(new Entity[] { se.get(0) });
-					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor");
+					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor", new Undoable.Listener() {
+
+						@Override
+						public void pushUndoable(Undoable u) {
+							pushUndo(world, u);
+						}
+					});
 					view.setSelectedTiles(null);
 				} else if (se.size() > 0) {
 					// One or more unselected entities are lassoed. Select them
@@ -375,8 +422,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private final ViewControl viewControl;
 		private final WorldView view;
 		private final World world;
+		private boolean isDrawing = false;
+		private HashMap<Point, TileType> oldTileTypes = null;
+		private HashMap<Point, TileType> newTileTypes = null;
 
 		public final SelectionModel selection;
+		private TileType drawingTileType;
 
 
 		public TilePen(WorldView view, SelectionModel selection, ViewControl viewControl) {
@@ -389,70 +440,148 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@Override
-		public void mouseClicked(MouseEvent e) {
-			if (selection.tileType != null) {
-				drawTile(e.getX(), e.getY(), selection.tileType);
+		public void mousePressed(MouseEvent e) {
+			if (e.isConsumed() || oldTileTypes != null)
+				return;
+			else if (e.getButton() == MouseEvent.BUTTON3)
+				viewControl.mousePressed(e);
+			else if (selection.tileType == null)
+				return;
+			else {
+				drawingTileType = selection.tileType;
+				oldTileTypes = new HashMap<Point, TileType>();
+				newTileTypes = new HashMap<Point, TileType>();
+				drawTile(e.getX(), e.getY(), drawingTileType);
 				e.consume();
 			}
 		}
 
 
 		@Override
-		public void mousePressed(MouseEvent e) {
-			if (e.isConsumed())
-				return;
-			else if (e.getButton() == MouseEvent.BUTTON3)
-				viewControl.mousePressed(e);
+		public void mouseExited(MouseEvent e) {
+			// TODO: pushing 'ESC' should also cancel the draw.
+			if (e.getSource() == view && oldTileTypes != null) {
+				cancelDraw();
+				e.consume();
+			}
 		}
 
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			if (e.isConsumed())
+			if (e.isConsumed() || oldTileTypes == null)
 				return;
 			else if (e.getButton() == MouseEvent.BUTTON3)
 				viewControl.mouseReleased(e);
+			else {
+				Undoable<HashMap<Point,TileType>> u = new Undoable<HashMap<Point,TileType>>(oldTileTypes, newTileTypes) {
+
+					
+					@Override
+					protected boolean validateUndo() {
+						for (Point p : after.keySet()) {
+							Tile existingTile = world.getTile(p.x, p.y);
+							if (existingTile == null)
+								return false;
+							TileType existingTileType = existingTile.getType();
+							if (!after.get(p).equals(existingTileType))
+								return false;
+						}
+						return true;
+					}
+
+
+					@SuppressWarnings("unchecked")
+					@Override
+					protected boolean validateRedo() {
+						for (Point p : before.keySet()) {
+							Tile existingTile = world.getTile(p.x, p.y);
+							if (existingTile == null)
+								return false;
+							TileType existingTileType = existingTile.getType();
+							if (!before.get(p).equals(existingTileType))
+								return false;
+						}
+						return true;
+					}
+
+
+					@Override
+					protected void undoValidated() {
+						for (Point p : before.keySet()) {
+							world.setTile(p.x, p.y, before.get(p));
+						}
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						for (Point p : after.keySet()) {
+							world.setTile(p.x, p.y, after.get(p));
+						}
+					}
+
+				};
+
+				pushUndo(world, u);
+
+				oldTileTypes = null;
+				newTileTypes = null;
+				drawingTileType = null;
+				e.consume();
+			}
+
+
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.getButton() == MouseEvent.BUTTON3)
+			if (e.isConsumed() || oldTileTypes == null)
+				return;
+			else if (e.getButton() == MouseEvent.BUTTON3)
 				viewControl.mouseDragged(e);
-			else if (selection.tileType != null) {
-				drawTile(e.getX(), e.getY(), selection.tileType);
+			else {
+				assert drawingTileType != null;
+				drawTile(e.getX(), e.getY(), drawingTileType);
 				e.consume();
 			}
 		}
 
 
-		public void drawTile(int screenX, int screenY, TileType tileType) {
+		private void cancelDraw() {
+
+			// Restore all the old tile types.
+			for (Point p : oldTileTypes.keySet()) {
+				world.setTile(p.x, p.y, oldTileTypes.get(p));
+			}
+
+			// Null the tile type caches to signal that drawing is done.
+			oldTileTypes = null;
+			newTileTypes = null;
+			drawingTileType = null;
+		}
+
+
+		private void drawTile(int screenX, int screenY, TileType tileType) {
+
+			// Find the position in game space.
 			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
 			Tile existingTile = world.getTile(gamePos);
-			if (existingTile == null)
-				throw new RuntimeException("Have not implemented drawing a tile where one does not already exist.");
+
+			// Sanity checks.
+			assert existingTile != null;
 			assert (tileType != null);
+
+			// Find the existing location and tile type.
+			TileType oldTileType = existingTile.getType();
 			Point2D.Float existingPoint = existingTile.getPosition();
-			world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), tileType);
+			int x = (int) existingPoint.getX(), y = (int) existingPoint.getY();
 
-			Undoable u = new Undoable(existingTile.getType(), tileType) {
-
-				@Override
-				public void Undo() {
-					if (!existingTile.getType().equals(after))
-						error();
-					world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), (TileType) before);
-				}
-
-
-				@Override
-				public void Redo() {
-					if (!existingTile.getType().equals(before))
-						error();
-					world.setTile((int) existingPoint.getX(), (int) existingPoint.getY(), (TileType) after);
-				}
-			};
-			addUndo(world, u);
+			// Cache the old and new tile types, then draw to the world;
+			oldTileTypes.put(new Point(x, y), oldTileType);
+			newTileTypes.put(new Point(x, y), tileType);
+			world.setTile(x, y, tileType);
 		}
 
 	}
@@ -488,116 +617,40 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
 
-			Undoable u = new Undoable(null, actor) {
+			Undoable u = new Undoable() {
 
 				@Override
-				public void Undo() {
-					if (!world.containsEntity((Entity) after))
-						error();
-					world.removeEntity(actor);
+				protected boolean validateUndo() {
+					return world.containsEntity(actor);
 				}
 
 
 				@Override
-				public void Redo() {
-					if (world.containsEntity((Entity) after))
-						error();
+				protected boolean validateRedo() {
+					return !world.containsEntity(actor);
+				}
+
+
+				@Override
+				protected void undoValidated() {
+					world.removeEntity(actor);
+
+				}
+
+
+				@Override
+				protected void redoValidated() {
 					world.addEntity(actor);
 				}
+
+
 			};
-			addUndo(world, u);
 
 			view.setSelectedEntities(new Entity[] { actor });
-			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor");
+			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", null);
 		}
 
 	}
 
-
-	// ===============================================
-	// ========== Tool UNDO/REDO HANDLING ============
-	// ===============================================
-
-	/**Implement this to specify an undo process.*/
-	protected abstract class Undoable {
-
-		protected final Object before;
-		protected final Object after;
-
-
-		/**Stores the given 'before' and 'after' value within the Undoable object.*/
-		public Undoable(Object before, Object after) {
-			this.before = before;
-			this.after = after;
-		}
-
-
-		/**Creates a stateless Undoable, or an Undoable that relies on values supplied by a closure.*/
-		public Undoable() {
-			this.before = null;
-			this.after = null;
-		}
-
-
-		/**Throws an exception indicating possible undo stack corruption.*/
-		protected void error() {
-			throw new RuntimeException("Possible undo stack corruption.");
-		}
-
-
-		public abstract void Undo();
-
-
-		public abstract void Redo();
-	}
-
-
-	/**Adds the undo item to the undo stack related to the given context, and clears the associated redo stack.*/
-	public void addUndo(Object context, Undoable undoable) {
-
-		// Add the undoable to the stack.
-		Stack<Undoable> stack;
-		if (undoables.containsKey(context))
-			stack = undoables.get(context);
-		else
-			undoables.put(context, stack = new Stack<Undoable>());
-		stack.push(undoable);
-
-		// Putting something on the undoable stack means the redoable stack is
-		// now cleared.
-		if (redoables.containsKey(context))
-			redoables.get(context).clear();
-		else
-			redoables.put(context, new Stack<Undoable>());
-	}
-
-
-	/**Causes the last action associated with the given context to undo.*/
-	public void undo(Object context) {
-		// Add the undoable to the stack.
-		Stack<Undoable> stack;
-		if (undoables.containsKey(context))
-			stack = undoables.get(context);
-		else
-			throw new RuntimeException("No undo stack is associated with the context: " + context.toString());
-
-		Undoable u = stack.pop();
-		u.Undo();
-		redoables.get(context).push(u);
-	}
-
-
-	/**Causes the last redone action associated with the given context to redo. */
-	public void redo(Object context) {
-		Stack<Undoable> stack;
-		if (redoables.containsKey(context))
-			stack = redoables.get(context);
-		else
-			throw new RuntimeException("No redo stack is associated with the context: " + context.toString());
-
-		Undoable r = stack.pop();
-		r.Redo();
-		undoables.get(context).push(r);
-	}
 
 }

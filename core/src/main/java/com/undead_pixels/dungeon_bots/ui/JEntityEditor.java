@@ -14,6 +14,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -43,6 +44,9 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
+import com.undead_pixels.dungeon_bots.ui.screens.Tool;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable.Listener;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 /**
@@ -58,12 +62,20 @@ public final class JEntityEditor extends JPanel {
 
 	private static final HashMap<Entity, JDialog> _OpenEditors = new HashMap<Entity, JDialog>();
 
-	private final DefaultListModel<UserScript> _ScriptList;
+	// private final DefaultListModel<UserScript> _ScriptList;
 	private final Entity _Entity;
-	private final JScriptEditor _Editor;
+	private final JScriptEditor _ScriptEditor;
 	private final Controller _Controller;
 	private SecurityLevel _SecurityLevel;
-	private JTextPane _InstructionPane = null;
+
+	/**Contains the editing properties of the Entity.*/
+	private final HashMap<String, Object> _EntityState;
+
+	/**The original state of the Entity.  Used to detect if something else changed the Entity
+	 * while this Entity Editor is open.*/
+	private final HashMap<String, Object> _OriginalState;
+
+	private Listener _UndoableListener = null;
 
 
 	/**
@@ -72,8 +84,8 @@ public final class JEntityEditor extends JPanel {
 	 * focus and the method returns null. Otherwise, returns the newly-created
 	 * editor.
 	 */
-	public static JEntityEditor create(java.awt.Window owner, Entity entity, SecurityLevel securityLevel,
-			String title) {
+	public static JEntityEditor create(java.awt.Window owner, Entity entity, SecurityLevel securityLevel, String title,
+			Undoable.Listener undoableListener) {
 
 		if (_OpenEditors.containsKey(entity)) {
 			System.err.println("An editor is already open for this entity:  " + entity.toString());
@@ -83,6 +95,8 @@ public final class JEntityEditor extends JPanel {
 		}
 
 		JEntityEditor jee = new JEntityEditor(entity, securityLevel);
+		jee._UndoableListener = undoableListener;
+
 		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
 		dialog.add(jee);
 		dialog.pack();
@@ -108,13 +122,14 @@ public final class JEntityEditor extends JPanel {
 		super(new BorderLayout());
 
 		_Entity = entity;
+		_EntityState = readEntity(entity);
+		_OriginalState = readEntity(entity);
 		_Controller = new Controller();
-		_ScriptList = new DefaultListModel<UserScript>();
 		_SecurityLevel = securityLevel;
 
-		reset();
+		//reset();
 
-		JList<UserScript> scriptList = new JList<UserScript>(_ScriptList);
+		JList<UserScript> scriptList = new JList<UserScript>();
 		scriptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scriptList.setLayoutOrientation(JList.VERTICAL);
 		scriptList.setVisibleRowCount(-1);
@@ -144,15 +159,15 @@ public final class JEntityEditor extends JPanel {
 			}
 		});
 
-		_Editor = new JScriptEditor(securityLevel);
-		_Editor.setPreferredSize(new Dimension(550, 500));
-		_Editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
-		_Editor.addActionListener(_Controller);
+		_ScriptEditor = new JScriptEditor(securityLevel);
+		_ScriptEditor.setPreferredSize(new Dimension(550, 500));
+		_ScriptEditor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
+		_ScriptEditor.addActionListener(_Controller);
 
 		JPanel scriptPanel = new JPanel();
 		scriptPanel.setLayout(new BorderLayout());
 		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
-		scriptPanel.add(_Editor, BorderLayout.CENTER);
+		scriptPanel.add(_ScriptEditor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
 
 		JPanel propertiesPanel = new JPanel();
@@ -176,11 +191,18 @@ public final class JEntityEditor extends JPanel {
 	}
 
 
+	/**Reads the entity for populating the Editor in the beginning, and for validating at save time.*/
+	private HashMap<String, Object> readEntity(Entity e) {
+		HashMap<String, Object> result = new HashMap<String, Object>();
+		result.put("help", e.help);
+		result.put("scripts", e.getScripts().toArray());
+		return result;
+	}
+
+
 	/** Resets all characteristics of this entity to the original state. */
 	public void reset() {
-		_ScriptList.clear();
-		for (UserScript u : _Entity.getScripts())
-			_ScriptList.addElement(u.copy());
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 
@@ -189,12 +211,64 @@ public final class JEntityEditor extends JPanel {
 	 * GUI.
 	 */
 	public void save() {
-		_Entity.getScripts().clear();
-		_Editor.saveScript();
-		for (int i = 0; i < _ScriptList.getSize(); i++) {
-			UserScript script = _ScriptList.get(i);
-			_Entity.getScripts().add(script);
+
+		// Step #1 - validate the Entity is still in the same state. With the
+		// JEntityEditor non-blocking, it is possible for other changes to the
+		// entity to be made while the Editor is open. If it has changed, the
+		// editor should properly indicate an error.
+		HashMap<String, Object> currentState = readEntity(_Entity);
+		if (currentState.size() != _EntityState.size())
+			throw new RuntimeException("Sanity check.");
+		if (!_EntityState.get("help").equals(currentState.get("help")))
+			throw new RuntimeException("Entity help string was changed while Entity Editor was open.");
+		UserScript[] originalScripts = (UserScript[]) _EntityState.get("scripts");
+		UserScript[] currentScripts = (UserScript[]) currentState.get("scripts");
+		if (originalScripts.length != currentScripts.length)
+			throw new RuntimeException(
+					"Scripts were added to or removed from the Entity's script list while the Entity Editor was open.");
+		for (int i = 0; i < originalScripts.length; i++) {
+			if (!originalScripts[i].equals(currentScripts[i]))
+				throw new RuntimeException("Scripts were changed while the Entity Editor was open.");
 		}
+
+
+		// Step #2 - now, having gotten through validation, do the save.
+		UserScript[] oldScripts = (UserScript[]) _OriginalState.get("scripts");
+		String oldHelp = (String) _OriginalState.get("help");
+		UserScript[] newScripts = (UserScript[]) _EntityState.get("scripts");
+		String newHelp = (String) _EntityState.get("help");
+		_ScriptEditor.saveScript();
+		setEntityState(newScripts, newHelp);
+
+
+		// Step #3 - signal that an undoable change has happened.
+		if (_UndoableListener != null) {
+			Undoable u = new Undoable() {
+
+				@Override
+				protected void undoValidated() {
+					// TODO: override validateUndo()
+					setEntityState(oldScripts, oldHelp);
+				}
+
+
+				@Override
+				protected void redoValidated() {
+					// TODO: override validateRedo();
+					setEntityState(newScripts, newHelp);
+				}
+
+			};
+			_UndoableListener.pushUndoable(u);
+		}
+
+	}
+
+
+	private void setEntityState(UserScript[] scripts, String help) {
+		_Entity.getScripts().clear();
+		_Entity.setScripts(scripts);
+		_Entity.help = help;
 	}
 
 
@@ -207,7 +281,7 @@ public final class JEntityEditor extends JPanel {
 	private Document _CurrentHelpDocument = null;
 
 
-	// Shows the help frame, if there is not one showing already.
+	/**Shows the help frame, if there is not one showing already.*/
 	private void showHelp() {
 		if (_CurrentHelpFrame != null)
 			return;
@@ -216,7 +290,7 @@ public final class JEntityEditor extends JPanel {
 		JEditorPane textPane = new JEditorPane();
 		SecurityLevel securityLevel = JEntityEditor.this._SecurityLevel;
 		textPane.setEditable(securityLevel.level >= SecurityLevel.AUTHOR.level);
-		textPane.setText(_Entity.help);
+		textPane.setText((String) _EntityState.get("help"));
 		_CurrentHelpDocument = textPane.getDocument();
 		JScrollPane scroller = new JScrollPane(textPane);
 		scroller.setPreferredSize(new Dimension(400, this.getHeight()));
@@ -234,7 +308,7 @@ public final class JEntityEditor extends JPanel {
 					return;
 				try {
 					if (_SecurityLevel.level >= SecurityLevel.AUTHOR.level)
-						_Entity.help = _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength());
+						_EntityState.put("help", _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength()));
 				} catch (BadLocationException e1) {
 					e1.printStackTrace();
 				}
@@ -243,8 +317,6 @@ public final class JEntityEditor extends JPanel {
 			}
 		});
 		_CurrentHelpFrame.setVisible(true);
-
-
 	}
 
 
@@ -303,9 +375,9 @@ public final class JEntityEditor extends JPanel {
 
 			UserScript script = list.getSelectedValue();
 
-			_Editor.saveScript();
-			_Editor.setScript(script);
-			_Editor.setBorder(BorderFactory.createTitledBorder(script.name));
+			_ScriptEditor.saveScript();
+			_ScriptEditor.setScript(script);
+			_ScriptEditor.setBorder(BorderFactory.createTitledBorder(script.name));
 		}
 	}
 

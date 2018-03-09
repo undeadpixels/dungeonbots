@@ -5,8 +5,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+
+import javax.swing.DefaultListModel;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
@@ -22,8 +27,9 @@ import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
-	
+public abstract class Entity
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
+
 	/**
 	 * 
 	 */
@@ -80,28 +86,31 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.scripts = scripts;
 	}
 
+
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute. WO: a
 	 * distinct sandbox implemented for the player's scripts?
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
-		if(sandbox == null) {
+		if (sandbox == null) {
 			sandbox = new LuaSandbox(this);
 			this.sandbox.addBindable(this);
 		}
 		return sandbox;
 	}
 
+
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
 		// TODO - sandbox.resume();
 		actionQueue.act(dt);
-		if(sandbox != null) {
+		if (sandbox != null) {
 			sandbox.update(dt);
 		}
 	}
+
 
 	/**
 	 * @param sandbox
@@ -111,6 +120,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public void setSandbox(LuaSandbox sandbox) {
 		this.sandbox = sandbox;
 	}
+
 
 	/**
 	 * @param vals
@@ -123,10 +133,12 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return this;
 	}
 
+
 	/**
 	 * @return This Entity's position in tile space
 	 */
 	public abstract Point2D.Float getPosition();
+
 
 	/**
 	 * Derived classes must implement.
@@ -134,6 +146,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 * @return If this object disallows movement through it.
 	 */
 	public abstract boolean isSolid();
+
 
 	/**
 	 * TODO - should this be private?
@@ -144,15 +157,19 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return actionQueue;
 	}
 
+
 	@Override
 	public TeamFlavor getTeam() {
-		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe (or just have overrides do this right)
+		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe
+								// (or just have overrides do this right)
 	}
-	
+
+
 	@Override
 	public Entity getEntity() {
 		return this;
 	}
+
 
 	/**
 	 * @return The world this entity belongs to
@@ -160,6 +177,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public World getWorld() {
 		return world;
 	}
+
 
 	/**
 	 * Returns an ID number associated with this entity. The ID number should
@@ -169,12 +187,15 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		return this.id;
 	}
 
+
 	/** Returns the name of this entity. */
 	public final String getName() {
 		return this.name;
 	}
 
+
 	public abstract float getScale();
+
 
 	/**
 	 * Called upon deserialization to load additional variables in a less-traditional manner
@@ -188,10 +209,21 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue = new ActionQueue(this);
 	}
 
+
 	/**
 	 * @return	The collection of scripts that this entity can run
 	 */
 	public UserScriptCollection getScripts() {
 		return this.scripts;
 	}
+
+
+	/**Sets the entity's collection of scripts as indicated.*/
+	public void setScripts(UserScript[] newScripts) {
+		this.scripts.clear();
+		for (UserScript is : newScripts)
+			this.scripts.add(is);
+	}
+
+
 }
