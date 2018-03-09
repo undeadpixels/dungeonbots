@@ -62,7 +62,7 @@ public class OrthographicCamera implements Serializable {
 		} catch (NoninvertibleTransformException e) {
 			e.printStackTrace();
 		}
-		return new Point2D.Float(ret.x, ret.y);
+		return ret;
 	}
 
 	/**

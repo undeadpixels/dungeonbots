@@ -88,7 +88,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable u = stack.nextUndo();
+		Undoable<?> u = stack.nextUndo();
 		if (u == null)
 			return false;
 		try {
@@ -107,7 +107,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable r = stack.nextRedo();
+		Undoable<?> r = stack.nextRedo();
 		if (r == null)
 			return false;
 		try {
@@ -367,7 +367,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor", new Undoable.Listener() {
 
 						@Override
-						public void pushUndoable(Undoable u) {
+						public void pushUndoable(Undoable<?> u) {
 							pushUndo(world, u);
 						}
 					});
@@ -422,7 +422,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private final ViewControl viewControl;
 		private final WorldView view;
 		private final World world;
-		private boolean isDrawing = false;
 		private HashMap<Point, TileType> oldTileTypes = null;
 		private HashMap<Point, TileType> newTileTypes = null;
 
@@ -474,9 +473,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			else if (e.getButton() == MouseEvent.BUTTON3)
 				viewControl.mouseReleased(e);
 			else {
-				Undoable<HashMap<Point,TileType>> u = new Undoable<HashMap<Point,TileType>>(oldTileTypes, newTileTypes) {
+				Undoable<HashMap<Point, TileType>> u = new Undoable<HashMap<Point, TileType>>(oldTileTypes,
+						newTileTypes) {
 
-					
 					@Override
 					protected boolean validateUndo() {
 						for (Point p : after.keySet()) {
@@ -491,7 +490,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 					}
 
 
-					@SuppressWarnings("unchecked")
 					@Override
 					protected boolean validateRedo() {
 						for (Point p : before.keySet()) {
@@ -509,7 +507,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 					@Override
 					protected void undoValidated() {
 						for (Point p : before.keySet()) {
-							world.setTile(p.x, p.y, before.get(p));
+							TileType t = before.get(p);
+							world.setTile(p.x, p.y, t);
 						}
 					}
 
@@ -517,7 +516,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 					@Override
 					protected void redoValidated() {
 						for (Point p : after.keySet()) {
-							world.setTile(p.x, p.y, after.get(p));
+							TileType t = after.get(p);
+							world.setTile(p.x, p.y, t);
 						}
 					}
 
@@ -575,6 +575,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			// Find the existing location and tile type.
 			TileType oldTileType = existingTile.getType();
+			if (oldTileType == tileType)
+				return;
 			Point2D.Float existingPoint = existingTile.getPosition();
 			int x = (int) existingPoint.getX(), y = (int) existingPoint.getY();
 
