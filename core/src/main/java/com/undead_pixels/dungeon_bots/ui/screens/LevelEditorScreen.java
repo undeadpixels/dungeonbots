@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -15,6 +16,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
@@ -29,6 +31,8 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -58,8 +62,10 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JCodeEditorPaneController;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
 /**
@@ -269,6 +275,16 @@ public final class LevelEditorScreen extends Screen {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+				return;
+			case "Scripts":
+				
+				JComponent scriptEditor = new JCodeEditorPaneController(world, SecurityLevel.AUTHOR).create();
+
+				JDialog dialog = new JDialog(LevelEditorScreen.this, "Level Scripts", Dialog.ModalityType.MODELESS);
+				dialog.add(scriptEditor);
+				dialog.pack();
+				dialog.setVisible(true);
+				
 				return;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());

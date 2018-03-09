@@ -37,8 +37,10 @@ import org.luaj.vm2.Varargs;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 public class JCodeREPL extends JPanel implements ActionListener {
@@ -89,6 +91,14 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_EditorPane.setText("");
 
 		addKeyBindings();
+	}
+
+
+	/**
+	 * @param entity
+	 */
+	public JCodeREPL(GetLuaSandbox sandboxable) {
+		this(sandboxable.getSandbox());
 	}
 
 

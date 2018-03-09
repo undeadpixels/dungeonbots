@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * @since 1.0.1
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
-public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
+public class RpgActor extends Actor implements GetLuaFacade {
 	
 	/**
 	 * 
