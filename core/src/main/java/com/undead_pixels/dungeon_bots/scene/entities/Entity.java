@@ -75,8 +75,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	}
 
 	/**
-	 * Returns the Lua sandbox wherein this entity's scripts will execute. WO: a
-	 * distinct sandbox implemented for the player's scripts?
+	 * Returns the Lua sandbox wherein this entity's scripts will execute.
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
@@ -85,6 +84,12 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			this.sandbox.addBindable(this);
 		}
 		return sandbox;
+	}
+	
+	public void sandboxInit() {
+		if(this.scripts != null && this.scripts.get("init") != null) {
+			getSandbox().init();
+		}
 	}
 
 	/** Called during the game loop to update the entity's status. */

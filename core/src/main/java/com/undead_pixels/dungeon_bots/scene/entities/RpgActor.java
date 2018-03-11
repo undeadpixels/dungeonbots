@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * @since 1.0.1
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
-public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
+public class RpgActor extends Actor implements GetLuaFacade {
 	
 	/**
 	 * 
@@ -36,14 +36,14 @@ public class RpgActor extends Actor implements GetLuaFacade, GetLuaSandbox {
 	// Skill stats determine the effectiveness and potency of associated skill abilities
 	protected final int[] stats = new int[] { 5, 5, 5, 5 };
 
-	public RpgActor(World world, String name, TextureRegion tex, int[] s) {
-		super(world, name, tex, new UserScriptCollection());
+	public RpgActor(World world, String name, TextureRegion tex, int[] s, UserScriptCollection scripts) {
+		super(world, name, tex, scripts);
 		assert s.length == STAT_COUNT;
 		System.arraycopy(s, 0, stats, 0, STAT_COUNT);
 	}
 
-	public RpgActor(World world, String name, TextureRegion tex) {
-		super(world, name, tex, new UserScriptCollection());
+	public RpgActor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
+		super(world, name, tex, scripts);
 	}
 
 	/* -- LuaBindings -- */

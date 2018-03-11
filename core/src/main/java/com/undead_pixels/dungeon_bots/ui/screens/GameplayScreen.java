@@ -133,9 +133,13 @@ public class GameplayScreen extends Screen {
 						world.reset();
 					}
 					break;
+
+				case "PLAY":
+				case "Play":
+					world.beginPlay();
+					break;
 				case "Save":
 				case "Save As":
-				case "Play":
 				case "Stop":
 
 				case "Last Result":

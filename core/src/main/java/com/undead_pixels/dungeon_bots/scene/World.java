@@ -201,6 +201,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		}
+		
+		playerTeamScripts.add(new UserScript("init", "--TODO"));
 
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
@@ -359,6 +361,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (Entity e : layer.getEntities()) {
 				e.render(batch);
 			}
+		}
+	}
+	
+	public void beginPlay() {
+		for(Entity e: entities) {
+			e.sandboxInit();
 		}
 	}
 
@@ -613,7 +621,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return The Tile at a given position
 	 */
 	public Tile getTile(float x, float y) {
-		return getTileUnderLocation((int) Math.round(x), (int) Math.round(y));
+		return getTileUnderLocation((int) Math.floor(x), (int) Math.floor(y));
 	}
 
 	/**
