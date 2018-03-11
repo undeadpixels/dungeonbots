@@ -22,6 +22,7 @@ import static org.luaj.vm2.LuaValue.*;
  * 
  * TODO - mark as abstract
  */
+@Doc("The base type for Bot and Player entities")
 public class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
@@ -253,8 +254,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Moves the player UP")
-	final public Actor up(@GenDoc("The number of spaces to move") Varargs amt) {
+	@Doc("Moves the player UP")
+	final public Actor up(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.UP, true);
 	}
 
@@ -265,8 +266,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Moves the player DOWN")
-	final public Actor down(@GenDoc("The number of spaces to move") Varargs amt) {
+	@Doc("Moves the player DOWN")
+	final public Actor down(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.DOWN, true);
 	}
 
@@ -277,8 +278,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Moves the player LEFT")
-	final public Actor left(@GenDoc("The number of spaces to move") Varargs amt) {
+	@Doc("Moves the player LEFT")
+	final public Actor left(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.LEFT, true);
 	}
 
@@ -289,8 +290,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Moves the player RIGHT")
-	final public Actor right(@GenDoc("The number of spaces to move") Varargs amt) {
+	@Doc("Moves the player RIGHT")
+	final public Actor right(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.RIGHT, true);
 	}
 
@@ -349,7 +350,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return A Varargs of the players position
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Get the position of the player as an x,y varargs pair")
+	@Doc("Get the position of the player as an x,y varargs pair")
 	final public Varargs position() {
 		Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
@@ -360,8 +361,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @param args
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	@GenDoc("Prints the argument text about the player")
-	final public void say(@GenDoc("The text for the player to say") Varargs args) {
+	@Doc("Prints the argument text above the player")
+	final public void say(@Doc("The text for the player to say") Varargs args) {
 		String text = "";
 		
 		for(int i = 2; i <= args.narg(); i++) {

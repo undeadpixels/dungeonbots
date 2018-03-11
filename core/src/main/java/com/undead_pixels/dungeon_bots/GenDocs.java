@@ -1,10 +1,8 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.undead_pixels.dungeon_bots.script.annotations.GenDoc;
+import com.google.gson.GsonBuilder;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.vladsch.flexmark.util.options.MutableDataSet;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import java.io.*;
 import java.util.*;
@@ -35,10 +33,12 @@ public final class GenDocs {
 
 	final static class DocClass {
 		String name;
+		String descr;
 		List<DocMethod> docMethods = new LinkedList<>();
 
-		DocClass(String name) {
+		DocClass(String name, String descr) {
 			this.name = name;
+			this.descr = descr;
 		}
 	}
 
@@ -46,18 +46,31 @@ public final class GenDocs {
 		final Map<String,DocClass> ans = new HashMap<>();
 
 		new FastClasspathScanner()
-				.matchClassesWithMethodAnnotation(GenDoc.class, (clz, fn) -> {
-					final DocClass docClass = ans.computeIfAbsent(clz.getName(), (v) -> new DocClass(clz.getName()));
-					final DocMethod docMethod = new DocMethod(GetLuaFacade.bindTo(fn), fn.getDeclaredAnnotation(GenDoc.class).value());
+				.matchClassesWithAnnotation(Doc.class, (clz) ->
+					ans.put(
+							clz.getSimpleName(),
+							new DocClass(
+									clz.getSimpleName(),
+									Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
+											.map(Doc::value)
+											.orElse(""))))
+				.matchClassesWithMethodAnnotation(Doc.class, (clz, fn) -> {
+					final DocClass docClass = ans.computeIfAbsent(
+							clz.getSimpleName(),
+							(v) -> new DocClass(clz.getSimpleName(), ""));
+					final DocMethod docMethod = new DocMethod(
+							GetLuaFacade.bindTo(fn),
+							fn.getDeclaredAnnotation(Doc.class).value());
 					Stream.of(fn.getParameters())
 							.forEach(p -> docMethod.params.add(
 									new DocMethodParam(p.getName(),
-									Optional.ofNullable(p.getDeclaredAnnotation(GenDoc.class)).map(GenDoc::value).orElse(""))));
-					docClass.docMethods.add(docMethod);
-				})
+									Optional.ofNullable(p.getDeclaredAnnotation(Doc.class))
+											.map(Doc::value)
+											.orElse(""))));
+					docClass.docMethods.add(docMethod); })
 				.scan();
 		try(Writer writer = new FileWriter("autodoc.json")) {
-			new Gson().toJson(ans.values(), writer);
+			new GsonBuilder().setPrettyPrinting().create().toJson(ans.values(), writer);
 		}
 		catch (IOException io) {
 			System.out.println("Unable to create file");
