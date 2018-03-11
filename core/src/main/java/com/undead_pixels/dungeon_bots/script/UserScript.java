@@ -54,11 +54,8 @@ public class UserScript implements Serializable {
 		this.locks = new IntegerSet.Interval[0];
 	}
 
-	protected UserScript(String name) {
-		this.name = name;
-		this.code = "";
-		this.level = SecurityLevel.DEFAULT;
-		this.locks = new IntegerSet.Interval[0];
+	public UserScript(String name) {
+		this(name, "");
 	}
 
 	public UserScript(String name, String code) {

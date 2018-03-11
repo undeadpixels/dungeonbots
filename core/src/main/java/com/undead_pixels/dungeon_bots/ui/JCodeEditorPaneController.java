@@ -11,11 +11,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
@@ -37,6 +40,7 @@ public class JCodeEditorPaneController {
 	private final JScriptEditor editor;
 	private final DefaultListModel<UserScript> scriptsModel;
 	private final Controller controller;
+	private JList<UserScript> scriptList;
 
 	/**
 	 * Saves all characteristics to the Entity as they are presented in this
@@ -65,11 +69,16 @@ public class JCodeEditorPaneController {
 		editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
 		editor.addActionListener(controller);
 
-		JList<UserScript> scriptList = new JList<UserScript>(this.scriptsModel);
+		scriptList = new JList<UserScript>(this.scriptsModel);
 		scriptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		scriptList.setLayoutOrientation(JList.VERTICAL);
 		scriptList.setVisibleRowCount(-1);
 		scriptList.addListSelectionListener(controller);
+		
+		if(!scriptsModel.isEmpty()) {
+			scriptList.setSelectedIndex(0);
+		}
+		
 		JScrollPane scriptScroller = new JScrollPane(scriptList);
 		scriptScroller.setPreferredSize(new Dimension(200, 400));
 		scriptScroller.setBorder(BorderFactory.createTitledBorder("Scripts for this Entity"));
@@ -82,13 +91,19 @@ public class JCodeEditorPaneController {
 				.action("SAVE", controller).create();
 		JButton bttnClose = UIBuilder.buildButton().text("Close").toolTip("Close the editor.")
 				.action("CLOSE", controller).create();
+		JButton bttnNew = UIBuilder.buildButton().text("New").toolTip("Create a new script.")
+				.action("NEW", controller).create();
 		bttnPanel.add(bttnReset);
 		bttnPanel.add(bttnOK);
 		bttnPanel.add(bttnClose);
+		
+		Box leftBox = new Box(BoxLayout.Y_AXIS);
+		leftBox.add(scriptScroller);
+		leftBox.add(bttnNew);
 
 		JPanel scriptPanel = new JPanel();
 		scriptPanel.setLayout(new BorderLayout());
-		scriptPanel.add(scriptScroller, BorderLayout.LINE_START);
+		scriptPanel.add(leftBox, BorderLayout.LINE_START);
 		scriptPanel.add(editor, BorderLayout.CENTER);
 		scriptPanel.add(bttnPanel, BorderLayout.PAGE_END);
 		
@@ -122,6 +137,12 @@ public class JCodeEditorPaneController {
 						dialog.dispose();
 				}
 				break;
+			case "NEW":
+				String name = JOptionPane.showInputDialog("Name your new script", "");
+				
+				scriptsModel.addElement(new UserScript(name));
+				scriptList.setSelectedIndex(scriptsModel.size()-1); // TODO - should these be sorted at some point?
+				break;
 			default:
 				System.out.println("JCodeEditorPaneController has not implemented command " + e.getActionCommand());
 				return;
@@ -148,9 +169,9 @@ public class JCodeEditorPaneController {
 		/** Called when the script selection list changes its selection. */
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
-			int idx = e.getFirstIndex();
-			if (idx != e.getLastIndex())
-				throw new IllegalStateException("Only one item can be selected at a time.");
+			//int idx = e.getFirstIndex();
+			//if (idx != e.getLastIndex())
+			//	throw new IllegalStateException("Only one item can be selected at a time.");
 
 			@SuppressWarnings("unchecked")
 			JList<UserScript> list = (JList<UserScript>) e.getSource();
