@@ -381,7 +381,9 @@ public class Actor extends SpriteEntity implements HasInventory {
 		// TODO
 	}
 
-	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
+	@Override
+	@Bind(SecurityLevel.DEFAULT)
+	@BindTo("inventory")
 	@Doc("Get the Inventory of the Player")
 	public Inventory getInventory() {
 		return inventory;

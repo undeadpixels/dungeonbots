@@ -1,20 +1,18 @@
 package com.undead_pixels.dungeon_bots;
 
 import com.google.gson.GsonBuilder;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
-import com.undead_pixels.dungeon_bots.script.annotations.Doc;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 public final class GenDocs {
 
 	public final static class DocMethodParam {
-		String type;
-		String descr;
+		public final String type;
+		public final String descr;
 
 		DocMethodParam(String name, String descr) {
 			this.type = name;
@@ -23,22 +21,23 @@ public final class GenDocs {
 	}
 
 	public final static class DocMethod {
-		String name;
-		String descr;
-		String role;
-		List<DocMethodParam> params = new LinkedList<>();
+		public final String name;
+		public final String descr;
+		public final String role;
+		public final List<DocMethodParam> params;
 
-		DocMethod(String name, String descr, String role) {
+		DocMethod(String name, String descr, String role, List<DocMethodParam> params) {
 			this.name = name;
 			this.descr = descr;
 			this.role = role;
+			this.params = params;
 		}
 	}
 
 	public final static class DocClass {
-		String name;
-		String descr;
-		List<DocMethod> methods = new LinkedList<>();
+		public final String name;
+		public final String descr;
+		public final List<DocMethod> methods = new LinkedList<>();
 
 		DocClass(String name, String descr) {
 			this.name = name;
@@ -63,9 +62,7 @@ public final class GenDocs {
 						ans.put(clz.getSimpleName(),
 								new DocClass(
 										clz.getSimpleName(),
-										Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
-												.map(Doc::value)
-												.orElse(""))))
+										clz.getDeclaredAnnotation(Doc.class).value())))
 				.matchClassesWithMethodAnnotation(Doc.class, (clz, fn) -> {
 					final DocClass docClass = ans.computeIfAbsent(
 							clz.getSimpleName(),
@@ -74,13 +71,14 @@ public final class GenDocs {
 							GetLuaFacade.bindTo(fn),
 							fn.getDeclaredAnnotation(Doc.class).value(),
 							Optional.ofNullable(fn.getDeclaredAnnotation(Bind.class))
-									.map(a -> a.value().name()).orElse("NONE"));
-					Stream.of(fn.getParameters())
-							.forEach(p -> docMethod.params.add(
-									new DocMethodParam(p.getType().getSimpleName(),
+									.map(a -> a.value().name())
+									.orElse("NONE"),
+							Stream.of(fn.getParameters())
+									.map(p -> new DocMethodParam(p.getType().getSimpleName(),
 											Optional.ofNullable(p.getDeclaredAnnotation(Doc.class))
 													.map(Doc::value)
-													.orElse(""))));
+													.orElse("")))
+									.collect(Collectors.toList()));
 					docClass.methods.add(docMethod); })
 				.scan();
 
