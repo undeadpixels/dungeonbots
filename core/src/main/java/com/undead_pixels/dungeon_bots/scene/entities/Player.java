@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -49,9 +50,13 @@ public class Player extends RpgActor {
 	 * @return A newly constructed Player that has been coerced into it's<br>
 	 * associated LuaValue
 	 */
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
-	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
+	@Doc("Assigns a new player")
+	public static Player newPlayer(
+			@Doc("The assigned World") LuaValue world,
+			@Doc("The X position of the player") LuaValue x,
+			@Doc("The Y Position of the player") LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
 		p.steps = 0;
