@@ -63,6 +63,7 @@ public class JCodeEditorPaneController {
 
 		editor.setPreferredSize(new Dimension(550, 500));
 		editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
+		editor.addActionListener(controller);
 
 		JList<UserScript> scriptList = new JList<UserScript>(this.scriptsModel);
 		scriptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -120,6 +121,10 @@ public class JCodeEditorPaneController {
 					if (dialog != null)
 						dialog.dispose();
 				}
+				break;
+			default:
+				System.out.println("JCodeEditorPaneController has not implemented command " + e.getActionCommand());
+				return;
 			}
 
 		}

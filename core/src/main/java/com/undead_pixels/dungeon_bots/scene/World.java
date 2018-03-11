@@ -391,6 +391,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 	}
+	
+	
+	public void removeEntity(Entity e){
+		throw new RuntimeException("Not implemented yet.");
+	}
 
 	/**
 	 * Place a bot with a given name at (x,y)
@@ -798,6 +803,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
+	public boolean containsEntity(Entity e){
+		return entities.contains(e);
+	}
+	
 	/**
 	 * Gets all Actors intersecting the given rectangle.
 	 *

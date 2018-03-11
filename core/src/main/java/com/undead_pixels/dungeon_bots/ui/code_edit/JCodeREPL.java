@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -59,6 +60,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
+	private boolean _ShowInstructionPane;
 	// private boolean _IsExecuting;
 
 	private LuaInvocation _RunningScript = null;
@@ -426,13 +428,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 	/** Sets the GUI to correctly reflect the execution status. */
 	private void setIsExecuting(boolean value) {
-		// if (_IsExecuting == value)
-		// throw new IllegalStateException("Call to setIsExecuting(boolean) must
-		// CHANGE state.");
-		// _IsExecuting = value;
 		_CancelBttn.setEnabled(value);
 		_ExecuteBttn.setEnabled(!value);
-
 	}
 
 
@@ -592,10 +589,19 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL ACTION HANDLING MEMBERS
 	 * ================================================================ */
 
-	@Override
-	public void actionPerformed(ActionEvent action) {
+	private final HashSet<ActionListener> _ActionListeners = new HashSet<ActionListener>();
 
-		switch (action.getActionCommand()) {
+
+	// This class fires action events. Add a listener to receive those events.
+	public void addActionListener(ActionListener l) {
+		_ActionListeners.add(l);
+	}
+
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+
+		switch (e.getActionCommand()) {
 		case "CUT":
 			_EditorPane.cut();
 			break;
@@ -609,14 +615,16 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			execute(3000);
 			break;
 		case "HELP":
-			System.out.println("Don't panic!");
+			// Pass on the event to every listener.
+			e = new ActionEvent(this, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
+			for (ActionListener l : _ActionListeners) l.actionPerformed(e);
 			break;
 		case "CANCEL":
 			stop();
 			break;
 		default:
 			System.out.println("Unimplemented action received by " + this.getClass().getName() + " object: "
-					+ action.getActionCommand());
+					+ e.getActionCommand());
 			break;
 		}
 		// TODO Auto-generated method stub
