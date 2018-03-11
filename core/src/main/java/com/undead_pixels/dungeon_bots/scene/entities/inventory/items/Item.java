@@ -58,7 +58,7 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 		return weight;
 	}
 
-	@Override public Boolean applyItem(Entity entity) {
+	@Override public Boolean applyTo(Entity entity) {
 		return false;
 	}
 

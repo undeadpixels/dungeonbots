@@ -23,7 +23,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 */
 	public final int index;
 
-	final Inventory inventory;
+	Inventory inventory;
 
 	/**
 	 * The Underlying item referenced by the ItemReference.

@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 
 import javax.swing.*;
@@ -50,15 +52,17 @@ public class MultipleChoiceQuestion extends Question {
 	 * a list of answers.
 	 * @return
 	 */
-	@Override @Bind(SecurityLevel.DEFAULT)
-	public Boolean use() {
-		/**  Do something that displays the multiple choice question. **/
-		if(form == null) {
-			form = questionForm( answers);
-			form.pack();
+	@Override
+	public Boolean applyTo(Entity e) {
+		if(e.getClass().equals(Player.class)) {
+			/**  Do something that displays the multiple choice question. **/
+			if(form == null) {
+				form = questionForm( answers);
+				form.pack();
+			}
+			form.setVisible(true);
 		}
-		form.setVisible(true);
-		return true;
+		return false;
 	}
 
 	@Override

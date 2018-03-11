@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
@@ -39,7 +40,6 @@ public class Player extends RpgActor {
 	 */
 	public Player(World world, String name) {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
-
 		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
@@ -126,7 +126,9 @@ public class Player extends RpgActor {
 	@Override
 	public Boolean useItem(ItemReference ir) {
 		Item item = ir.getItem();
-
+		if(item.applyTo(this)) {
+			ir.derefItem();
+		}
 		return true;
 	}
 }

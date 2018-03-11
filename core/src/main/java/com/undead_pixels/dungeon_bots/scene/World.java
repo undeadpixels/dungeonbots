@@ -1056,7 +1056,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public Boolean tryUse(ItemReference itemReference, Point2D location) {
 		entities.stream()
-				.filter(e -> e.getPosition().distance(location) < 0.01)
+				.filter(e -> e.getPosition().distance(location) < 0.1)
 				.forEach(e -> e.useItem(itemReference));
 		return true;
 	}

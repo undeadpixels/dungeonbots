@@ -8,9 +8,4 @@ public abstract class Treasure extends Item {
 		super(w, "Treasure", descr, value, weight);
 	}
 
-	@Override
-	public Boolean use() {
-		/* Produce a sound and render a glint of light */
-		return true;
-	}
 }

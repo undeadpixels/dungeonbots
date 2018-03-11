@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.generic.Pair;
@@ -52,14 +54,16 @@ public class ResponseQuestion extends Question {
 	 * ResponseQuestion item.
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT) @Override
-	public Boolean use() {
-		if(form == null) {
-			form = getForm(this.questions);
-			form.pack();
+	@Override
+	public Boolean applyTo(Entity e) {
+		if(e.getClass().equals(Player.class)) {
+			if (form == null) {
+				form = getForm(this.questions);
+				form.pack();
+			}
+			form.setVisible(true);
 		}
-		form.setVisible(true);
-		return true;
+		return false;
 	}
 
 	/**
