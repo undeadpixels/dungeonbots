@@ -10,6 +10,14 @@ import java.util.stream.*;
 
 public final class GenDocs {
 
+	/* Create Simple container classes
+	*  for game Documentation that
+	*  serializes to JSON
+	* */
+
+	/**
+	 * Container Class for Method Parameter Documentation
+	 */
 	public final static class DocMethodParam {
 		public final String type;
 		public final String descr;
@@ -20,6 +28,9 @@ public final class GenDocs {
 		}
 	}
 
+	/**
+	 * Container Class for Method Documentation
+	 */
 	public final static class DocMethod {
 		public final String name;
 		public final String descr;
@@ -34,6 +45,9 @@ public final class GenDocs {
 		}
 	}
 
+	/**
+	 * Container Class for Class Documentation
+	 */
 	public final static class DocClass {
 		public final String name;
 		public final String descr;
@@ -46,18 +60,37 @@ public final class GenDocs {
 	}
 
 	public static void main(String[] args) {
-		try(Writer writer = new FileWriter("autodoc.json")) {
-			new GsonBuilder().setPrettyPrinting().create().toJson(getDocs(), writer);
+		assert toJson(build(), "autodoc.json");
+	}
+
+	private static boolean toJson(final Object o, final String toFile) {
+		try(Writer writer = new FileWriter(toFile)) {
+			new GsonBuilder().setPrettyPrinting().create().toJson(o, writer);
+			return true;
 		}
 		catch (IOException io) {
-			System.out.println("Unable to create file");
+			io.printStackTrace();
+			return false;
 		}
 	}
 
-	public static Collection<DocClass> getDocs() {
+	/**
+	 * Collects and builds Documentation found throughout the entire source project
+	 * @return A Collection of DocClass objects
+	 */
+	public static Collection<DocClass> build() {
+		return build("");
+	}
+
+	/**
+	 * Collects and builds Documentation found in the specified root src paths
+	 * @param root A variadic list of source paths to scan for Documentation
+	 * @return A Collection of DocClass objects
+	 */
+	public static Collection<DocClass> build(final String... root) {
 		final Map<String,DocClass> ans = new HashMap<>();
 
-		new FastClasspathScanner()
+		new FastClasspathScanner(root)
 				.matchClassesWithAnnotation(Doc.class, (clz) ->
 						ans.put(clz.getSimpleName(),
 								new DocClass(
