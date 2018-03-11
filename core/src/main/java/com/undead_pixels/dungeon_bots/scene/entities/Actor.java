@@ -357,7 +357,6 @@ public class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	/**
-	 *
 	 * @param args
 	 */
 	@Bind(SecurityLevel.DEFAULT)
@@ -383,14 +382,18 @@ public class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
+	@Doc("Get the Inventory of the Player")
 	public Inventory getInventory() {
 		return inventory;
 	}
 
-	@Bind(SecurityLevel.DEFAULT) public int steps() {
+	@Doc("Get the Number of Steps taken by the Actor")
+	@Bind(SecurityLevel.DEFAULT)
+	public int steps() {
 		return steps;
 	}
 
+	@Doc("Get the Number of Collisions made by the Actor with walls")
 	@Bind(SecurityLevel.DEFAULT) public int bumps() {
 		return bumps;
 	}

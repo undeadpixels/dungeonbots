@@ -4,10 +4,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
-import com.undead_pixels.dungeon_bots.script.annotations.Doc;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.script.annotations.Bind;
-import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.geom.Point2D;
@@ -21,6 +18,7 @@ import org.luaj.vm2.LuaValue;
  * @author Stewart Charles
  * @version 1.0
  */
+@Doc("A Player is an Actor afforded with more privileges")
 public class Player extends RpgActor {
 	
 	/**
