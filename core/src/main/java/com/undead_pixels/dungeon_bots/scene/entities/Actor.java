@@ -253,6 +253,9 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
+	@GenDoc("# up<br /" +
+			"**n** : The number of spaces to move up<br />" +
+			"Moves the Player up *n* spaces")
 	final public Actor up(Varargs amt) {
 		return moveAmt(amt, Direction.UP, true);
 	}
