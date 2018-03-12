@@ -77,13 +77,13 @@ public final class JScriptEditor extends JPanel {
 				.action("PASTE", _Controller).create();
 		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
 				.toolTip("Get help with the command line.").action("HELP", _Controller).focusable(false)
-				.preferredSize(30, 30).create();		
+				.preferredSize(30, 30).create();
 
 
 		_Editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(_Editor);
 		add(editorScroller, BorderLayout.CENTER);
-		_Editor.setEditable(true);
+		_Editor.setEditable(false);
 		_Editor.setFocusable(true);
 		_Editor.setContentType("text/lua");
 		_Editor.addCaretListener(_Controller);
@@ -102,6 +102,27 @@ public final class JScriptEditor extends JPanel {
 		}
 
 		add(toolBar, BorderLayout.PAGE_START);
+	}
+
+
+	public boolean isEditable() {
+		return _Editor.isEditable();
+	}
+
+
+	public void setEditable(boolean value) {
+		_Editor.setEditable(value);
+		_Editor.setEnabled(value);
+	}
+	
+	@Override
+	public boolean isEnabled(){
+		return _Editor.isEnabled();
+	}
+	
+	@Override
+	public void setEnabled(boolean value){
+		_Editor.setEnabled(value);
 	}
 
 
@@ -133,7 +154,7 @@ public final class JScriptEditor extends JPanel {
 
 
 	/**
-	 * Overwrites the current script with the contents of this editor.
+	 * Overwrites the current script with the contents of this editor.  If no script is being edited, does nothing.
 	 */
 	public void saveScript() {
 		if (_Script == null)

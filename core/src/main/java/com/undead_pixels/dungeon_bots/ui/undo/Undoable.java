@@ -16,12 +16,6 @@ public abstract class Undoable<T> {
 		this.before = before;
 		this.after = after;
 	}
-	
-	/**Creates a stateless Undoable, or an Undoable that relies on values supplied by a closure.*/
-	public Undoable() {
-		this.before = this.after = null;
-	}
-
 
 	
 

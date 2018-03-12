@@ -392,7 +392,7 @@ public final class LevelEditorScreen extends Screen {
 	}
 
 
-	/** Handles the rendering of an item in the TileType palette. */
+	/** Handles the rendering of an item in the TilePen palette. */
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
 
 		@Override
@@ -405,7 +405,7 @@ public final class LevelEditorScreen extends Screen {
 			return lbl;
 		}
 	};
-	/** Handles the rendering of an item in the EntityType palette. */
+	/** Handles the rendering of an item in the EntityPLacer palette. */
 	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
 
 		@Override

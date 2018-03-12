@@ -619,7 +619,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
 
-			Undoable u = new Undoable() {
+			Undoable<Entity> u = new Undoable<Entity>(null, actor) {
 
 				@Override
 				protected boolean validateUndo() {

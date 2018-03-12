@@ -211,7 +211,7 @@ public abstract class Entity
 
 
 	/**
-	 * @return	The collection of scripts that this entity can run
+	 * @return	The collection of scripts that this entity can run.  Note that this returns a reference to the scripts themselves.
 	 */
 	public UserScriptCollection getScripts() {
 		return this.scripts;

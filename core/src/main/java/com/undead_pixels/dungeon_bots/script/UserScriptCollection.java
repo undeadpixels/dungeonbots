@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -41,8 +42,10 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 		return storage.values().iterator();
 	}
 	
-	/**Returns an array of all contained UserScripts.*/
+	/**Returns an array of all contained UserScripts, sorted by name.*/
 	public UserScript[] toArray(){
-		return storage.values().toArray(new UserScript[storage.values().size()]);
+		UserScript[] result =  storage.values().toArray(new UserScript[storage.values().size()]);
+		Arrays.sort(result);
+		return result;
 	}
 }
