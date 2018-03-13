@@ -62,7 +62,7 @@ public class OrthographicCamera implements Serializable {
 		} catch (NoninvertibleTransformException e) {
 			e.printStackTrace();
 		}
-		return new Point2D.Float(ret.x, ret.y);
+		return ret;
 	}
 
 	/**
@@ -122,16 +122,29 @@ public class OrthographicCamera implements Serializable {
 	/**
 	 * @param newZoom	A number between 0 and 1, indicating min to max zoom
 	 */
+	@Deprecated
 	public void setZoomOnMinMaxRange(float newZoom) {
-		float leftThing = (float) Math.log(getMinZoom());
-		float rightThing = (float) Math.log(getMaxZoom());
+		setZoomInRange(getMinZoom(), newZoom, getMaxZoom());
+	}
+	
+	/** Sets the zoom to a value that is a percentage between the given min and max.
+	 * @param newZoom	A number between 0 and 1, indicating min to max zoom
+	 */
+	public void setZoomInRange(float min, float newZoom, float max){
+		float leftThing = (float) Math.log(min);
+		float rightThing = (float) Math.log(max);
 		float zoomT = leftThing * (1 - newZoom) + rightThing * newZoom;
 		setZoom((float) Math.exp(zoomT));
+	}
+	
+	public float getZoomInRange(float min, float max){
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/**
 	 * @return	Minimum allowable zoom
 	 */
+	@Deprecated
 	public float getMinZoom() {
 		return 0.25f;
 	}
@@ -139,6 +152,7 @@ public class OrthographicCamera implements Serializable {
 	/**
 	 * @return	Maximum allowable zoom
 	 */
+	@Deprecated
 	public float getMaxZoom() {
 		return 4.0f;
 	}

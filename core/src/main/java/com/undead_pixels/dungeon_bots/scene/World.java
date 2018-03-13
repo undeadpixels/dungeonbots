@@ -201,6 +201,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		}
+		
+		playerTeamScripts.add(new UserScript("init", "--TODO"));
 
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
@@ -361,6 +363,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 	}
+	
+	public void beginPlay() {
+		for(Entity e: entities) {
+			e.sandboxInit();
+		}
+	}
 
 	@Bind
 	public void addEntity(LuaValue v) {
@@ -382,6 +390,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				tile.setOccupiedBy(e);
 			}
 		}
+	}
+	
+	
+	public void removeEntity(Entity e){
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/**
@@ -790,6 +803,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
+	public boolean containsEntity(Entity e){
+		return entities.contains(e);
+	}
+	
 	/**
 	 * Gets all Actors intersecting the given rectangle.
 	 *

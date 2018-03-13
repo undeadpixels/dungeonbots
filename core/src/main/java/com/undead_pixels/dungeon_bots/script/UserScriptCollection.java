@@ -1,11 +1,15 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * A collection of UserScripts
+ * A collection of UserScripts  
+ * TODO:  does this need to be thread-safe?  The GUI only works on one thread, but I know the 
+ * scripting system draws from it and it seems like it would need thread safety for that 
+ * reason.
  *
  */
 public class UserScriptCollection implements Iterable<UserScript>, Serializable {
@@ -36,5 +40,12 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	@Override
 	public Iterator<UserScript> iterator() {
 		return storage.values().iterator();
+	}
+	
+	/**Returns an array of all contained UserScripts, sorted by name.*/
+	public UserScript[] toArray(){
+		UserScript[] result =  storage.values().toArray(new UserScript[storage.values().size()]);
+		Arrays.sort(result);
+		return result;
 	}
 }
