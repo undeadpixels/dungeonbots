@@ -673,7 +673,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
 			EntityType type = selection.entityType;
 			assert (type != null);
-			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x, (int) gamePos.y);
+			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x,
+					(int) gamePos.y);
 			world.addEntity(actor);
 
 			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, actor) {
@@ -692,6 +693,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void undoValidated() {
+					view.setSelectedEntities(null);
 					world.removeEntity(actor);
 
 				}
@@ -699,20 +701,24 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void redoValidated() {
+					view.setSelectedEntities(new Entity[]{actor});
 					world.addEntity(actor);
 				}
 			};
+			pushUndo(world, placeUndoable);
 
 			view.setSelectedEntities(new Entity[] { actor });
 			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", new Undoable.Listener() {
 
 				@Override
 				public void pushUndoable(Undoable<?> u) {
-					// Don't push the undoable given. Instead, push the undoable
-					// that signified the item being placed in the world.
-					pushUndo(world, placeUndoable);
+					// Do nothing. Don't push the undoable item. This is
+					// because the actual undoable was the adding of the
+					// entity to the World, not the modification of the
+					// entity.
 				}
 			});
+
 		}
 
 

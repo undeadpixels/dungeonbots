@@ -47,16 +47,10 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.JCodeEditorPaneController;
-import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
-import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -106,7 +100,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4)));
 		result.add(new EntityType("chest", AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0)));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
-		result.add(new EntityType("door", AssetManager.getTextureRegion("DawnLike/Items/Door0.png", 0, 0)));
+		result.add(new EntityType("door", AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0)));
 		return result;
 	}
 
@@ -282,7 +276,6 @@ public final class LevelEditorScreen extends Screen {
 				return;
 
 			case "WORLD_SCRIPTS":
-
 				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
 
 					@Override
@@ -290,7 +283,7 @@ public final class LevelEditorScreen extends Screen {
 						Tool.pushUndo(world, u);
 					}
 				});
-
+				return;
 			default:
 				System.out.println("LevelEditorScreen has not implemented the command: " + e.getActionCommand());
 				return;

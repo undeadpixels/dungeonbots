@@ -86,7 +86,6 @@ public final class JEntityEditor extends JPanel {
 		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
-
 			@Override
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
