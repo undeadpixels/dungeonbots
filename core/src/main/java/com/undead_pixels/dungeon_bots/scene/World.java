@@ -215,7 +215,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			LuaInvocation initScript = mapSandbox.init().join();
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
-			assert initScript.getResults().isPresent();
+			assert initScript.getResults().isPresent(); // XXX
 			assert player != null; // XXX
 			if (player != null) {
 				mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
@@ -406,14 +406,23 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param x
 	 * @param y
 	 */
-	public void makeBot(String name, float x, float y) {
+	public Bot makeBot(String name, float x, float y) {
 
-		if (Stream.of(entities).flatMap(Collection::stream)
-				.anyMatch(e -> e.getPosition().x == x && e.getPosition().y == y))
-			return;
+		for(Entity e: entities) {
+			if(e.getName().equals(name)) {
+				if(e instanceof Bot) {
+					Bot b = (Bot) e;
+					b.setPosition(new Point2D.Float(x, y));
+					return b;
+				}
+			}
+		}
+		
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
 		this.addEntity(b);
+		
+		return b;
 	}
 
 	/**

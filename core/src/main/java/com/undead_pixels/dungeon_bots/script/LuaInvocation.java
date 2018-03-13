@@ -66,11 +66,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * A handle to interrupt the execution of this invocation
 	 */
 	private InterruptedDebug scriptInterrupt = new InterruptedDebug();
-	
-	/**
-	 * An object that is notified (Object.notify()) when execution has completed 
-	 */
-	private final Object joinNotificationObj = new Object();
 
 	/**
 	 * Initializes a LuaScript with the provided LuaSandbox and source string
@@ -180,7 +175,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return The source LuaScript
 	 */
-	public LuaInvocation stop() {
+	public synchronized LuaInvocation stop() {
 		scriptInterrupt.kill();
 		
 		try { this.wait(); }
@@ -194,19 +189,15 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return Returns the status of this sandbox.
 	 */
-	public ScriptStatus getStatus() {
-		synchronized(joinNotificationObj) {
-			return scriptStatus;
-		}
+	public synchronized ScriptStatus getStatus() {
+		return scriptStatus;
 	}
 
 	/**
 	 * @param newStatus	The new status of this script
 	 */
-	private void setStatus(ScriptStatus newStatus) {
-		synchronized(joinNotificationObj) {
-			scriptStatus = newStatus;
-		}
+	private synchronized void setStatus(ScriptStatus newStatus) {
+		scriptStatus = newStatus;
 	}
 
 	/**
@@ -224,29 +215,27 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @param timeout The amount of time to wait for the join
 	 * @return The invoked LuaScript
 	 */
-	public LuaInvocation join(long timeout) {
+	public synchronized LuaInvocation join(long timeout) {
 		assert scriptStatus != ScriptStatus.STOPPED;
-
+		
 		try {
-			synchronized(joinNotificationObj) {
-				if(scriptStatus == ScriptStatus.READY ||
-						scriptStatus == ScriptStatus.RUNNING) {
-					this.environment.update(0.0f);
-					if(timeout > 0) {
-						joinNotificationObj.wait(timeout);
-
-						if(scriptStatus == ScriptStatus.READY ||
-								scriptStatus ==  ScriptStatus.RUNNING) {
-							scriptInterrupt.kill();
-							scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
-						}
-					} else {
-						joinNotificationObj.wait();
+			if(scriptStatus == ScriptStatus.READY ||
+					scriptStatus == ScriptStatus.RUNNING) {
+				this.environment.update(0.0f);
+				if(timeout > 0) {
+					this.wait(timeout);
+					
+					if(scriptStatus == ScriptStatus.READY ||
+							scriptStatus ==  ScriptStatus.RUNNING) {
+						scriptInterrupt.kill();
+						scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
 					}
-
 				} else {
-					// already finished
+					this.wait();
 				}
+				
+			} else {
+				// already finished
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -315,8 +304,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			l.scriptEventFinished(this, getStatus());
 		}
 
-		synchronized(joinNotificationObj) {
-			joinNotificationObj.notifyAll();
+		synchronized(this) {
+			this.notifyAll();
 		}
 	}
 
