@@ -405,12 +405,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Bot makeBot(String name, float x, float y) {
 
 		for(Entity e: entities) {
-			if(e.getName().equals(name)) {
-				if(e instanceof Bot) {
-					Bot b = (Bot) e;
-					b.setPosition(new Point2D.Float(x, y));
-					return b;
-				}
+			if(e instanceof Bot && e.getPosition().x == x && e.getPosition().y == y) {
+				return (Bot) e;
 			}
 		}
 		
