@@ -1011,9 +1011,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void openBrowser(LuaValue lurl) {
+		// TODO - now that we're doing url security, should we just change this to "NONE" security level?
 		try {
-			java.awt.Desktop.getDesktop().browse(new URI(lurl.checkjstring()));
+			String urlString = lurl.checkjstring();
+			String urlNoProtocol = urlString.replace("http://", "");
+			urlNoProtocol = urlNoProtocol.replace("https://", "");
+			
+			String[] allowedURLs = {
+					"youtube.com",
+					"dungeonbots.herokuapp.com",
+					"en.wikipedia.org",
+					"stackoverflow.com"
+			};
+			
+			for(String allow : allowedURLs) {
+				if(urlNoProtocol.startsWith(allow+"/") ||
+						urlNoProtocol.startsWith("www."+allow+"/") ||
+						urlNoProtocol.equals(allow) ||
+						urlNoProtocol.equals("www."+allow)) {
+					java.awt.Desktop.getDesktop().browse(new URI(urlString));
+					return;
+				}
+			}
+			
+			throw new Exception("URL not allowed: " + urlNoProtocol);
 		} catch (Exception e1) {
+			e1.printStackTrace();
 			throw new LuaError("Invalid URL!");
 		}
 	}

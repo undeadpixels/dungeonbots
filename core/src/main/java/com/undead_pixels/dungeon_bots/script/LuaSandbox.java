@@ -16,10 +16,7 @@ import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.*;
 /**
@@ -84,9 +81,10 @@ public final class LuaSandbox implements Serializable {
 	}
 	
 	private void registerGlobalFunctions() {
-		globals.set("print", getPrintFunction());
-		globals.set("printf", getPrintfFunction());
-		globals.set("sleep", getSleepFunction());
+		globals.set("print", new PrintFunction());
+		globals.set("printf", new PrintfFunction());
+		globals.set("sleep", new SleepFunction());
+		globals.set("require", new RequireFunction());
 	}
 
 
@@ -97,7 +95,7 @@ public final class LuaSandbox implements Serializable {
 	 */
 	private LuaSandbox add(Stream<LuaBinding> bindings) {
 		bindings.forEach(binding ->
-		globals.set(binding.bindTo, binding.luaValue));
+				globals.set(binding.bindTo, binding.luaValue));
 		return this;
 	}
 
@@ -301,16 +299,19 @@ public final class LuaSandbox implements Serializable {
 		}
 	}
 
-	public PrintfFunction getPrintfFunction() {
-		return new PrintfFunction();
-	}
+	public class RequireFunction extends OneArgFunction {
 
-	public PrintFunction getPrintFunction() {
-		return new PrintFunction();
-	}
-
-	public LuaValue getSleepFunction() {
-		return new SleepFunction();
+		@Override
+		public LuaValue call(LuaValue required) {
+			return Optional.ofNullable(scripts.get(required.checkjstring()))
+					.map(script ->
+							init(script.code)
+									.join()
+									.getResults()
+									.map(Varargs::arg1)
+									.orElse(LuaValue.NIL))
+					.orElse(LuaValue.NIL);
+		}
 	}
 
 	public void update(float dt) {
@@ -378,4 +379,5 @@ public final class LuaSandbox implements Serializable {
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		return invocation;
 	}
+
 }
