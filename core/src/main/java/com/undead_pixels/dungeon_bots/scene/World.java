@@ -27,6 +27,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -46,6 +47,7 @@ import org.luaj.vm2.*;
  * TODO - some parts of this should persist between the resets/rebuilds, but
  * some parts shouldn't. Need to figure out what parts.
  */
+@Doc("The current map can be interfaced with via the 'world'")
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
 
 	/**
@@ -952,7 +954,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param ly
 	 */
 	@Bind(SecurityLevel.AUTHOR)
-	public void setGoal(LuaValue lx, LuaValue ly) {
+	@Doc("Sets the location and position of the Goal for the world.")
+	public void setGoal(@Doc("The X position of the World") LuaValue lx,
+						@Doc("The Y position of the World") LuaValue ly) {
 		setGoal(lx.checkint() - 1, ly.checkint() - 1);
 	}
 
@@ -961,6 +965,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	@Bind(SecurityLevel.DEFAULT)
+	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
 		Integer[] goal = goal();
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0] + 1), LuaValue.valueOf(goal[1] + 1) });
@@ -989,7 +994,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	@Bind(SecurityLevel.DEFAULT)
-	public void alert(LuaValue alert, LuaValue title) {
+	@Doc("Creates and displays an Alert window.")
+	public void alert(@Doc("The Alert message") LuaValue alert,
+					  @Doc("The Title of the Alert Window") LuaValue title) {
 		showAlert(alert.checkjstring(), title.checkjstring());
 	}
 
@@ -1010,7 +1017,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            A url to open
 	 */
 	@Bind(SecurityLevel.AUTHOR)
-	public void openBrowser(LuaValue lurl) {
+	@Doc("Opens a Browser Window using the argument URL string")
+	public void openBrowser(@Doc("The desired URL") LuaValue lurl) {
 		// TODO - now that we're doing url security, should we just change this to "NONE" security level?
 		try {
 			String urlString = lurl.checkjstring();
