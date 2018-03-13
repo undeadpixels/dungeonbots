@@ -114,14 +114,16 @@ public final class JScriptEditor extends JPanel {
 		_Editor.setEditable(value);
 		_Editor.setEnabled(value);
 	}
-	
+
+
 	@Override
-	public boolean isEnabled(){
+	public boolean isEnabled() {
 		return _Editor.isEnabled();
 	}
-	
+
+
 	@Override
-	public void setEnabled(boolean value){
+	public void setEnabled(boolean value) {
 		_Editor.setEnabled(value);
 	}
 
@@ -187,9 +189,12 @@ public final class JScriptEditor extends JPanel {
 	/* ================================================================
 	 * JScriptEditor CONTROLLER
 	 * ================================================================ */
-	/** The controller class for the JScriptEditor. */
+	/** The controller class for the JScriptEditor. This class handles code lock, as well 
+	 * as cut/copy/paste.*/
 	private class Controller implements CaretListener, ActionListener {
 
+		/**A temporary variable to disable code lock.*/
+		private boolean lockActive = false;
 		private DefaultHighlighter _Highlighter;
 		protected UnderlinePainter _Painter;
 		private JToggleButton _LockButton = null;
@@ -410,7 +415,8 @@ public final class JScriptEditor extends JPanel {
 		}
 
 
-		/** Can turn text editing on or off. */
+		/** Can turn text editing on or off. This is the object that prevents code from 
+		 * being typed in a locked section. */
 		private class LockFilter extends DocumentFilter {
 
 			private boolean _Live = true;
@@ -428,7 +434,7 @@ public final class JScriptEditor extends JPanel {
 			@Override
 			public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
 					throws BadLocationException {
-				if (_Live)
+				if (_Live || !lockActive)
 					super.insertString(fb, offset, text, attr);
 			}
 
@@ -436,7 +442,7 @@ public final class JScriptEditor extends JPanel {
 			@Override
 			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 					throws BadLocationException {
-				if (_Live)
+				if (_Live || !lockActive)
 					super.replace(fb, offset, length, text, attrs);
 
 			}
@@ -444,7 +450,7 @@ public final class JScriptEditor extends JPanel {
 
 			@Override
 			public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-				if (_Live)
+				if (_Live || !lockActive)
 					super.remove(fb, offset, length);
 			}
 		}
@@ -502,4 +508,8 @@ public final class JScriptEditor extends JPanel {
 
 	}
 
+
+	private class LockController {
+
+	}
 }

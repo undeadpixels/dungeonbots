@@ -198,7 +198,6 @@ public final class LevelEditorScreen extends Screen {
 				JSlider sldr = (JSlider) e.getSource();
 				if (sldr.getName().equals("zoomSlider")) {
 					_ViewControl.setZoomAsPercentage((float) (sldr.getValue()) / sldr.getMaximum());
-
 				}
 			}
 		}
@@ -284,15 +283,18 @@ public final class LevelEditorScreen extends Screen {
 				}
 				return;
 			case "WORLD_SCRIPTS":
-				
-				//JComponent scriptEditor = new JCodeEditorPaneController(world, SecurityLevel.AUTHOR).create();
 
-				//JDialog dialog = new JDialog(LevelEditorScreen.this, "Level Scripts", Dialog.ModalityType.MODELESS);
-				//dialog.add(scriptEditor);
-				//dialog.pack();
-				//dialog.setVisible(true);
-				
-				//return;
+				// JComponent scriptEditor = new
+				// JCodeEditorPaneController(world,
+				// SecurityLevel.AUTHOR).create();
+
+				// JDialog dialog = new JDialog(LevelEditorScreen.this, "Level
+				// Scripts", Dialog.ModalityType.MODELESS);
+				// dialog.add(scriptEditor);
+				// dialog.pack();
+				// dialog.setVisible(true);
+
+				// return;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());
 				return;
@@ -401,8 +403,9 @@ public final class LevelEditorScreen extends Screen {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			if (_ViewControl != null)
-				_ViewControl.mouseWheelMoved(e);
+			if (selections.tool != null) selections.tool.mouseWheelMoved(e);;
+			/*if (_ViewControl != null)
+				_ViewControl.mouseWheelMoved(e);*/
 		}
 
 	}
@@ -451,22 +454,18 @@ public final class LevelEditorScreen extends Screen {
 
 
 	/** Build the actual GUI for the Level Editor. */
-	@SuppressWarnings("deprecation")
+	
 	@Override
-
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
-		_View.addMouseListener(getController());
-		_View.addMouseMotionListener(getController());
+		_ViewControl = new Tool.ViewControl(_View);
+		getController().registerSignals(_View);		
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
-		_ViewControl = new Tool.ViewControl(_View);
-		_View.addMouseWheelListener(_ViewControl);
-
-
+		
 		// Create the tile palette GUI.
 		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
 		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
@@ -503,7 +502,8 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the lists.
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl));
+		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl)
+				.setSelectsEntities(true).setSelectsTiles(true));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections, _ViewControl));
 		tm.addElement(
 				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
@@ -528,7 +528,7 @@ public final class LevelEditorScreen extends Screen {
 
 		// Create the file menu
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
-		fileMenu.addSeparator();		
+		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Open LevelPack",
@@ -583,7 +583,7 @@ public final class LevelEditorScreen extends Screen {
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(_View, BorderLayout.CENTER);
-		menuBar.setPreferredSize(new Dimension(-1,30));
+		menuBar.setPreferredSize(new Dimension(-1, 30));
 		this.setJMenuBar(menuBar);
 	}
 

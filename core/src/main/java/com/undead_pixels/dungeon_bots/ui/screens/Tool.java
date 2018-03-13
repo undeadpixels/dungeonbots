@@ -211,7 +211,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * e.getWheelRotation());
+			adjustZoom(e.getWheelRotation());
+		}
+		
+		public void adjustZoom(int delta){
+			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
 			newZoom /= 100f;
 			setZoom(newZoom);
 		}
@@ -284,6 +288,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private Point cornerA = null;
 		private Point cornerB = null;
 		private final SecurityLevel securityLevel;
+		private boolean selectsEntities = true;
+		private boolean selectsTiles = true;
 
 
 		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
@@ -296,6 +302,39 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+		/**Sets whether this Selector can select entities.*/
+		public Selector setSelectsEntities(boolean value) {
+			selectsEntities = value;
+			view.setSelectedEntities(null);
+			return this;
+		}
+
+
+		/**Returns whether this tool can select entities.  Default value is true.*/
+		public boolean getSelectsEntities() {
+			return selectsEntities;
+		}
+
+
+		/**Sets whether this Selector can select tiles.*/
+		public Selector setSelectsTiles(boolean value) {
+			selectsTiles = value;
+			view.setSelectedTiles(null);
+			return this;
+		}
+
+
+		/**Returns whether this tool can select tiles.  Default value is true.*/
+		public boolean getSelectsTiles() {
+			return selectsTiles;
+		}
+
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			this.viewControl.mouseWheelMoved(e);
+		}
+		
 		@Override
 		public void mousePressed(MouseEvent e) {
 
@@ -314,8 +353,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// The view should start rendering the lasso.
 				view.setRenderingTool(this);
 				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3) {
+			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
 				this.viewControl.mousePressed(e);
+				return;
 			}
 		}
 
@@ -323,7 +363,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// If drawing isn't happening, just return.
-			if (cornerA == null) {
+			if (cornerA == null && this.viewControl != null) {
 				this.viewControl.mouseDragged(e);
 				return;
 			}
@@ -361,8 +401,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
+
+				// If only one tile is selected, and one entity is selected, and
+				// it is the entity that would be selected by this lasso, then
+				// this is a double-click. Bring up the editor for the selected
+				// entity.
 				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
-					// Clicked on an entity. Open its editor.
 					view.setSelectedEntities(new Entity[] { se.get(0) });
 					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor", new Undoable.Listener() {
 
@@ -372,21 +416,29 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 						}
 					});
 					view.setSelectedTiles(null);
-				} else if (se.size() > 0) {
-					// One or more unselected entities are lassoed. Select them
-					// all.
+				}
+				// If some number of entities are lassoed, select them (if
+				// allowed).
+				else if (se.size() > 0 && selectsEntities) {
 					view.setSelectedEntities(se.toArray(new Entity[se.size()]));
 					view.setSelectedTiles(null);
-				} else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
-					// Clicked on an unselected tile. Clear the tile selection.
+				}
+				// If an unselected tile is lassoed, but a selection exists,
+				// this counts to clear the selections.
+				else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
 					view.setSelectedTiles(null);
 					view.setSelectedEntities(null);
-				} else if (st.size() > 0) {
-					// More than one tile lassoed. Select them all.
+				}
+				// If one or more tiles is lassoed, and tile select is allowed,
+				// select them.
+				else if (st.size() > 0 && selectsTiles) {
+
 					view.setSelectedTiles(st.toArray(new Tile[st.size()]));
 					view.setSelectedEntities(null);
-				} else {
-					// Neither tile nor entity selected.
+				}
+				// In all other cases, neither tile nor entity may be selected.
+				// Clear the selections.
+				else {
 					view.setSelectedTiles(null);
 					view.setSelectedEntities(null);
 				}
@@ -398,8 +450,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// started.
 				cornerB = cornerA = null;
 				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3) {
+			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
 				viewControl.mouseReleased(e);
+				return;
 			}
 
 		}
