@@ -164,7 +164,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				execute(MAX_EXECUTION_TIME);
+				execute();
 			}
 		});
 
@@ -334,14 +334,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * Starts execution of the code contained in the code editor, on a
 	 * background thread.
 	 */
-	public LuaInvocation execute(long executionTime) {
+	public LuaInvocation execute() {
 
 		setIsExecuting(true);
 		ScriptEventStatusListener listener = new ScriptEventStatusListener() {
 
 			@Override
 			public void scriptEventFinished(LuaInvocation script, ScriptStatus status) {
-				System.out.println("Script " + script + " is " + script.getStatus() + ", thinks " + status);
 				if (_RunningScript == script) {
 					_RunningScript = null;
 				}
@@ -399,19 +398,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return _RunningScript;
 	}
 
-
-	/**
-	 * Executes the contents of the code editor, on the main thread. Useful for
-	 * testing purposes.
-	 */
-	public void executeSynchronized(long executionTime) {
-		LuaInvocation inv = execute(executionTime);
-		inv.join(executionTime);
-	}
-
-
 	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
+		System.out.println("Result = "+result);
 
 		// Send a message indicating the results.
 		if (result == null)
@@ -612,7 +601,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 			_EditorPane.paste();
 			break;
 		case "EXECUTE":
-			execute(3000);
+			execute();
 			break;
 		case "HELP":
 			// Pass on the event to every listener.
