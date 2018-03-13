@@ -74,9 +74,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @param script
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
-		if(script != null) {
-			System.out.println(script.replaceAll("^", " > "));
-		}
+		//if(script != null) {
+		//	System.out.println(script.replaceAll("^", " > "));
+		//}
 		this.environment = env;
 		this.args = new LuaValue[] {};
 		this.scriptStatus = ScriptStatus.READY;
