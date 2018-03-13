@@ -22,4 +22,7 @@ public class InterruptedDebug extends DebugLib {
 	public synchronized void kill() {
 		interrupted = true;
 	}
+	public synchronized boolean isKilled() {
+		return interrupted;
+	}
 }

@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -18,6 +19,7 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -289,11 +291,8 @@ public final class LuaSandbox implements Serializable {
 		@Override public LuaValue invoke(Varargs v) {
 			double sleeptime = v.optdouble(1, 1.0);
 			
-			try {
-				Thread.sleep((long)(1000 * sleeptime));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			LuaInvocation currentInvoke = getQueue().getCurrent();
+			currentInvoke.safeSleep((long) (1000 * sleeptime));
 			
 			return LuaValue.NIL;
 		}
@@ -378,6 +377,16 @@ public final class LuaSandbox implements Serializable {
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		return invocation;
+	}
+
+	/**
+	 * @param object
+	 */
+	public void safeWaitUntil (Supplier<Boolean> trigger) {
+		LuaInvocation currentInvoke = this.getQueue().getCurrent();
+		while(trigger.get() == false) {
+			currentInvoke.safeSleep(5);
+		}
 	}
 
 }

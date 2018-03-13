@@ -9,6 +9,7 @@ import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
 import org.luaj.vm2.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * @author Stewart Charles
@@ -217,7 +218,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return The invoked LuaScript
 	 */
 	public synchronized LuaInvocation join(long timeout) {
-		assert scriptStatus != ScriptStatus.STOPPED;
+		if(scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.RUNNING) {
+			return this;
+		}
 		
 		try {
 			if(scriptStatus == ScriptStatus.READY ||
@@ -316,5 +319,26 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public void addListener(ScriptEventStatusListener listener) {
 		listeners.add(listener);
+	}
+
+	/**
+	 * @param trigger
+	 */
+	public void safeSleep (long time) {
+		if(scriptInterrupt.isKilled()) {
+			throw new HookFunction.ScriptInterruptException();
+		} else {
+			synchronized(this) {
+				try {
+					this.wait(time);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		if(scriptInterrupt.isKilled()) {
+			throw new HookFunction.ScriptInterruptException();
+		} 
 	}
 }
