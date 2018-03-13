@@ -134,8 +134,8 @@ public final class JScriptEditor extends JPanel {
 
 	/**
 	 * Sets the editor to modify the given script. Note that the script object
-	 * will not be modified, but a new script will be returned from the
-	 * getScript() call.
+	 * will not be modified in this editor, but a new script will be returned 
+	 * from the getScript() call.
 	 */
 	public void setScript(UserScript script) {
 

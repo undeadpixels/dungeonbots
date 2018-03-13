@@ -4,14 +4,6 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.swing.DefaultListModel;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
@@ -88,8 +80,7 @@ public abstract class Entity
 
 
 	/**
-	 * Returns the Lua sandbox wherein this entity's scripts will execute. WO: a
-	 * distinct sandbox implemented for the player's scripts?
+	 * Returns the Lua sandbox wherein this entity's scripts will execute.
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
@@ -98,6 +89,12 @@ public abstract class Entity
 			this.sandbox.addBindable(this);
 		}
 		return sandbox;
+	}
+	
+	public void sandboxInit() {
+		if(this.scripts != null && this.scripts.get("init") != null) {
+			getSandbox().init();
+		}
 	}
 
 
