@@ -5,9 +5,12 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -15,11 +18,15 @@ import java.awt.event.ActionListener;
 import java.util.HashSet;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AbstractDocument;
@@ -53,6 +60,8 @@ public final class JScriptEditor extends JPanel {
 	private final JEditorPane _Editor;
 	private SecurityLevel _SecurityLevel;
 	private Controller _Controller;
+	private JComboBox<Font> _FontChooser;
+	private JComboBox<Integer> _FontSizeChooser;
 
 
 	/* ================================================================
@@ -89,10 +98,22 @@ public final class JScriptEditor extends JPanel {
 		_Editor.addCaretListener(_Controller);
 		_Editor.setHighlighter(_Controller._Highlighter);
 
+		_FontChooser = new JComboBox<Font>(GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts());
+		_FontChooser.setRenderer(_FontNameRenderer);
+		_FontChooser.setSelectedItem(_Editor.getFont());
+		_FontChooser.addActionListener(_Controller);
+
+		_FontSizeChooser = new JComboBox<Integer>(new Integer[] { 8, 10, 12, 14, 16, 18, 20, 24, 28, 36, 72 });
+		_FontSizeChooser.setSelectedItem(_Editor.getFont().getSize());
+		_FontSizeChooser.addActionListener(_Controller);
+
+
 		toolBar.add(bttnCut);
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);
 		toolBar.add(bttnHelp);
+		toolBar.add(_FontChooser);
+		toolBar.add(_FontSizeChooser);
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
 			JToggleButton lockButton = UIBuilder.buildToggleButton().image("icons/lock.png").text("Lock")
 					.toolTip("Lock selected text.").action("TOGGLE_LOCK", _Controller).create();
@@ -186,6 +207,17 @@ public final class JScriptEditor extends JPanel {
 	}
 
 
+	private final ListCellRenderer<Font> _FontNameRenderer = new ListCellRenderer<Font>() {
+
+		@Override
+		public Component getListCellRendererComponent(JList<? extends Font> fontList, Font font, int index,
+				boolean isSelected, boolean hasFocus) {
+			return new JLabel(font.getName());
+		}
+
+	};
+
+
 	/* ================================================================
 	 * JScriptEditor CONTROLLER
 	 * ================================================================ */
@@ -214,6 +246,14 @@ public final class JScriptEditor extends JPanel {
 		/** Called when buttons are hit. */
 		@Override
 		public void actionPerformed(ActionEvent e) {
+
+			if (e.getSource() == _FontChooser || e.getSource() == _FontSizeChooser) {
+				Font choice = (Font) _FontChooser.getSelectedItem();
+				int size = (int) _FontSizeChooser.getSelectedItem();
+				Font f = new Font(choice.getFontName(), Font.PLAIN, size);
+				_Editor.setFont(f);
+				return;
+			}
 			switch (e.getActionCommand()) {
 			case "TOGGLE_LOCK":
 				if (_LockButton != null && _SecurityLevel.level >= SecurityLevel.AUTHOR.level) {
@@ -509,7 +549,4 @@ public final class JScriptEditor extends JPanel {
 	}
 
 
-	private class LockController {
-
-	}
 }

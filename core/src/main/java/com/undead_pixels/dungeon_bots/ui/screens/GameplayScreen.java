@@ -72,8 +72,9 @@ public class GameplayScreen extends Screen {
 	public GameplayScreen(LevelPack pack) {
 		this(pack, false);
 	}
-	
-	public GameplayScreen (LevelPack pack, boolean switched){
+
+
+	public GameplayScreen(LevelPack pack, boolean switched) {
 		this.levelPack = pack;
 		this.world = levelPack.getCurrentWorld();
 		this.isSwitched = switched;
@@ -136,6 +137,7 @@ public class GameplayScreen extends Screen {
 		tglGrid.setActionCommand("TOGGLE_GRID");
 		tglGrid.addActionListener(getController());
 
+		// Layout the toolbar at the bottom of the screen for game stop/start and for view control.
 		playToolBar.add(playBttn);
 		playToolBar.add(stopBttn);
 		playToolBar.add(rewindBttn);
@@ -144,6 +146,7 @@ public class GameplayScreen extends Screen {
 		playToolBar.add(arrowPanel);
 		playToolBar.add(tglGrid);
 
+		//Create the file menu.
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(80, 30));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -159,6 +162,7 @@ public class GameplayScreen extends Screen {
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
 				.text("Quit").action("Quit", getController()).create());
 
+		// Create the feedback menu.
 		JMenu feedbackMenu = new JMenu("Feedback");
 		feedbackMenu.setMnemonic(KeyEvent.VK_B);
 		feedbackMenu.setPreferredSize(new Dimension(80, 30));
@@ -169,20 +173,23 @@ public class GameplayScreen extends Screen {
 		feedbackMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
 				.text("Upload").action("Upload", getController()).create());
 
+		// Create the menu at the top of the screen.
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(feedbackMenu);
-		// TODO: adding the button cause compatibility issues for a JMenuBar?
-		SwingUtilities.invokeLater(new Runnable(){
+		SwingUtilities.invokeLater(new Runnable() {
+
+			// Must be invoked later because the GamePlayScreen's isSwitched
+			// property hasn't been set when addComponents is called.
 			@Override
 			public void run() {
+				// TODO: adding a button cause compatibility issues for a JMenuBar?
 				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
-						.action("Switch to Editor", getController()).enabled(isSwitched).create();// TODO Auto-generated method stub
+						.action("Switch to Editor", getController()).enabled(isSwitched).create();
 				menuBar.add(switchBttn);
-			}			
+			}
 		});
 
-		// pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
 		this.setJMenuBar(menuBar);
