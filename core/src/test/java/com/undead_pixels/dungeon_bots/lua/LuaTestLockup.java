@@ -44,6 +44,7 @@ public class LuaTestLockup {
 		boolean[] finished = {false};
 		boolean[] assertionsPassed = {false};
 		boolean[] joinFinished = {false};
+		boolean[] isRunning = {false};
 		int[] updates = {0};
 		
 		Thread execution = new Thread(() -> {
@@ -58,11 +59,9 @@ public class LuaTestLockup {
 				joinFinished[0] = true;
 			});
 			Thread wupdateThread = new Thread(() -> {
-				while(! finished[0]) {
-					System.out.println("updating...");
+				while(! finished[0] && isRunning[0]) {
 					w.update(.21f);
 					updates[0]++;
-					System.out.println("Updated!");
 				}
 			});
 			
@@ -78,6 +77,10 @@ public class LuaTestLockup {
 			System.out.println("done killing");
 			finished[0] = true;
 
+			Assert.assertNotNull(invocation.getError());
+			if(invocation.getError().getMessage().contains("Interrupt")) {
+				throw new RuntimeException("Error does not contain interrupt; instead = " + invocation.getError().getMessage());
+			}
 			Assert.assertEquals(ScriptStatus.STOPPED, invocation.getStatus());
 			
 			System.out.println("finished");
@@ -86,16 +89,21 @@ public class LuaTestLockup {
 		execution.start();
 
 		if(! sleepyWait(timeout, () -> finished[0] == true)) {
+			isRunning[0] = false;
 			throw new RuntimeException("Did not finish");
 		}
 
 		if(! sleepyWait(timeout, () -> joinFinished[0] == true)) {
+			isRunning[0] = false;
 			throw new RuntimeException("Join did not finish");
 		}
 
 		if(! sleepyWait(timeout, () -> assertionsPassed[0] == true)) {
+			isRunning[0] = false;
 			throw new RuntimeException("Assertions did not pass");
 		}
+		
+		isRunning[0] = false;
 	}
 
 	@Test
