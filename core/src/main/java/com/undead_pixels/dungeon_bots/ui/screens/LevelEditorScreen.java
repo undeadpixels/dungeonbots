@@ -106,6 +106,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4)));
 		result.add(new EntityType("chest", AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0)));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
+		result.add(new EntityType("door", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
 		return result;
 	}
 
