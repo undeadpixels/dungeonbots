@@ -35,7 +35,7 @@ public class Player extends RpgActor {
 	 * @param name The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1), world.getPlayerTeamScripts());
 
 		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}

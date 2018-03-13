@@ -77,7 +77,7 @@ public class GameplayScreen extends Screen {
 					Entity entity = view.getWorld().getEntityUnderLocation(gamePosition.x, gamePosition.y);
 					if (entity == null)
 						return;
-					JEntityEditor.create(GameplayScreen.this, entity, SecurityLevel.DEFAULT, "Entity Editor");
+					JEntityEditor.create(GameplayScreen.this, entity, SecurityLevel.DEFAULT, "Entity Editor", null);
 					e.consume();
 				}
 			}
@@ -133,9 +133,13 @@ public class GameplayScreen extends Screen {
 						world.reset();
 					}
 					break;
+
+				case "PLAY":
+				case "Play":
+					world.beginPlay();
+					break;
 				case "Save":
 				case "Save As":
-				case "Play":
 				case "Stop":
 
 				case "Last Result":

@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -15,6 +16,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
@@ -31,6 +33,8 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -60,8 +64,10 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JCodeEditorPaneController;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
 /**
@@ -202,6 +208,12 @@ public final class LevelEditorScreen extends Screen {
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 
+			case "UNDO":
+				Tool.undo(world);
+				break;
+			case "REDO":
+				Tool.redo(world);
+				break;
 			case "Save to LevelPack":
 				File saveLevelPackFile = FileControl.saveAsDialog(LevelEditorScreen.this);
 				if (saveLevelPackFile == null)
@@ -271,6 +283,16 @@ public final class LevelEditorScreen extends Screen {
 					ex.printStackTrace();
 				}
 				return;
+			case "WORLD_SCRIPTS":
+				
+				//JComponent scriptEditor = new JCodeEditorPaneController(world, SecurityLevel.AUTHOR).create();
+
+				//JDialog dialog = new JDialog(LevelEditorScreen.this, "Level Scripts", Dialog.ModalityType.MODELESS);
+				//dialog.add(scriptEditor);
+				//dialog.pack();
+				//dialog.setVisible(true);
+				
+				//return;
 			default:
 				System.out.println("Have not implemented the command: " + e.getActionCommand());
 				return;
@@ -386,7 +408,7 @@ public final class LevelEditorScreen extends Screen {
 	}
 
 
-	/** Handles the rendering of an item in the TileType palette. */
+	/** Handles the rendering of an item in the TilePen palette. */
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
 
 		@Override
@@ -399,7 +421,7 @@ public final class LevelEditorScreen extends Screen {
 			return lbl;
 		}
 	};
-	/** Handles the rendering of an item in the EntityType palette. */
+	/** Handles the rendering of an item in the EntityPLacer palette. */
 	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
 
 		@Override
@@ -429,6 +451,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 	/** Build the actual GUI for the Level Editor. */
+	@SuppressWarnings("deprecation")
 	@Override
 
 	protected void addComponents(Container pane) {
@@ -437,7 +460,7 @@ public final class LevelEditorScreen extends Screen {
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
 		_View.addMouseListener(getController());
-		_View.addMouseMotionListener(getController());		
+		_View.addMouseMotionListener(getController());
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
 		_ViewControl = new Tool.ViewControl(_View);
@@ -504,12 +527,8 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the file menu
-		JMenu fileMenu = new JMenu("File");
-		fileMenu.setPreferredSize(new Dimension(50, 25));
-		fileMenu.setMnemonic(KeyEvent.VK_F);
-		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_I, getController()));
-		fileMenu.addSeparator();
+		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
+		fileMenu.addSeparator();		
 		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
 				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Open LevelPack",
@@ -517,6 +536,8 @@ public final class LevelEditorScreen extends Screen {
 		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Open Stand-Alone", getController()));
 		fileMenu.addSeparator();
+		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
+				KeyEvent.VK_I, getController()));
 		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_E, getController()));
 		fileMenu.addSeparator();
@@ -526,17 +547,21 @@ public final class LevelEditorScreen extends Screen {
 				KeyEvent.VK_Q, getController()));
 
 		// Create the world menu.
-		JMenu worldMenu = new JMenu("World");
-		worldMenu.setMnemonic(KeyEvent.VK_B);
-		worldMenu.setPreferredSize(new Dimension(50, 25));
-		worldMenu.add(UIBuilder.makeMenuItem("Data", KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_D, getController()));
-		worldMenu.add(UIBuilder.makeMenuItem("Scripts", null, KeyEvent.VK_S, getController()));
+		JMenu worldMenu = UIBuilder.buildMenu().mnemonic('w').text("World").prefWidth(60).create();
+		worldMenu.add(
+				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
+		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
+				.create());
+
+		// Create the edit menu.
+		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(50).create();
+		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK))
+				.text("Undo").action("UNDO", getController()).create());
+		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK))
+				.text("Redo").action("REDO", getController()).create());
 
 		// Create the publish menu.
-		JMenu publishMenu = new JMenu("Publish");
-		publishMenu.setMnemonic(KeyEvent.VK_P);
-		publishMenu.setPreferredSize(new Dimension(50, 25));
+		JMenu publishMenu = UIBuilder.buildMenu().mnemonic('p').text("Publish").prefWidth(60).create();
 		publishMenu.add(UIBuilder.makeMenuItem("Choose Stats", null, KeyEvent.VK_C, getController()));
 		publishMenu.add(UIBuilder.makeMenuItem("Audience", KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK),
 				KeyEvent.VK_A, getController()));
@@ -544,9 +569,7 @@ public final class LevelEditorScreen extends Screen {
 				KeyEvent.VK_U, getController()));
 
 		// Create the help menu.
-		JMenu helpMenu = new JMenu("Help");
-		helpMenu.setMnemonic(KeyEvent.VK_H);
-		helpMenu.setPreferredSize(new Dimension(50, 30));
+		JMenu helpMenu = UIBuilder.buildMenu().mnemonic('h').text("Help").prefWidth(60).create();
 		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
 
 		// Put together the main menu.
@@ -554,11 +577,13 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
 		menuBar.add(publishMenu);
+		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(_View, BorderLayout.CENTER);
+		menuBar.setPreferredSize(new Dimension(-1,30));
 		this.setJMenuBar(menuBar);
 	}
 

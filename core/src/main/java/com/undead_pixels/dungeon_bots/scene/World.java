@@ -203,6 +203,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		}
+		
+		playerTeamScripts.add(new UserScript("init", "--TODO"));
 
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
@@ -363,6 +365,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 	}
+	
+	public void beginPlay() {
+		for(Entity e: entities) {
+			e.sandboxInit();
+		}
+	}
 
 	@Bind
 	public void addEntity(LuaValue v) {
@@ -384,6 +392,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				tile.setOccupiedBy(e);
 			}
 		}
+	}
+	
+	
+	public void removeEntity(Entity e){
+		throw new RuntimeException("Not implemented yet.");
 	}
 
 	/**
@@ -615,7 +628,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return The Tile at a given position
 	 */
 	public Tile getTile(float x, float y) {
-		return getTileUnderLocation((int) Math.round(x), (int) Math.round(y));
+		return getTileUnderLocation((int) Math.floor(x), (int) Math.floor(y));
 	}
 
 	/**
@@ -792,6 +805,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
+	public boolean containsEntity(Entity e){
+		return entities.contains(e);
+	}
+	
 	/**
 	 * Gets all Actors intersecting the given rectangle.
 	 *
@@ -1002,9 +1019,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	@Doc("Opens a Browser Window using the argument URL string")
 	public void openBrowser(@Doc("The desired URL") LuaValue lurl) {
+		// TODO - now that we're doing url security, should we just change this to "NONE" security level?
 		try {
-			java.awt.Desktop.getDesktop().browse(new URI(lurl.checkjstring()));
+			String urlString = lurl.checkjstring();
+			String urlNoProtocol = urlString.replace("http://", "");
+			urlNoProtocol = urlNoProtocol.replace("https://", "");
+			
+			String[] allowedURLs = {
+					"youtube.com",
+					"dungeonbots.herokuapp.com",
+					"en.wikipedia.org",
+					"stackoverflow.com"
+			};
+			
+			for(String allow : allowedURLs) {
+				if(urlNoProtocol.startsWith(allow+"/") ||
+						urlNoProtocol.startsWith("www."+allow+"/") ||
+						urlNoProtocol.equals(allow) ||
+						urlNoProtocol.equals("www."+allow)) {
+					java.awt.Desktop.getDesktop().browse(new URI(urlString));
+					return;
+				}
+			}
+			
+			throw new Exception("URL not allowed: " + urlNoProtocol);
 		} catch (Exception e1) {
+			e1.printStackTrace();
 			throw new LuaError("Invalid URL!");
 		}
 	}

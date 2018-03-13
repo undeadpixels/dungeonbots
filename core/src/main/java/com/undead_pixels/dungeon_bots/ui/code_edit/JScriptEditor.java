@@ -77,13 +77,13 @@ public final class JScriptEditor extends JPanel {
 				.action("PASTE", _Controller).create();
 		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
 				.toolTip("Get help with the command line.").action("HELP", _Controller).focusable(false)
-				.preferredSize(30, 30).create();		
+				.preferredSize(30, 30).create();
 
 
 		_Editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(_Editor);
 		add(editorScroller, BorderLayout.CENTER);
-		_Editor.setEditable(true);
+		_Editor.setEditable(false);
 		_Editor.setFocusable(true);
 		_Editor.setContentType("text/lua");
 		_Editor.addCaretListener(_Controller);
@@ -105,6 +105,27 @@ public final class JScriptEditor extends JPanel {
 	}
 
 
+	public boolean isEditable() {
+		return _Editor.isEditable();
+	}
+
+
+	public void setEditable(boolean value) {
+		_Editor.setEditable(value);
+		_Editor.setEnabled(value);
+	}
+	
+	@Override
+	public boolean isEnabled(){
+		return _Editor.isEnabled();
+	}
+	
+	@Override
+	public void setEnabled(boolean value){
+		_Editor.setEnabled(value);
+	}
+
+
 	/** Returns a reference to the script currently being edited. */
 	public UserScript getScript() {
 		return _Script;
@@ -113,8 +134,8 @@ public final class JScriptEditor extends JPanel {
 
 	/**
 	 * Sets the editor to modify the given script. Note that the script object
-	 * will not be modified, but a new script will be returned from the
-	 * getScript() call.
+	 * will not be modified in this editor, but a new script will be returned 
+	 * from the getScript() call.
 	 */
 	public void setScript(UserScript script) {
 
@@ -133,7 +154,7 @@ public final class JScriptEditor extends JPanel {
 
 
 	/**
-	 * Overwrites the current script with the contents of this editor.
+	 * Overwrites the current script with the contents of this editor.  If no script is being edited, does nothing.
 	 */
 	public void saveScript() {
 		if (_Script == null)

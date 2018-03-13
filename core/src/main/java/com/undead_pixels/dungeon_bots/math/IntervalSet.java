@@ -1,11 +1,16 @@
 package com.undead_pixels.dungeon_bots.math;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class IntervalSet<T extends Comparable<T>> {
+public class IntervalSet<T extends Comparable<T>> implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private boolean _NegativeInfinite = false;
 	private boolean _PositiveInfinite = false;
 	protected List<Interval> intervals;
@@ -546,7 +551,11 @@ public class IntervalSet<T extends Comparable<T>> {
 		return ((_PositiveInfinite) ? "<--" : "") + intervals.toString() + ((_NegativeInfinite) ? "-->" : "");
 	}
 
-	private final class IntervalPair {
+	private final class IntervalPair implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public Interval a;
 		public Interval b;
 
@@ -561,7 +570,11 @@ public class IntervalSet<T extends Comparable<T>> {
 	}
 
 	/** Data structure which internally maintains a single inclusion set. */
-	protected final class Interval {
+	protected final class Interval implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public boolean includesStart;
 		public T start;
 		public T end;
