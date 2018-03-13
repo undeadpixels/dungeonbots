@@ -156,15 +156,16 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		catch (InstructionHook.ScriptInterruptException si) {
 			if(getStatus() != ScriptStatus.TIMEOUT)
 				setStatus(ScriptStatus.STOPPED);
-			synchronized (this) { this.notifyAll(); }
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
 			setStatus(ScriptStatus.ERROR);
 		}
 		
 		if(getStatus() == ScriptStatus.RUNNING) {
 			setStatus(ScriptStatus.COMPLETE);
 		}
+
+		synchronized (this) { this.notifyAll(); }
 	}
 
 	/**

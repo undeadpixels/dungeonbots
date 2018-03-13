@@ -57,7 +57,7 @@ public class WorldTest {
 			});
 			Thread wupdateThread = new Thread(() -> {
 				while(! finished[0]) {
-					w.update(1.f);
+					w.update(.1f);
 					updates[0]++;
 				}
 			});
@@ -75,8 +75,8 @@ public class WorldTest {
 			invocation.stop();
 
 			safeSleep(100);
-			
-			assert invocation.getStatus() == ScriptStatus.COMPLETE;
+
+			Assert.assertEquals(ScriptStatus.STOPPED, invocation.getStatus());
 			finished[0] = true;
 		});
 		execution.start();
