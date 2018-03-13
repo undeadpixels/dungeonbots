@@ -59,7 +59,7 @@ public final class JEntityEditor extends JPanel {
 	 * while this Entity Editor is open.*/
 	private HashMap<String, Object> _OriginalState;
 
-	private Listener _UndoableListener = null;
+	private Undoable.Listener _UndoableListener = null;
 	private JCodeEditorPaneController _ScriptEditor;
 
 
@@ -86,7 +86,6 @@ public final class JEntityEditor extends JPanel {
 		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
-
 			@Override
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
@@ -135,7 +134,7 @@ public final class JEntityEditor extends JPanel {
 				.action("CLOSE", _Controller).create();
 		bttnBottomPanel.add(bttnReset);
 		bttnBottomPanel.add(bttnOK);
-		// Should there be a close button? Only if this script editor is in its
+		// TODO:  Should there be a close button? Only if this script editor is in its
 		// own dialog. But, I won't know that until after construction time.
 		SwingUtilities.invokeLater(new Runnable() {
 
@@ -227,7 +226,6 @@ public final class JEntityEditor extends JPanel {
 
 				@Override
 				protected void undoValidated() {
-					// TODO: override validateUndo()
 					Entity e = (Entity) before.get("Entity");
 					UserScript[] beforeScripts = (UserScript[]) before.get("scripts");
 					String beforeHelp = (String) before.get("help");
@@ -237,8 +235,7 @@ public final class JEntityEditor extends JPanel {
 
 				@Override
 				protected void redoValidated() {
-					// TODO: override validateRedo();
-					Entity e = (Entity) before.get("Entity");
+					Entity e = (Entity) after.get("Entity");
 					UserScript[] afterScripts = (UserScript[]) after.get("scripts");
 					String afterHelp = (String) after.get("help");
 					writeEntity(e, afterScripts, afterHelp);
@@ -344,10 +341,6 @@ public final class JEntityEditor extends JPanel {
 				return;
 			}
 		}
-
-
-
-
 	}
 
 

@@ -27,6 +27,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -41,6 +42,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
@@ -211,7 +213,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * e.getWheelRotation());
+			adjustZoom(e.getWheelRotation());
+		}
+
+
+		public void adjustZoom(int delta) {
+			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
 			newZoom /= 100f;
 			setZoom(newZoom);
 		}
@@ -284,6 +291,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private Point cornerA = null;
 		private Point cornerB = null;
 		private final SecurityLevel securityLevel;
+		private boolean selectsEntities = true;
+		private boolean selectsTiles = true;
 
 
 		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
@@ -293,6 +302,49 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.world = view.getWorld();
 			this.securityLevel = securityLevel;
 			this.viewControl = viewControl;
+		}
+
+
+		/**Sets whether this Selector can select entities.*/
+		public Selector setSelectsEntities(boolean value) {
+			selectsEntities = value;
+			view.setSelectedEntities(null);
+			return this;
+		}
+
+
+		/**Returns whether this tool can select entities.  Default value is true.*/
+		public boolean getSelectsEntities() {
+			return selectsEntities;
+		}
+
+
+		/**Sets whether this Selector can select tiles.*/
+		public Selector setSelectsTiles(boolean value) {
+			selectsTiles = value;
+			view.setSelectedTiles(null);
+			return this;
+		}
+
+
+		/**Returns whether this tool can select tiles.  Default value is true.*/
+		public boolean getSelectsTiles() {
+			return selectsTiles;
+		}
+
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			this.viewControl.mouseWheelMoved(e);
+		}
+
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			if (view.getSelectedEntities() == null || view.getSelectedEntities().length == 0)
+				return;
+			System.out.println(e.getKeyChar());
+			e.consume();
 		}
 
 
@@ -314,8 +366,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// The view should start rendering the lasso.
 				view.setRenderingTool(this);
 				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3) {
+			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
 				this.viewControl.mousePressed(e);
+				return;
 			}
 		}
 
@@ -323,7 +376,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			// If drawing isn't happening, just return.
-			if (cornerA == null) {
+			if (cornerA == null && this.viewControl != null) {
 				this.viewControl.mouseDragged(e);
 				return;
 			}
@@ -361,8 +414,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
+
+				// If only one tile is selected, and one entity is selected, and
+				// it is the entity that would be selected by this lasso, then
+				// this is a double-click. Bring up the editor for the selected
+				// entity.
 				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
-					// Clicked on an entity. Open its editor.
 					view.setSelectedEntities(new Entity[] { se.get(0) });
 					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor", new Undoable.Listener() {
 
@@ -372,21 +429,29 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 						}
 					});
 					view.setSelectedTiles(null);
-				} else if (se.size() > 0) {
-					// One or more unselected entities are lassoed. Select them
-					// all.
+				}
+				// If some number of entities are lassoed, select them (if
+				// allowed).
+				else if (se.size() > 0 && selectsEntities) {
 					view.setSelectedEntities(se.toArray(new Entity[se.size()]));
 					view.setSelectedTiles(null);
-				} else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
-					// Clicked on an unselected tile. Clear the tile selection.
+				}
+				// If an unselected tile is lassoed, but a selection exists,
+				// this counts to clear the selections.
+				else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
 					view.setSelectedTiles(null);
 					view.setSelectedEntities(null);
-				} else if (st.size() > 0) {
-					// More than one tile lassoed. Select them all.
+				}
+				// If one or more tiles is lassoed, and tile select is allowed,
+				// select them.
+				else if (st.size() > 0 && selectsTiles) {
+
 					view.setSelectedTiles(st.toArray(new Tile[st.size()]));
 					view.setSelectedEntities(null);
-				} else {
-					// Neither tile nor entity selected.
+				}
+				// In all other cases, neither tile nor entity may be selected.
+				// Clear the selections.
+				else {
 					view.setSelectedTiles(null);
 					view.setSelectedEntities(null);
 				}
@@ -398,8 +463,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// started.
 				cornerB = cornerA = null;
 				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3) {
+			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
 				viewControl.mouseReleased(e);
+				return;
 			}
 
 		}
@@ -615,11 +681,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseClicked(MouseEvent e) {
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
 			EntityType type = selection.entityType;
-			assert (type != null);
-			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
+			if (type == null)
+				return;
+			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x,
+					(int) gamePos.y);
 			world.addEntity(actor);
 
-			Undoable<Entity> u = new Undoable<Entity>(null, actor) {
+			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, actor) {
 
 				@Override
 				protected boolean validateUndo() {
@@ -635,6 +703,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void undoValidated() {
+					view.setSelectedEntities(null);
 					world.removeEntity(actor);
 
 				}
@@ -642,17 +711,24 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void redoValidated() {
+					view.setSelectedEntities(new Entity[] { actor });
 					world.addEntity(actor);
 				}
-
-
 			};
+			pushUndo(world, placeUndoable);
 
 			view.setSelectedEntities(new Entity[] { actor });
-			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", null);
+			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", new Undoable.Listener() {
+
+				@Override
+				public void pushUndoable(Undoable<?> u) {
+					// Do nothing. Don't push the undoable item. This is
+					// because the actual undoable was the adding of the
+					// entity to the World, not the modification of the
+					// entity.
+				}
+			});
+
 		}
-
 	}
-
-
 }

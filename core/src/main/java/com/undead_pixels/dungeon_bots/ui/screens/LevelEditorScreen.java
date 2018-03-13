@@ -3,24 +3,18 @@
  */
 package com.undead_pixels.dungeon_bots.ui.screens;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
+
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -28,13 +22,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -55,20 +49,18 @@ import org.jdesktop.swingx.VerticalLayout;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
-import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.JCodeEditorPaneController;
-import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
-import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /**
  * The screen for the level editor
@@ -110,8 +102,12 @@ public final class LevelEditorScreen extends Screen {
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
-		result.add(new EntityType("bot", UIBuilder.getImage("bot_entity.gif")));
-		result.add(new EntityType("goal", UIBuilder.getImage("goal_entity.gif")));
+		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1)));
+		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3)));
+		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4)));
+		result.add(new EntityType("chest", AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0)));
+		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
+		result.add(new EntityType("door", AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0)));
 		return result;
 	}
 
@@ -198,7 +194,6 @@ public final class LevelEditorScreen extends Screen {
 				JSlider sldr = (JSlider) e.getSource();
 				if (sldr.getName().equals("zoomSlider")) {
 					_ViewControl.setZoomAsPercentage((float) (sldr.getValue()) / sldr.getMaximum());
-
 				}
 			}
 		}
@@ -283,18 +278,66 @@ public final class LevelEditorScreen extends Screen {
 					ex.printStackTrace();
 				}
 				return;
-			case "WORLD_SCRIPTS":
-				
-				//JComponent scriptEditor = new JCodeEditorPaneController(world, SecurityLevel.AUTHOR).create();
+			case "Switch to Play":
+				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, true));
+				return;
 
-				//JDialog dialog = new JDialog(LevelEditorScreen.this, "Level Scripts", Dialog.ModalityType.MODELESS);
-				//dialog.add(scriptEditor);
-				//dialog.pack();
-				//dialog.setVisible(true);
-				
-				//return;
+			case "WORLD_SCRIPTS":
+				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
+
+					@Override
+					public void pushUndoable(Undoable<?> u) {
+						Tool.pushUndo(world, u);
+					}
+				});
+				return;
+			case "delete":
+				Entity[] selectedEntities = _View.getSelectedEntities();
+				if (selectedEntities == null || selectedEntities.length == 0)
+					return;
+				for (Entity entity : selectedEntities)
+					world.removeEntity(entity);
+				_View.setSelectedEntities(null);
+				Undoable<Entity[]> u = new Undoable<Entity[]>(selectedEntities, null) {
+
+					@Override
+					protected void undoValidated() {
+						for (Entity e : before)
+							world.addEntity(e);
+						_View.setSelectedEntities(before);
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						for (Entity e : before)
+							world.removeEntity(e);
+						_View.setSelectedEntities(null);
+
+					}
+
+
+					@Override
+					protected boolean validateUndo() {
+						for (Entity e : before)
+							if (world.containsEntity(e))
+								return false;
+						return true;
+					}
+
+
+					@Override
+					protected boolean validateRedo() {
+						for (Entity e : before)
+							if (!world.containsEntity(e))
+								return false;
+						return true;
+					}
+				};
+				Tool.pushUndo(world, u);
+				return;
 			default:
-				System.out.println("Have not implemented the command: " + e.getActionCommand());
+				System.out.println("LevelEditorScreen has not implemented the command: " + e.getActionCommand());
 				return;
 			}
 		}
@@ -401,8 +444,10 @@ public final class LevelEditorScreen extends Screen {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			if (_ViewControl != null)
-				_ViewControl.mouseWheelMoved(e);
+			if (selections.tool != null)
+				selections.tool.mouseWheelMoved(e);
+			;
+			/* if (_ViewControl != null) _ViewControl.mouseWheelMoved(e); */
 		}
 
 	}
@@ -451,20 +496,31 @@ public final class LevelEditorScreen extends Screen {
 
 
 	/** Build the actual GUI for the Level Editor. */
-	@SuppressWarnings("deprecation")
-	@Override
 
+	@SuppressWarnings("serial")
+	@Override
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
-		_View.addMouseListener(getController());
-		_View.addMouseMotionListener(getController());
+		_ViewControl = new Tool.ViewControl(_View);
+		getController().registerSignals(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
-		_ViewControl = new Tool.ViewControl(_View);
-		_View.addMouseWheelListener(_ViewControl);
+
+		// Make the world responsive to "delete" key.
+		InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap actionMap = this.getRootPane().getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		actionMap.put("delete", new AbstractAction() {
+
+			// Jeez this is hackish
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getController().actionPerformed(new ActionEvent(e.getSource(), e.getID(), "delete"));
+			}
+		});
 
 
 		// Create the tile palette GUI.
@@ -503,7 +559,8 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the lists.
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl));
+		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl)
+				.setSelectsEntities(true).setSelectsTiles(true));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections, _ViewControl));
 		tm.addElement(
 				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
@@ -528,23 +585,25 @@ public final class LevelEditorScreen extends Screen {
 
 		// Create the file menu
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
-		fileMenu.addSeparator();		
-		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
-				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Open LevelPack",
-				KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK), KeyEvent.VK_O, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Open Stand-Alone", getController()));
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_I, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_E, getController()));
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
+				.text("Save to LevelPack").action("Save to LevelPack", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
+				.text("Open LevelPack").action("Open LevelPack", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().text("Save to Stand-Alone")
+				.action("Save to Stand-Alone", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
+				.create());
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Exit to Main",
-				KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK), KeyEvent.VK_X, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_Q, getController()));
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_I, ActionEvent.CTRL_MASK).mnemonic('i')
+				.text("Import").action("Import", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_E, ActionEvent.CTRL_MASK).mnemonic('e')
+				.text("Export").action("Export", getController()).create());
+		fileMenu.addSeparator();
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
+				.text("Exit to Main").action("Exit to Main", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
+				.text("Quit").action("Quit", getController()).create());
 
 		// Create the world menu.
 		JMenu worldMenu = UIBuilder.buildMenu().mnemonic('w').text("World").prefWidth(60).create();
@@ -562,15 +621,16 @@ public final class LevelEditorScreen extends Screen {
 
 		// Create the publish menu.
 		JMenu publishMenu = UIBuilder.buildMenu().mnemonic('p').text("Publish").prefWidth(60).create();
-		publishMenu.add(UIBuilder.makeMenuItem("Choose Stats", null, KeyEvent.VK_C, getController()));
-		publishMenu.add(UIBuilder.makeMenuItem("Audience", KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_A, getController()));
-		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_U, getController()));
+		publishMenu.add(UIBuilder.buildMenuItem().mnemonic('c').text("Choose Stats")
+				.action("Choose Stats", getController()).create());
+		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_A, ActionEvent.CTRL_MASK).mnemonic('a')
+				.text("Audience").action("Audience", getController()).create());
+		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
+				.text("Upload").action("Upload", getController()).create());
 
 		// Create the help menu.
 		JMenu helpMenu = UIBuilder.buildMenu().mnemonic('h').text("Help").prefWidth(60).create();
-		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
+		helpMenu.add(UIBuilder.buildMenuItem().text("About").action("About", getController()).create());
 
 		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
@@ -579,11 +639,14 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(publishMenu);
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
+		// TODO: is sticking a button in a menu bar apt to cause compatibility
+		// issues?
+		menuBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
 		pane.add(_View, BorderLayout.CENTER);
-		menuBar.setPreferredSize(new Dimension(-1,30));
+		menuBar.setPreferredSize(new Dimension(-1, 30));
 		this.setJMenuBar(menuBar);
 	}
 

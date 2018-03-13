@@ -17,7 +17,7 @@ import org.luaj.vm2.LuaValue;
  * some kind of github issue
  */
 public class Tile extends SpriteEntity {
-	
+
 	/**
 	 * 
 	 */
@@ -32,11 +32,12 @@ public class Tile extends SpriteEntity {
 	 * The type of this tile
 	 */
 	private TileType type;
-	
+
 	/**
 	 * The entity that is currently occupying this Tile
 	 */
 	private Entity occupiedBy = null;
+
 
 	/**
 	 * @param world		The world that contains this tile
@@ -45,22 +46,23 @@ public class Tile extends SpriteEntity {
 	 * @param y			Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType == null ? "tile" : tileType.getName(),
-				tileType == null ? null : tileType.getTexture(),
-				new UserScriptCollection(),
-				x, y);
+		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(),
+				new UserScriptCollection(), x, y);
 		this.type = tileType;
 	}
+
 
 	@Override
 	public float getZ() {
 		return 0;
 	}
 
+
 	@Override
 	public boolean isSolid() {
 		return type != null && type.isSolid();
 	}
+
 
 	@Override
 	public LuaValue getLuaValue() {
@@ -69,12 +71,14 @@ public class Tile extends SpriteEntity {
 		return this.luaValue;
 	}
 
+
 	/**
 	 * @param tileType The new type of this Tile
 	 */
 	public void setType(TileType tileType) {
 		this.type = tileType;
 	}
+
 
 	/**
 	 * Returns the TileType (which contains image display information and other
@@ -86,6 +90,7 @@ public class Tile extends SpriteEntity {
 		return type;
 	}
 
+
 	/**
 	 * Updates the texture of the tile based on its neighbors.
 	 * 
@@ -95,12 +100,13 @@ public class Tile extends SpriteEntity {
 	 * @param d
 	 */
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
-		if(type == null) {
+		if (type == null) {
 			this.sprite.setTexture(null);
 		} else {
 			this.sprite.setTexture(type.getTexture(l, r, u, d));
 		}
 	}
+
 
 	/**
 	 * @param e	The entity now occupying this tile
@@ -108,14 +114,16 @@ public class Tile extends SpriteEntity {
 	public void setOccupiedBy(Entity e) {
 		occupiedBy = e;
 	}
-	
+
+
 	/**
-	 * @return	The entity currently occupying this tile
+	 * @return	The entity currently occupying this tile.  If there is no such entity, returns null.
 	 */
 	public Entity getOccupiedBy() {
 		return occupiedBy;
 	}
-	
+
+
 	/**
 	 * @return	True if something is occupying this tile
 	 */
