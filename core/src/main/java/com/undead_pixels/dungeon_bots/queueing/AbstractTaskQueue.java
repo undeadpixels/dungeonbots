@@ -39,6 +39,18 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 */
 	protected O owner;
 	
+	/**
+	 * The maximum allowable number of elements in this queue.
+	 * 
+	 * Will throw an exception when trying to queue more.
+	 */
+	protected int maxSize = 1024;
+	
+	/**
+	 * The maximum allowable number of elements to attempt to dequeue before giving up.
+	 */
+	protected int maxAttempts = 1024;
+	
 
 	/**
 	 * Constructor
@@ -70,6 +82,13 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	public synchronized int size() {
 		return (current != null ? 1 : 0) + queue.size();
 	}
+	
+	/**
+	 * @return	The maximum allowable size of this queue
+	 */
+	public synchronized int maxSize() {
+		return maxSize;
+	}
 
 	/**
 	 * Adds a task to the queue
@@ -88,7 +107,12 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 	 */
 	public synchronized <A extends T> void enqueue(A t, CoalescingGroup<A> group) {
 		if(group == null) {
-			queue.add(t);
+			if(queue.size() >= maxSize) {
+				// panic; the queue is too long
+				throw new IndexOutOfBoundsException("Too many elements already in queue");
+			} else {
+				queue.add(t);
+			}
 		} else {
 			T otherT = coalescingGroupMap.get(group);
 
@@ -97,7 +121,12 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 				coalescingGroupMap.put(group, t);
 				invCoalescingGroupMap.put(t, group);
 
-				queue.add(t);
+				if(queue.size() >= maxSize) {
+					// panic; the queue is too long
+					throw new IndexOutOfBoundsException("Too many elements already in queue");
+				} else {
+					queue.add(t);
+				}
 			} else {
 				// try to coalesce now
 				try {
@@ -151,7 +180,14 @@ public abstract class AbstractTaskQueue<O, T extends Taskable<O>> {
 			return false;
 		}
 		
+		int attempts = 0;
 		while(!queue.isEmpty()) {
+			attempts++;
+			
+			if(attempts >= maxAttempts) {
+				return false;
+			}
+			
 			T t = queue.removeFirst();
 			CoalescingGroup<? extends T> group = invCoalescingGroupMap.remove(t);
 			coalescingGroupMap.remove(group);
