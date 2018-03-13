@@ -156,6 +156,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
+
 	/**
 	 * Simple constructor
 	 */
@@ -163,6 +164,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this(null, "world");
 		tileTypesCollection = new TileTypes();
 	}
+
 
 	/**
 	 * Constructs this world from a lua script
@@ -175,6 +177,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		tileTypesCollection = new TileTypes();
 	}
 
+
 	/**
 	 * Constructs this world with a name
 	 * 
@@ -185,6 +188,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this(null, name);
 		tileTypesCollection = new TileTypes();
 	}
+
 
 	/**
 	 * Constructs a world
@@ -203,7 +207,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		}
-		
+
 		playerTeamScripts.add(new UserScript("init", "--TODO"));
 
 		mapSandbox = new LuaSandbox(this);
@@ -224,6 +228,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
 
+
 	/**
 	 * Perform some initializations that need to be done upon deserialization
 	 */
@@ -242,6 +247,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	// =============================================
 	// ====== World BINDABLE METHODS
 	// =============================================
@@ -257,6 +263,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return LuaProxyFactory.getLuaValue(w);
 	}
 
+
 	/**
 	 * Instantly causes win to occur.
 	 */
@@ -264,6 +271,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void win() {
 		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
 	}
+
 
 	@Deprecated
 	public void setPlayer(Player p) {
@@ -279,6 +287,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		p.resetInventory();
 	}
 
+
 	/**
 	 * Gets the object of class Player that exists in the Lua sandbox and sets
 	 * the World's player reference to that.
@@ -291,6 +300,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
 		setPlayer(p);
 	}
+
 
 	// =============================================
 	// ====== World GAME LOOP
@@ -327,6 +337,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	}
 
+
 	/**
 	 * Render this world and all children
 	 * 
@@ -361,18 +372,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 	}
-	
+
+
 	public void beginPlay() {
-		for(Entity e: entities) {
+		for (Entity e : entities) {
 			e.sandboxInit();
 		}
 	}
+
 
 	@Bind
 	public void addEntity(LuaValue v) {
 		Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
 		addEntity(e);
 	}
+
 
 	/**
 	 * Adds an entity
@@ -389,11 +403,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 	}
-	
-	
-	public void removeEntity(Entity e){
-		throw new RuntimeException("Not implemented yet.");
+
+
+	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if 
+	 * it was never in the world to begin with.*/
+	public boolean removeEntity(Entity e) {
+		if (!entities.remove(e)) return false;
+		if (e.isSolid()) {
+			Tile tile = this.getTile(e.getPosition());
+			if (tile != null && tile.getOccupiedBy() == e)
+				tile.setOccupiedBy(null);
+		}
+		return true;
 	}
+
 
 	/**
 	 * Place a bot with a given name at (x,y)
@@ -417,6 +440,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return b;
 	}
 
+
 	/**
 	 * Place a bot with a given name at (x,y)
 	 *
@@ -428,6 +452,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		makeBot("bot", x.tofloat(), y.tofloat());
 	}
 
+
 	/**
 	 * Set the size of the world
 	 * 
@@ -438,6 +463,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setSize(LuaValue w, LuaValue h) {
 		setSize(w.checkint(), h.checkint());
 	}
+
 
 	/**
 	 * Sets this world's size Calls to set tiles outside of the world's size (or
@@ -479,6 +505,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	/**
 	 * @return The size of this world, in tiles
 	 */
@@ -488,6 +515,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		return new Point2D.Float(tiles.length, tiles[0].length);
 	}
+
 
 	/**
 	 * Update tile sprites, if they're stale
@@ -517,6 +545,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	/**
 	 *
 	 * @param x
@@ -528,6 +557,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
 		setTile(x.checkint() - 1, y.checkint() - 1, tileType);
 	}
+
 
 	/**
 	 *
@@ -544,6 +574,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	@Bind(SecurityLevel.DEFAULT)
 	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
 		final int x = lx.checkint() - 1;
@@ -552,6 +583,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final int h = tiles[0].length;
 		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
 	}
+
 
 	/**
 	 * Sets a specific tile
@@ -576,6 +608,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		tiles[x][y].setType(tileType);
 	}
 
+
 	/**
 	 * Returns the tile at the given tile location. If tiles reference is null,
 	 * or the (x,y) is outside the world boundaries, returns null.
@@ -588,6 +621,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Tile getTileUnderLocation(double x, double y) {
 		return getTileUnderLocation((int) x, (int) y);
 	}
+
 
 	/**
 	 * Returns the tile at the given tile location. If tiles reference is null,
@@ -602,6 +636,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Tile getTileUnderLocation(float x, float y) {
 		return getTileUnderLocation((int) x, (int) y);
 	}
+
 
 	/**
 	 * Returns the tile at the given tile location. If tiles reference is null,
@@ -623,6 +658,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return tiles[x][y];
 	}
 
+
 	/**
 	 * @param x
 	 * @param y
@@ -632,6 +668,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return getTileUnderLocation((int) Math.floor(x), (int) Math.floor(y));
 	}
 
+
 	/**
 	 * @param pos
 	 * @return The Tile at a given position
@@ -639,6 +676,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Tile getTile(Point2D.Float pos) {
 		return getTile(pos.x, pos.y);
 	}
+
 
 	/**
 	 * Returns all tiles that are encompassed by, or intersect, the given
@@ -661,6 +699,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		return result;
 	}
+
 
 	/**
 	 * All the entities are assigned to a layer during the render loop,
@@ -694,10 +733,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return ret;
 	}
 
+
 	@Override
 	public String getName() {
 		return name;
 	}
+
 
 	@Override
 	public LuaValue getLuaValue() {
@@ -707,10 +748,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return this.luaValue;
 	}
 
+
 	@Override
 	public int getId() {
 		return this.hashCode();
 	}
+
 
 	/**
 	 * Generates an id
@@ -720,6 +763,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public int makeID() {
 		return idCounter++;
 	}
+
 
 	/**
 	 * Asks if an entity is allowed to move to a given tile. Locks that tile to
@@ -759,6 +803,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	}
 
+
 	/**
 	 * Used to release the lock that this entity previously owned on a tile
 	 * 
@@ -773,6 +818,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		Tile tile = getTile(x, y);
 		tile.setOccupiedBy(null);
 	}
+
 
 	/**
 	 * Gets what entity is occupying a given tile, or null if there is no such
@@ -806,10 +852,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
-	public boolean containsEntity(Entity e){
+
+	public boolean containsEntity(Entity e) {
 		return entities.contains(e);
 	}
-	
+
+
 	/**
 	 * Gets all Actors intersecting the given rectangle.
 	 *
@@ -826,11 +874,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			Point2D.Float pt = e.getPosition();
 			Rectangle2D.Float rectEntity = new Rectangle2D.Float(pt.x, pt.y, 1f, 1f);
 			if (rectEntity.intersects(rect))
-				result.add((Actor)e);
+				result.add((Actor) e);
 		}
 
 		return result;
 	}
+
 
 	/**
 	 * For people who don't know how to use floor()
@@ -843,6 +892,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return new Point((int) x, (int) y);
 	}
 
+
 	@Override
 	/**
 	 * The returns the sandbox associated with calls to the world. The init
@@ -851,6 +901,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public LuaSandbox getSandbox() {
 		return this.mapSandbox;
 	}
+
 
 	/**
 	 * @return The types of tiles available
@@ -861,6 +912,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		return tileTypesCollection;
 	}
+
 
 	/**
 	 * Resets this world
@@ -879,6 +931,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	/**
 	 *
 	 * @return The state of this World
@@ -895,6 +948,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return state;
 	}
 
+
 	/**
 	 *
 	 * @return
@@ -907,10 +961,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return String.format(script, createInit(), createUpdate());
 	}
 
+
 	@Deprecated
 	private String put(String... a) {
 		return Stream.of(a).reduce("", (c, d) -> c + "\n" + d);
 	}
+
 
 	@Deprecated
 	private String createUpdate() {
@@ -920,6 +976,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				"\t\t\tworld.win()", "\t\tend"));
 		return ans.toString();
 	}
+
 
 	@Deprecated
 	private String createInit() {
@@ -941,6 +998,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return ans.toString();
 	}
 
+
 	/**
 	 *
 	 * @return
@@ -948,6 +1006,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Integer[] goal() {
 		return goalPosition;
 	}
+
 
 	/**
 	 *
@@ -961,6 +1020,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		setGoal(lx.checkint() - 1, ly.checkint() - 1);
 	}
 
+
 	/**
 	 *
 	 * @return
@@ -972,6 +1032,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0] + 1), LuaValue.valueOf(goal[1] + 1) });
 	}
 
+
 	/**
 	 *
 	 * @return
@@ -979,6 +1040,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Integer[] getGoalPosition() {
 		return goalPosition;
 	}
+
 
 	/**
 	 *
@@ -994,12 +1056,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	}
 
+
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Creates and displays an Alert window.")
 	public void alert(@Doc("The Alert message") LuaValue alert,
 					  @Doc("The Title of the Alert Window") LuaValue title) {
 		showAlert(alert.checkjstring(), title.checkjstring());
 	}
+
 
 	/**
 	 *
@@ -1011,6 +1075,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		t.start();
 	}
 
+
 	/**
 	 * Opens a browser to a given url
 	 * 
@@ -1018,37 +1083,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            A url to open
 	 */
 	@Bind(SecurityLevel.AUTHOR)
-	@Doc("Opens a Browser Window using the argument URL string")
-	public void openBrowser(@Doc("The desired URL") LuaValue lurl) {
-		// TODO - now that we're doing url security, should we just change this to "NONE" security level?
+	public void openBrowser(LuaValue lurl) {
+		// TODO - now that we're doing url security, should we just change this
+		// to "NONE" security level?
 		try {
 			String urlString = lurl.checkjstring();
 			String urlNoProtocol = urlString.replace("http://", "");
 			urlNoProtocol = urlNoProtocol.replace("https://", "");
-			
-			String[] allowedURLs = {
-					"youtube.com",
-					"dungeonbots.herokuapp.com",
-					"en.wikipedia.org",
-					"stackoverflow.com"
-			};
-			
-			for(String allow : allowedURLs) {
-				if(urlNoProtocol.startsWith(allow+"/") ||
-						urlNoProtocol.startsWith("www."+allow+"/") ||
-						urlNoProtocol.equals(allow) ||
-						urlNoProtocol.equals("www."+allow)) {
+
+			String[] allowedURLs = { "youtube.com", "dungeonbots.herokuapp.com", "en.wikipedia.org",
+					"stackoverflow.com" };
+
+			for (String allow : allowedURLs) {
+				if (urlNoProtocol.startsWith(allow + "/") || urlNoProtocol.startsWith("www." + allow + "/")
+						|| urlNoProtocol.equals(allow) || urlNoProtocol.equals("www." + allow)) {
 					java.awt.Desktop.getDesktop().browse(new URI(urlString));
 					return;
 				}
 			}
-			
+
 			throw new Exception("URL not allowed: " + urlNoProtocol);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			throw new LuaError("Invalid URL!");
 		}
 	}
+
 
 	/**
 	 * Shows a popup box'
@@ -1060,6 +1120,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void showAlert(LuaValue alert, LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
+
 
 	/**
 	 * Try to use an item
@@ -1096,6 +1157,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return false;
 	}
 
+
 	/**
 	 * Deserialization helper
 	 * 
@@ -1109,12 +1171,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.serialized = false;
 	}
 
+
 	/**
 	 * @return The scripts specifically associated with this level
 	 */
 	public UserScriptCollection getScripts() {
 		return levelScripts;
 	}
+
 
 	/**
 	 * @return The magical whitelist governing all lua bindings to java code
@@ -1123,12 +1187,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return sharedWhitelist;
 	}
 
+
 	public UserScriptCollection getLevelScripts() {
 		return levelScripts;
 	}
 
+
 	public UserScriptCollection getPlayerTeamScripts() {
 		return playerTeamScripts;
+	}
+
+
+	/**Sets the world's collection of level scripts as indicated.*/
+	public void setScripts(UserScript[] newScripts) {
+		this.levelScripts.clear();
+		for (UserScript is : newScripts)
+			this.levelScripts.add(is);
 	}
 
 }

@@ -13,38 +13,57 @@ import java.util.Iterator;
  *
  */
 public class UserScriptCollection implements Iterable<UserScript>, Serializable {
-	
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	private HashMap<String, UserScript> storage = new HashMap<>();
+
+	private HashMap<String, UserScript> storage;
+
+
+	public UserScriptCollection() {
+		storage = new HashMap<String, UserScript>();
+	}
+
+
+	public UserScriptCollection(UserScript[] scripts) {
+		this();
+		for (UserScript u : scripts)
+			add(u.copy());
+	}
+
 
 	public void add(UserScript script) {
 		storage.put(script.name, script);
 		// TODO - this doesn't handle the editing of names
 	}
-	
+
+
 	public UserScript get(String name) {
 		return storage.getOrDefault(name, null);
 	}
+
+
 	public void remove(String name) {
 		storage.remove(name);
 	}
+
 
 	public void clear() {
 		storage.clear();
 	}
 
+
 	@Override
 	public Iterator<UserScript> iterator() {
 		return storage.values().iterator();
 	}
-	
+
+
 	/**Returns an array of all contained UserScripts, sorted by name.*/
-	public UserScript[] toArray(){
-		UserScript[] result =  storage.values().toArray(new UserScript[storage.values().size()]);
+	public UserScript[] toArray() {
+		UserScript[] result = storage.values().toArray(new UserScript[storage.values().size()]);
 		Arrays.sort(result);
 		return result;
 	}

@@ -93,8 +93,8 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	/** Returns a copy of this UserScript. */
 	public final UserScript copy() {
 		UserScript ret = new UserScript();
-		ret.name = this.name;
-		ret.code = this.code;
+		ret.name = new String(this.name);
+		ret.code = new String(this.code);
 		ret.level = this.level;
 		ret.locks = new IntegerSet.Interval[this.locks.length];
 		for (int i = 0; i < this.locks.length; i++)
