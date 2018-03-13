@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.math;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 
@@ -9,6 +10,11 @@ import java.util.Iterator;
  * is includes or not.
  */
 public class IntegerSet extends IntervalSet<Integer> implements Iterable<IntegerSet.Interval> {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public boolean areConsecutive(Integer a, Integer b) {
@@ -45,7 +51,11 @@ public class IntegerSet extends IntervalSet<Integer> implements Iterable<Integer
 	 * A simple data structure representing an interval from one int to another,
 	 * inclusive at both ends.
 	 */
-	public static final class Interval {
+	public static final class Interval implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public final int start;
 		public final int end;
 

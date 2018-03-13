@@ -25,7 +25,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
  * When we implement the onStart script, the player's onBotNear script, etc., we
  * will inherit from this and add to the entity's collection of scripts.
  */
-public class UserScript implements Serializable {
+public class UserScript implements Serializable, Comparable<UserScript> {
 	
 	/**
 	 * 
@@ -54,11 +54,8 @@ public class UserScript implements Serializable {
 		this.locks = new IntegerSet.Interval[0];
 	}
 
-	protected UserScript(String name) {
-		this.name = name;
-		this.code = "";
-		this.level = SecurityLevel.DEFAULT;
-		this.locks = new IntegerSet.Interval[0];
+	public UserScript(String name) {
+		this(name, "");
 	}
 
 	public UserScript(String name, String code) {
@@ -104,6 +101,11 @@ public class UserScript implements Serializable {
 			ret.locks[i] = new IntegerSet.Interval(this.locks[i].start, this.locks[i].end);
 		return ret;
 	}
+	
+	@Override
+	public int compareTo(UserScript other){
+		return name.compareTo(other.name);
+	}
 
 	@Deprecated
 	/**
@@ -139,6 +141,21 @@ public class UserScript implements Serializable {
 			list.add(i.copy());
 		}
 		this.locks = list.toArray(new IntegerSet.Interval[list.size()]);
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		if (other==null) return false;
+		if (!(other instanceof UserScript)) return false;
+		UserScript u = (UserScript)other;
+		if (!u.name.equals(name)) return false;
+		if (!u.code.equals(code)) return false;
+		return true;
+	}
+	
+	@Override
+	public int hashCode(){
+		return name.hashCode();
 	}
 
 }

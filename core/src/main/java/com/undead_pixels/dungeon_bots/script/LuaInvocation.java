@@ -79,6 +79,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @param script
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
+		if(script != null) {
+			System.out.println(script.replaceAll("^", " > "));
+		}
 		this.environment = env;
 		this.args = new LuaValue[] {};
 		this.scriptStatus = ScriptStatus.READY;
@@ -129,7 +132,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			environment.getGlobals().load(scriptInterrupt);
 			LuaValue setHook = environment.getGlobals().get("debug").get("sethook");
 			environment.getGlobals().set("debug", LuaValue.NIL);
-			
 			for(LuaValue chunk : functions) {
 				LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
 				setHook.invoke(LuaValue.varargsOf(new LuaValue[]{

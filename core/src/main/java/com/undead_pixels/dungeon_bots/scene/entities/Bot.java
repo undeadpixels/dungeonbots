@@ -31,7 +31,7 @@ public class Bot extends RpgActor {
 	 * @param name	The name of this player
 	 */
 	public Bot(World world, String name) {
-		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 7, 1));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 7, 1), world.getPlayerTeamScripts());
 		steps = 0;
 		bumps = 0;
 
