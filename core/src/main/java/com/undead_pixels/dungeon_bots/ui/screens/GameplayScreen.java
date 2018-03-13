@@ -26,6 +26,7 @@ import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -54,10 +55,28 @@ public class GameplayScreen extends Screen {
 	/** The JComponent that views the current world state. */
 	private WorldView view;
 	protected final World world;
+	protected final LevelPack levelPack;
+	private final boolean isSwitched;
 
 
+	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
+	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
+	@Deprecated
 	public GameplayScreen(World world) {
 		this.world = world;
+		this.levelPack = null;
+		this.isSwitched = false;
+	}
+
+
+	public GameplayScreen(LevelPack pack) {
+		this(pack, false);
+	}
+	
+	public GameplayScreen (LevelPack pack, boolean switched){
+		this.levelPack = pack;
+		this.world = levelPack.getCurrentWorld();
+		this.isSwitched = switched;
 	}
 
 
@@ -79,8 +98,8 @@ public class GameplayScreen extends Screen {
 		view.setOpaque(false);
 
 		// Set up the selection and view control.
-		((Controller) getController()).selector = new Tool.Selector(view, GameplayScreen.this,
-				SecurityLevel.DEFAULT, new Tool.ViewControl(view)).setSelectsEntities(true).setSelectsTiles(false);
+		((Controller) getController()).selector = new Tool.Selector(view, GameplayScreen.this, SecurityLevel.DEFAULT,
+				new Tool.ViewControl(view)).setSelectsEntities(true).setSelectsTiles(false);
 
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
@@ -149,10 +168,19 @@ public class GameplayScreen extends Screen {
 				.text("Statistics").action("Statistics", getController()).create());
 		feedbackMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
 				.text("Upload").action("Upload", getController()).create());
-		
+
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(feedbackMenu);
+		// TODO: adding the button cause compatibility issues for a JMenuBar?
+		SwingUtilities.invokeLater(new Runnable(){
+			@Override
+			public void run() {
+				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
+						.action("Switch to Editor", getController()).enabled(isSwitched).create();// TODO Auto-generated method stub
+				menuBar.add(switchBttn);
+			}			
+		});
 
 		// pane.add(menuBar, BorderLayout.PAGE_START);
 		pane.add(view, BorderLayout.CENTER);
@@ -199,11 +227,13 @@ public class GameplayScreen extends Screen {
 		public void mouseDragged(MouseEvent e) {
 			selector.mouseDragged(e);
 		}
-		
+
+
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			selector.mouseWheelMoved(e);
 		}
+
 
 		/** Called when the zoom slider's state changes. */
 		@Override
@@ -255,7 +285,9 @@ public class GameplayScreen extends Screen {
 					world.reset();
 				}
 				break;
-
+			case "Switch to Editor":
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+				return;
 			case "PLAY":
 			case "Play":
 				world.beginPlay();
@@ -269,7 +301,7 @@ public class GameplayScreen extends Screen {
 			case "Upload":
 
 			default:
-				System.out.println("Have not implemented the command: " + e.getActionCommand());
+				System.out.println("GameplayScreen has not implemented the command: " + e.getActionCommand());
 				break;
 			}
 		}

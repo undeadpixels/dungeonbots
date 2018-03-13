@@ -282,6 +282,10 @@ public final class LevelEditorScreen extends Screen {
 					ex.printStackTrace();
 				}
 				return;
+			case "Switch to Play":
+				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, true));
+				return;
+
 			case "WORLD_SCRIPTS":
 
 				// JComponent scriptEditor = new
@@ -296,7 +300,7 @@ public final class LevelEditorScreen extends Screen {
 
 				// return;
 			default:
-				System.out.println("Have not implemented the command: " + e.getActionCommand());
+				System.out.println("LevelEditorScreen has not implemented the command: " + e.getActionCommand());
 				return;
 			}
 		}
@@ -403,9 +407,10 @@ public final class LevelEditorScreen extends Screen {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			if (selections.tool != null) selections.tool.mouseWheelMoved(e);;
-			/*if (_ViewControl != null)
-				_ViewControl.mouseWheelMoved(e);*/
+			if (selections.tool != null)
+				selections.tool.mouseWheelMoved(e);
+			;
+			/* if (_ViewControl != null) _ViewControl.mouseWheelMoved(e); */
 		}
 
 	}
@@ -454,7 +459,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 	/** Build the actual GUI for the Level Editor. */
-	
+
 	@Override
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
@@ -462,10 +467,10 @@ public final class LevelEditorScreen extends Screen {
 		// Add the world at the bottom layer.
 		_View = new WorldView(world);
 		_ViewControl = new Tool.ViewControl(_View);
-		getController().registerSignals(_View);		
+		getController().registerSignals(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
-		
+
 		// Create the tile palette GUI.
 		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
 		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
@@ -529,22 +534,24 @@ public final class LevelEditorScreen extends Screen {
 		// Create the file menu
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Save to LevelPack",
-				KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK), KeyEvent.VK_S, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Open LevelPack",
-				KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK), KeyEvent.VK_O, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Save to Stand-Alone", getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Open Stand-Alone", getController()));
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
+				.text("Save to LevelPack").action("Save to LevelPack", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
+				.text("Open LevelPack").action("Open LevelPack", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().text("Save to Stand-Alone")
+				.action("Save to Stand-Alone", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
+				.create());
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Import", KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_I, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Export", KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_E, getController()));
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_I, ActionEvent.CTRL_MASK).mnemonic('i')
+				.text("Import").action("Import", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_E, ActionEvent.CTRL_MASK).mnemonic('e')
+				.text("Export").action("Export", getController()).create());
 		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.makeMenuItem("Exit to Main",
-				KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK), KeyEvent.VK_X, getController()));
-		fileMenu.add(UIBuilder.makeMenuItem("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_Q, getController()));
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
+				.text("Exit to Main").action("Exit to Main", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
+				.text("Quit").action("Quit", getController()).create());
 
 		// Create the world menu.
 		JMenu worldMenu = UIBuilder.buildMenu().mnemonic('w').text("World").prefWidth(60).create();
@@ -562,15 +569,16 @@ public final class LevelEditorScreen extends Screen {
 
 		// Create the publish menu.
 		JMenu publishMenu = UIBuilder.buildMenu().mnemonic('p').text("Publish").prefWidth(60).create();
-		publishMenu.add(UIBuilder.makeMenuItem("Choose Stats", null, KeyEvent.VK_C, getController()));
-		publishMenu.add(UIBuilder.makeMenuItem("Audience", KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_A, getController()));
-		publishMenu.add(UIBuilder.makeMenuItem("Upload", KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK),
-				KeyEvent.VK_U, getController()));
+		publishMenu.add(UIBuilder.buildMenuItem().mnemonic('c').text("Choose Stats")
+				.action("Choose Stats", getController()).create());
+		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_A, ActionEvent.CTRL_MASK).mnemonic('a')
+				.text("Audience").action("Audience", getController()).create());
+		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
+				.text("Upload").action("Upload", getController()).create());
 
 		// Create the help menu.
 		JMenu helpMenu = UIBuilder.buildMenu().mnemonic('h').text("Help").prefWidth(60).create();
-		helpMenu.add(UIBuilder.makeMenuItem("About", null, 0, getController()));
+		helpMenu.add(UIBuilder.buildMenuItem().text("About").action("About", getController()).create());
 
 		// Put together the main menu.
 		JMenuBar menuBar = new JMenuBar();
@@ -579,6 +587,9 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(publishMenu);
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
+		// TODO: is sticking a button in a menu bar apt to cause compatibility
+		// issues?
+		menuBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 
 		// Put together the entire page
 		pane.add(controlPanel, BorderLayout.LINE_START);
