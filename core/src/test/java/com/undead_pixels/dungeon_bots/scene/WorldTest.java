@@ -53,7 +53,7 @@ public class WorldTest {
 			LuaInvocation invocation = b.getSandbox().enqueueCodeBlock(luaCode);
 
 			Thread waitingThread = new Thread(() -> {
-				invocation.join(5000);
+				invocation.join(3000);
 			});
 			Thread wupdateThread = new Thread(() -> {
 				while(! finished[0]) {
@@ -73,8 +73,7 @@ public class WorldTest {
 
 			System.out.println("killing");
 			invocation.stop();
-
-			safeSleep(100);
+			System.out.println("done killing");
 
 			Assert.assertEquals(ScriptStatus.STOPPED, invocation.getStatus());
 			finished[0] = true;
@@ -83,7 +82,7 @@ public class WorldTest {
 		execution.start();
 		
 		long startTime = System.currentTimeMillis();
-		while(System.currentTimeMillis() - startTime < 5000) {
+		while(System.currentTimeMillis() - startTime < 3000) {
 			safeSleep(1);
 			
 			if(finished[0] == true) {

@@ -75,9 +75,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @param script
 	 */
 	LuaInvocation(LuaSandbox env, String script) {
-		//if(script != null) {
-		//	System.out.println(script.replaceAll("^", " > "));
-		//}
 		this.environment = env;
 		this.args = new LuaValue[] {};
 		this.scriptStatus = ScriptStatus.READY;
@@ -141,22 +138,22 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 					//setStatus(ScriptStatus.COMPLETE);
 					luaError = null;
 				} else {
-					setStatus(ans.arg(2).checkjstring().contains("ScriptInterruptException") ?
+					String errString = ans.arg(2).checkjstring();
+					setStatus(errString.contains("ScriptInterruptException") ?
 							ScriptStatus.STOPPED :
 							ScriptStatus.LUA_ERROR);
-					luaError = new LuaError(ans.arg(2).checkjstring());
-					synchronized (this) { this.notifyAll(); }
+					luaError = new LuaError(errString);
 					break;
 				}
 			}
 		}
-		catch(LuaError le ) {
-			setStatus(ScriptStatus.LUA_ERROR);
-			luaError = le;
-		}
 		catch (InstructionHook.ScriptInterruptException si) {
 			if(getStatus() != ScriptStatus.TIMEOUT)
 				setStatus(ScriptStatus.STOPPED);
+		}
+		catch(LuaError le ) {
+			setStatus(ScriptStatus.LUA_ERROR);
+			luaError = le;
 		}
 		catch (Throwable t) {
 			setStatus(ScriptStatus.ERROR);
@@ -207,8 +204,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return The invoked LuaScript
 	 */
 	public LuaInvocation join() {
-		// TODO: the Script should manage its thread internally, but expose a
-		// reset()
 		return join(-1);
 	}
 
@@ -218,24 +213,40 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * @return The invoked LuaScript
 	 */
 	public synchronized LuaInvocation join(long timeout) {
-		if(scriptStatus == ScriptStatus.READY || scriptStatus == ScriptStatus.RUNNING) {
+		if(scriptStatus != ScriptStatus.READY && scriptStatus != ScriptStatus.RUNNING) {
 			return this;
+		}
+		
+		if(timeout <= 0) {
+			timeout = 60000; // this is a long time...
 		}
 		
 		try {
 			if(scriptStatus == ScriptStatus.READY ||
 					scriptStatus == ScriptStatus.RUNNING) {
 				this.environment.update(0.0f);
-				if(timeout > 0) {
-					this.wait(timeout);
+				
+				long startTime = System.currentTimeMillis();
+				while(System.currentTimeMillis()-startTime < timeout) {
+					long waitTime = (System.currentTimeMillis()-startTime);
 					
-					if(scriptStatus == ScriptStatus.READY ||
-							scriptStatus ==  ScriptStatus.RUNNING) {
-						scriptInterrupt.kill();
-						scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
+					if(waitTime < 1) {
+						waitTime = 1;
 					}
-				} else {
-					this.wait();
+					
+					this.wait(timeout - waitTime);
+					
+					if(scriptStatus != ScriptStatus.READY ||
+							scriptStatus !=  ScriptStatus.RUNNING) {
+						
+						break; // script finished
+					}
+				}
+				
+				if(scriptStatus == ScriptStatus.READY ||
+						scriptStatus ==  ScriptStatus.RUNNING) {
+					scriptInterrupt.kill();
+					scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
 				}
 				
 			} else {
