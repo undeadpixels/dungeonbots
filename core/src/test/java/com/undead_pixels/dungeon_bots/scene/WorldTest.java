@@ -12,10 +12,6 @@ import org.junit.Assert;
 
 public class WorldTest {
 	
-	public static final void safeSleep(long t) {
-		try { Thread.sleep(t); } catch (InterruptedException e) { }
-	}
-	
 	@Test
 	public void simpleTest() {
 		World w = new World();
@@ -36,60 +32,5 @@ public class WorldTest {
 		Assert.assertEquals("Actor x at end", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at end", 0.0f, p.getPosition().y, .0001);
 	}
-	
-	@Test
-	public void luaKillLockupTest() throws InterruptedException {
-		String luaCode = "while true do player:right() player:left() end";
-		
-		boolean[] finished = {false};
-		int[] updates = {0};
-		
-		Thread execution = new Thread(() -> {
-			World w = new World();
-			w.setSize(16, 16);
-			w.getPlayer();
-			System.out.println("Built world");
-			Bot b = w.makeBot("testbot", 1, 1);
-			LuaInvocation invocation = b.getSandbox().enqueueCodeBlock(luaCode);
 
-			Thread waitingThread = new Thread(() -> {
-				invocation.join(3000);
-			});
-			Thread wupdateThread = new Thread(() -> {
-				while(! finished[0]) {
-					w.update(.21f);
-					updates[0]++;
-				}
-			});
-			
-			waitingThread.start();
-			wupdateThread.start();
-			
-			System.out.println("Waiting");
-			
-			while(updates[0] < 10) {
-				safeSleep(1);
-			}
-
-			System.out.println("killing");
-			invocation.stop();
-			System.out.println("done killing");
-
-			Assert.assertEquals(ScriptStatus.STOPPED, invocation.getStatus());
-			finished[0] = true;
-			System.out.println("finished");
-		});
-		execution.start();
-		
-		long startTime = System.currentTimeMillis();
-		while(System.currentTimeMillis() - startTime < 3000) {
-			safeSleep(1);
-			
-			if(finished[0] == true) {
-				return;
-			}
-		}
-		
-		throw new RuntimeException("Did not finish");
-	}
 }

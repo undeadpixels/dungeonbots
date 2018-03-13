@@ -148,8 +148,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			}
 		}
 		catch (InstructionHook.ScriptInterruptException si) {
-			if(getStatus() != ScriptStatus.TIMEOUT)
+			if(getStatus() != ScriptStatus.TIMEOUT) {
 				setStatus(ScriptStatus.STOPPED);
+			}
 		}
 		catch(LuaError le ) {
 			setStatus(ScriptStatus.LUA_ERROR);
@@ -176,9 +177,9 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public synchronized LuaInvocation stop() {
 		scriptInterrupt.kill();
+		this.notifyAll();
 		
-		try { this.wait(); }
-		catch (InterruptedException ie) { }
+		this.join();
 		return this;
 	}
 
@@ -236,7 +237,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 					
 					this.wait(timeout - waitTime);
 					
-					if(scriptStatus != ScriptStatus.READY ||
+					if(scriptStatus != ScriptStatus.READY &&
 							scriptStatus !=  ScriptStatus.RUNNING) {
 						
 						break; // script finished
@@ -246,6 +247,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				if(scriptStatus == ScriptStatus.READY ||
 						scriptStatus ==  ScriptStatus.RUNNING) {
 					scriptInterrupt.kill();
+					this.notifyAll();
 					scriptStatus = ScriptStatus.TIMEOUT; // ok to set directly as we already have it locked
 				}
 				
@@ -335,16 +337,16 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	/**
 	 * @param trigger
 	 */
-	public void safeSleep (long time) {
+	public synchronized void safeSleep (long time) {
 		if(scriptInterrupt.isKilled()) {
 			throw new HookFunction.ScriptInterruptException();
+		} else if(time <= 0) {
+			return;
 		} else {
-			synchronized(this) {
-				try {
-					this.wait(time);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			try {
+				this.wait(time);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
 		
