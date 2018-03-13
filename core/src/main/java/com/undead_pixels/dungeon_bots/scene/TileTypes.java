@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
@@ -20,6 +21,7 @@ import org.luaj.vm2.LuaValue;
 /**
  * A collection of TileType's
  */
+@Doc("A collection of Tile Types of the following varieties.\nfloor,grass,wall,pit,goal")
 public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable {
 	
 	/**
@@ -152,7 +154,8 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
-	public TileType getTile(LuaValue luaValue) {
+	@Doc("Returns a TileType of the specific type")
+	public TileType getTile(@Doc("A TileType of the specified Type") LuaValue luaValue) {
 		return getTile(luaValue.checkjstring());
 	}
 

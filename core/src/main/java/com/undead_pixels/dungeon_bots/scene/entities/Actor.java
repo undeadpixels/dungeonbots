@@ -22,6 +22,7 @@ import static org.luaj.vm2.LuaValue.*;
  * 
  * TODO - mark as abstract
  */
+@Doc("The base type for Bot and Player entities")
 public class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
@@ -253,7 +254,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	final public Actor up(Varargs amt) {
+	@Doc("Moves the player UP")
+	final public Actor up(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.UP, true);
 	}
 
@@ -264,7 +266,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	final public Actor down(Varargs amt) {
+	@Doc("Moves the player DOWN")
+	final public Actor down(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.DOWN, true);
 	}
 
@@ -275,7 +278,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	final public Actor left(Varargs amt) {
+	@Doc("Moves the player LEFT")
+	final public Actor left(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.LEFT, true);
 	}
 
@@ -286,7 +290,8 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return The invoked Actor
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	final public Actor right(Varargs amt) {
+	@Doc("Moves the player RIGHT")
+	final public Actor right(@Doc("The number of spaces to move") Varargs amt) {
 		return moveAmt(amt, Direction.RIGHT, true);
 	}
 
@@ -345,17 +350,18 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return A Varargs of the players position
 	 */
 	@Bind(SecurityLevel.DEFAULT)
+	@Doc("Get the position of the player as an x,y varargs pair")
 	final public Varargs position() {
 		Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
 	/**
-	 *
 	 * @param args
 	 */
 	@Bind(SecurityLevel.DEFAULT)
-	final public void say(Varargs args) {
+	@Doc("Prints the argument text above the player")
+	final public void say(@Doc("The text for the player to say") Varargs args) {
 		String text = "";
 		
 		for(int i = 2; i <= args.narg(); i++) {
@@ -375,15 +381,21 @@ public class Actor extends SpriteEntity implements HasInventory {
 		// TODO
 	}
 
-	@Bind(SecurityLevel.DEFAULT) @BindTo("inventory") @Override
+	@Override
+	@Bind(SecurityLevel.DEFAULT)
+	@BindTo("inventory")
+	@Doc("Get the Inventory of the Player")
 	public Inventory getInventory() {
 		return inventory;
 	}
 
-	@Bind(SecurityLevel.DEFAULT) public int steps() {
+	@Doc("Get the Number of Steps taken by the Actor")
+	@Bind(SecurityLevel.DEFAULT)
+	public int steps() {
 		return steps;
 	}
 
+	@Doc("Get the Number of Collisions made by the Actor with walls")
 	@Bind(SecurityLevel.DEFAULT) public int bumps() {
 		return bumps;
 	}
