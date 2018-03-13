@@ -51,7 +51,7 @@ public class LuaTestLockup {
 			World w = new World();
 			w.setSize(16, 16);
 			System.out.println("Built world");
-			Bot b = w.makeBot("testbot", 1, 1);
+			Bot b = w.makeBot("bot", 1, 1);
 			LuaInvocation invocation = b.getSandbox().enqueueCodeBlock(script);
 
 			Thread waitingThread = new Thread(() -> {
@@ -78,8 +78,8 @@ public class LuaTestLockup {
 			finished[0] = true;
 
 			Assert.assertNotNull(invocation.getError());
-			if(invocation.getError().getMessage().contains("Interrupt")) {
-				throw new RuntimeException("Error does not contain interrupt; instead = " + invocation.getError().getMessage());
+			if(!invocation.getError().getMessage().contains("ScriptInterruptException")) {
+				throw new RuntimeException("Error does not contain ScriptInterruptException;\ninstead = " + invocation.getError().getMessage());
 			}
 			Assert.assertEquals(ScriptStatus.STOPPED, invocation.getStatus());
 			
@@ -108,7 +108,10 @@ public class LuaTestLockup {
 
 	@Test
 	public void luaMoveKillLockupTest() throws InterruptedException {
-		runLockup("while true do player:right() player:left() end", 3000, 5);
+		runLockup("while true do\n"
+				+ "bot:right()\n"
+				+ "bot:left()\n"
+				+ "end", 3000, 5);
 	}
 
 	@Test

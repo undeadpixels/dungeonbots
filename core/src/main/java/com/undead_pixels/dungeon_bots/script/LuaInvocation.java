@@ -5,9 +5,12 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.queueing.Taskable;
-import com.undead_pixels.dungeon_bots.script.environment.HookFunction;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
+import com.undead_pixels.dungeon_bots.utils.exceptions.ScriptInterruptException;
+
 import org.luaj.vm2.*;
+import org.luaj.vm2.lib.ZeroArgFunction;
+
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -57,11 +60,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * Max number of instructions
 	 */
 	private final static int MAX_INSTRUCTIONS = 1000;
-	
-	/**
-	 * The hook function that is called after new instructions are executed
-	 */
-	private HookFunction hookFunction;
 	
 	/**
 	 * A handle to interrupt the execution of this invocation
@@ -119,7 +117,12 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			setStatus(ScriptStatus.RUNNING);
 
 			/* Initialize new HookFunction and InterruptedDebug every time run() is called */
-			hookFunction = new HookFunction();
+			ZeroArgFunction zeroArg = new ZeroArgFunction() {
+				@Override
+				public LuaValue call () {
+					return LuaValue.NIL;
+				}
+			};
 
 			/* Setup default globals */
 			environment.getGlobals().load(scriptInterrupt);
@@ -128,7 +131,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			for(LuaValue chunk : functions) {
 				LuaThread thread = new LuaThread(environment.getGlobals(), chunk);
 				setHook.invoke(LuaValue.varargsOf(new LuaValue[]{
-						thread, hookFunction, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)} ));
+						thread, zeroArg, LuaValue.EMPTYSTRING, LuaValue.valueOf(MAX_INSTRUCTIONS)} ));
 
 				// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
 				// Instead the varargs returns with a false boolean as the first result.
@@ -147,7 +150,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				}
 			}
 		}
-		catch (InstructionHook.ScriptInterruptException si) {
+		catch (ScriptInterruptException si) {
 			if(getStatus() != ScriptStatus.TIMEOUT) {
 				setStatus(ScriptStatus.STOPPED);
 			}
@@ -339,7 +342,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public synchronized void safeSleep (long time) {
 		if(scriptInterrupt.isKilled()) {
-			throw new HookFunction.ScriptInterruptException();
+			throw new ScriptInterruptException();
 		} else if(time <= 0) {
 			return;
 		} else {
@@ -351,7 +354,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		}
 		
 		if(scriptInterrupt.isKilled()) {
-			throw new HookFunction.ScriptInterruptException();
+			throw new ScriptInterruptException();
 		} 
 	}
 }

@@ -125,7 +125,8 @@ public class LuaProxyFactory {
 		return clzSet.stream();
 	}
 
-	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Exception {
+	private static <T extends GetLuaFacade> Varargs invokeWhitelist(final Method m, final Class<?> returnType, final SecurityContext context, final T caller, final Object... args) throws Throwable {
+		try {
 		if(context == null || context.canExecute(caller, m)) {
 			if(returnType.isAssignableFrom(Varargs.class)) {
 				return Varargs.class.cast(m.invoke(caller, args));
@@ -139,6 +140,9 @@ public class LuaProxyFactory {
 			}
 		} else {
 			throw new MethodNotOnWhitelistException(m);
+		}
+		} catch(InvocationTargetException ex) {
+			throw ex.getCause();
 		}
 	}
 
@@ -190,9 +194,9 @@ public class LuaProxyFactory {
 					//}
 					return invokeWhitelist(m, returnType, sandbox==null?null : sandbox.getSecurityContext(), caller, getParams(m, args));
 				}
-				catch (Exception me) {
-					me.printStackTrace();
-					return LuaValue.error(me.getMessage());
+				catch (Throwable ex) {
+					ex.printStackTrace();
+					return LuaValue.error(ex.toString());
 				}
 			}
 		}
