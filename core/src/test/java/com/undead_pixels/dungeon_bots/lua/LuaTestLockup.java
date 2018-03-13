@@ -59,8 +59,10 @@ public class LuaTestLockup {
 			});
 			Thread wupdateThread = new Thread(() -> {
 				while(! finished[0]) {
+					System.out.println("updating...");
 					w.update(.21f);
 					updates[0]++;
+					System.out.println("Updated!");
 				}
 			});
 			
