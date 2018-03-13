@@ -219,7 +219,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			LuaInvocation initScript = mapSandbox.init().join();
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
-			assert initScript.getResults().isPresent();
+			assert initScript.getResults().isPresent(); // XXX
 			assert player != null; // XXX
 			if (player != null) {
 				mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
@@ -243,8 +243,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		assert initScript.getResults().isPresent();
 		assert player != null; // XXX
 		if (player != null) {
-			System.out.println(player.getSandbox().getWhitelist());
-			System.out.println(player.getInventory());
 			mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
 		}
 	}
@@ -349,8 +347,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void render(RenderingContext batch) {
 		refreshTiles();
 
-		// System.out.println("Rendering world");
-
 		// cam.translate(w/2, h/2);
 
 		// clear to black
@@ -429,14 +425,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param x
 	 * @param y
 	 */
-	public void makeBot(String name, float x, float y) {
+	public Bot makeBot(String name, float x, float y) {
 
-		if (Stream.of(entities).flatMap(Collection::stream)
-				.anyMatch(e -> e.getPosition().x == x && e.getPosition().y == y))
-			return;
+		for(Entity e: entities) {
+			if(e instanceof Bot && e.getPosition().x == x && e.getPosition().y == y) {
+				return (Bot) e;
+			}
+		}
+		
 		Bot b = new Bot(this, name);
 		b.setPosition(new Point2D.Float(x, y));
 		this.addEntity(b);
+		
+		return b;
 	}
 
 
@@ -778,24 +779,24 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public boolean requestMoveToNewTile(Entity e, int x, int y) {
 		if (x < 0 || y < 0) {
-			System.out.println("Unable to move: x/y too small");
+			//System.out.println("Unable to move: x/y too small");
 			return false;
 		}
 		if (x >= tiles.length || y >= tiles[0].length) {
-			System.out.println("Unable to move: x/y too big");
+			//System.out.println("Unable to move: x/y too big");
 			return false;
 		}
 
 		if (tiles[x][y].isSolid()) {
-			System.out.println("Unable to move: tile solid");
+			//System.out.println("Unable to move: tile solid");
 			return false;
 		}
 		if (tiles[x][y].isOccupied()) {
-			System.out.println("Unable to move: tile occupied");
+			//System.out.println("Unable to move: tile occupied");
 			return false;
 		}
 
-		System.out.println("Ok to move");
+		//System.out.println("Ok to move");
 		tiles[x][y].setOccupiedBy(e);
 
 		return true;

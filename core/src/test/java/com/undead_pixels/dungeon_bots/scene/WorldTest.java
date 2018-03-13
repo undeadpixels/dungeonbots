@@ -4,16 +4,19 @@ import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.script.LuaInvocation;
+import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 
 import org.junit.Assert;
 
 public class WorldTest {
-
-    @Test
+	
+	@Test
 	public void simpleTest() {
 		World w = new World();
 		Actor p = new ActorBuilder().setWorld(w).setName("test actor").setTex(null).createActor();
-
+		
 		Assert.assertEquals("Actor x at beginning", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at beginning", 0.0f, p.getPosition().y, .0001);
 		p.moveInstantly(Actor.Direction.RIGHT, 5);
@@ -28,7 +31,6 @@ public class WorldTest {
 		p.moveInstantly(Actor.Direction.DOWN, 5);
 		Assert.assertEquals("Actor x at end", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at end", 0.0f, p.getPosition().y, .0001);
-		
-		
 	}
+
 }
