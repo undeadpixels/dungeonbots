@@ -3,24 +3,17 @@
  */
 package com.undead_pixels.dungeon_bots.ui.screens;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
+
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -28,13 +21,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -55,7 +44,6 @@ import org.jdesktop.swingx.VerticalLayout;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
-import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -71,6 +59,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /**
  * The screen for the level editor
@@ -112,8 +101,11 @@ public final class LevelEditorScreen extends Screen {
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
-		result.add(new EntityType("bot", UIBuilder.getImage("bot_entity.gif")));
-		result.add(new EntityType("goal", UIBuilder.getImage("goal_entity.gif")));
+		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1)));
+		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3)));
+		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4)));
+		result.add(new EntityType("chest", AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0)));
+		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
 		return result;
 	}
 
@@ -289,8 +281,8 @@ public final class LevelEditorScreen extends Screen {
 				return;
 
 			case "WORLD_SCRIPTS":
-				
-				JWorldEditor.create(LevelEditorScreen.this,  world, "Edit your world...",new Undoable.Listener() {
+
+				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
 
 					@Override
 					public void pushUndoable(Undoable<?> u) {

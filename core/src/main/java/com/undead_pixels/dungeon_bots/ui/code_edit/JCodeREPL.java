@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -17,6 +19,7 @@ import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -127,7 +130,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").minSize(40, 40).toolTip("Click to execute.")
 				.action("EXECUTE", this).focusable(false).preferredSize(40, 40).create();
 		_CancelBttn = UIBuilder.buildButton().image("icons/abort.png", true).toolTip("Click to cancel.")
-				.action("CANCEL", this).focusable(false).preferredSize(40, 40).enabled(false).create();
+				.action("CANCEL", this).focusable(false).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
 		startStopPanel.add(_CancelBttn);
 
@@ -141,6 +144,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		splitPane.setDividerLocation(200);
 		splitPane.setDividerSize(20);
 		this.add(splitPane);
+		
 
 		_EditorPane.requestFocusInWindow();
 	}

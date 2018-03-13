@@ -27,6 +27,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -41,6 +42,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
@@ -671,10 +673,10 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
 			EntityType type = selection.entityType;
 			assert (type != null);
-			Actor actor = new Actor(world, name, null, new UserScriptCollection(), (int) gamePos.x, (int) gamePos.y);
+			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x, (int) gamePos.y);
 			world.addEntity(actor);
 
-			Undoable<Entity> u = new Undoable<Entity>(null, actor) {
+			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, actor) {
 
 				@Override
 				protected boolean validateUndo() {
@@ -699,8 +701,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				protected void redoValidated() {
 					world.addEntity(actor);
 				}
-
-
 			};
 
 			view.setSelectedEntities(new Entity[] { actor });
@@ -708,10 +708,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				public void pushUndoable(Undoable<?> u) {
-					pushUndo(world, u);
+					// Don't push the undoable given. Instead, push the undoable
+					// that signified the item being placed in the world.
+					pushUndo(world, placeUndoable);
 				}
 			});
 		}
+
 
 	}
 

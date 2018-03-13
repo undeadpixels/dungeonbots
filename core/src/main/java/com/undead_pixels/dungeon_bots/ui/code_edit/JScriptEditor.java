@@ -207,7 +207,7 @@ public final class JScriptEditor extends JPanel {
 	}
 
 
-	private final ListCellRenderer<Font> _FontNameRenderer = new ListCellRenderer<Font>() {
+	public static final ListCellRenderer<Font> _FontNameRenderer = new ListCellRenderer<Font>() {
 
 		@Override
 		public Component getListCellRendererComponent(JList<? extends Font> fontList, Font font, int index,

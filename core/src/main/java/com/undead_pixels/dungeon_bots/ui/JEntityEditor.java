@@ -342,10 +342,6 @@ public final class JEntityEditor extends JPanel {
 				return;
 			}
 		}
-
-
-
-
 	}
 
 
