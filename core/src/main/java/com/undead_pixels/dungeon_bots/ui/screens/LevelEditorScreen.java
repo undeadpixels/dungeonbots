@@ -66,9 +66,11 @@ import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JCodeEditorPaneController;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 
 /**
  * The screen for the level editor
@@ -287,18 +289,15 @@ public final class LevelEditorScreen extends Screen {
 				return;
 
 			case "WORLD_SCRIPTS":
+				
+				JWorldEditor.create(LevelEditorScreen.this,  world, "Edit your world...",new Undoable.Listener() {
 
-				// JComponent scriptEditor = new
-				// JCodeEditorPaneController(world,
-				// SecurityLevel.AUTHOR).create();
+					@Override
+					public void pushUndoable(Undoable<?> u) {
+						Tool.pushUndo(world, u);
+					}
+				});
 
-				// JDialog dialog = new JDialog(LevelEditorScreen.this, "Level
-				// Scripts", Dialog.ModalityType.MODELESS);
-				// dialog.add(scriptEditor);
-				// dialog.pack();
-				// dialog.setVisible(true);
-
-				// return;
 			default:
 				System.out.println("LevelEditorScreen has not implemented the command: " + e.getActionCommand());
 				return;

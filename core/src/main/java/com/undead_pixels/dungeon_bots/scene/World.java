@@ -1122,4 +1122,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return playerTeamScripts;
 	}
 
+	/**Sets the world's collection of level scripts as indicated.*/
+	public void setScripts(UserScript[] newScripts) {
+		this.levelScripts.clear();
+		for (UserScript is : newScripts)
+			this.levelScripts.add(is);
+	}
+
 }

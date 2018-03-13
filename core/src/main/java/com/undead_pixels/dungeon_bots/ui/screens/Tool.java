@@ -213,8 +213,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			adjustZoom(e.getWheelRotation());
 		}
-		
-		public void adjustZoom(int delta){
+
+
+		public void adjustZoom(int delta) {
 			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
 			newZoom /= 100f;
 			setZoom(newZoom);
@@ -334,7 +335,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			this.viewControl.mouseWheelMoved(e);
 		}
-		
+
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 
@@ -702,7 +704,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			};
 
 			view.setSelectedEntities(new Entity[] { actor });
-			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", null);
+			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", new Undoable.Listener() {
+
+				@Override
+				public void pushUndoable(Undoable<?> u) {
+					pushUndo(world, u);
+				}
+			});
 		}
 
 	}
