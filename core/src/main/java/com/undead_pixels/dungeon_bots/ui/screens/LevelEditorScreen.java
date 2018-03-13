@@ -9,6 +9,7 @@ import java.awt.Component;
 import java.awt.Container;
 
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -22,8 +23,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -47,6 +52,8 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
@@ -284,6 +291,51 @@ public final class LevelEditorScreen extends Screen {
 					}
 				});
 				return;
+			case "delete":
+				Entity[] selectedEntities = _View.getSelectedEntities();
+				if (selectedEntities == null || selectedEntities.length == 0)
+					return;
+				for (Entity entity : selectedEntities)
+					world.removeEntity(entity);
+				_View.setSelectedEntities(null);
+				Undoable<Entity[]> u = new Undoable<Entity[]>(selectedEntities, null) {
+
+					@Override
+					protected void undoValidated() {
+						for (Entity e : before)
+							world.addEntity(e);
+						_View.setSelectedEntities(before);
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						for (Entity e : before)
+							world.removeEntity(e);
+						_View.setSelectedEntities(null);
+
+					}
+
+
+					@Override
+					protected boolean validateUndo() {
+						for (Entity e : before)
+							if (world.containsEntity(e))
+								return false;
+						return true;
+					}
+
+
+					@Override
+					protected boolean validateRedo() {
+						for (Entity e : before)
+							if (!world.containsEntity(e))
+								return false;
+						return true;
+					}
+				};
+				Tool.pushUndo(world, u);
+				return;
 			default:
 				System.out.println("LevelEditorScreen has not implemented the command: " + e.getActionCommand());
 				return;
@@ -445,6 +497,7 @@ public final class LevelEditorScreen extends Screen {
 
 	/** Build the actual GUI for the Level Editor. */
 
+	@SuppressWarnings("serial")
 	@Override
 	protected void addComponents(Container pane) {
 		pane.setLayout(new BorderLayout());
@@ -455,6 +508,20 @@ public final class LevelEditorScreen extends Screen {
 		getController().registerSignals(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		_View.setOpaque(false);
+
+		// Make the world responsive to "delete" key.
+		InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap actionMap = this.getRootPane().getActionMap();
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		actionMap.put("delete", new AbstractAction() {
+
+			// Jeez this is hackish
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getController().actionPerformed(new ActionEvent(e.getSource(), e.getID(), "delete"));
+			}
+		});
+
 
 		// Create the tile palette GUI.
 		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();

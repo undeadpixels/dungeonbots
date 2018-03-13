@@ -340,6 +340,15 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@Override
+		public void keyTyped(KeyEvent e) {
+			if (view.getSelectedEntities() == null || view.getSelectedEntities().length == 0)
+				return;
+			System.out.println(e.getKeyChar());
+			e.consume();
+		}
+
+
+		@Override
 		public void mousePressed(MouseEvent e) {
 
 
@@ -672,7 +681,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseClicked(MouseEvent e) {
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
 			EntityType type = selection.entityType;
-			assert (type != null);
+			if (type == null)
+				return;
 			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x,
 					(int) gamePos.y);
 			world.addEntity(actor);
@@ -701,7 +711,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void redoValidated() {
-					view.setSelectedEntities(new Entity[]{actor});
+					view.setSelectedEntities(new Entity[] { actor });
 					world.addEntity(actor);
 				}
 			};
@@ -720,9 +730,5 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			});
 
 		}
-
-
 	}
-
-
 }
