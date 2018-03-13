@@ -75,6 +75,7 @@ public class JCodeEditorPaneController {
 		editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
 		editor.addActionListener(controller);
 		editor.setEnabled(false);
+		editor.setEditable(true);
 
 		// Create the list.
 		scriptList = new JList<UserScript>(this.currentState.scripts);
@@ -125,7 +126,7 @@ public class JCodeEditorPaneController {
 
 	/** Resets all current state to that of the original state. */
 	public void reset() {
-		currentState.help = originalState.help;
+		currentState.help = new String(originalState.help);
 		currentState.scripts.clear();
 		for (int i = 0; i < originalState.scripts.size(); i++) {
 			currentState.scripts.addElement(originalState.scripts.getElementAt(i).copy());
@@ -192,6 +193,7 @@ public class JCodeEditorPaneController {
 			assert (e.getFirstIndex() == e.getLastIndex());
 			if (e.getFirstIndex() < 0) {
 				editor.setEnabled(false);
+				return;
 			}
 
 			@SuppressWarnings("unchecked")
@@ -210,8 +212,10 @@ public class JCodeEditorPaneController {
 	/**A class for storing an editable snapshot of an Entity.*/
 	private static class EntityState {
 
-		/***/
+		/**The help String.*/
 		public String help;
+		
+		/***/
 		public DefaultListModel<UserScript> scripts;
 
 
