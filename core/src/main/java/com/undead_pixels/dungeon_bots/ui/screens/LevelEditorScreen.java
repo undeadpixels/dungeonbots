@@ -15,6 +15,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -52,7 +53,13 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.scene.entities.DeletemeEntity;
+import com.undead_pixels.dungeon_bots.scene.entities.Door;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Goal;
+import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -102,12 +109,42 @@ public final class LevelEditorScreen extends Screen {
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
-		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1)));
-		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3)));
-		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4)));
-		result.add(new EntityType("chest", AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0)));
-		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0)));
-		result.add(new EntityType("door", AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0)));
+		
+		// TODO - some of the names produced by lambdas might need to be changed later
+		
+		result.add(new EntityType("fish", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+			// TODO - create new actual entity class
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
+		}));
+		result.add(new EntityType("demon", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+			// TODO - create new actual entity class
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x, y);
+		}));
+		result.add(new EntityType("ghost", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+			// TODO - create new actual entity class
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
+		}));
+		result.add(new EntityType("key", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+			// TODO - create new actual entity class
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), x, y);
+		}));
+		result.add(new EntityType("chest", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+			return new ItemChest(world, "item chest (level editor)", x, y);
+		}));
+		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
+			return new Door(world, x, y);
+		}));
+		result.add(new EntityType("goal", Door.DEFAULT_TEXTURE, (x, y) -> {
+			return new Goal(world, "goal", x, y);
+		}));
+		result.add(new EntityType("player", Player.DEFAULT_TEXTURE, (x, y) -> {
+			Player ret = world.getPlayer();
+			ret.setPosition(new Point2D.Float(x, y));
+			return ret;
+		}));
+		result.add(new EntityType("bot", Player.DEFAULT_TEXTURE, (x, y) -> {
+			return new Bot(world, "bot", x, y);
+		}));
 		return result;
 	}
 

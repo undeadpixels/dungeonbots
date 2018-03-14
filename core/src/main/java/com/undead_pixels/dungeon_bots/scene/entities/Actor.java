@@ -20,11 +20,9 @@ import static org.luaj.vm2.LuaValue.*;
  * @version 1.0
  * An actor is a general entity that is solid and capable of doing stuff.
  * Examples include players, bots, and enemies.
- * 
- * TODO - mark as abstract
  */
 @Doc("The base type for Bot and Player entities")
-public class Actor extends SpriteEntity implements HasInventory {
+public abstract class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
 	 * 

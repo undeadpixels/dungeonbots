@@ -414,6 +414,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
+				
+				System.out.println(se);
 
 				// If only one tile is selected, and one entity is selected, and
 				// it is the entity that would be selected by this lasso, then
@@ -683,42 +685,41 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			EntityType type = selection.entityType;
 			if (type == null)
 				return;
-			Actor actor = new Actor(world, name, type.texture, new UserScriptCollection(type.scripts), (int) gamePos.x,
-					(int) gamePos.y);
-			world.addEntity(actor);
+			Entity ent = type.get((int) gamePos.x, (int) gamePos.y);
+			world.addEntity(ent);
 
-			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, actor) {
+			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, ent) {
 
 				@Override
 				protected boolean validateUndo() {
-					return world.containsEntity(actor);
+					return world.containsEntity(ent);
 				}
 
 
 				@Override
 				protected boolean validateRedo() {
-					return !world.containsEntity(actor);
+					return !world.containsEntity(ent);
 				}
 
 
 				@Override
 				protected void undoValidated() {
 					view.setSelectedEntities(null);
-					world.removeEntity(actor);
+					world.removeEntity(ent);
 
 				}
 
 
 				@Override
 				protected void redoValidated() {
-					view.setSelectedEntities(new Entity[] { actor });
-					world.addEntity(actor);
+					view.setSelectedEntities(new Entity[] { ent });
+					world.addEntity(ent);
 				}
 			};
 			pushUndo(world, placeUndoable);
 
-			view.setSelectedEntities(new Entity[] { actor });
-			JEntityEditor.create(owner, actor, securityLevel, "Entity Editor", new Undoable.Listener() {
+			view.setSelectedEntities(new Entity[] { ent });
+			JEntityEditor.create(owner, ent, securityLevel, "Entity Editor", new Undoable.Listener() {
 
 				@Override
 				public void pushUndoable(Undoable<?> u) {

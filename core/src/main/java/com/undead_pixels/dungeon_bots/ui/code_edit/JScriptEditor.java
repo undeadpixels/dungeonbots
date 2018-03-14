@@ -290,7 +290,7 @@ public final class JScriptEditor extends JPanel {
 			_SelectionEnd = e.getDot();
 
 			// Prohibit editing if in a locked region.
-			if (_LockFilter != null) {
+			if (_LockFilter != null && lockActive) {
 				if (_SecurityLevel.level < SecurityLevel.AUTHOR.level)
 					_LockFilter.setLive(!getHighlightIntervals().includes(_SelectionStart));
 				else
@@ -332,8 +332,8 @@ public final class JScriptEditor extends JPanel {
 
 		private IntegerSet getHighlightIntervals() {
 			IntegerSet result = new IntegerSet();
-			for (DefaultHighlighter.Highlight h : _Highlighter.getHighlights())
-				result.add(h.getStartOffset(), h.getEndOffset() - 1);
+			//for (DefaultHighlighter.Highlight h : _Highlighter.getHighlights())
+				//result.add(h.getStartOffset(), h.getEndOffset() - 1);
 			return result;
 		}
 

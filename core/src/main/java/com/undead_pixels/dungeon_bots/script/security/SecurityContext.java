@@ -118,4 +118,11 @@ public class SecurityContext {
 	public SecurityLevel getSecurityLevel() {
 		return securityLevel;
 	}
+
+	/**
+	 * 
+	 */
+	public Entity getEntity () {
+		return entity;
+	}
 }
