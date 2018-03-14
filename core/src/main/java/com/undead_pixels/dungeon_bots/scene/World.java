@@ -21,6 +21,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Goal;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
@@ -400,11 +401,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		
 		entities.add(e);
+		
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
 			if (tile != null) {
 				tile.setOccupiedBy(e);
 			}
+		}
+		
+		if(e instanceof Goal) {
+			// TODO 
 		}
 	}
 
@@ -430,7 +436,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param y
 	 */
 	public Bot makeBot(String name, float x, float y) {
-
+		// TODO - change the way names work, perhaps
 		for(Entity e: entities) {
 			if(e instanceof Bot && e.getPosition().x == x && e.getPosition().y == y) {
 				return (Bot) e;
