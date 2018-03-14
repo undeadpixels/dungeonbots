@@ -4,6 +4,8 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Sword;
@@ -23,6 +25,7 @@ import org.luaj.vm2.LuaValue;
  * @author Stewart Charles
  * @version 1.0
  */
+@Doc("A Player is an Actor afforded with more privileges")
 public class Player extends RpgActor {
 	
 	/**
@@ -39,7 +42,8 @@ public class Player extends RpgActor {
 	 * @param name The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1));
+		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1), world.getPlayerTeamScripts());
+
 		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
@@ -51,8 +55,13 @@ public class Player extends RpgActor {
 	 * @return A newly constructed Player that has been coerced into it's<br>
 	 * associated LuaValue
 	 */
-	@Bind @BindTo("new")
-	public static Player newPlayer(LuaValue world, LuaValue x, LuaValue y) {
+	@Bind(SecurityLevel.AUTHOR)
+	@BindTo("new")
+	@Doc("Assigns a new player")
+	public static Player newPlayer(
+			@Doc("The assigned World") LuaValue world,
+			@Doc("The X position of the player") LuaValue x,
+			@Doc("The Y Position of the player") LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
 		Player p = w.getPlayer();
 		p.steps = 0;

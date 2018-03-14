@@ -6,6 +6,8 @@ import org.jdesktop.swingx.auth.LoginService;
 import org.jdesktop.swingx.auth.PasswordStore;
 import org.jdesktop.swingx.auth.UserNameStore;
 
+import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -34,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -54,7 +57,7 @@ public class UIBuilder {
 	 * images, and the images shrink with the buttons.
 	 */
 	private static class ResizingIcon extends ImageIcon implements ComponentListener {
-		
+
 		/**
 		 * 
 		 */
@@ -63,11 +66,13 @@ public class UIBuilder {
 		private Image _OriginalImage;
 		private AbstractButton _Host;
 
+
 		public ResizingIcon(Image image, AbstractButton host) {
 			this._OriginalImage = image;
 			(this._Host = host).addComponentListener(this);
 			resize();
 		}
+
 
 		private void resize() {
 			int width = _Host.getWidth();
@@ -78,26 +83,31 @@ public class UIBuilder {
 			setImage(rescaledImage);
 		}
 
+
 		@Override
 		public void componentHidden(ComponentEvent arg0) {
 			// Do nothing.
 		}
+
 
 		@Override
 		public void componentMoved(ComponentEvent arg0) {
 			// Do nothing.
 		}
 
+
 		@Override
 		public void componentResized(ComponentEvent arg0) {
 			resize();
 		}
+
 
 		@Override
 		public void componentShown(ComponentEvent arg0) {
 			resize();
 		}
 	}
+
 
 	/**
 	 * blah blah blah. Try this:
@@ -108,9 +118,26 @@ public class UIBuilder {
 	 */
 	public static abstract class ButtonBuilder<T extends AbstractButton> {
 
+		protected static abstract class PropertyBuilder<P> {
+
+			protected final P value;
+
+
+			public PropertyBuilder(P value) {
+				this.value = value;
+			}
+
+
+			public final void apply(AbstractButton bttn){
+				apply(bttn, value);
+			}
+			protected abstract void apply(AbstractButton bttn, P value);
+		}
+
+
 		protected static final String FIELD_ACTION = "action";
 		protected static final String FIELD_ACTION_COMMAND = "action_command";
-		protected static final String FIELD_ACTION_COMMAND_LISTENER = "action_command_listener";
+		protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
 		protected static final String FIELD_ALIGNMENT_X = "alignment_x";
 		protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
 		protected static final String FIELD_ENABLED = "enabled";
@@ -120,62 +147,126 @@ public class UIBuilder {
 		protected static final String FIELD_INSETS = "insets";
 		protected static final String FIELD_MAX_SIZE = "max_size";
 		protected static final String FIELD_MIN_SIZE = "min_size";
+		protected static final String FIELD_MNEMONIC = "mnemonic";
 		protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
 		protected static final String FIELD_TEXT = "text";
 		protected static final String FIELD_TOOLTIP = "tooltip";
 
-		protected static final int DEFAULT_PREFERRED_WIDTH = 50;
-		protected static final int DEFAULT_PREFERRED_HEIGHT = 35;
+		protected static final int DEFAULT_PREFERRED_WIDTH = -1;
+		protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
 
-		private HashMap<String, Object> _Settings = new HashMap<String, Object>();
+		// protected HashMap<String, Object> settings = new HashMap<String,
+		// Object>();
+		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
+
 
 		/** Clears all settings from this ButtonBuilder. */
 		public final void reset() {
-			_Settings.clear();
+			properties.clear();
 		}
 
-		/** Sets the given action for buttons created by this builder. */
+
 		public final ButtonBuilder<T> action(Action action) {
-			_Settings.put(FIELD_ACTION, action);
+			properties.put(FIELD_ACTION, new PropertyBuilder<Action>(action) {
+
+				@Override
+				public void apply(AbstractButton bttn, Action value) {
+					bttn.setAction(value);
+				}
+			});
 			return this;
 		}
+
 
 		/** Adds the given action listener. */
-		public ButtonBuilder<T> action(ActionListener controller) {
-			_Settings.put(FIELD_ACTION_COMMAND_LISTENER, controller);
+		public ButtonBuilder<T> action(ActionListener listener) {
+			properties.put(FIELD_ACTION_LISTENER, new PropertyBuilder<ActionListener>(listener) {
+
+				@Override
+				public void apply(AbstractButton bttn, ActionListener value) {
+					bttn.addActionListener(value);
+				}
+
+			});
 			return this;
 		}
+
 
 		/**
 		 * Specifies the action command, and adds the given listener to buttons
 		 * created by this builder.
 		 */
 		public final ButtonBuilder<T> action(String command, ActionListener listener) {
-			_Settings.put(FIELD_ACTION_COMMAND, command);
-			_Settings.put(FIELD_ACTION_COMMAND_LISTENER, listener);
+			properties.put(FIELD_ACTION_COMMAND, new PropertyBuilder<String>(command) {
+
+				@Override
+				public void apply(AbstractButton bttn, String value) {
+					bttn.setActionCommand(value);
+				}
+
+			});
+			properties.put(FIELD_ACTION_LISTENER, new PropertyBuilder<ActionListener>(listener) {
+
+				@Override
+				public void apply(AbstractButton bttn, ActionListener value) {
+					bttn.addActionListener(value);
+				}
+
+			});
 			return this;
 		}
+
 
 		public final ButtonBuilder<T> alignmentX(float alignment) {
-			_Settings.put(FIELD_ALIGNMENT_X, alignment);
+			properties.put(FIELD_ALIGNMENT_X, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(AbstractButton bttn, Float value) {
+					bttn.setAlignmentX(value);
+				}
+			});
 			return this;
 		}
+
 
 		public final ButtonBuilder<T> alignmentY(float alignment) {
-			_Settings.put(FIELD_ALIGNMENT_Y, alignment);
+			properties.put(FIELD_ALIGNMENT_Y, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(AbstractButton bttn, Float value) {
+					bttn.setAlignmentY(value);
+				}
+			});
 			return this;
 		}
 
+
 		public final ButtonBuilder<T> enabled(boolean value) {
-			_Settings.put(FIELD_ENABLED, value);
+			properties.put(FIELD_ENABLED, new PropertyBuilder<Boolean>(value) {
+
+				@Override
+				public void apply(AbstractButton bttn, Boolean value) {
+					bttn.setEnabled(value);
+				}
+
+			});
 			return this;
 		}
+
 
 		/** Sets focusability as specified. */
 		public final ButtonBuilder<T> focusable(boolean focusable) {
-			_Settings.put(FIELD_FOCUSABLE, focusable);
+			properties.put(FIELD_FOCUSABLE, new PropertyBuilder<Boolean>(focusable) {
+
+				@Override
+				public void apply(AbstractButton bttn, Boolean value) {
+					bttn.setFocusable(value);
+				}
+
+			});
 			return this;
 		}
+
 
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
@@ -201,6 +292,7 @@ public class UIBuilder {
 			return hotkey(keyEvent, mod);
 		}
 
+
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
@@ -212,6 +304,7 @@ public class UIBuilder {
 		public final ButtonBuilder<T> hotkey(int keyEvent) {
 			return hotkey(keyEvent, 0);
 		}
+
 
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
@@ -225,28 +318,48 @@ public class UIBuilder {
 			return hotkey(KeyStroke.getKeyStroke(keyEvent, modifiers));
 		}
 
+
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
 		 */
 		public final ButtonBuilder<T> hotkey(KeyStroke hotKey) {
-			_Settings.put(FIELD_HOTKEY, hotKey);
+
+			properties.put(FIELD_HOTKEY, new PropertyBuilder<KeyStroke>(hotKey) {
+
+				@Override
+				public void apply(AbstractButton bttn, KeyStroke hotkey) {
+					bttn.registerKeyboardAction(
+							bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
+							KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), false),
+							JComponent.WHEN_IN_FOCUSED_WINDOW);
+					bttn.registerKeyboardAction(
+							bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
+							KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), true),
+							JComponent.WHEN_IN_FOCUSED_WINDOW);
+				}
+
+			});
 			return this;
 		}
+
 
 		/**
 		 * A class whose only purpose is to pair an image with its intended
 		 * proportionality flag.
 		 */
 		private static final class ImageProportionality {
+
 			public Image image;
 			public boolean proportional;
+
 
 			public ImageProportionality(Image image, boolean proportional) {
 				this.image = image;
 				this.proportional = proportional;
 			}
 		}
+
 
 		/**
 		 * Specifies an image from the given filename to be displayed. If the
@@ -256,6 +369,7 @@ public class UIBuilder {
 		public final ButtonBuilder<T> image(String filename) {
 			return image(filename, true);
 		}
+
 
 		/**
 		 * Specifies an image from the given filename will be displayed. If the
@@ -270,9 +384,18 @@ public class UIBuilder {
 			Image img = UIBuilder.getImage(filename);
 			if (img != null)
 				return image(img, proportional);
-			_Settings.put(FIELD_TEXT, filename);
+
+			properties.put(FIELD_TEXT, new PropertyBuilder<String>(filename) {
+
+				@Override
+				public void apply(AbstractButton bttn, String altText) {
+					bttn.setText(altText);
+				}
+
+			});
 			return this;
 		}
+
 
 		/**
 		 * Specifies an image to be displayed. The image will fill the entire
@@ -281,6 +404,7 @@ public class UIBuilder {
 		public final ButtonBuilder<T> image(Image image) {
 			return image(image, true);
 		}
+
 
 		/**
 		 * Specifies an image to be displayed.
@@ -291,126 +415,212 @@ public class UIBuilder {
 		 *            false, the image will be stretched to completely fill. *
 		 */
 		public final ButtonBuilder<T> image(Image image, boolean proportional) {
-			_Settings.put(FIELD_IMAGE, new ImageProportionality(image, proportional));
+			properties.put(FIELD_IMAGE,
+					new PropertyBuilder<ImageProportionality>(new ImageProportionality(image, proportional)) {
+
+						@Override
+						public void apply(AbstractButton bttn, ImageProportionality ip) {
+							if (ip.proportional)
+								bttn.setIcon(new ImageIcon(ip.image));
+							else
+								bttn.setIcon(new ResizingIcon(ip.image, bttn));
+						}
+
+					});
 			return this;
 		}
+
 
 		/** Sets the margin as indicated. */
 		public final ButtonBuilder<T> margin(int top, int left, int bottom, int right) {
 			return margin(new Insets(top, left, bottom, right));
 		}
 
+
 		/** Sets the margin as indicated. */
 		public final ButtonBuilder<T> margin(Insets insets) {
-			_Settings.put(FIELD_INSETS, insets);
+			properties.put(FIELD_INSETS, new PropertyBuilder<Insets>(insets) {
+
+				@Override
+				public void apply(AbstractButton bttn, Insets value) {
+					bttn.setMargin(value);
+				}
+
+			});
 			return this;
 		}
 
+
 		/** Sets the maximum height as indicated. */
 		public ButtonBuilder<T> maxHeight(int height) {
-			Dimension d = (Dimension) _Settings.get(FIELD_MAX_SIZE);
-			if (d == null)
-				return maxSize(new Dimension(9999, height));
-			d.setSize(d.width, height);
-			return maxSize(d);
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(-1, height));
+			else
+				return maxSize(new Dimension(existingMax.value.width, height));
 		}
+
 
 		/** Sets the maximum size as indicated. */
 		public ButtonBuilder<T> maxSize(int width, int height) {
 			return maxSize(new Dimension(width, height));
 		}
 
+
 		/** Sets the maximum size as indicated. */
 		public ButtonBuilder<T> maxSize(Dimension size) {
-			_Settings.put(FIELD_MAX_SIZE, size);
+			properties.put(FIELD_MAX_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(AbstractButton bttn, Dimension value) {
+					bttn.setMaximumSize(value);
+				}
+
+			});
 			return this;
 		}
 
+
 		/** Sets the maximum width as indicated. */
 		public ButtonBuilder<T> maxWidth(int width) {
-			Dimension d = (Dimension) _Settings.get(FIELD_MAX_SIZE);
-			if (d == null)
-				return maxSize(new Dimension(width, 9999));
-			d.setSize(width, d.height);
-			return maxSize(d);
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(width, -1));
+			else
+				return maxSize(new Dimension(width, existingMax.value.height));
 		}
 
+
+		
+		
+		
 		/** Sets the minimum height as indicated. */
 		public ButtonBuilder<T> minHeight(int height) {
-			Dimension d = (Dimension) _Settings.get(FIELD_MIN_SIZE);
-			if (d == null)
-				return minSize(new Dimension(0, height));
-			d.setSize(d.width, height);
-			return minSize(d);
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(-1, height));
+			else
+				return minSize(new Dimension(existingmin.value.width, height));
 		}
+
 
 		/** Sets the minimum size as indicated. */
 		public ButtonBuilder<T> minSize(int width, int height) {
 			return minSize(new Dimension(width, height));
 		}
 
+
 		/** Sets the minimum size as indicated. */
 		public ButtonBuilder<T> minSize(Dimension size) {
-			_Settings.put(FIELD_MIN_SIZE, size);
+			properties.put(FIELD_MIN_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(AbstractButton bttn, Dimension value) {
+					bttn.setMinimumSize(value);
+				}
+
+			});
 			return this;
 		}
+
 
 		/** Sets the minimum width as indicated. */
 		public ButtonBuilder<T> minWidth(int width) {
-			Dimension d = (Dimension) _Settings.get(FIELD_MIN_SIZE);
-			if (d == null)
-				return minSize(new Dimension(width, 0));
-			d.setSize(width, d.height);
-			return minSize(d);
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(width, -1));
+			else
+				return minSize(new Dimension(width, existingmin.value.height));
 		}
 
-		// ==========
-
-		/** Sets the preferred height as indicated. */
-		public ButtonBuilder<T> preferredHeight(int height) {
-			Dimension d = (Dimension) _Settings.get(FIELD_PREFERRED_SIZE);
-			if (d == null)
-				return preferredSize(new Dimension(DEFAULT_PREFERRED_WIDTH, height));
-			d.setSize(d.width, height);
-			return preferredSize(d);
-		}
-
-		/** Sets the preferred size as indicated. */
-		public ButtonBuilder<T> preferredSize(int width, int height) {
-			return preferredSize(new Dimension(width, height));
-		}
-
-		/** Sets the preferred size as indicated. */
-		public ButtonBuilder<T> preferredSize(Dimension size) {
-			_Settings.put(FIELD_PREFERRED_SIZE, size);
+		public final ButtonBuilder<T> mnemonic(char mnemonic) {
+			properties.put(FIELD_MNEMONIC, new PropertyBuilder<Character>(mnemonic){
+				@Override
+				public void apply(AbstractButton bttn, Character value) {
+					bttn.setMnemonic(value);
+				}				
+			});
 			return this;
 		}
 
+		/** Sets the preferred height as indicated. */
+		public ButtonBuilder<T> prefHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(-1, height));
+			else
+				return prefSize(new Dimension(existingpref.value.width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public ButtonBuilder<T> preferredSize(int width, int height) {
+			return prefSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public ButtonBuilder<T> prefSize(Dimension size) {
+			properties.put(FIELD_PREFERRED_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(AbstractButton bttn, Dimension value) {
+					bttn.setPreferredSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
 		/** Sets the preferred width as indicated. */
 		public ButtonBuilder<T> prefWidth(int width) {
-			Dimension d = (Dimension) _Settings.get(FIELD_PREFERRED_SIZE);
-			if (d == null)
-				return preferredSize(new Dimension(width, DEFAULT_PREFERRED_HEIGHT));
-			d.setSize(width, d.height);
-			return preferredSize(d);
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(width, -1));
+			else
+				return prefSize(new Dimension(width, existingpref.value.height));
 		}
+		
+
 
 		/**
 		 * Specifies the given text to be displayed by buttons created by this
 		 * builder.
 		 */
-		public final ButtonBuilder<T> text(String text) {
-			_Settings.put(FIELD_TEXT, text);
+		public final ButtonBuilder<T> text(String text) {			
+			properties.put(FIELD_TEXT, new PropertyBuilder<String>(text) {
+
+				@Override
+				public void apply(AbstractButton bttn, String txt) {
+					bttn.setText(txt);
+				}
+
+			});
 			return this;
 		}
+
 
 		/** Adds the given tooltip text to buttons created by this builder. */
 		public final ButtonBuilder<T> toolTip(String toolTipText) {
-			_Settings.put(FIELD_TOOLTIP, toolTipText);
+			properties.put(FIELD_TOOLTIP, new PropertyBuilder<String>(toolTipText) {
+
+				@Override
+				public void apply(AbstractButton bttn, String t) {
+					bttn.setToolTipText(t);
+				}
+
+			});
 			return this;
 		}
 
-		protected abstract void addSettings(T buttonBeingBuilt, HashMap<String, Object> unhandledSettings);
+
 
 		/**
 		 * Create an uninitialized button as it is defined in Swing, for example
@@ -419,65 +629,19 @@ public class UIBuilder {
 		 */
 		protected abstract T createUninitialized();
 
-		public T create() {
+
+		public final T create() {
 
 			// Create the base object.
 			T bttn = createUninitialized();
 
-			// Create a copy of the settings map.
-			HashMap<String, Object> unhandled = new HashMap<String, Object>();
-			for (Entry<String, Object> entry : this._Settings.entrySet())
-				unhandled.put(entry.getKey(), entry.getValue());
 
-			// Check each possible setting for an AbstractButton.
-			if (unhandled.containsKey(FIELD_ACTION))
-				bttn.setAction((Action) unhandled.remove(FIELD_ACTION));
-			if (unhandled.containsKey(FIELD_ACTION_COMMAND))
-				bttn.setActionCommand((String) unhandled.remove(FIELD_ACTION_COMMAND));
-			if (unhandled.containsKey(FIELD_ACTION_COMMAND_LISTENER))
-				bttn.addActionListener((ActionListener) unhandled.remove(FIELD_ACTION_COMMAND_LISTENER));
-			if (unhandled.containsKey(FIELD_ALIGNMENT_X))
-				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_X));
-			if (unhandled.containsKey(FIELD_ALIGNMENT_Y))
-				bttn.setAlignmentX((float) unhandled.remove(FIELD_ALIGNMENT_Y));
-			if (unhandled.containsKey(FIELD_ENABLED))
-				bttn.setEnabled((boolean) unhandled.remove(FIELD_ENABLED));
-			if (unhandled.containsKey(FIELD_FOCUSABLE))
-				bttn.setFocusable((boolean) unhandled.remove(FIELD_FOCUSABLE));
-			if (unhandled.containsKey(FIELD_TOOLTIP))
-				bttn.setToolTipText((String) unhandled.remove(FIELD_TOOLTIP));
-			if (unhandled.containsKey(FIELD_IMAGE)) {
-				ImageProportionality ip = (ImageProportionality) unhandled.remove(FIELD_IMAGE);
-				bttn.setIcon(new ResizingIcon(ip.image, bttn));
-				//bttn.setIcon(new ImageIcon(ip.image));
-			}
-			if (unhandled.containsKey(FIELD_INSETS))
-				bttn.setMargin((Insets) unhandled.remove(FIELD_INSETS));
-			if (unhandled.containsKey(FIELD_MAX_SIZE))
-				bttn.setMaximumSize((Dimension) unhandled.remove(FIELD_MAX_SIZE));
-			if (unhandled.containsKey(FIELD_MIN_SIZE))
-				bttn.setMaximumSize((Dimension) unhandled.remove(FIELD_MIN_SIZE));
-			if (unhandled.containsKey(FIELD_PREFERRED_SIZE))
-				bttn.setPreferredSize((Dimension) unhandled.remove(FIELD_PREFERRED_SIZE));
-			if (unhandled.containsKey(FIELD_HOTKEY)) {
-				KeyStroke hotkey = (KeyStroke) unhandled.remove(FIELD_HOTKEY);
-				bttn.registerKeyboardAction(
-						bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
-						KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), false),
-						JComponent.WHEN_IN_FOCUSED_WINDOW);
-				bttn.registerKeyboardAction(
-						bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
-						KeyStroke.getKeyStroke(hotkey.getKeyCode(), hotkey.getModifiers(), true),
-						JComponent.WHEN_IN_FOCUSED_WINDOW);
-			}
-			if (unhandled.containsKey(FIELD_TEXT)) {
-				bttn.setText((String) unhandled.remove(FIELD_TEXT));
-			}
-
-			if (unhandled.size() > 0)
-				addSettings(bttn, unhandled);
-
+			// Apply all set properties to the new button.
+			for (PropertyBuilder<?> p : properties.values())
+				p.apply(bttn);
+		
 			// The 'enter' key should do the same as the 'space' key.
+			//TODO:  Should this be hard-coded, or an option?
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
 					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
@@ -488,12 +652,8 @@ public class UIBuilder {
 
 	}
 
-	public static class ToggleButtonBuilder extends ButtonBuilder<JToggleButton> {
 
-		@Override
-		protected void addSettings(JToggleButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
-			throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
-		}
+	public static class ToggleButtonBuilder extends ButtonBuilder<JToggleButton> {
 
 		@Override
 		protected JToggleButton createUninitialized() {
@@ -501,19 +661,71 @@ public class UIBuilder {
 		}
 	}
 
-	public static class MenuItemBuilder extends ButtonBuilder<JMenuItem> {
+
+	public final static class MenuBuilder extends ButtonBuilder<JMenu> {
+
+		protected static final String FIELD_ACCELERATOR = "accelerator";
+
+		// TODO: a templating system for child menus?
 
 		@Override
-		protected void addSettings(JMenuItem buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
-			throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
+		protected JMenu createUninitialized() {
+			return new JMenu();
 		}
+
+
+		public final MenuBuilder accelerator(KeyStroke accelerator) {
+			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+
+				@Override
+				protected void apply(AbstractButton bttn, KeyStroke value) {
+					((JMenu)bttn).setAccelerator(value);
+				}
+				
+			});
+			return this;
+		}
+
+
+
+		public final MenuBuilder accelerator(int key, int mask) {
+			return accelerator(KeyStroke.getKeyStroke(key, mask));
+		}
+	}
+
+
+	public final static class MenuItemBuilder extends ButtonBuilder<JMenuItem> {
+
+
+		protected static final String FIELD_ACCELERATOR = "accelerator";
+
+
 
 		@Override
 		protected JMenuItem createUninitialized() {
 			return new JMenuItem();
 		}
 
+		public final MenuItemBuilder accelerator(KeyStroke accelerator) {
+			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+
+				@Override
+				protected void apply(AbstractButton bttn, KeyStroke value) {
+					((JMenuItem)bttn).setAccelerator(value);
+				}
+				
+			});
+			return this;
+		}
+		
+
+
+		public final MenuItemBuilder accelerator(int key, int mask) {
+			return accelerator(KeyStroke.getKeyStroke(key, mask));
+		}
+
 	}
+
 
 	/**
 	 * Returns a builder for a JButton. The builder pattern will allow the
@@ -524,10 +736,6 @@ public class UIBuilder {
 	 */
 	public static ButtonBuilder<JButton> buildButton() {
 		return new ButtonBuilder<JButton>() {
-			@Override
-			protected void addSettings(JButton buttonBeingBuilt, HashMap<String, Object> unhandledSettings) {
-				throw new RuntimeException("Have not implemented settings: " + unhandledSettings.toString());
-			}
 
 			@Override
 			protected JButton createUninitialized() {
@@ -535,6 +743,7 @@ public class UIBuilder {
 			}
 		};
 	}
+
 
 	/**
 	 * Returns a builder for a JToggleButton. The builder pattern will allow the
@@ -547,12 +756,20 @@ public class UIBuilder {
 		return new ToggleButtonBuilder();
 	}
 
+
 	/**
 	 * Returns a builder for a JMenuItem.
 	 */
 	public static MenuItemBuilder buildMenuItem() {
 		return new MenuItemBuilder();
 	}
+
+
+	/**Returns a builder for a JMenu.*/
+	public static MenuBuilder buildMenu() {
+		return new MenuBuilder();
+	}
+
 
 	/**
 	 * Creates a menu item with the given header, that responds to the given
@@ -561,6 +778,7 @@ public class UIBuilder {
 	 * letter of a menu item. The command conveyed to the listener will be the
 	 * header.
 	 */
+	@Deprecated
 	public static JMenuItem makeMenuItem(String header, KeyStroke accelerator, int mnemonic, ActionListener listener) {
 		JMenuItem result = new JMenuItem(header);
 
@@ -577,13 +795,16 @@ public class UIBuilder {
 		return result;
 	}
 
+
 	/**
 	 * Creates a menu item with the given header. The command conveyed to the
 	 * listener will be the header.
 	 */
+	@Deprecated
 	public static JMenuItem makeMenuItem(String header, ActionListener listener) {
 		return makeMenuItem(header, null, 0, listener);
 	}
+
 
 	/**
 	 * Makes a collapser with a toggling header line.
@@ -610,6 +831,7 @@ public class UIBuilder {
 		JLabel lbl = new JLabel();
 		lbl.setText(isCollapsed ? closedText : openText);
 		JToggleButton toggler = UIBuilder.buildToggleButton().action("TOGGLE", new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!e.getActionCommand().equals("TOGGLE"))
@@ -632,23 +854,23 @@ public class UIBuilder {
 		result.setLayout(new BorderLayout());
 		result.add(header, BorderLayout.PAGE_START);
 		result.add(collapser, BorderLayout.CENTER);
-		/*
-		 * result.addComponentListener(new ComponentAdapter() {
+		/* result.addComponentListener(new ComponentAdapter() {
 		 * 
 		 * @Override public void componentResized(ComponentEvent e) { if
 		 * (e.getID() != ComponentEvent.COMPONENT_RESIZED) return; //int height
 		 * = result.getHeight() - header.getHeight();
 		 * collapser.setPreferredSize(new Dimension(result.getWidth(), 400));
 		 * //System.out.println(e.getID() + " " + result.getSize().toString());
-		 * } });
-		 */
+		 * } }); */
 
 		return result;
 
 	}
 
+
 	/** The cached GUI images. */
 	private static HashMap<String, Image> _Images = new HashMap<String, Image>();
+
 
 	/**
 	 * Gets an Image based on the image at the given location. Also, caches
@@ -663,7 +885,7 @@ public class UIBuilder {
 		if (_Images.containsKey(filename))
 			return _Images.get(filename);
 
-		String path = System.getProperty("user.dir") +"/"+ filename;
+		String path = System.getProperty("user.dir") + "/" + filename;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(path));
@@ -678,6 +900,7 @@ public class UIBuilder {
 
 		return img;
 	}
+
 
 	/**
 	 * Returns a login that uses the given password store and username store,
@@ -703,6 +926,7 @@ public class UIBuilder {
 		return pane;
 	}
 
+
 	/**
 	 * Never roll your own security. This method blocks and returns a status
 	 * regarding the login.
@@ -717,10 +941,11 @@ public class UIBuilder {
 	 *            The login service used to login.
 	 */
 	public static JXLoginPane.Status showLoginModal(String message, Component parent, PasswordStore passwordStore,
-													UserNameStore userNameStore, LoginService loginService) {
+			UserNameStore userNameStore, LoginService loginService) {
 		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginDialog(parent, pane);
 	}
+
 
 	/**
 	 * Never roll your own security. This method returns a JFrame containing
@@ -736,7 +961,7 @@ public class UIBuilder {
 	 *            The login service used to login.
 	 */
 	public static JFrame showLoginModeless(String message, PasswordStore passwordStore, UserNameStore userNameStore,
-										   LoginService loginService) {
+			LoginService loginService) {
 		JXLoginPane pane = makeLogin(message, passwordStore, userNameStore, loginService);
 		return JXLoginPane.showLoginFrame(pane);
 	}
