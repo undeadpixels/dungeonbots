@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import org.luaj.vm2.*;
@@ -174,22 +175,15 @@ public class Actor extends SpriteEntity implements HasInventory {
 			}
 		};
 		Action moveFailAction = new SequentialActions(fail1, fail2);
-		
-		while(blocking && !actionQueue.isEmpty()) {
-			try {
-				Thread.sleep(1);//FIXME - something better than sleepy busy wait
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
+
+		if(blocking) {
+			SandboxManager.getCurrentSandbox().safeWaitUntil(() -> actionQueue.isEmpty());
 		}
+		
 		actionQueue.enqueue(new OnlyOneOfActions(tryMoveAction, moveFailAction));
 
-		while(blocking && !actionQueue.isEmpty()) {
-			try {
-				Thread.sleep(1);//FIXME - something better than sleepy busy wait
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
+		if(blocking) {
+			SandboxManager.getCurrentSandbox().safeWaitUntil(() -> actionQueue.isEmpty());
 		}
 	}
 	

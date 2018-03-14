@@ -25,6 +25,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -40,8 +41,8 @@ public class JCodeEditorPaneController {
 	private final JScriptEditor editor;
 	private final Controller controller;
 	private JList<UserScript> scriptList;
-	private final EntityState originalState;
-	private final EntityState currentState;
+	private final SandboxableState originalState;
+	private final SandboxableState currentState;
 
 
 	/**
@@ -62,8 +63,15 @@ public class JCodeEditorPaneController {
 		sandboxable = entity;
 		editor = new JScriptEditor(securityLevel);
 		controller = new Controller();
-		originalState = EntityState.read(entity);
-		currentState = EntityState.read(entity);
+		originalState = SandboxableState.read(entity);
+		currentState = SandboxableState.read(entity);
+	}
+	public JCodeEditorPaneController(World world, SecurityLevel securityLevel){
+		sandboxable = world;
+		editor = new JScriptEditor(securityLevel);
+		controller = new Controller();
+		originalState = SandboxableState.read(world);
+		currentState = SandboxableState.read(world);
 	}
 
 
@@ -126,7 +134,7 @@ public class JCodeEditorPaneController {
 
 	/** Resets all current state to that of the original state. */
 	public void reset() {
-		currentState.help = new String(originalState.help);
+		if (originalState.help != null) currentState.help = new String(originalState.help);
 		currentState.scripts.clear();
 		for (int i = 0; i < originalState.scripts.size(); i++) {
 			currentState.scripts.addElement(originalState.scripts.getElementAt(i).copy());
@@ -210,25 +218,33 @@ public class JCodeEditorPaneController {
 
 
 	/**A class for storing an editable snapshot of an Entity.*/
-	private static class EntityState {
+	private static class SandboxableState {
 
 		/**The help String.*/
 		public String help;
 		
 		/***/
 		public DefaultListModel<UserScript> scripts;
+		
+		
+		public GetLuaSandbox sandboxable;
 
 
-		private EntityState(Entity e, String help, UserScript[] s) {
-			this.help = new String(help);
+		private SandboxableState(GetLuaSandbox e, String help, UserScript[] s) {
+			sandboxable = e;
+			if (help != null) this.help = new String(help);
 			this.scripts = new DefaultListModel<UserScript>();
 			for (UserScript u : s)
 				this.scripts.addElement(u);
 		}
 
 
-		public static EntityState read(Entity e) {
-			return new EntityState(e, e.help, e.getScripts().toArray());
+		public static SandboxableState read(Entity e) {
+			return new SandboxableState(e, e.help, e.getScripts().toArray());
+		}
+		
+		public static SandboxableState read(World w){
+			return new SandboxableState(w,  null, w.getScripts().toArray());
 		}
 
 

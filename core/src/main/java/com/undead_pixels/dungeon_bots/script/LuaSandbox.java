@@ -18,6 +18,7 @@ import org.luaj.vm2.lib.jse.JsePlatform;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.*;
 /**
  * @author Stewart Charles
@@ -289,11 +290,8 @@ public final class LuaSandbox implements Serializable {
 		@Override public LuaValue invoke(Varargs v) {
 			double sleeptime = v.optdouble(1, 1.0);
 			
-			try {
-				Thread.sleep((long)(1000 * sleeptime));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			LuaInvocation currentInvoke = getQueue().getCurrent();
+			currentInvoke.safeSleep((long) (1000 * sleeptime));
 			
 			return LuaValue.NIL;
 		}
@@ -378,6 +376,16 @@ public final class LuaSandbox implements Serializable {
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		return invocation;
+	}
+
+	/**
+	 * @param object
+	 */
+	public void safeWaitUntil (Supplier<Boolean> trigger) {
+		LuaInvocation currentInvoke = this.getQueue().getCurrent();
+		while(trigger.get() == false) {
+			currentInvoke.safeSleep(5);
+		}
 	}
 
 }

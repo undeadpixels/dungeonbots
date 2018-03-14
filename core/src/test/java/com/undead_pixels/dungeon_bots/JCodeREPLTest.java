@@ -18,7 +18,12 @@ public class JCodeREPLTest {
 		editor.setCode("x = 2 + 1; return x;");
 		assertFalse("Before execution, editor messages should not contain 3", editor.getMessages().contains("3"));
 
-		editor.executeSynchronized(250);
+		editor.execute().join(500);
+		try {
+			Thread.sleep(50); // wait for the message to actually show up in the repl
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		luaSandbox.getQueue().update(0.0f);
 		String message = editor.getMessages();
 		System.out.println("Message = "+message);

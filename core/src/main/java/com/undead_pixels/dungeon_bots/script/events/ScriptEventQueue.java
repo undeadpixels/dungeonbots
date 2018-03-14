@@ -91,7 +91,6 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 		for(ScriptEventStatusListener listener : listeners) {
 			event.addListener(listener);
 		}
-		//System.out.println("Enqueueing "+event);
 		this.enqueue(event, coalescingGroup);
 	}
 }
