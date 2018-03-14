@@ -1,29 +1,29 @@
 package com.undead_pixels.dungeon_bots.scene;
 
 
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 
 /**For templating newly-placed Entities as they are added into the world.*/
 public class EntityType {
 
 	public final String name;
-	public final TextureRegion texture;
-	public final UserScript[] scripts;
+	public final TextureRegion previewTexture;
+	public final BiFunction<Float, Float, Entity> entitySupplier;
 
 
-	public EntityType(String name, TextureRegion texture, UserScript[] scripts) {
+	public EntityType(String name, TextureRegion texture, BiFunction<Float, Float, Entity> entitySupplier) {
 		this.name = name;
-		this.texture = texture;
-		this.scripts = scripts.clone();
+		this.previewTexture = texture;
+		this.entitySupplier = entitySupplier;
 	}
 
-
-	public EntityType(String name, TextureRegion texture) {
-		this.name = name;
-		this.texture = texture;
-		this.scripts = new UserScript[0];
+	public Entity get(float x, float y) {
+		return entitySupplier.apply(x, y);
 	}
-
 
 }

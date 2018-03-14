@@ -395,6 +395,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The entity to add
 	 */
 	public void addEntity(Entity e) {
+		if(entities.contains(e)) {
+			return;
+		}
+		
 		entities.add(e);
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
