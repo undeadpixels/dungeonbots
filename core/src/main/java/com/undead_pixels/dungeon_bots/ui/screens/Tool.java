@@ -681,7 +681,24 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
+			
+			//What is the world location we're dealing with?
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+			
+			//What if an entity already exists at this spot?
+			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
+			if (alreadyThere != null){
+				view.setSelectedEntities(new Entity[] { alreadyThere });
+				JEntityEditor.create(owner, alreadyThere, securityLevel, "Entity Editor", new Undoable.Listener() {
+					@Override
+					public void pushUndoable(Undoable<?> u) {
+						pushUndo(world, u);
+					}
+				});
+				view.setSelectedTiles(null);
+				return;
+			}
+			
 			EntityType type = selection.entityType;
 			if (type == null)
 				return;
