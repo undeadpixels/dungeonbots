@@ -7,7 +7,9 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
+@Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
 public class Door extends SpriteEntity {
 	
 	/**

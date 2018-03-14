@@ -4,8 +4,10 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.generic.Pair;
+import org.luaj.vm2.LuaTable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +23,9 @@ import java.util.List;
  * (Though an author could feasibly choose to do so if they desire)
  * but is mostly intended for use for survey questions that aren't graded.
  */
+@Doc("When invoked, a ResponseQuestion presents the user with a Dialog window of\n" +
+		"consisting of questions and text input responses that the user can provide\n" +
+		"and submit.")
 public class ResponseQuestion extends Question {
 	
 	/**
@@ -74,7 +79,17 @@ public class ResponseQuestion extends Question {
 		return results;
 	}
 
+	@Doc("Get the Response questions the User submitted.")
+	@Bind(SecurityLevel.AUTHOR)
+	public LuaTable getResponseQuestions() {
+		final LuaTable lt = new LuaTable();
+		results.forEach(lt::set);
+		return lt;
+	}
+
 	@Override
+	@Bind(SecurityLevel.AUTHOR)
+	@Doc("Gets a String representation of the Question and currently input solutions.")
 	public String getDescription() {
 		StringBuilder ans = new StringBuilder(this.description);
 		ans.append("\n");

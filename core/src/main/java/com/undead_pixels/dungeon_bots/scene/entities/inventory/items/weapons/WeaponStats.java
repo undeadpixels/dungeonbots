@@ -1,8 +1,14 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons;
 
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+
 import java.io.Serializable;
 
-public final class WeaponStats implements Serializable {
+public final class WeaponStats implements Serializable, GetLuaFacade {
 	final int damage;
 	final int speed;
 	final int range;
@@ -11,5 +17,33 @@ public final class WeaponStats implements Serializable {
 		this.damage = damage;
 		this.speed = speed;
 		this.range = range;
+	}
+
+	@Override
+	public int getId() {
+		return this.hashCode();
+	}
+
+	@Override
+	public String getName() {
+		return "Weapon Stats";
+	}
+
+	@Doc("Gets the Damage stat of the Weapon")
+	@Bind(SecurityLevel.AUTHOR) @BindTo("damage")
+	public Integer getDamage() {
+		return this.damage;
+	}
+
+	@Doc("Gets the Speed stat of the Weapon")
+	@Bind(SecurityLevel.AUTHOR) @BindTo("speed")
+	public Integer getSpeed() {
+		return this.speed;
+	}
+
+	@Doc("Gets the Range stat of the Weapon")
+	@Bind(SecurityLevel.AUTHOR) @BindTo("range")
+	public Integer getRange() {
+		return this.range;
 	}
 }

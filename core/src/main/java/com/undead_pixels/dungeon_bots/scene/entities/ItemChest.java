@@ -6,7 +6,11 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
+@Doc("An ItemChest is an Entity that contains a large Inventory.\n" +
+		"The ItemChest can be locked or unlocked based off of events or by unlocking\n" +
+		"with a key.")
 public class ItemChest extends SpriteEntity implements HasInventory {
 	
 	/**

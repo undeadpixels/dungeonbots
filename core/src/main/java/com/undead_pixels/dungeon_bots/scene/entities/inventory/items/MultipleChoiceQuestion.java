@@ -15,6 +15,10 @@ import java.util.stream.Stream;
  * When the player selects a response and submits the question, saves the selected
  * answer in the Question Item which can be submitted or returned to a requester.
  */
+@Doc("A MultipleChoiceQuestion is a question that presents the invoker with a dialog window\n" +
+		"With multiple options, where only one option can be selected.\n" +
+		"By clicking Submit, the player sets a field in the Question that can be queried\n" +
+		"from a grading script.")
 public class MultipleChoiceQuestion extends Question {
 	
 	/**
@@ -69,11 +73,13 @@ public class MultipleChoiceQuestion extends Question {
 	public String getDescription() {
 		return String.format("Problem: %s\nMy Solution: %s",
 				description,
-				getSubmittedAnswer().orElse("None"));
+				getSubmittedAnswer());
 	}
 
-	public Optional<String> getSubmittedAnswer() {
-		return Optional.ofNullable(this.submittedAnswer);
+	@Doc("Get the Answer to submitted for the question.")
+	@Bind(SecurityLevel.AUTHOR)
+	public String getSubmittedAnswer() {
+		return Optional.ofNullable(this.submittedAnswer).orElse("None");
 	}
 
 	private JFrame questionForm(final String[] questions) {

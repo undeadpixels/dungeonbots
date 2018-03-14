@@ -11,6 +11,7 @@ import java.io.Serializable;
 /**
  * A type representing an immaterial game item.
  */
+@Doc("An Item is a type representing an immaterial game item that is carried in an Inventory.")
 public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 	
 	/**
@@ -45,16 +46,18 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 		this.weight = weight;
 	}
 
-
-	@Bind(SecurityLevel.DEFAULT) public String getDescription() {
+	@Doc("Get the Description of the Item")
+	@Bind(SecurityLevel.AUTHOR) public String getDescription() {
 		return description;
 	}
 
-	@Bind(SecurityLevel.DEFAULT) public Integer getValue() {
+	@Doc("Get the Value of the Item")
+	@Bind(SecurityLevel.AUTHOR) public Integer getValue() {
 		return value;
 	}
 
-	@Bind(SecurityLevel.DEFAULT) public Integer getWeight() {
+	@Doc("Get the Weiht of the Item")
+	@Bind(SecurityLevel.AUTHOR) public Integer getWeight() {
 		return weight;
 	}
 
@@ -62,7 +65,9 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 		return false;
 	}
 
+	@Doc("Get the Name of the Item")
 	@Override
+	@Bind(SecurityLevel.AUTHOR)
 	public String getName() {
 		return this.name;
 	}

@@ -2,7 +2,9 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory.items;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
+@Doc("A Key is an Item that is typically used to Open Doors or Item Chests")
 public class Key extends Item {
 	
 	/**

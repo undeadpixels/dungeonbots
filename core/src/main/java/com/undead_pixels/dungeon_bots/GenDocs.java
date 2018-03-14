@@ -60,7 +60,7 @@ public final class GenDocs {
 	}
 
 	public static void main(String[] args) {
-		assert toJson(build(), "autodoc.json");
+		toJson(build(), "autodoc.json");
 	}
 
 	private static boolean toJson(final Object o, final String toFile) {
