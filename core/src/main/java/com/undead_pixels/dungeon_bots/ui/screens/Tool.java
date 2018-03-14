@@ -414,6 +414,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
+				
+				System.out.println(se);
 
 				// If only one tile is selected, and one entity is selected, and
 				// it is the entity that would be selected by this lasso, then

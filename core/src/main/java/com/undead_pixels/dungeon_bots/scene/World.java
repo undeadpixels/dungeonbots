@@ -334,6 +334,27 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			playstyle.update();
 			// update level script
 			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
+			
+			
+			
+			// XXX - move this elsewhere
+			int numGoals = 0;
+			int numGoalsMet = 0;
+			for(Entity e : entities) {
+				if(e instanceof Goal) {
+					Goal g = (Goal) e;
+					numGoals++;
+					
+					Entity under = this.getEntityUnderLocation(g.getPosition().x, g.getPosition().y);
+					
+					if(under != null && under instanceof Actor && under.getPosition().equals(g.getPosition())) {
+						numGoalsMet++;
+					}
+				}
+			}
+			if(numGoals > 0 && numGoals == numGoalsMet) {
+				this.win();
+			}
 		}
 
 	}
@@ -1038,8 +1059,41 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
-		Integer[] goal = goal();
-		return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0] + 1), LuaValue.valueOf(goal[1] + 1) });
+		// TODO - cleanup at some point
+		Point2D.Float searchPos = this.getSize();
+		searchPos.x /= 2;
+		searchPos.y /= 2;
+		
+		LuaSandbox currentSandbox = SandboxManager.getCurrentSandbox();
+		
+		if(currentSandbox != null) {
+			Entity e = currentSandbox.getSecurityContext().getEntity();
+			
+			if(e != null) {
+				searchPos = e.getPosition();
+			}
+		}
+		
+		Goal closest = null;
+		double dist = Float.POSITIVE_INFINITY;
+		for(Entity e: entities) {
+			if(e instanceof Goal) {
+				double d = e.getPosition().distance(searchPos);
+				
+				if(d < dist) {
+					dist = d;
+					closest = (Goal) e;
+				}
+			}
+		}
+		
+		if(closest == null) {
+			Integer[] goal = goal();
+			return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0] + 1), LuaValue.valueOf(goal[1] + 1) });
+		} else {
+			Point2D.Float p = closest.getPosition();
+			return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(p.x + 1), LuaValue.valueOf(p.y + 1) });
+		}
 	}
 
 

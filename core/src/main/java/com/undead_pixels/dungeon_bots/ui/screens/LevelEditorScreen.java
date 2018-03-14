@@ -110,6 +110,8 @@ public final class LevelEditorScreen extends Screen {
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
 		
+		// TODO - some of the names produced by lambdas might need to be changed later
+		
 		result.add(new EntityType("fish", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
@@ -133,7 +135,7 @@ public final class LevelEditorScreen extends Screen {
 			return new Door(world, x, y);
 		}));
 		result.add(new EntityType("goal", Door.DEFAULT_TEXTURE, (x, y) -> {
-			return new Goal(world, "goal (level editor)", x, y);
+			return new Goal(world, "goal", x, y);
 		}));
 		result.add(new EntityType("player", Player.DEFAULT_TEXTURE, (x, y) -> {
 			Player ret = world.getPlayer();
@@ -141,7 +143,7 @@ public final class LevelEditorScreen extends Screen {
 			return ret;
 		}));
 		result.add(new EntityType("bot", Player.DEFAULT_TEXTURE, (x, y) -> {
-			return new Bot(world, "bot (level editor)", x, y);
+			return new Bot(world, "bot", x, y);
 		}));
 		return result;
 	}
