@@ -11,6 +11,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -42,8 +43,10 @@ import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MouseInputListener;
 
 import org.jdesktop.swingx.VerticalLayout;
 
@@ -83,8 +86,6 @@ public final class LevelEditorScreen extends Screen {
 	private static final long serialVersionUID = 1L;
 
 	private WorldView _View;
-	protected final World world;
-	protected final LevelPack levelPack;
 	public final Tool.SelectionModel selections = new Tool.SelectionModel();
 
 	// Special tools
@@ -95,8 +96,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 	public LevelEditorScreen(LevelPack levelPack) {
-		this.levelPack = levelPack;
-		this.world = levelPack.getCurrentWorld();
+		super(levelPack);
 	}
 
 
@@ -154,7 +154,7 @@ public final class LevelEditorScreen extends Screen {
 	 * correctly handle inputs in the game view, whereas the controller itself
 	 * handles Level Editor-related actions.
 	 */
-	protected final class Controller extends ScreenController implements ListSelectionListener, MouseWheelListener {
+	protected final class Controller extends ScreenController implements ListSelectionListener, MouseWheelListener, MouseInputListener, ChangeListener {
 
 		/** The list managing the selection of a tool. */
 		public JList<Tool> toolPalette;
@@ -452,32 +452,6 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 
-		@Override
-		public void keyPressed(KeyEvent e) {
-			if (selections.tool != null)
-				selections.tool.keyPressed(e);
-			if (e.isConsumed())
-				return;
-		}
-
-
-		@Override
-		public void keyReleased(KeyEvent e) {
-			if (selections.tool != null)
-				selections.tool.keyPressed(e);
-			if (e.isConsumed())
-				return;
-		}
-
-
-		@Override
-		public void keyTyped(KeyEvent e) {
-			if (selections.tool != null)
-				selections.tool.keyPressed(e);
-			if (e.isConsumed())
-				return;
-		}
-
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
@@ -607,7 +581,7 @@ public final class LevelEditorScreen extends Screen {
 		// Create the zoom slider.
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
-		zoomSlider.addChangeListener(getController());
+		zoomSlider.addChangeListener((ChangeListener)getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		// Build the control panel.

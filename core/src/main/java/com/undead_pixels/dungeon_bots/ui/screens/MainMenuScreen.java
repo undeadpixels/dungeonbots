@@ -53,7 +53,7 @@ public class MainMenuScreen extends Screen {
 							&& !levelPack.getCurrentPlayer().equals(DungeonBotsMain.instance.getUser())) {
 						throw new RuntimeException("Cannot switch to a game being played by another player.");
 					}
-					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack));
 					break;
 				case "CREATE":
 					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
@@ -76,61 +76,6 @@ public class MainMenuScreen extends Screen {
 			}
 
 
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void mouseExited(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void keyPressed(KeyEvent arg0) {
-			}
-
-
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-			}
-
-
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-			}
-
-
-			@Override
-			public void mouseDragged(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void mouseMoved(MouseEvent arg0) {
-			}
-
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
-
-			}
 
 		};
 	}

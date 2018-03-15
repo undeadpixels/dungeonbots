@@ -308,7 +308,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// =============================================
 
 	/**
-	 * Updates this world and all children. Update means.... ?
+	 * Updates this world and all children.
 	 * 
 	 * @param dt
 	 *            Delta time

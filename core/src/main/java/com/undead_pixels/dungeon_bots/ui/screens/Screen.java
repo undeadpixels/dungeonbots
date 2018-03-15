@@ -11,6 +11,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
+import java.util.EventListener;
 import java.util.HashMap;
 
 import javax.swing.AbstractButton;
@@ -24,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 
 /**
  * Defines GUI and control interface. A protected GUI state can be stored.
@@ -31,6 +33,9 @@ import com.undead_pixels.dungeon_bots.scene.World;
  */
 public abstract class Screen extends JFrame {
 
+	protected final LevelPack levelPack;
+	protected final World world;
+	
 	/**
 	 * 
 	 */
@@ -46,6 +51,17 @@ public abstract class Screen extends JFrame {
 
 	protected Screen() {
 		super();
+		this.world = null;
+		this.levelPack = null;
+	}
+	
+	protected Screen(LevelPack levelPack){
+		super();
+		this.world = (this.levelPack = levelPack).getCurrentWorld();		
+	}
+	protected Screen (World world){
+		this.world = world;
+		this.levelPack = null;
 	}
 
 
@@ -109,8 +125,7 @@ public abstract class Screen extends JFrame {
 	 * Screen will not be chock-full of irrelevant event handlers. This class
 	 * must be extended in any class that inherits from Screen.
 	 */
-	protected abstract class ScreenController
-			implements MouseInputListener, KeyListener, ActionListener, ChangeListener {
+	protected abstract class ScreenController implements ActionListener {
 
 		/**A convenience function that registers this controller as a listener for all applicable listening runtime types.  
 		 * TODO:  cut out the ones that aren't actually used.*/
