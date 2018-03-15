@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -229,7 +230,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			if (screenOrigin != null)
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
-			gameCenterOrigin = view.getCamera().getPosition();
+			gameCenterOrigin = view.getCamera().getPosition();			
+			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			e.consume();
 		}
 
@@ -241,6 +243,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
+			view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			e.consume();
 		}
 

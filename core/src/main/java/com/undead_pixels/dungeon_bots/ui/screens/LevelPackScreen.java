@@ -7,14 +7,14 @@ import com.undead_pixels.dungeon_bots.scene.World;
 /**
  * The screen where a user selects what level/pack they want to play
  */
-public class LevelSelectMenuScreen extends Screen {
+public class LevelPackScreen extends Screen {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected LevelSelectMenuScreen() {
+	protected LevelPackScreen() {
 		super();
 		// TODO Auto-generated constructor stub
 	}

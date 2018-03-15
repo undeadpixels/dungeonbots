@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -29,9 +31,54 @@ public final class JMessagePane extends JComponent {
 	JTextPane messagePane;
 
 
-	private JMessagePane(){
-		
+	public enum MessageType {
+		Verbose(0b11111111111111111111111111111111), General(1), Debug(2), Error(4);
+
+		private int _value;
+
+
+		MessageType(int val) {
+			_value = val;
+		}
+
+
+		public int getValue() {
+			return _value;
+		}
+
+
+		public static List<MessageType> parseMessageTypes(int val) {
+			ArrayList<MessageType> result = new ArrayList<MessageType>();
+			for (MessageType mt : values())
+				if ((val & mt.getValue()) != 0)
+					result.add(mt);
+			return result;
+		}
 	}
+
+
+	private JMessagePane() {
+
+	}
+
+
+	private MessageType _MessageType = MessageType.Verbose;
+
+
+	/**Returns the bitmask specifying what message types the message pane will display.  
+	 * Default is verbose (meaning, displays everything).*/
+	public MessageType getAllowedTypes() {
+		return _MessageType;
+	}
+
+
+	/**Sets a bitmask specifying what message types the message pane will display.  
+	 * Default is verbose (meaning, displays everything).*/
+	public void setAllowedTypes(MessageType messageType) {
+		this._MessageType = messageType;
+	}
+
+
 	public static JMessagePane create() {
 		JMessagePane result = new JMessagePane();
 		result.setLayout(new BorderLayout());
@@ -44,22 +91,35 @@ public final class JMessagePane extends JComponent {
 	}
 
 
-	/**Adds a plain text message.*/
-	public void message(String text, Color color) {
-		StyledDocument doc  = messagePane.getStyledDocument();
+	/**Adds a plain text message with the given color and type.*/
+	public void message(String text, Color color, MessageType type) {
+		StyledDocument doc = messagePane.getStyledDocument();
 		Style style = doc.addStyle(null, null);
-		StyleConstants.setForeground(style,  color);
+		StyleConstants.setForeground(style, color);
 		try {
-			doc.insertString(doc.getLength(),  LocalDateTime.now().toLocalTime() + "\n" + text + "\n",  style);
-		} catch (BadLocationException e) {			
+			doc.insertString(doc.getLength(), LocalDateTime.now().toLocalTime() + "\n" + text + "\n", style);
+		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
-		
+
+	}
+
+
+	/**Adds a plain text message with the given color.  Presumes the MessageType is 'general'.*/
+	public void message(String text, Color color) {
+		message(text, color, MessageType.General);
+	}
+
+
+	/**Adds the sender's image, followed by a plain text message.  Presumes the MessageType is 
+	 * 'general.'*/
+	public void message(HasImage sender, String text, Color color) {
+		message(sender, text, color, MessageType.General);
 	}
 
 
 	/**Adds the sender's image, followed by a plain text message.*/
-	public void message(HasImage sender, String text, Color color) {
+	public void message(HasImage sender, String text, Color color, MessageType type) {
 
 		// First, insert the sender's image.
 		StyledDocument doc = messagePane.getStyledDocument();
