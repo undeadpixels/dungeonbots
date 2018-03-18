@@ -2,11 +2,9 @@ package com.undead_pixels.dungeon_bots.scene;
 
 
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.script.UserScript;
 
 /**For templating newly-placed Entities as they are added into the world.*/
 public class EntityType {

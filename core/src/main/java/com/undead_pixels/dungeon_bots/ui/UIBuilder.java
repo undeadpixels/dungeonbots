@@ -6,8 +6,6 @@ import org.jdesktop.swingx.auth.LoginService;
 import org.jdesktop.swingx.auth.PasswordStore;
 import org.jdesktop.swingx.auth.UserNameStore;
 
-import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -25,9 +23,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.EventListener;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
@@ -42,8 +38,29 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 
 public class UIBuilder {
+
+	protected static final String FIELD_ACTION = "action";
+	protected static final String FIELD_ACTION_COMMAND = "action_command";
+	protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
+	protected static final String FIELD_ALIGNMENT_X = "alignment_x";
+	protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
+	protected static final String FIELD_BORDER = "border";
+	protected static final String FIELD_ENABLED = "enabled";
+	protected static final String FIELD_FOCUSABLE = "focusable";
+	protected static final String FIELD_HOTKEY = "hotkey";
+	protected static final String FIELD_IMAGE = "image";
+	protected static final String FIELD_INSETS = "insets";
+	protected static final String FIELD_MAX_SIZE = "max_size";
+	protected static final String FIELD_MIN_SIZE = "min_size";
+	protected static final String FIELD_MNEMONIC = "mnemonic";
+	protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
+	protected static final String FIELD_TEXT = "text";
+	protected static final String FIELD_TOOLTIP = "tooltip";
+	protected static final int DEFAULT_PREFERRED_WIDTH = -1;
+	protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
 
 	/**
 	 * Whether or not verbose messages will be printed. Verbose messages include:
@@ -110,6 +127,296 @@ public class UIBuilder {
 	}
 
 
+	public static final class LabelBuilder {
+
+		protected static abstract class PropertyBuilder<P> {
+
+			protected final P value;
+
+
+			public PropertyBuilder(P value) {
+				this.value = value;
+			}
+
+
+			public final void apply(JLabel label) {
+				apply(label, value);
+			}
+
+
+			protected abstract void apply(JLabel label, P value);
+		}
+
+
+		
+
+
+		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
+
+
+		public final void reset() {
+			properties.clear();
+		}
+
+
+		public final LabelBuilder alignmentX(float alignment) {
+			properties.put(FIELD_ALIGNMENT_X, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(JLabel label, Float value) {
+					label.setAlignmentX(value);
+				}
+			});
+			return this;
+		}
+
+
+		public final LabelBuilder alignmentY(float alignment) {
+			properties.put(FIELD_ALIGNMENT_Y, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(JLabel label, Float value) {
+					label.setAlignmentY(value);
+				}
+			});
+			return this;
+		}
+		
+
+		public final LabelBuilder border(Border border) {
+			properties.put(FIELD_BORDER,  new PropertyBuilder<Border>(border){
+
+				@Override
+				protected void apply(JLabel label, Border value) {
+					label.setBorder(value);
+				}});
+			return this;
+		}
+
+
+
+		public final LabelBuilder enabled(boolean value) {
+			properties.put(FIELD_ENABLED, new PropertyBuilder<Boolean>(value) {
+
+				@Override
+				public void apply(JLabel label, Boolean value) {
+					label.setEnabled(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets focusability as specified. */
+		public final LabelBuilder focusable(boolean focusable) {
+			properties.put(FIELD_FOCUSABLE, new PropertyBuilder<Boolean>(focusable) {
+
+				@Override
+				public void apply(JLabel label, Boolean value) {
+					label.setFocusable(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/**
+		 * Specifies an image from the given filename to be displayed. If the
+		 * file could not be opened, sets the displayed text to the filename.
+		 * The image will fill the entire button.
+		 */
+		public final LabelBuilder image(String filename) {
+			return image(UIBuilder.getImage(filename));
+		}
+
+
+		/**
+		 * Specifies an image to be displayed. The image will fill the entire
+		 * button.
+		 */
+		public final LabelBuilder image(Image image) {
+			properties.put(FIELD_IMAGE, new PropertyBuilder<Image>(image) {
+
+				@Override
+				public void apply(JLabel label, Image img) {
+					label.setIcon(new ImageIcon(img));
+				}
+			});
+			return this;
+		}
+
+
+		/** Sets the maximum height as indicated. */
+		public LabelBuilder maxHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(-1, height));
+			else
+				return maxSize(new Dimension(existingMax.value.width, height));
+		}
+
+
+		/** Sets the maximum size as indicated. */
+		public LabelBuilder maxSize(int width, int height) {
+			return maxSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the maximum size as indicated. */
+		public LabelBuilder maxSize(Dimension size) {
+			properties.put(FIELD_MAX_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setMaximumSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the maximum width as indicated. */
+		public LabelBuilder maxWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(width, -1));
+			else
+				return maxSize(new Dimension(width, existingMax.value.height));
+		}
+
+
+		/** Sets the minimum height as indicated. */
+		public LabelBuilder minHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(-1, height));
+			else
+				return minSize(new Dimension(existingmin.value.width, height));
+		}
+
+
+		/** Sets the minimum size as indicated. */
+		public LabelBuilder minSize(int width, int height) {
+			return minSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the minimum size as indicated. */
+		public LabelBuilder minSize(Dimension size) {
+			properties.put(FIELD_MIN_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setMinimumSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the minimum width as indicated. */
+		public LabelBuilder minWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(width, -1));
+			else
+				return minSize(new Dimension(width, existingmin.value.height));
+		}
+
+
+		/** Sets the preferred height as indicated. */
+		public LabelBuilder prefHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(-1, height));
+			else
+				return prefSize(new Dimension(existingpref.value.width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public LabelBuilder preferredSize(int width, int height) {
+			return prefSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public LabelBuilder prefSize(Dimension size) {
+			properties.put(FIELD_PREFERRED_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setPreferredSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the preferred width as indicated. */
+		public LabelBuilder prefWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(width, -1));
+			else
+				return prefSize(new Dimension(width, existingpref.value.height));
+		}
+
+
+		/**
+		 * Specifies the given text to be displayed by buttons created by this
+		 * builder.
+		 */
+		public final LabelBuilder text(String text) {
+			properties.put(FIELD_TEXT, new PropertyBuilder<String>(text) {
+
+				@Override
+				public void apply(JLabel label, String txt) {
+					label.setText(txt);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Adds the given tooltip text to buttons created by this builder. */
+		public final LabelBuilder toolTip(String toolTipText) {
+			properties.put(FIELD_TOOLTIP, new PropertyBuilder<String>(toolTipText) {
+
+				@Override
+				public void apply(JLabel label, String t) {
+					label.setToolTipText(t);
+				}
+
+			});
+			return this;
+		}
+
+
+		public final JLabel create() {
+			JLabel lbl = new JLabel();
+			for (PropertyBuilder<?> p : properties.values())
+				p.apply(lbl);
+			return lbl;
+		}
+
+
+
+	}
+
+
 	/**
 	 * blah blah blah. Try this:
 	 * <p>
@@ -129,36 +436,18 @@ public class UIBuilder {
 			}
 
 
-			public final void apply(AbstractButton bttn){
+			public final void apply(AbstractButton bttn) {
 				apply(bttn, value);
 			}
+
+
 			protected abstract void apply(AbstractButton bttn, P value);
 		}
 
 
-		protected static final String FIELD_ACTION = "action";
-		protected static final String FIELD_ACTION_COMMAND = "action_command";
-		protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
-		protected static final String FIELD_ALIGNMENT_X = "alignment_x";
-		protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
-		protected static final String FIELD_ENABLED = "enabled";
-		protected static final String FIELD_FOCUSABLE = "focusable";
-		protected static final String FIELD_HOTKEY = "hotkey";
-		protected static final String FIELD_IMAGE = "image";
-		protected static final String FIELD_INSETS = "insets";
-		protected static final String FIELD_MAX_SIZE = "max_size";
-		protected static final String FIELD_MIN_SIZE = "min_size";
-		protected static final String FIELD_MNEMONIC = "mnemonic";
-		protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
-		protected static final String FIELD_TEXT = "text";
-		protected static final String FIELD_TOOLTIP = "tooltip";
-
-		protected static final int DEFAULT_PREFERRED_WIDTH = -1;
-		protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
-
 		// protected HashMap<String, Object> settings = new HashMap<String,
 		// Object>();
-		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
+		protected final HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
 
 
 		/** Clears all settings from this ButtonBuilder. */
@@ -494,9 +783,6 @@ public class UIBuilder {
 		}
 
 
-		
-		
-		
 		/** Sets the minimum height as indicated. */
 		public ButtonBuilder<T> minHeight(int height) {
 			@SuppressWarnings("unchecked")
@@ -538,15 +824,18 @@ public class UIBuilder {
 				return minSize(new Dimension(width, existingmin.value.height));
 		}
 
+
 		public final ButtonBuilder<T> mnemonic(char mnemonic) {
-			properties.put(FIELD_MNEMONIC, new PropertyBuilder<Character>(mnemonic){
+			properties.put(FIELD_MNEMONIC, new PropertyBuilder<Character>(mnemonic) {
+
 				@Override
 				public void apply(AbstractButton bttn, Character value) {
 					bttn.setMnemonic(value);
-				}				
+				}
 			});
 			return this;
 		}
+
 
 		/** Sets the preferred height as indicated. */
 		public ButtonBuilder<T> prefHeight(int height) {
@@ -588,14 +877,13 @@ public class UIBuilder {
 			else
 				return prefSize(new Dimension(width, existingpref.value.height));
 		}
-		
 
 
 		/**
 		 * Specifies the given text to be displayed by buttons created by this
 		 * builder.
 		 */
-		public final ButtonBuilder<T> text(String text) {			
+		public final ButtonBuilder<T> text(String text) {
 			properties.put(FIELD_TEXT, new PropertyBuilder<String>(text) {
 
 				@Override
@@ -622,7 +910,6 @@ public class UIBuilder {
 		}
 
 
-
 		/**
 		 * Create an uninitialized button as it is defined in Swing, for example
 		 * a JButton or a JToggleButton. Settings will be applied after the
@@ -640,9 +927,9 @@ public class UIBuilder {
 			// Apply all set properties to the new button.
 			for (PropertyBuilder<?> p : properties.values())
 				p.apply(bttn);
-		
+
 			// The 'enter' key should do the same as the 'space' key.
-			//TODO:  Should this be hard-coded, or an option?
+			// TODO: Should this be hard-coded, or an option?
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
 					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
@@ -667,6 +954,7 @@ public class UIBuilder {
 
 		protected static final String FIELD_ACCELERATOR = "accelerator";
 
+
 		// TODO: a templating system for child menus?
 
 		@Override
@@ -676,17 +964,16 @@ public class UIBuilder {
 
 
 		public final MenuBuilder accelerator(KeyStroke accelerator) {
-			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+			properties.put(FIELD_ACCELERATOR, new PropertyBuilder<KeyStroke>(accelerator) {
 
 				@Override
 				protected void apply(AbstractButton bttn, KeyStroke value) {
-					((JMenu)bttn).setAccelerator(value);
+					((JMenu) bttn).setAccelerator(value);
 				}
-				
+
 			});
 			return this;
 		}
-
 
 
 		public final MenuBuilder accelerator(int key, int mask) {
@@ -701,24 +988,23 @@ public class UIBuilder {
 		protected static final String FIELD_ACCELERATOR = "accelerator";
 
 
-
 		@Override
 		protected JMenuItem createUninitialized() {
 			return new JMenuItem();
 		}
 
+
 		public final MenuItemBuilder accelerator(KeyStroke accelerator) {
-			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+			properties.put(FIELD_ACCELERATOR, new PropertyBuilder<KeyStroke>(accelerator) {
 
 				@Override
 				protected void apply(AbstractButton bttn, KeyStroke value) {
-					((JMenuItem)bttn).setAccelerator(value);
+					((JMenuItem) bttn).setAccelerator(value);
 				}
-				
+
 			});
 			return this;
 		}
-		
 
 
 		public final MenuItemBuilder accelerator(int key, int mask) {
@@ -746,15 +1032,15 @@ public class UIBuilder {
 	}
 
 
-	/**
-	 * Returns a builder for a JToggleButton. The builder pattern will allow the
-	 * following call:
-	 * <p>
-	 * JToggleButton t = buildToggleButton().text("I'm a
-	 * button").action("CLICK", listener).create();
-	 */
-	public static ToggleButtonBuilder buildToggleButton() {
-		return new ToggleButtonBuilder();
+	/**Returns a builder for a JLabel.*/
+	public static LabelBuilder buildLabel() {
+		return new LabelBuilder();
+	}
+
+
+	/**Returns a builder for a JMenu.*/
+	public static MenuBuilder buildMenu() {
+		return new MenuBuilder();
 	}
 
 
@@ -766,44 +1052,15 @@ public class UIBuilder {
 	}
 
 
-	/**Returns a builder for a JMenu.*/
-	public static MenuBuilder buildMenu() {
-		return new MenuBuilder();
-	}
-
-
 	/**
-	 * Creates a menu item with the given header, that responds to the given
-	 * accelerator and mnemonic. The accelerator is a key chord that will invoke
-	 * the item even if the menu is not open. The mnemonic is the underlined
-	 * letter of a menu item. The command conveyed to the listener will be the
-	 * header.
+	 * Returns a builder for a JToggleButton. The builder pattern will allow the
+	 * following call:
+	 * <p>
+	 * JToggleButton t = buildToggleButton().text("I'm a
+	 * button").action("CLICK", listener).create();
 	 */
-	@Deprecated
-	public static JMenuItem makeMenuItem(String header, KeyStroke accelerator, int mnemonic, ActionListener listener) {
-		JMenuItem result = new JMenuItem(header);
-
-		if (accelerator != null) {
-			result.setAccelerator(accelerator);
-		}
-
-		if (mnemonic != 0)
-			result.setMnemonic(mnemonic);
-
-		result.setActionCommand(header);
-		result.addActionListener(listener);
-
-		return result;
-	}
-
-
-	/**
-	 * Creates a menu item with the given header. The command conveyed to the
-	 * listener will be the header.
-	 */
-	@Deprecated
-	public static JMenuItem makeMenuItem(String header, ActionListener listener) {
-		return makeMenuItem(header, null, 0, listener);
+	public static ToggleButtonBuilder buildToggleButton() {
+		return new ToggleButtonBuilder();
 	}
 
 

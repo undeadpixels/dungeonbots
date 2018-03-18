@@ -8,19 +8,15 @@ import java.awt.event.ContainerListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowListener;
 import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
-import java.util.EventListener;
 import java.util.HashMap;
 
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.ListModel;
 import javax.swing.event.AncestorListener;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
@@ -33,8 +29,8 @@ import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
  */
 public abstract class Screen extends JFrame {
 
-	protected final LevelPack levelPack;
-	protected final World world;
+	protected LevelPack levelPack;
+	protected World world;
 	
 	/**
 	 * 
@@ -129,7 +125,7 @@ public abstract class Screen extends JFrame {
 
 		/**A convenience function that registers this controller as a listener for all applicable listening runtime types.  
 		 * TODO:  cut out the ones that aren't actually used.*/
-		public void registerSignals(Component signaller) {
+		public void registerSignalsFrom(Component signaller) {
 			if (this instanceof MouseInputListener)
 				signaller.addMouseListener((MouseInputListener) this);
 			if (this instanceof MouseWheelListener)

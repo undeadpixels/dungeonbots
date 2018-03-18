@@ -79,8 +79,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private transient LuaSandbox mapSandbox;
 
 	/**
-	 * The level pack of which this World is a part.
+	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
 	 */
+	@Deprecated
 	private transient LevelPack levelPack = null;
 
 	/**

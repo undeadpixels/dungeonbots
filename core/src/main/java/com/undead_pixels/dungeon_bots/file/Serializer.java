@@ -44,18 +44,22 @@ import com.undead_pixels.dungeon_bots.scene.level.WorldList;
  */
 public class Serializer {
 
-	/** Uses Java serialization to make a deep copy of the given object. */
+	/** Uses Java serialization to make a deep copy of the given object. 
+	 * @throws IOException 
+	 * @throws ClassNotFoundException */
 	public static <T> T deepCopy(T original) {
 		return Serializer.<T>deserializeFromBytes(serializeToBytes(original));
 	}
 
+
 	/** Serializes the given Serializable object into bytes. */
 	public static byte[] serializeToBytes(Object obj) {
-		byte[] result = null;
 		ByteArrayOutputStream byte_out = null;
+		byte_out = new ByteArrayOutputStream();
+		byte[] result = null;
+		ObjectOutputStream out = null;
 		try {
-			byte_out = new ByteArrayOutputStream();
-			ObjectOutputStream out = new ObjectOutputStream(byte_out);
+			out = new ObjectOutputStream(byte_out);
 			out.writeObject(obj);
 			out.flush();
 			result = byte_out.toByteArray();
@@ -63,15 +67,13 @@ public class Serializer {
 			e.printStackTrace();
 		} finally {
 			try {
-				byte_out.close();
-			} catch (Exception e) {
-				// Ignore close exceptions.
+				out.close();
+			} catch (IOException e) {
 			}
 		}
-		if (result == null)
-			result = new byte[0];
-		return result;
+		return null;
 	}
+
 
 	/** Deserializes the given bytes into an object of type T. */
 	@SuppressWarnings("unchecked")
@@ -82,20 +84,18 @@ public class Serializer {
 			byte_in = new ByteArrayInputStream(bytes);
 			ObjectInputStream in = new ObjectInputStream(byte_in);
 			result = (T) in.readObject();
-		} catch (IOException iex) {
-			iex.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (byte_in != null)
-				try {
-					byte_in.close();
-				} catch (IOException e) {
-					// Do nothing.
-				}
+			try {
+				byte_in.close();
+			} catch (IOException e) {
+				// Do nothing.
+			}
 		}
 		return result;
 	}
+
 
 	/**
 	 * Serializes the given object into JSON, using the Gson object defined
@@ -103,9 +103,10 @@ public class Serializer {
 	 */
 	public static String serializeToJSON(Object obj) {
 		if (_Gson == null)
-			_Gson = setupGson();
+			setupGson();
 		return _Gson.toJson(obj);
 	}
+
 
 	/**
 	 * Deserializes the given object into JSON, using the Gson object defined
@@ -113,9 +114,10 @@ public class Serializer {
 	 */
 	public static <T> T deserializeFromJSON(String json, Class<T> classOfT) {
 		if (_Gson == null)
-			_Gson = setupGson();
+			setupGson();
 		return (T) _Gson.fromJson(json, classOfT);
 	}
+
 
 	// ============================================================
 	// ========= Serializer FILE CONVENIENCE METHODS ==============
@@ -142,6 +144,7 @@ public class Serializer {
 		return false;
 	}
 
+
 	/**
 	 * A convenience method to write a String to a file.
 	 * 
@@ -154,6 +157,7 @@ public class Serializer {
 	public static boolean writeToFile(String filename, String string) {
 		return writeToFile(filename, string.getBytes());
 	}
+
 
 	/**
 	 * A convenience method to read bytes from a file. On an exception, null is
@@ -170,6 +174,7 @@ public class Serializer {
 		}
 	}
 
+
 	/**
 	 * A convenience method to read a String from a file. On an exception, null
 	 * is returned.
@@ -184,51 +189,81 @@ public class Serializer {
 		return new String(bytes);
 	}
 
+
 	// ============================================================
 	// ========= Serializer WORLD SERIALIZATION (bytes)============
 	// ============================================================
 
-	/** Converts the given World object to serialized bytes. */
+	/** Converts the given World object to serialized bytes.  Returns null if an exception is thrown.*/
 	public static byte[] serializeWorld(World world) {
 		return serializeToBytes(world);
 	}
 
-	/** Converts the given bytes to a World. */
+
+	/** Converts the given bytes to a World.  Returns null if an exception is thrown.  */
 	public static World deserializeWorld(byte[] bytes) {
 		return Serializer.<World>deserializeFromBytes(bytes);
 	}
 
-	/** Converts the given list of Worlds to bytes. */
+
+	/** Converts the given list of Worlds to bytes.  Returns null if an exception is thrown.  */
 	public static byte[] serializeWorlds(WorldList worlds) {
 		byte[] result = serializeToBytes(worlds);
 		return result;
 	}
 
-	/** Converts the given bytes to an ordered list of Worlds. */
+
+	/** Converts the given bytes to an ordered list of Worlds.  Returns null if an exception is thrown. */
 	public static WorldList deserializeWorlds(byte[] bytes) {
 		return Serializer.<WorldList>deserializeFromBytes(bytes);
 	}
+
 
 	// ============================================================
 	// ====== Serializer LEVELPACK SERIALIZATION (json) ===========
 	// ============================================================
 
 	private static Gson _Gson = null;
+	private static Gson _GsonPartial = null;
 
-	private static Gson setupGson() {
+
+	private static void setupGson() {
+		// Setup up the complete serializer/deserializer.
 		GsonBuilder builder = new GsonBuilder();
 		builder.setPrettyPrinting();
 		builder.serializeNulls();
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsSerializer);
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsDeserializer);
-		return builder.create();
+		_Gson = builder.create();
+
+		// Setup up the partial deserializer.
+		builder = new GsonBuilder();
+		builder.setPrettyPrinting();
+		builder.serializeNulls();
+		builder.registerTypeAdapter((new WorldList()).getClass(), new JsonDeserializer<WorldList>(){
+
+			@Override
+			public WorldList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+					throws JsonParseException {
+				return new WorldList();
+			}
+			
+		});
+		_GsonPartial = builder.create();
+		
+		
 	}
 
-	private static JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
+
+	
+
+
+	/**This object is registered with the Gson serializer so it can properly serialize/deserialize 
+	 * a WorldList object from bytes instead of from JSON.*/
+	private static final JsonSerializer<WorldList> worldsSerializer = new JsonSerializer<WorldList>() {
 
 		@Override
 		public JsonElement serialize(WorldList src, Type typeOfSrc, JsonSerializationContext context) {
-			JsonObject obj = new JsonObject();
 			// To properly save the bytes, must use Base64 encoding.
 			byte[] bytes = serializeWorlds(src);
 			String str = Base64.getEncoder().encodeToString(bytes);
@@ -236,7 +271,10 @@ public class Serializer {
 		}
 	};
 
-	private static JsonDeserializer<WorldList> worldsDeserializer = new JsonDeserializer<WorldList>() {
+
+	/**This object is registered with the Gson serializer so it can properly serialize/deserialize 
+	 * a WorldList object from bytes instead of from JSON.*/
+	private static final JsonDeserializer<WorldList> worldsDeserializer = new JsonDeserializer<WorldList>() {
 
 		@Override
 		public WorldList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
@@ -244,11 +282,11 @@ public class Serializer {
 			// To get the original bytes, must use Base64 decoding.
 			String str = json.getAsJsonPrimitive().getAsString();
 			byte[] bytes = Base64.getDecoder().decode(str.getBytes());
-			WorldList wl = deserializeWorlds(bytes);
-			return wl;
+			return deserializeWorlds(bytes);
 		}
 
 	};
+
 
 	public static String serializeLevelPack(LevelPack levelPack) {
 		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
@@ -257,9 +295,28 @@ public class Serializer {
 		return ans;
 	}
 
+
 	public static LevelPack deserializeLevelPack(String json) {
 		return deserializeFromJSON(json, LevelPack.class);
 	}
+
+
+	/** A list of LevelPacks would be very burdensome to completely deserialize as to the bytes of their 
+	 * included Worlds, and when LevelPacks are being listed, those Worlds need not be deserialized yet 
+	 * anyway.  To partially deserialize a LevelPack is to get the info regarding the LevelPack (name, 
+	 * description, author, emblems), but not to deserialize the Worlds themselves.  That can be done 
+	 * when a particular LevelPack has been chosen.*/
+	public static LevelPack deserializePartialLevelPack(String json) {
+		//if (_GsonPartial == null)
+			//setupGson();
+		//LevelPack lp = _GsonPartial.fromJson(json, LevelPack.class);
+		//return  lp;
+			
+			if (_Gson == null)
+				setupGson();
+			return (LevelPack) _GsonPartial.fromJson(json, LevelPack.class);
+	}
+
 
 	// ============================================================
 	// ====== Serializer VALIDATION STUFF =========================
@@ -270,14 +327,17 @@ public class Serializer {
 
 		public int value;
 
+
 		PrintOptions(int value) {
 			this.value = value;
 		}
+
 
 		public int value() {
 			return value;
 		}
 	}
+
 
 	/**
 	 * Uses reflection to determine actual equality of two objects without the
@@ -340,6 +400,7 @@ public class Serializer {
 			throw new Exception(result);
 
 	}
+
 
 	/** The recursive guts of validation. */
 	private static void validateReflectedEqualityRecursive(Object objectA, Object objectB, ArrayList<String> matched,
@@ -479,6 +540,7 @@ public class Serializer {
 
 	}
 
+
 	/**
 	 * Checks whether the specified class parameter is an instance of a
 	 * collection class.
@@ -497,6 +559,7 @@ public class Serializer {
 		computeClassHierarchy(c, classes);
 		return classes.contains(Iterable.class);
 	}
+
 
 	/**
 	 * Get all superclasses and interfaces recursively.
@@ -522,6 +585,7 @@ public class Serializer {
 			}
 		}
 	}
+
 
 	/**
 	 * Gets a string expressing all the modifiers from a given field modifier

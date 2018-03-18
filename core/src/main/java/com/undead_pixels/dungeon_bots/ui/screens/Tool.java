@@ -2,9 +2,7 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -19,31 +17,22 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
 
-import javax.swing.AbstractListModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
-import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.RpgActor;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
@@ -77,7 +66,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	private static final HashMap<World, UndoStack> undoStacks = new HashMap<World, UndoStack>();
 
 
-	public static void pushUndo(World world, Undoable u) {
+	public static void pushUndo(World world, Undoable<?> u) {
 		if (!undoStacks.containsKey(world))
 			undoStacks.put(world, new UndoStack());
 		UndoStack stack = undoStacks.get(world);

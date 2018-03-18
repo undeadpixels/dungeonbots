@@ -4,7 +4,7 @@ import java.awt.Container;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -14,12 +14,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 
 /**
  * The menu where users select Play, Create, or Community
@@ -45,15 +45,29 @@ public class MainMenuScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "PLAY":
-					// TODO - this should instead launch a level selection
-					// screen
-					LevelPack levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
-							new World(new File("default.lua")));
-					if (levelPack.getCurrentPlayer() != null
-							&& !levelPack.getCurrentPlayer().equals(DungeonBotsMain.instance.getUser())) {
-						throw new RuntimeException("Cannot switch to a game being played by another player.");
-					}
-					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack));
+					/* LevelPack levelPack = new LevelPack("My Level Pack",
+					 * DungeonBotsMain.instance.getUser(), new World(new
+					 * File("default.lua")));
+					 * 
+					 * if (levelPack.getCurrentPlayer() != null &&
+					 * !levelPack.getCurrentPlayer().equals(DungeonBotsMain.
+					 * instance.getUser())) { throw new
+					 * RuntimeException("Cannot switch to a game being played by another player."
+					 * ); } */
+					LevelPackScreen lps = LevelPackScreen.fromDirectory(System.getProperty("user.dir"));
+					lps.addWindowListener(new WindowListenerAdapter() {
+
+						@Override
+						protected void event(WindowEvent e) {
+							if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+								return;
+							GameplayScreen gps = new GameplayScreen(lps.getSelectedLevelPack());
+
+						}
+					});
+					DungeonBotsMain.instance.setCurrentScreen(lps);
+					lps.setSelection(lps.getLevelPackAt(0),  0);
+
 					break;
 				case "CREATE":
 					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
@@ -74,7 +88,6 @@ public class MainMenuScreen extends Screen {
 					break;
 				}
 			}
-
 
 
 		};

@@ -5,9 +5,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashSet;
-import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.Serializer;
@@ -22,22 +20,29 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  */
 public class LevelPack {
 
-	private static final String DEFAULT_MAIN_EMBLEM = "icons/Movie.png";
+	public static final String EXTENSION = "json";
+	private static final String DEFAULT_MAIN_EMBLEM = "images/shoes_hat.jpg";
 	private static final String DEFAULT_EMBLEM = "images/ice_cave.jpg";
-	
+
+
 	public enum FeedbackModel {
 		RATING_AND_COMMENTS, SCORES, SAVED_GAMES
 	}
 
 
-	private final WorldList levels;
-	private int levelIndex = 0;
 	private String name;
 	private User currentPlayer;
 	private final HashSet<Integer> playerVisible;
 	public UserScript transitionScript;
-	private final ArrayList<Image> emblems;
 	private Image mainEmblem;
+	private String description = null;
+
+	private WorldList levels;
+	private int levelIndex = 0;
+	private int levelCount = -1;
+	private ArrayList<Image> levelEmblems;
+	private ArrayList<String> levelTitles;
+	private ArrayList<String> levelDescriptions;
 
 	private final User originalAuthor;
 	private final ArrayList<User> authors;
@@ -62,18 +67,19 @@ public class LevelPack {
 				"--This script will be run to return an LuaInt specifying the next world to proceed to, given the current world state.",
 				SecurityLevel.AUTHOR);
 
-		this.levels = new WorldList();
-		// this.levels.add(new World(new File("default.lua")));
 		if (worlds.length == 0)
 			worlds = new World[] { new World(new File("default.lua")) };
-
+		this.levels = new WorldList();
 		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
-		this.emblems = new ArrayList<Image>();
-		this.mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
+		this.levelCount = worlds.length;
+		this.levelEmblems = new ArrayList<Image>();
+		this.levelTitles = new ArrayList<String>();
+		this.levelDescriptions = new ArrayList<String>();
 
 		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
+		this.mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
 		addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
@@ -314,7 +320,7 @@ public class LevelPack {
 	}
 
 
-	public LocalDateTime getPublicateEnd() {
+	public LocalDateTime getPublishEnd() {
 		return publishEnd;
 	}
 
@@ -334,6 +340,88 @@ public class LevelPack {
 	}
 
 
+	/**The main emblem is an image that represents this level pack.*/
+	public Image getEmblem() {
+		if (mainEmblem == null)
+			mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
+		return mainEmblem;
+	}
+
+
+	/**The main emblem is an image that represents this level pack.*/
+	public void setEmblem(Image image) {
+		mainEmblem = image;
+	}
+
+
+	public String getDescription() {
+		return (description == null) ? "(No description)" : description;
+	}
+
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+
+	// ============================================================
+	// ========= LevelPack WORLD/LEVEL STUFF ======================
+	// ============================================================
+
+	/**Returns whether this pack is only a partial pack.  A pack may be partial if it was serialized for 
+	 * purposes of making a list, where deserializing the worlds themselves may be wasteful.*/
+	public boolean isPartial() {
+		return levelCount != levels.size();
+	}
+
+
+	public int getLevelIndex() {
+		return levelIndex;
+	}
+
+
+	public int getLevelCount() {
+		return levelCount;
+	}
+
+
+	public void setLevelIndex(int newIndex) {
+		levelIndex = newIndex;
+	}
+
+
+	/**The emblem is an image representing a world/level.*/
+	public Image getLevelEmblem(int index) {
+		return levelEmblems.get(index);
+	}
+
+
+	/**Sets the emblem representing a world or level.*/
+	public void setLevelEmblem(int index, Image img) {
+		levelEmblems.set(index, img);
+	}
+
+
+	public String getLevelTitle(int index) {
+		return levelTitles.get(index);
+	}
+
+
+	public void setLevelTitle(int index, String title) {
+		levelTitles.set(index, title);
+	}
+
+
+	public String getLevelDescription(int index) {
+		return levelDescriptions.get(index);
+	}
+
+
+	public void setLevelDescription(int index, String description) {
+		levelDescriptions.set(index, description);
+	}
+
+
 	// ============================================================
 	// ========= LevelPack SERIALIZATION STUFF ====================
 	// ============================================================
@@ -341,7 +429,54 @@ public class LevelPack {
 	/** Constructs and returns a LevelPack from the indicated file. */
 	public static LevelPack fromFile(String filename) {
 		String json = Serializer.readStringFromFile(filename);
-		return fromJson(json);
+		LevelPack lp = fromJson(json);
+		lp.levelCount = lp.levels.size();
+		return lp;
+	}
+
+
+	/**Constructs a LevelPack object, but does not deserialize the bytes representing 
+	 * the Worlds.  Useful for constructing a list of LevelPack objects.*/
+	public static LevelPack fromFilePartial(String filename) {
+
+		// Read everything from the LevelPack, but don't bother deserializing
+		// the Worlds.
+		String json = Serializer.readStringFromFile(filename);
+		return fromJsonPartial(json);
+	}
+
+
+	public static LevelPack fromJsonPartial(String json) {
+		LevelPack partial = Serializer.deserializePartialLevelPack(json);
+		if (partial == null)
+			return partial;
+
+		// Since level header info was not stored originally, check to make sure
+		// there are not nulls after the deserialization.
+		if (partial.levels == null)
+			partial.levels = new WorldList();
+		if (partial.levelTitles == null)
+			partial.levelTitles = new ArrayList<String>();
+		if (partial.levelDescriptions == null)
+			partial.levelDescriptions = new ArrayList<String>();
+		if (partial.levelEmblems == null)
+			partial.levelEmblems = new ArrayList<Image>();
+
+		// Since the pack was only partially deserialized, and the level header
+		// stuff wasn't originally stored, it may be necessary to populate
+		// header info with dummy data. There will always be at least one level
+		// title/description/emblem, even if the levels themselves don't exist.
+		partial.levelCount = Math.max(1, Math.max(partial.levels.size(), Math.max(partial.levelTitles.size(),
+				Math.max(partial.levelDescriptions.size(), partial.levelEmblems.size()))));
+		while (partial.levelTitles.size() < partial.levelCount)
+			partial.levelTitles.add("Unnamed level.");
+		while (partial.levelDescriptions.size() < partial.levelCount)
+			partial.levelDescriptions.add("No description.");
+		while (partial.levelEmblems.size() < partial.levelCount)
+			partial.levelEmblems.add(UIBuilder.getImage("images/ice_cave.jpg"));
+
+		// Return the partial LevelPack.
+		return partial;
 	}
 
 
@@ -363,34 +498,6 @@ public class LevelPack {
 		return Serializer.serializeLevelPack(this);
 	}
 
-
-	/**The emblem is an image representing a world/level.*/
-	public Image getLevelEmblem() {
-		while (emblems.size() <= levelIndex)
-			emblems.add(UIBuilder.getImage(DEFAULT_EMBLEM));
-		return emblems.get(levelIndex);
-	}
-
-
-	/**Sets the emblem representing a world or level.*/
-	public void setLevelEmblem(Image img) {
-		while (emblems.size() <= levelIndex)
-			emblems.add(UIBuilder.getImage(DEFAULT_EMBLEM));
-		emblems.set(levelIndex, img);
-	}
-
-
-	/**The main emblem is an image that represents this level pack.*/
-	public Image getPackEmblem() {
-		if (mainEmblem == null)
-			mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
-		return mainEmblem;
-	}
-	
-	/**The main emblem is an image that represents this level pack.*/
-	public void setPackEmblem(Image image){
-		mainEmblem = image;
-	}
 
 	/**
 	 * Array of LuaScripts, with each LuaScript being the init/run sandbox of
