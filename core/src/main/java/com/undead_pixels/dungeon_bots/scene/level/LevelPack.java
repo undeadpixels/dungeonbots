@@ -53,6 +53,7 @@ public class LevelPack {
 	private LocalDateTime publishEnd;
 	private LocalDateTime publishStart;
 	private FeedbackModel feedbackModel;
+	private boolean isLocked;
 
 
 	/**
@@ -237,9 +238,11 @@ public class LevelPack {
 
 	/**
 	 * Returns whether the given user has author-level privileges for this level
-	 * pack.
+	 * pack.  If the indicated user is null, returns false.
 	 */
 	public boolean isAuthor(User user) {
+		if (user == null)
+			return false;
 		return authors.contains(user);
 	}
 
@@ -364,6 +367,20 @@ public class LevelPack {
 	}
 
 
+	/**A LevelPack which is locked should only be modified by Users who are identified as 
+	 * authors.*/
+	public boolean getLocked() {
+		return isLocked;
+	}
+
+
+	/**Determines whether only an identified author User should be allowed to modify this 
+	 * LevelPack.*/
+	public void setLocked(boolean value) {
+		isLocked = value;
+	}
+
+
 	// ============================================================
 	// ========= LevelPack WORLD/LEVEL STUFF ======================
 	// ============================================================
@@ -426,12 +443,19 @@ public class LevelPack {
 	// ========= LevelPack SERIALIZATION STUFF ====================
 	// ============================================================
 
+
 	/** Constructs and returns a LevelPack from the indicated file. */
 	public static LevelPack fromFile(String filename) {
 		String json = Serializer.readStringFromFile(filename);
 		LevelPack lp = fromJson(json);
-		lp.levelCount = lp.levels.size();
+		standardize(lp);
 		return lp;
+	}
+
+
+	/** Constructs and returns a LevelPack from the indicated json String. */
+	public static LevelPack fromJson(String json) {
+		return Serializer.deserializeLevelPack(json);
 	}
 
 
@@ -446,37 +470,51 @@ public class LevelPack {
 	}
 
 
+	/**Constructs a LevelPack object from the given JSON, but does not serialize the bytes 
+	 * representing the Worlds.  Useful for constructing a list of LevelPack objects.*/
 	public static LevelPack fromJsonPartial(String json) {
 		LevelPack partial = Serializer.deserializePartialLevelPack(json);
 		if (partial == null)
 			return partial;
 
-		// Since level header info was not stored originally, check to make sure
-		// there are not nulls after the deserialization.
-		if (partial.levels == null)
-			partial.levels = new WorldList();
-		if (partial.levelTitles == null)
-			partial.levelTitles = new ArrayList<String>();
-		if (partial.levelDescriptions == null)
-			partial.levelDescriptions = new ArrayList<String>();
-		if (partial.levelEmblems == null)
-			partial.levelEmblems = new ArrayList<Image>();
-
-		// Since the pack was only partially deserialized, and the level header
-		// stuff wasn't originally stored, it may be necessary to populate
-		// header info with dummy data. There will always be at least one level
-		// title/description/emblem, even if the levels themselves don't exist.
-		partial.levelCount = Math.max(1, Math.max(partial.levels.size(), Math.max(partial.levelTitles.size(),
-				Math.max(partial.levelDescriptions.size(), partial.levelEmblems.size()))));
-		while (partial.levelTitles.size() < partial.levelCount)
-			partial.levelTitles.add("Unnamed level.");
-		while (partial.levelDescriptions.size() < partial.levelCount)
-			partial.levelDescriptions.add("No description.");
-		while (partial.levelEmblems.size() < partial.levelCount)
-			partial.levelEmblems.add(UIBuilder.getImage("images/ice_cave.jpg"));
+		standardize(partial);
 
 		// Return the partial LevelPack.
 		return partial;
+	}
+
+
+	/** Brings the data contained in the LevelPack up-to-date, in case stuff is missing.*/
+	private static void standardize(LevelPack pack) {
+		// TODO: kill this once we have the LevelPacks stored at a standardized
+		// state.
+
+		// If level header info was not stored originally, check to make sure
+		// there are not nulls after the deserialization.
+		if (pack.levels == null)
+			pack.levels = new WorldList();
+		if (pack.levelTitles == null)
+			pack.levelTitles = new ArrayList<String>();
+		if (pack.levelDescriptions == null)
+			pack.levelDescriptions = new ArrayList<String>();
+		if (pack.levelEmblems == null)
+			pack.levelEmblems = new ArrayList<Image>();
+
+		// If the level header stuff wasn't originally stored, it may be
+		// necessary to populate header info with dummy data. There will always
+		// be at least one level title/description/emblem, even if the levels
+		// themselves don't exist.
+		pack.levelCount = Math.max(1, Math.max(pack.levels.size(),
+				Math.max(pack.levelTitles.size(), Math.max(pack.levelDescriptions.size(), pack.levelEmblems.size()))));
+		while (pack.levelTitles.size() < pack.levelCount)
+			pack.levelTitles.add("Unnamed level.");
+		while (pack.levelDescriptions.size() < pack.levelCount)
+			pack.levelDescriptions.add("No description.");
+		while (pack.levelEmblems.size() < pack.levelCount)
+			pack.levelEmblems.add(UIBuilder.getImage("images/ice_cave.jpg"));
+
+		// The lock is something new added, but it defaults to false anyway.
+
 	}
 
 
@@ -484,12 +522,6 @@ public class LevelPack {
 	public void toFile(String filename) {
 		String serialized = Serializer.serializeLevelPack(this);
 		Serializer.writeToFile(filename, serialized.getBytes());
-	}
-
-
-	/** Constructs and returns a LevelPack from the indicated json String. */
-	public static LevelPack fromJson(String json) {
-		return Serializer.deserializeLevelPack(json);
 	}
 
 

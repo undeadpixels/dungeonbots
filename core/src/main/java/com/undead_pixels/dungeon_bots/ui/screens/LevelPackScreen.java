@@ -14,6 +14,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,12 +24,15 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.jdesktop.swingx.HorizontalLayout;
 
@@ -53,6 +57,11 @@ public class LevelPackScreen extends Screen {
 	/**This is essentially the data model.*/
 	private final ArrayList<PackInfo> _Packs = new ArrayList<PackInfo>();
 	private final ArrayList<ArrayList<WorldInfo>> _Levels = new ArrayList<ArrayList<WorldInfo>>();
+
+
+	// ===============================================================
+	// ========== LevelPackScreen CONSTRUCTORS ======================
+	// ===============================================================
 
 
 	private LevelPackScreen() {
@@ -119,6 +128,11 @@ public class LevelPackScreen extends Screen {
 	}
 
 
+	// ===============================================================
+	// ========== LevelPackScreen LAYOUT & APPEARANCE ================
+	// ===============================================================
+
+
 	@Override
 	protected void addComponents(Container pane) {
 
@@ -126,7 +140,7 @@ public class LevelPackScreen extends Screen {
 		// OriginalAuthor.
 		_DisplayPnl = new JPanel();
 		_DisplayPnl.setLayout(new BoxLayout(_DisplayPnl, BoxLayout.Y_AXIS));
-		for (Component c : createPackDisplay(DungeonBotsMain.instance.getUser(), null))
+		for (Component c : createEmptyDisplay())
 			_DisplayPnl.add(c);
 
 
@@ -145,7 +159,7 @@ public class LevelPackScreen extends Screen {
 
 
 		// Layout the world tree list stuff on the right.
-		DefaultTreeModel dtm = new DefaultTreeModel(createNodes());
+		DefaultTreeModel dtm = new DefaultTreeModel(createRootNode());
 		dtm.addTreeModelListener((TreeModelListener) getController());
 		_Tree = new JTree(dtm);
 		_Tree.setRootVisible(false);
@@ -153,6 +167,8 @@ public class LevelPackScreen extends Screen {
 		_Tree.setEditable(true);
 		_Tree.setBorder(new EmptyBorder(10, 10, 10, 10));
 		_Tree.setExpandsSelectedPaths(true);
+		_Tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		_Tree.addTreeSelectionListener((TreeSelectionListener) getController());
 
 		JPanel worldBttns = new JPanel();
 		worldBttns.add(
@@ -177,56 +193,84 @@ public class LevelPackScreen extends Screen {
 	}
 
 
-	/**Create the LevelPack info panel.*/
-	private static ArrayList<Component> createPackDisplay(User user, LevelPack pack) {
-		ArrayList<Component> pnl = new ArrayList<Component>();
-		if (pack != null) {
-			JLabel packEmblem = new JLabel(
-					new ImageIcon(pack.getEmblem().getScaledInstance(300, 200, Image.SCALE_FAST)));
-			packEmblem.setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
-					new EmptyBorder(10, 10, 10, 10)));
-			pnl.add(packEmblem);
+	private ArrayList<Component> createEmptyDisplay() {
+		ArrayList<Component> list = new ArrayList<Component>();
+		// Top, left, bottom, right
+		JLabel lblEmblem = UIBuilder.buildLabel()
+				.image(UIBuilder.getImage("icons/compass.png").getScaledInstance(100, 100, Image.SCALE_FAST))
+				.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
+						new EmptyBorder(60, 110, 60, 110)))
+				.create();
+		list.add(lblEmblem);
+		list.add(UIBuilder.buildLabel().text("Choose a Level Pack or Level to get started.").create());
+		return list;
+	}
 
-			boolean isAuthor = pack.isAuthor(user);
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("LevelPack", pack.getName(), isAuthor));
-			pnl.add(packInfo("Author", pack.getOriginalAuthor(), isAuthor));
-			pnl.add(packInfo("Description", pack.getDescription(), isAuthor));
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("Created", pack.getCreationDate(), isAuthor));
-			pnl.add(packInfo("Published", pack.getPublishStart(), isAuthor));
-			pnl.add(packInfo("Expires", pack.getPublishEnd(), isAuthor));
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("Levels", pack.getLevelCount(), isAuthor));
-			pnl.add(packInfo("Feedback", pack.getFeedbackModel(), isAuthor));
-			pnl.add(Box.createVerticalStrut(10));
+
+	/**Creates the members of a level info panel.*/
+	private ArrayList<Component> createLevelDisplay(WorldInfo info, boolean asAuthor) {
+		ArrayList<Component> list = new ArrayList<Component>();
+		if (asAuthor) {
+			JButton bttnEmblem = UIBuilder.buildButton()
+					.image(info.emblem.getScaledInstance(300, 200, Image.SCALE_FAST))
+					.toolTip("Click to change emblem for this level.").action("CHANGE_LEVEL_EMBLEM", getController())
+					.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
+							new EmptyBorder(10, 10, 10, 10)))
+					.create();
+			list.add(bttnEmblem);
 		} else {
-
-			JLabel packEmblem = new JLabel(new ImageIcon(
-					UIBuilder.getImage("icons/pinion.png").getScaledInstance(300, 200, Image.SCALE_FAST)));
-			packEmblem.setBorder(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
-					new EmptyBorder(10, 10, 10, 10)));
-			pnl.add(packEmblem);
-
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("LevelPack", "", false));
-			pnl.add(packInfo("Author", "", false));
-			pnl.add(packInfo("Description", "", false));
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("Created", "", false));
-			pnl.add(packInfo("Published", "", false));
-			pnl.add(packInfo("Expires", "", false));
-			pnl.add(Box.createVerticalStrut(10));
-			pnl.add(packInfo("Levels", "", false));
-			pnl.add(packInfo("Feedback", "", false));
-			pnl.add(Box.createVerticalStrut(10));
+			JLabel lblEmblem = UIBuilder.buildLabel().image(info.emblem.getScaledInstance(300, 200, Image.SCALE_FAST))
+					.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
+							new EmptyBorder(10, 10, 10, 10)))
+					.create();
+			list.add(lblEmblem);
 		}
-		return pnl;
+		list.add(Box.createVerticalStrut(10));
+		list.add(createDisplayLine("Level", info.title, asAuthor));
+		list.add(createDisplayLine("Description", info.title, asAuthor));
+		return list;
+	}
+
+
+	/**Creates the members of a LevelPack info panel.*/
+	private ArrayList<Component> createPackDisplay(PackInfo info, boolean asAuthor) {
+		LevelPack pack = info.pack;
+		ArrayList<Component> list = new ArrayList<Component>();
+		if (asAuthor) {
+			JButton bttnEmblem = UIBuilder.buildButton()
+					.image(pack.getEmblem().getScaledInstance(300, 200, Image.SCALE_FAST))
+					.toolTip("Click to change emblem for this Level Pack.")
+					.action("CHANGE_LEVELPACK_EMBLEM", getController())
+					.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
+							new EmptyBorder(10, 10, 10, 10)))
+					.create();
+			list.add(bttnEmblem);
+		} else {
+			JLabel lblEmblem = UIBuilder.buildLabel()
+					.image(pack.getEmblem().getScaledInstance(300, 200, Image.SCALE_FAST))
+					.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
+							new EmptyBorder(10, 10, 10, 10)))
+					.create();
+			list.add(lblEmblem);
+		}
+		list.add(Box.createVerticalStrut(10));
+		list.add(createDisplayLine("LevelPack", pack.getName(), asAuthor));
+		list.add(createDisplayLine("Author", pack.getOriginalAuthor(), asAuthor));
+		list.add(createDisplayLine("Description", pack.getDescription(), asAuthor));
+		list.add(Box.createVerticalStrut(10));
+		list.add(createDisplayLine("Created", pack.getCreationDate(), asAuthor));
+		list.add(createDisplayLine("Published", pack.getPublishStart(), asAuthor));
+		list.add(createDisplayLine("Expires", pack.getPublishEnd(), asAuthor));
+		list.add(Box.createVerticalStrut(10));
+		list.add(createDisplayLine("Levels", pack.getLevelCount(), asAuthor));
+		list.add(createDisplayLine("Feedback", pack.getFeedbackModel(), asAuthor));
+		list.add(Box.createVerticalStrut(10));
+		return list;
 	}
 
 
 	/**Create the tree structure to be displayed, from the given LevelPacks.*/
-	private DefaultMutableTreeNode createNodes() {
+	private DefaultMutableTreeNode createRootNode() {
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
 		for (int i = 0; i < _Packs.size(); i++) {
 			PackInfo pi = _Packs.get(i);
@@ -251,8 +295,8 @@ public class LevelPackScreen extends Screen {
 	}
 
 
-	private static Component packInfo(String name, Object initialContents, boolean isAuthor) {
-		if (!isAuthor) {
+	private static Component createDisplayLine(String name, Object initialContents, boolean asAuthor) {
+		if (!asAuthor) {
 			JLabel result = new JLabel(name + ": " + initialContents);
 			return result;
 		}
@@ -262,6 +306,87 @@ public class LevelPackScreen extends Screen {
 	}
 
 
+	private DefaultMutableTreeNode getRootNode() {
+		if (_Tree == null)
+			return null;
+		TreeModel m = _Tree.getModel();
+		if (m == null)
+			return null;
+		return (DefaultMutableTreeNode) m.getRoot();
+	}
+
+
+	/**Collapses all open LevelPacks.*/
+	public void collapseAll() {
+		int i = 0;
+		while (i < _Tree.getRowCount())
+			_Tree.collapseRow(i++);
+	}
+
+
+	/**Expands all LevelPacks.*/
+	public void expandAll() {
+		int i = 0;
+		while (i < _Tree.getRowCount())
+			_Tree.expandRow(i++);
+	}
+
+
+	// ===========================================================
+	// ========== LevelPackScreen SELECTION STUFF ================
+	// ===========================================================
+
+
+	/**Returns the object that is currently selected.*/
+	private Object getCurrentSelection() {
+		TreePath path = _Tree.getSelectionPath();
+		if (path == null)
+			return null;
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+		return node.getUserObject();
+	}
+
+
+	/**Sets the selection to the first world if there is one, or if not to the first LevelPack 
+	 * if there is one.  If not, sets selection to null.*/
+	private void selectFirst() {
+		TreeNode root = getRootNode();
+		if (root != null && root.getChildCount() > 0) {
+			DefaultMutableTreeNode packNode = (DefaultMutableTreeNode) root.getChildAt(0);
+			setSelection(((PackInfo) packNode.getUserObject()).pack, 0);
+		}
+	}
+
+
+	/**Sets the current selection to the given LevelPack.  If the given LevelPack does not appear 
+	 * in the tree, sets selection to null.*/
+	public void setSelection(LevelPack pack) {
+		TreePath path = getPath(pack);
+		_Tree.setSelectionPath(path);
+	}
+
+
+	/**Sets the current selection to the indicated world within the given LevelPack.  Note that if the
+	 * world does not exist at the given index, the given LevelPack will be selected.  If the given 
+	 * LevelPack doesn't exist in the tree, sets selection to null.*/
+	public void setSelection(LevelPack pack, int index) {
+		TreePath path = getPath(pack);
+		if (path == null) {
+			_Tree.setSelectionPath(null);
+			return;
+		}
+		TreeNode n = (TreeNode) path.getLastPathComponent();
+		if (index < n.getChildCount())
+			path = path.pathByAddingChild(n.getChildAt(index));
+		_Tree.setSelectionPath(path);
+	}
+
+
+	// ================================================================
+	// ========== LevelPackScreen LEVELPACK MANAGEMENT ================
+	// ================================================================
+
+	/**Sets the contents of this LevelPackScreen to the indicated packs.*/
 	public void setPacks(LevelPack[] packs) {
 
 		// Build the pack structure.
@@ -277,46 +402,14 @@ public class LevelPackScreen extends Screen {
 			}
 		}
 
-
-		// Update the info displayed on the screen.
-		if (_DisplayPnl != null) {
-			_DisplayPnl.removeAll();
-			for (Component c : createPackDisplay(DungeonBotsMain.instance.getUser(), levelPack))
-				_DisplayPnl.add(c);
-		}
-		if (_Tree != null) {
-			// TODO: dynamically update the tree. Putting this off because the
-			// tree is built with new nodes to begin with.
-
-		}
-	}
-
-
-	/**Sets the current selection to the given LevelPack.*/
-	public void setSelection(LevelPack pack) {
-		TreePath path = getPath(pack);		
-		_Tree.setSelectionPath(path);
-	}
-
-
-	/**Sets the current selection to the indicated world within the given LevelPack.  Note that if the
-	 * world does not exist at the given index, the given LevelPack will be selected.*/
-	public void setSelection(LevelPack pack, int index) {
-		TreePath path = getPath(pack);
-		if (path == null) {
-			_Tree.setSelectionPath(null);
-			return;
-		}
-		TreeNode n = (TreeNode) path.getLastPathComponent();
-		if (index < n.getChildCount())
-			path = path.pathByAddingChild(n.getChildAt(index));
-		_Tree.setSelectionPath(path);
+		// Select the first world in the list.
+		selectFirst();
 	}
 
 
 	/**Returns the path to the given LevelPack.*/
 	private TreePath getPath(LevelPack pack) {
-		DefaultMutableTreeNode root = (DefaultMutableTreeNode) _Tree.getModel().getRoot();
+		DefaultMutableTreeNode root = getRootNode();
 		TreePath path = new TreePath(root);
 		for (int i = 0; i < root.getChildCount(); i++) {
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
@@ -326,14 +419,6 @@ public class LevelPackScreen extends Screen {
 			}
 		}
 		return null;
-	}
-
-
-	/**Expands all LevelPacks.*/
-	public void expandAll() {
-		int i = 0;
-		while (i < _Tree.getRowCount())
-			_Tree.expandRow(i++);
 	}
 
 
@@ -355,36 +440,50 @@ public class LevelPackScreen extends Screen {
 
 	/**Returns the number of LevelPacks.*/
 	public int getLevelPackCount() {
-		return _Packs.size();
+		TreeNode root = getRootNode();
+		return root.getChildCount();
 	}
 
 
-	/**Returns the LevelPack at the given index number.*/
+	/**Returns the LevelPack at the given index number, or null if the number is invalid.*/
 	public LevelPack getLevelPackAt(int index) {
-		return _Packs.get(index).pack;
+		DefaultMutableTreeNode root = getRootNode();
+		if (index >= root.getChildCount())
+			return null;
+		DefaultMutableTreeNode packNode = (DefaultMutableTreeNode) root.getChildAt(index);
+		return ((PackInfo) packNode.getUserObject()).pack;
 	}
 
 
 	/**Returns the complete, non-partial, selected LevelPack.  The LevelPack's current world will be set appropriately.*/
 	public LevelPack getSelectedLevelPack() {
-		LevelPack p;
 		throw new RuntimeException("Not implemented yet.");
 	}
 
 
+	// ===============================================================
+	// ========== LevelPackScreen HELPER CLASSES =====================
+	// ===============================================================
+
+
+	/**A data structure that associates a LevelPack with its original JSON String.  This is useful because the tree list 
+	 * cannot fully deserialize every LevelPack, it would take too long.  */
 	private static final class PackInfo {
 
 		public final LevelPack pack;
-		public final String json;
+		public final String originalJson;
 
 
 		public PackInfo(LevelPack pack, String json) {
 			this.pack = pack;
-			this.json = json;
+			this.originalJson = json;
 		}
 	}
 
 
+	/**A data structure that embodies the "partial" deserialization of a World/level, and associates it with its original 
+	 * LevelPack and index.  This is useful because the tree list cannot fully deserialize every World in every 
+	 * LevelPack, it would just take too long.*/
 	private static final class WorldInfo {
 
 		public final String title;
@@ -481,17 +580,52 @@ public class LevelPackScreen extends Screen {
 			return pnl;
 		}
 	};
-	
-	
 
-	private final class Controller extends ScreenController implements TreeModelListener {
+
+	private final class Controller extends ScreenController implements TreeModelListener, TreeSelectionListener {
 
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "OPEN_PACK":
+			default:
+				System.out.println(this.getClass().getName() + " has not implemented command: " + e.getActionCommand());
+			}
 
+		}
+
+
+		@Override
+		public void valueChanged(TreeSelectionEvent e) {
+			// Called when the tree's selection changes.
+
+			TreePath path = e.getPath();
+			if (path == null) {
+				_DisplayPnl.removeAll();
+				for (Component c : createEmptyDisplay())
+					_DisplayPnl.add(c);
+				_DisplayPnl.revalidate();
+				return;
+			}
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+			Object obj = node.getUserObject();
+			if (obj instanceof PackInfo) {
+				PackInfo pInfo = (PackInfo) obj;
+				boolean asAuthor = pInfo.pack.isAuthor(DungeonBotsMain.instance.getUser());
+				_DisplayPnl.removeAll();
+				for (Component c : createPackDisplay(pInfo, asAuthor))
+					_DisplayPnl.add(c);
+				_DisplayPnl.revalidate();
+				return;
+			} else if (obj instanceof WorldInfo) {
+				WorldInfo wInfo = (WorldInfo) obj;
+				boolean asAuthor = wInfo.levelPack.isAuthor(DungeonBotsMain.instance.getUser());
+				_DisplayPnl.removeAll();
+				for (Component c : createLevelDisplay(wInfo, asAuthor))
+					_DisplayPnl.add(c);
+				_DisplayPnl.revalidate();
+				return;
 			}
 
 		}
@@ -519,8 +653,9 @@ public class LevelPackScreen extends Screen {
 		public void treeStructureChanged(TreeModelEvent e) {
 			System.out.println("treeStructureChanged");
 		}
-	}
 
+
+	}
 
 
 }

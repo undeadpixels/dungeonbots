@@ -529,6 +529,16 @@ public class UIBuilder {
 			});
 			return this;
 		}
+		
+		public final ButtonBuilder<T> border(Border border) {
+			properties.put(FIELD_BORDER,  new PropertyBuilder<Border>(border){
+
+				@Override
+				protected void apply(AbstractButton bttn, Border value) {
+					bttn.setBorder(value);
+				}});
+			return this;
+		}
 
 
 		public final ButtonBuilder<T> enabled(boolean value) {
