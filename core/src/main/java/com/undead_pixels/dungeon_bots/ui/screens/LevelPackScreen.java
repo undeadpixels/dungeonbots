@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileFilter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -51,9 +52,8 @@ import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
  */
 public class LevelPackScreen extends Screen {
 
-	/**
-	 * 
-	 */
+	public static final int FINGERNAIL_WIDTH = 50;
+	public static final int FINGERNAIL_HEIGHT = 50;
 	private static final long serialVersionUID = 1L;
 	private JTree _Tree = null;
 	private JPanel _InfoPnl = null;
@@ -107,19 +107,18 @@ public class LevelPackScreen extends Screen {
 		}
 
 		// Build the screens.
-		LevelPackScreen lps = fromPacks(goodPacks.toArray(new LevelPack[goodPacks.size()]));
+		PackInfo[] pInfos = new PackInfo[goodPacks.size()];
+		for (int i = 0; i < goodPacks.size(); i++)
+			pInfos[i] = PackInfo.withJSON(goodPacks.get(i), goodJsons.get(i));
+		LevelPackScreen lps = new LevelPackScreen();
+		lps.setPacks(pInfos);
+		lps.setup();
 
-		// Correct the packs to include references to their original JSONs.
-		int j = 0;
-		while (j < lps._Packs.size()) {
-			PackInfo packInfo = new PackInfo(lps._Packs.get(j).pack, goodJsons.get(j));
-			lps._Packs.set(j++, packInfo);
-		}
 		return lps;
 	}
 
 
-	/**Returns a LevelPackScreen using the given packs.*/
+	/**Returns a LevelPackScreen using the given packs, without associated JSON.*/
 	public static LevelPackScreen fromPacks(LevelPack[] packs) {
 		LevelPackScreen lps = new LevelPackScreen();
 		lps.setPacks(packs);
@@ -215,9 +214,7 @@ public class LevelPackScreen extends Screen {
 			boolean asAuthor = info.levelPack.isAuthor(DungeonBotsMain.instance.getUser())
 					|| !info.levelPack.getLocked();
 			if (asAuthor) {
-				JButton bttnEmblem = UIBuilder.buildButton()
-						.image(info.emblem.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
-								Image.SCALE_FAST))
+				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem())
 						.toolTip("Click to change emblem for this level.")
 						.action("CHANGE_LEVEL_EMBLEM", getController())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
@@ -225,9 +222,7 @@ public class LevelPackScreen extends Screen {
 						.create();
 				list.add(bttnEmblem);
 			} else {
-				JLabel lblEmblem = UIBuilder.buildLabel()
-						.image(info.emblem.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
-								Image.SCALE_FAST))
+				JLabel lblEmblem = UIBuilder.buildLabel().image(info.getEmblem())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
 								new EmptyBorder(10, 10, 10, 10)))
 						.create();
@@ -238,8 +233,9 @@ public class LevelPackScreen extends Screen {
 			list.add(createDisplayLine("Description", info.title, asAuthor));
 		} else if (selection instanceof PackInfo) {
 			PackInfo info = (PackInfo) selection;
-			boolean asAuthor = info.pack.isAuthor(DungeonBotsMain.instance.getUser()) || !info.pack.getLocked();
-			LevelPack pack = info.pack;
+			boolean asAuthor = info.getPack().isAuthor(DungeonBotsMain.instance.getUser())
+					|| !info.getPack().getLocked();
+			LevelPack pack = info.getPack();
 			if (asAuthor) {
 				JButton bttnEmblem = UIBuilder.buildButton()
 						.image(pack.getEmblem().getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
@@ -366,7 +362,7 @@ public class LevelPackScreen extends Screen {
 		TreeNode root = getRootNode();
 		if (root != null && root.getChildCount() > 0) {
 			DefaultMutableTreeNode packNode = (DefaultMutableTreeNode) root.getChildAt(0);
-			setSelection(((PackInfo) packNode.getUserObject()).pack, 0);
+			setSelection(((PackInfo) packNode.getUserObject()).getPack(), 0);
 		}
 	}
 
@@ -399,24 +395,34 @@ public class LevelPackScreen extends Screen {
 	// ========== LevelPackScreen LEVELPACK MANAGEMENT ================
 	// ================================================================
 
-	/**Sets the contents of this LevelPackScreen to the indicated packs.*/
+	/**Sets the contents of this LevelPackScreen to the indicated packs.  No JSON will be 
+	 * stored.*/
 	public void setPacks(LevelPack[] packs) {
+		PackInfo[] pInfos = new PackInfo[packs.length];
+		for (int i = 0; i < packs.length; i++)
+			pInfos[i] = new PackInfo(packs[i], null);
+		setPacks(pInfos);
+	}
 
+
+	/**Sets the contents of this LevelPackScreen to the indicated PackInfos.*/
+	private void setPacks(PackInfo[] packs) {
 		// Build the pack structure.
 		_Packs.clear();
 		_Levels.clear();
-		for (LevelPack pack : packs) {
-			_Packs.add(new PackInfo(pack, null));
+		for (PackInfo pInfo : packs) {
+			_Packs.add(pInfo);
 			ArrayList<WorldInfo> levels = new ArrayList<WorldInfo>();
 			_Levels.add(levels);
-			for (int i = 0; i < pack.getLevelCount(); i++) {
-				WorldInfo wi = WorldInfo.fromLevel(pack, i);
+			for (int i = 0; i < pInfo.levelCount; i++) {
+				WorldInfo wi = WorldInfo.fromLevel(pInfo.getPack(), i);
 				levels.add(wi);
 			}
 		}
 
 		// Select the first world in the list.
 		selectFirst();
+
 	}
 
 
@@ -427,7 +433,7 @@ public class LevelPackScreen extends Screen {
 		for (int i = 0; i < root.getChildCount(); i++) {
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
 			PackInfo pi = (PackInfo) child.getUserObject();
-			if (pi.pack.equals(pack)) {
+			if (pi.getPack().equals(pack)) {
 				return path.pathByAddingChild(child);
 			}
 		}
@@ -464,7 +470,7 @@ public class LevelPackScreen extends Screen {
 		if (index >= root.getChildCount())
 			return null;
 		DefaultMutableTreeNode packNode = (DefaultMutableTreeNode) root.getChildAt(index);
-		return ((PackInfo) packNode.getUserObject()).pack;
+		return ((PackInfo) packNode.getUserObject()).getPack();
 	}
 
 
@@ -489,38 +495,38 @@ public class LevelPackScreen extends Screen {
 
 		pInfo.hasChanged = true;
 
-		Image oldImg = pInfo.pack.getEmblem();
-		Image newImg = img.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT, Image.SCALE_SMOOTH);
-		pInfo.pack.setEmblem(newImg);
+		Image oldImg = pInfo.getEmblem();
+		Image newImg = img;
+		pInfo.setEmblem(newImg);
 		refreshInfoDisplay(_InfoPnl);
 		_Tree.repaint();
-		return new Undoable<Image>(oldImg, newImg, pInfo) {
+		return new Undoable<Image>(oldImg, pInfo.getEmblem(), pInfo) {
 
 			@Override
 			protected boolean validateBeforeUndo() {
 				PackInfo info = (PackInfo) context;
-				return (info.pack.getEmblem().equals(after));
+				return (info.getEmblem().equals(after));
 			}
 
 
 			@Override
 			protected boolean validateBeforeRedo() {
 				PackInfo info = (PackInfo) context;
-				return (info.pack.getEmblem().equals(before));
+				return (info.getEmblem().equals(before));
 			}
 
 
 			@Override
 			protected void undoValidated() {
 				PackInfo info = (PackInfo) context;
-				info.pack.setEmblem(before);
+				info.setEmblem(before);
 			}
 
 
 			@Override
 			protected void redoValidated() {
 				PackInfo info = (PackInfo) context;
-				info.pack.setEmblem(after);
+				info.setEmblem(after);
 			}
 		};
 	}
@@ -535,38 +541,38 @@ public class LevelPackScreen extends Screen {
 		}
 		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
 		wInfo.hasChanged = true;
-		Image oldImg = wInfo.emblem;
-		Image newImg = (wInfo.emblem = img.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
-				Image.SCALE_SMOOTH));
+		Image oldImg = wInfo.getEmblem();
+		Image newImg = img;
+		wInfo.setEmblem(newImg);
 		refreshInfoDisplay(_InfoPnl);
 		_Tree.repaint();
-		return new Undoable<Image>(oldImg, newImg, wInfo) {
+		return new Undoable<Image>(oldImg, wInfo.getEmblem(), wInfo) {
 
 			@Override
 			protected boolean validateBeforeUndo() {
 				WorldInfo info = (WorldInfo) context;
-				return (info.emblem.equals(after));
+				return (info.getEmblem().equals(after));
 			}
 
 
 			@Override
 			protected boolean validateBeforeRedo() {
 				WorldInfo info = (WorldInfo) context;
-				return (info.emblem.equals(before));
+				return (info.getEmblem().equals(before));
 			}
 
 
 			@Override
 			protected void undoValidated() {
 				WorldInfo info = (WorldInfo) context;
-				info.emblem = before;
+				info.setEmblem(before);
 			}
 
 
 			@Override
 			protected void redoValidated() {
 				WorldInfo info = (WorldInfo) context;
-				info.emblem = after;
+				info.setEmblem(after);
 			}
 		};
 	}
@@ -581,15 +587,74 @@ public class LevelPackScreen extends Screen {
 	 * cannot fully deserialize every LevelPack, it would take too long.  */
 	private static final class PackInfo {
 
-		public final LevelPack pack;
-		public final String originalJson;
+		private final LevelPack _pack;
+		private final String originalJson;
 		public boolean hasChanged = false;
 
+		private Image _emblem;
+		private Image thumbnail;
+		public String name;
+		public final User originalAuthor;
+		public String description;
+		public final LocalDateTime creationDate;
+		public LocalDateTime publishDate;
+		public LocalDateTime expireDate;
+		public int levelCount;
+		public LevelPack.FeedbackModel feedbackModel;
 
-		public PackInfo(LevelPack pack, String json) {
-			this.pack = pack;
-			this.originalJson = json;
+
+		/**Returns a new PackInfo, associated with the given JSON string.*/
+		public static PackInfo withJSON(LevelPack pack, String json) {
+			return new PackInfo(pack, json);
 		}
+
+
+		public static PackInfo withoutJSON(LevelPack pack) {
+			return new PackInfo(pack, null);
+		}
+
+
+		private PackInfo(LevelPack pack, String json) {
+			this._pack = pack;
+			this.originalJson = json;
+			setEmblem(pack.getEmblem());
+			this.name = pack.getName();
+			this.originalAuthor = pack.getOriginalAuthor();
+			this.description = pack.getDescription();
+			this.creationDate = pack.getCreationDate();
+			this.publishDate = pack.getPublishStart();
+			this.expireDate = pack.getPublishEnd();
+			this.levelCount = pack.getLevelCount();
+			this.feedbackModel = pack.getFeedbackModel();
+		}
+
+
+		public LevelPack getPack() {
+			return _pack;
+		}
+
+
+		/**Gets the current emblem.  You can't get the emblem field directly because have to make sure 
+		 * the thumbnail was updated, and the image has to be correctly scaled..*/
+		public Image getEmblem() {
+			return _emblem;
+		}
+
+
+		/**The thumbnail version of the emblem, cached for performance.*/
+		public Image getThumbnail() {
+			return thumbnail;
+		}
+
+
+		/**Sets the current emblem.  You can't set the emblem field directly because have to make sure 
+		 * the thumbnail was updated, and the image has to be correctly scaled.*/
+		public void setEmblem(Image image) {
+			_emblem = image.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT, Image.SCALE_SMOOTH);
+			thumbnail = image.getScaledInstance(FINGERNAIL_WIDTH, FINGERNAIL_HEIGHT, Image.SCALE_SMOOTH);
+		}
+
+
 	}
 
 
@@ -600,9 +665,10 @@ public class LevelPackScreen extends Screen {
 
 		public String title;
 		public String description;
-		public Image emblem;
-		public final LevelPack levelPack;
-		public final int originalIndex;
+		private Image _emblem;
+		private Image thumbnail;
+		private final LevelPack levelPack;
+		private final int originalIndex;
 		public boolean hasChanged = false;
 
 
@@ -610,8 +676,29 @@ public class LevelPackScreen extends Screen {
 			this.levelPack = levelPack;
 			this.title = title;
 			this.description = description;
-			this.emblem = emblem;
+			setEmblem(emblem);
 			this.originalIndex = index;
+		}
+
+
+		/**Gets the current emblem.  You can't get the emblem field directly because have to make sure 
+		 * the thumbnail was updated, and the image has be correctly scaled.*/
+		public Image getEmblem() {
+			return _emblem;
+		}
+
+
+		/**The thumbnail version of the emblem, cached for performance.*/
+		public Image getThumbnail() {
+			return thumbnail;
+		}
+
+
+		/**Sets the current emblem.  You can't set the emblem field directly because have to make sure 
+		 * the thumbnail was updated, and the image has be correctly scaled.*/
+		public void setEmblem(Image image) {
+			_emblem = image.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT, Image.SCALE_SMOOTH);
+			thumbnail = image.getScaledInstance(FINGERNAIL_WIDTH, FINGERNAIL_HEIGHT, Image.SCALE_SMOOTH);
 		}
 
 
@@ -642,14 +729,14 @@ public class LevelPackScreen extends Screen {
 			if (value instanceof DefaultMutableTreeNode) {
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
 				if (node.getUserObject() instanceof PackInfo) {
-					PackInfo pi = (PackInfo) node.getUserObject();
-					return getLevelPackComponent(pi.pack, isSelected, isExpanded, isLeaf, row, hasFocus);
+					return createComponent((PackInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, row,
+							hasFocus);
 				} else if (node.getUserObject() instanceof WorldInfo) {
 					DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
 					int idx = parent.getIndex(node);
-					LevelPack pack = ((PackInfo) parent.getUserObject()).pack;
-					return getWorldInfoComponent(pack, (WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf,
-							idx, hasFocus);
+					LevelPack pack = ((PackInfo) parent.getUserObject()).getPack();
+					return createComponent((WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, idx,
+							hasFocus);
 				} else if (node.getUserObject() instanceof String) {
 					return new JLabel(node.getUserObject().toString());
 				}
@@ -660,18 +747,17 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a LevelPack within the tree.*/
-		private final Component getLevelPackComponent(LevelPack pack, boolean isSelected, boolean isExpanded,
+		private final Component createComponent(PackInfo pInfo, boolean isSelected, boolean isExpanded,
 				boolean isLeaf, int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
 			pnl.setBorder(new EmptyBorder(2, 2, 2, 2));
-			pnl.add(UIBuilder.buildLabel().image(pack.getEmblem().getScaledInstance(50, 50, Image.SCALE_FAST))
-					.border(new EmptyBorder(2, 2, 2, 2)).create());
-			pnl.add(UIBuilder.buildLabel().text(pack.getName() + " - ").border(spacer).create());
-			pnl.add(UIBuilder.buildLabel().text(pack.getDescription()).border(new EmptyBorder(2, 2, 2, 2)).create());
-			String author = pack.getOriginalAuthor() == null ? "unknown author"
-					: pack.getOriginalAuthor().getUserName();
+			pnl.add(UIBuilder.buildLabel().image(pInfo.getThumbnail()).border(new EmptyBorder(2, 2, 2, 2)).create());
+			pnl.add(UIBuilder.buildLabel().text(pInfo.name + " - ").border(spacer).create());
+			pnl.add(UIBuilder.buildLabel().text(pInfo.description).border(new EmptyBorder(2, 2, 2, 2)).create());
+			String author = pInfo.originalAuthor == null ? LevelPack.UNKNOWN_AUTHOR_NAME
+					: pInfo.originalAuthor.getUserName();
 			pnl.add(UIBuilder.buildLabel().text("by " + author).border(new EmptyBorder(2, 2, 2, 2)).create());
 			return pnl;
 
@@ -679,14 +765,13 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a World within the tree.*/
-		private final Component getWorldInfoComponent(LevelPack pack, WorldInfo info, boolean isSelected,
-				boolean isExpanded, boolean isLeaf, int row, boolean hasFocus) {
+		private final Component createComponent(WorldInfo info, boolean isSelected, boolean isExpanded,
+				boolean isLeaf, int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
 			pnl.setBorder(new EmptyBorder(2, 2, 2, 2));
-			pnl.add(UIBuilder.buildLabel().image(info.emblem.getScaledInstance(50, 50, Image.SCALE_FAST))
-					.border(new EmptyBorder(2, 2, 2, 2)).create());
+			pnl.add(UIBuilder.buildLabel().image(info.getThumbnail()).border(new EmptyBorder(2, 2, 2, 2)).create());
 			pnl.add(UIBuilder.buildLabel().text(info.title).border(new EmptyBorder(2, 2, 2, 2)).create());
 			pnl.add(UIBuilder.buildLabel().text(info.description).border(new EmptyBorder(2, 2, 2, 2)).create());
 
