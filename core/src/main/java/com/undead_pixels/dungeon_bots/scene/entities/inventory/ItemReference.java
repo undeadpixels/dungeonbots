@@ -9,9 +9,11 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 import java.awt.geom.Point2D;
 import java.io.Serializable;
+import java.util.Optional;
 
 @Doc("Inventory Item type that represents an item at a given spot in an Inventory.\n" +
 		"Item changes if the Inventory is modified.")
@@ -114,20 +116,44 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Contextually uses the Item. Action varies depending on the Item.
 	 * @return True if the Item was successfully used.
 	 */
-	@Override @Bind(SecurityLevel.DEFAULT)
-	@Doc("Contextually uses the Item. Action varies depending on the Item.")
-	public Boolean use() {
-		return inventory.owner.getWorld()
-				.tryUse(this, inventory.owner.getPosition());
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Contextually uses the Item. Action varies depending on the Item.")
+	public Boolean use(final Varargs args) {
+		if(args.narg() > 0 && args.arg(1).isstring() || args.arg(2).isstring()) {
+			String dir = args.arg1().isstring() ? args.arg1().tojstring() : args.arg(2).tojstring();
+			switch (dir.toLowerCase()){
+				case "up":
+					return useUp();
+				case "down":
+					return useDown();
+				case "left":
+					return useLeft();
+				case "right":
+					return useRight();
+				default:
+					return false;
+			}
+		}
+		else {
+			return useSelf();
+		}
+	}
+
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Contextually uses the Item on the caller. Action varies depending on the Item.")
+	public Boolean useSelf() {
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		return owner.getWorld().tryUse(this, pos);
 	}
 
 	/**
 	 * Uses the Item at the Location up relative to owner of the Item.
 	 * @return True if the Item was successfully used.
 	 */
-	@Override @Bind(SecurityLevel.DEFAULT)
-	@Doc("Uses the Item at the Location up relative to owner of the Item")
-	public Boolean up() {
+	@Override
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Uses the Item at the Location up relative to owner of the Item")
+	public Boolean useUp() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
 		final Point2D newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
@@ -138,9 +164,9 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Uses the Item at the Location down relative to the owner of the Item.
 	 * @return True if the Item was successfully used.
 	 */
-	@Doc("Uses the Item at the Location down relative to the owner of the Item")
-	@Override @Bind(SecurityLevel.DEFAULT)
-	public Boolean down() {
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Uses the Item at the Location down relative to the owner of the Item")
+	public Boolean useDown() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
 		final Point2D newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
@@ -151,9 +177,9 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Uses the Item at the Location left relative to the owner of the Item.
 	 * @return
 	 */
-	@Override @Bind(SecurityLevel.DEFAULT)
-	@Doc("Uses the Item at the Location left relative to the owner of the Item")
-	public Boolean left() {
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Uses the Item at the Location left relative to the owner of the Item")
+	public Boolean useLeft() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
 		final Point2D newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
@@ -164,9 +190,9 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Uses the Item at the Location right relative to the owner of the Item
 	 * @return
 	 */
-	@Doc("Uses the Item at the Location right relative to the owner of the Item")
-	@Override @Bind(SecurityLevel.DEFAULT)
-	public Boolean right() {
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Uses the Item at the Location right relative to the owner of the Item")
+	public Boolean useRight() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
 		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
