@@ -12,7 +12,7 @@ import org.luaj.vm2.Varargs;
 *  </em>
 *  */
 public interface Useable {
-	default Boolean use() { return false;} ;
+	default Boolean use() { return false;}
 
 	default Boolean use(final Varargs dir) {
 		return false;

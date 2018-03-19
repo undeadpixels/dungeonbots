@@ -17,12 +17,7 @@ import javax.swing.*;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
-import com.undead_pixels.dungeon_bots.scene.entities.Bot;
-import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
+import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
@@ -1166,12 +1161,36 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return false;
 	}
 
+	/**
+	 * Try to use the Item provided with the ItemReference at the specified location
+	 * @param itemReference
+	 * @param location
+	 * @return
+	 */
 	public Boolean tryUse(ItemReference itemReference, Point2D location) {
 		return entities.stream()
 				.filter(e -> e.getPosition().distance(location) < 0.1)
 				.anyMatch(e -> e.useItem(itemReference));
 	}
 
+	/**
+	 * Try to use Entities that implement the Useable interface at the specified location
+	 * @param location
+	 * @return
+	 */
+	public Boolean tryUse(Point2D location) {
+		return entities.stream()
+				.filter(e -> e.getPosition().distance(location) < 0.1
+						&&e.getClass().isAssignableFrom(Useable.class))
+				.anyMatch(e -> Useable.class.cast(e).use());
+	}
+
+	/**
+	 * Try to get the Item specified with the ItemReference at the specified lcoation
+	 * @param itemReference
+	 * @param location
+	 * @return
+	 */
 	public Boolean tryGive(ItemReference itemReference, Point2D location) {
 		return entities.stream()
 				.filter(e -> e.getPosition().distance(location) < 0.1)

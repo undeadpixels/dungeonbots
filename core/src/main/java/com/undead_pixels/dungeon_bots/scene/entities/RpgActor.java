@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * @since 1.0.1
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
-@Doc("A type that encapsulates abilites stats for players with RPG attributes")
+@Doc("A type that encapsulates abilities and stats for players with Rpg attributes")
 public class RpgActor extends Actor implements GetLuaFacade {
 	
 	/**
@@ -156,10 +156,4 @@ public class RpgActor extends Actor implements GetLuaFacade {
 		}
 		return false;
 	}
-
-	@Override
-	public Boolean giveItem(ItemReference ir) {
-		return this.inventory.addItem(ir.derefItem());
-	}
-
 }

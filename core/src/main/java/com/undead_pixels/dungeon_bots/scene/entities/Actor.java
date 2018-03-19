@@ -26,7 +26,7 @@ import static org.luaj.vm2.LuaValue.*;
  * TODO - mark as abstract
  */
 @Doc("The base type for Bot and Player entities")
-public class Actor extends SpriteEntity implements HasInventory {
+public class Actor extends SpriteEntity implements HasInventory, Useable {
 	
 	/**
 	 * 
@@ -345,8 +345,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
-	@Bind(SecurityLevel.DEFAULT)
-	@Doc("Get the position of the player as an x,y varargs pair")
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the position of the player as an x,y varargs pair")
 	final public Varargs position() {
 		final Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
@@ -355,8 +354,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	/**
 	 * @param args
 	 */
-	@Bind(SecurityLevel.DEFAULT)
-	@Doc("Prints the argument text above the player")
+	@Bind(value=SecurityLevel.DEFAULT, doc="Prints the argument text above the player")
 	final public void say(@Doc("The text for the player to say") Varargs args) {
 		final StringBuilder text = new StringBuilder();
 		for(int i = 2; i <= args.narg(); i++) {
@@ -377,22 +375,51 @@ public class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	@Override
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the Inventory of the Player")
 	@BindTo("inventory")
-	@Doc("Get the Inventory of the Player")
 	public Inventory getInventory() {
 		return inventory;
 	}
 
-	@Doc("Get the Number of Steps taken by the Actor")
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT, doc = "Get the Number of Steps taken by the Actor")
 	public int steps() {
 		return steps;
 	}
 
-	@Doc("Get the Number of Collisions made by the Actor with walls")
-	@Bind(SecurityLevel.DEFAULT) public int bumps() {
+	@Bind(value=SecurityLevel.DEFAULT, doc = "Get the Number of Collisions made by the Actor with walls")
+	public int bumps() {
 		return bumps;
 	}
 
+	@Override
+	public Boolean giveItem(ItemReference ir) {
+		final Item item = ir.derefItem();
+		return this.inventory.addItem(item) || ir.inventory.addItem(item);
+	}
+
+	@Override
+	public Boolean use(final Varargs v) {
+		if(v.narg() > 0 && v.arg1().isstring() || v.arg(2).isstring()) {
+			final String dir = v.arg1().isstring() ? v.arg1().tojstring() : v.arg(2).tojstring();
+			switch (dir.toLowerCase()) {
+				case "up":
+					return useUp();
+				case "down":
+					return useDown();
+				case "left":
+					return useLeft();
+				case "right":
+					return useRight();
+				default:
+					return false;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public Boolean useUp() {
+		Point2D.Float dir = new Point2D.Float(getPosition().x, getPosition().y - 1.0f);
+		return world.tryUse(dir);
+	}
 }
