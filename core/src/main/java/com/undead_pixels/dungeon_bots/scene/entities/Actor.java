@@ -5,6 +5,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Weapon;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.WeaponStats;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -346,7 +348,7 @@ public class Actor extends SpriteEntity implements HasInventory {
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Get the position of the player as an x,y varargs pair")
 	final public Varargs position() {
-		Point2D.Float pos = this.getPosition();
+		final Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
@@ -356,14 +358,13 @@ public class Actor extends SpriteEntity implements HasInventory {
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Prints the argument text above the player")
 	final public void say(@Doc("The text for the player to say") Varargs args) {
-		String text = "";
-		
+		final StringBuilder text = new StringBuilder();
 		for(int i = 2; i <= args.narg(); i++) {
 			if(i > 2)
-				text += " ";
-			text += args.tojstring(i);
+				text.append(" ");
+			text.append(args.tojstring(i));
 		}
-		this.addText(text);
+		this.addText(text.toString());
 	}
 
 	/**

@@ -3,6 +3,9 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.State;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Weapon;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.WeaponStats;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -142,6 +145,21 @@ public class RpgActor extends Actor implements GetLuaFacade {
 	public RpgActor setStamina(@Doc("An Integer value greater than 0") LuaValue s) {
 		this.stamina = s.checkint();
 		return this;
+	}
+
+	@Override
+	public Boolean useItem(ItemReference ir) {
+		if(ir.getItem().getClass().isAssignableFrom(Weapon.class)) {
+			WeaponStats weaponStats = ((Weapon)ir.getItem()).getWeaponStats();
+			this.health -= weaponStats.getDamage();
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Boolean giveItem(ItemReference ir) {
+		return this.inventory.addItem(ir.derefItem());
 	}
 
 }

@@ -8,9 +8,10 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
-public class Door extends SpriteEntity {
+public class Door extends SpriteEntity implements Lockable {
 	
 	/**
 	 * 
@@ -19,6 +20,7 @@ public class Door extends SpriteEntity {
 
 	private boolean solid = false;
 	private Key key;
+	private volatile boolean locked = false;
 
 	public Door(World world, TextureRegion tex) {
 		super(world, "door", tex, new UserScriptCollection());
@@ -44,17 +46,30 @@ public class Door extends SpriteEntity {
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		Item i = itemRef.getItem();
-		if(i == key) {
-			assert itemRef.derefItem() != null;
+		if(itemRef.getItem().getClass() == Key.class) {
+			itemRef.derefItem();
 			this.unlock();
 			return true;
 		}
 		return false;
 	}
 
-	private void unlock() {
-		/** Unlock this door. **/
+	@Override
+	@Bind(value=SecurityLevel.AUTHOR, doc="Returns true if Door is locked, false otherwise.")
+	public boolean isLocked() {
+		return this.locked;
+	}
+
+	@Override
+	@Bind(value=SecurityLevel.AUTHOR, doc="Sets the Door to a locked state.")
+	public void lock() {
+		this.locked = true;
+	}
+
+	@Override
+	@Bind(value=SecurityLevel.AUTHOR, doc="Sets the Door to an unlocked state.")
+	public void unlock() {
+		this.locked = false;
 	}
 
 }

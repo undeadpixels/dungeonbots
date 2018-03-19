@@ -120,7 +120,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	@Bind(value=SecurityLevel.DEFAULT, doc="Contextually uses the Item. Action varies depending on the Item.")
 	public Boolean use(final Varargs args) {
 		if(args.narg() > 0 && args.arg(1).isstring() || args.arg(2).isstring()) {
-			String dir = args.arg1().isstring() ? args.arg1().tojstring() : args.arg(2).tojstring();
+			final String dir = args.arg1().isstring() ? args.arg1().tojstring() : args.arg(2).tojstring();
 			switch (dir.toLowerCase()){
 				case "up":
 					return useUp();
@@ -198,6 +198,65 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
 		return owner.getWorld().tryUse(this, newPos);
 	}
+
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT,
+			doc = "Give the item to any entities found at the specified direction relative to the owner of the item.")
+	public Boolean give(@Doc("A direction relative to the entity") final LuaValue dir) {
+		switch (dir.tojstring()) {
+			case "up":
+				return giveUp();
+			case "down":
+				return giveDown();
+			case "left":
+				return giveLeft();
+			case "right":
+				return giveRight();
+			default:
+				return false;
+		}
+	}
+
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT,
+			doc="Give the Item to any entities 'Up' relative to the owner of the item")
+	public Boolean giveUp() {
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
+		return owner.getWorld().tryGive(this, newPos);
+	}
+
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT,
+			doc = "Give the Item to any entities 'Down' relative to the owner of the item")
+	public Boolean giveDown() {
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
+		return owner.getWorld().tryGive(this, newPos);
+	}
+
+	@Override
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Give the Item to any entities 'Left' relative to the owner of the item")
+	public Boolean giveLeft() {
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
+		return owner.getWorld().tryGive(this, newPos);
+	}
+
+	@Override
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Give the Item to any entities 'Right' relative to the owner of the item")
+	public Boolean giveRight() {
+		final Entity owner = inventory.owner;
+		final Point2D.Float pos = owner.getPosition();
+		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
+		return owner.getWorld().tryGive(this, newPos);
+	}
+
 
 	/**
 	 *

@@ -1167,10 +1167,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	public Boolean tryUse(ItemReference itemReference, Point2D location) {
-		entities.stream()
+		return entities.stream()
 				.filter(e -> e.getPosition().distance(location) < 0.1)
-				.forEach(e -> e.useItem(itemReference));
-		return true;
+				.anyMatch(e -> e.useItem(itemReference));
+	}
+
+	public Boolean tryGive(ItemReference itemReference, Point2D location) {
+		return entities.stream()
+				.filter(e -> e.getPosition().distance(location) < 0.1)
+				.anyMatch(e -> e.giveItem(itemReference));
 	}
 
 	/**
@@ -1219,5 +1224,4 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		for (UserScript is : newScripts)
 			this.levelScripts.add(is);
 	}
-
 }
