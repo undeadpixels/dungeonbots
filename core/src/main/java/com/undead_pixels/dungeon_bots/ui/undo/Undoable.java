@@ -18,13 +18,21 @@ public abstract class Undoable<T> {
 		this.after = after;
 		context = null;
 	}
-	public Undoable(T before, T after, Object context){
+
+
+	public Undoable(T before, T after, Object... context) {
 		this.before = before;
 		this.after = after;
 		this.context = context;
 	}
 
-	
+
+	public Undoable(T before, T after, Object context) {
+		this.before = before;
+		this.after = after;
+		this.context = context;
+	}
+
 
 	/**Throws an exception indicating possible undo stack corruption.*/
 	protected final void error() {
@@ -32,8 +40,9 @@ public abstract class Undoable<T> {
 	}
 
 
-	public final void undo(){
-		if (!okayToUndo()) error();
+	public final void undo() {
+		if (!okayToUndo())
+			error();
 		undoValidated();
 	}
 
@@ -41,11 +50,13 @@ public abstract class Undoable<T> {
 	protected abstract void undoValidated();
 
 
-	public final void redo(){
-		if (!okayToRedo()) error();
+	public final void redo() {
+		if (!okayToRedo())
+			error();
 		redoValidated();
 	}
-	
+
+
 	protected abstract void redoValidated();
 
 
@@ -63,11 +74,12 @@ public abstract class Undoable<T> {
 	protected boolean okayToRedo() {
 		return true;
 	}
-	
-	
+
+
 	/**Following the observer pattern, listens for Undoable changes so they can be passed on to 
 	 * push onto an UndoStack object.*/
 	public static abstract class Listener implements EventListener {
+
 		public abstract void pushUndoable(Undoable<?> u);
 
 	}

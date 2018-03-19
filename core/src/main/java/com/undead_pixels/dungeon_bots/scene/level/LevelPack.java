@@ -21,13 +21,14 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 public class LevelPack {
 
 	public static final String EXTENSION = "json";
-	private static final String DEFAULT_MAIN_EMBLEM = "images/shoes_hat.jpg";
-	private static final String DEFAULT_EMBLEM = "images/ice_cave.jpg";
+	public static final String DEFAULT_MAIN_EMBLEM_FILE = "images/shoes_hat.jpg";
+	public static final String DEFAULT_LEVEL_EMBLEM_FILE = "images/ice_cave.jpg";
 	public static final String UNKNOWN_AUTHOR_NAME = "Unknown author";
-	
+
 	public static final int EMBLEM_WIDTH = 300;
 	public static final int EMBLEM_HEIGHT = 200;
-	
+	public static final String DEFAULT_PACK_FILE = "maze1.json";
+	public static final String DEFAULT_WORLD_FILE = "default.lua";
 
 
 	public enum FeedbackModel {
@@ -85,7 +86,7 @@ public class LevelPack {
 
 		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
-		this.mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
+		this.mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE);
 		addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
@@ -132,6 +133,20 @@ public class LevelPack {
 	// ============================================================
 	// ========= LevelPack PLAYER VIEW MANAGEMENT STUFF ===========
 	// ============================================================
+
+
+	public World getWorld(int i) {
+		return levels.get(i);
+	}
+
+
+	public void setWorlds(World[] newWorlds) {
+		levels.clear();
+		for (World w : newWorlds)
+			levels.add(w);
+		levelIndex = Math.max(0, Math.min(levelIndex, levels.size() - 1));
+	}
+
 
 	/** Returns the current world. */
 	public World getCurrentWorld() {
@@ -351,7 +366,7 @@ public class LevelPack {
 	/**The main emblem is an image that represents this level pack.*/
 	public Image getEmblem() {
 		if (mainEmblem == null)
-			mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM);
+			mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE);
 		return mainEmblem;
 	}
 
@@ -424,6 +439,16 @@ public class LevelPack {
 	}
 
 
+	public void setLevelEmblems(Image[] emblems) {
+		if (levelEmblems == null)
+			levelEmblems = new ArrayList<Image>();
+		levelEmblems.clear();
+		for (Image img : emblems)
+			levelEmblems.add(img);
+
+	}
+
+
 	public String getLevelTitle(int index) {
 		return levelTitles.get(index);
 	}
@@ -434,6 +459,15 @@ public class LevelPack {
 	}
 
 
+	public void setLevelTitles(String[] titles) {
+		if (levelTitles == null)
+			levelTitles = new ArrayList<String>();
+		levelTitles.clear();
+		for (String title : titles)
+			levelTitles.add(title);
+	}
+
+
 	public String getLevelDescription(int index) {
 		return levelDescriptions.get(index);
 	}
@@ -441,6 +475,15 @@ public class LevelPack {
 
 	public void setLevelDescription(int index, String description) {
 		levelDescriptions.set(index, description);
+	}
+
+
+	public void setLevelDescriptions(String[] descriptions) {
+		if (levelDescriptions == null)
+			levelDescriptions = new ArrayList<String>();
+		levelDescriptions.clear();
+		for (String desc : descriptions)
+			levelDescriptions.add(desc);
 	}
 
 

@@ -32,7 +32,7 @@ public class TileType implements GetLuaFacade, Serializable {
 	/**
 	 * A name for this TileType
 	 */
-	private final String name;
+	private String name;
 	
 	/**
 	 * Lazily-loaded LuaValue representing this tile
@@ -137,6 +137,8 @@ public class TileType implements GetLuaFacade, Serializable {
 	public String getName() {
 		return name;
 	}
+	
+
 
 	@Override
 	public LuaValue getLuaValue() {

@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -16,12 +14,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -30,6 +28,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -55,8 +54,8 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
-import com.undead_pixels.dungeon_bots.ui.JXDateTimePicker;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -66,17 +65,21 @@ import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
  */
 public class LevelPackScreen extends Screen {
 
-	public static final int FINGERNAIL_WIDTH = 50;
-	public static final int FINGERNAIL_HEIGHT = 50;
+	public static final int THUMBNAIL_WIDTH = 75;
+	public static final int THUMBNAIL_HEIGHT = 50;
 	private static final long serialVersionUID = 1L;
 	private JTree _Tree = null;
 	private JPanel _InfoPnl = null;
 
-	private final UndoStack _UndoStack = new UndoStack();
+	private JButton _BttnPlayLevel;
+	private JButton _BttnEditLevel;
+	private JButton _BttnAddWorld;
+	private JButton _BttnRemoveWorld;
+	private JButton _BttnWorldUp;
+	private JButton _BttnWorldDown;
 
-	/**This is essentially the data model.*/
-	private final ArrayList<PackInfo> _Packs = new ArrayList<PackInfo>();
-	private final ArrayList<ArrayList<WorldInfo>> _Levels = new ArrayList<ArrayList<WorldInfo>>();
+	// TODO: implement undo/redo
+	private final UndoStack _UndoStack = new UndoStack();
 
 
 	// ===============================================================
@@ -125,9 +128,8 @@ public class LevelPackScreen extends Screen {
 		for (int i = 0; i < goodPacks.size(); i++)
 			pInfos[i] = PackInfo.withJSON(goodPacks.get(i), goodJsons.get(i));
 		LevelPackScreen lps = new LevelPackScreen();
-		lps.setPacks(pInfos);
 		lps.setup();
-
+		lps.setPacks(pInfos);
 		return lps;
 	}
 
@@ -135,8 +137,8 @@ public class LevelPackScreen extends Screen {
 	/**Returns a LevelPackScreen using the given packs, without associated JSON.*/
 	public static LevelPackScreen fromPacks(LevelPack[] packs) {
 		LevelPackScreen lps = new LevelPackScreen();
-		lps.setPacks(packs);
 		lps.setup();
+		lps.setPacks(packs);
 		return lps;
 	}
 
@@ -163,10 +165,8 @@ public class LevelPackScreen extends Screen {
 
 
 		JPanel packInfoBttns = new JPanel();
-		packInfoBttns.add(
-				UIBuilder.buildButton().text("Open").action("OPEN_PACK", getController()).focusable(false).create());
-		packInfoBttns
-				.add(UIBuilder.buildButton().text("New").action("NEW_PACK", getController()).focusable(false).create());
+		packInfoBttns.add(UIBuilder.buildButton().image("icons/application.png").toolTip("Create a new Pack.")
+				.action("NEW_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		// Layout the left-side LevelPack info stuff.
@@ -177,31 +177,41 @@ public class LevelPackScreen extends Screen {
 
 
 		// Layout the world tree list stuff on the right.
-		DefaultTreeModel dtm = new DefaultTreeModel(createRootNode());
+		DefaultTreeModel dtm = new DefaultTreeModel(null);
 		dtm.addTreeModelListener((TreeModelListener) getController());
 		_Tree = new JTree(dtm);
 		_Tree.setRootVisible(false);
 		_Tree.setCellRenderer(_TreeRenderer);
-		_Tree.setEditable(true);
+		_Tree.setEditable(false);
 		_Tree.setBorder(new EmptyBorder(10, 10, 10, 10));
 		_Tree.setExpandsSelectedPaths(true);
 		_Tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		_Tree.addTreeSelectionListener((TreeSelectionListener) getController());
+		
 
-		JPanel worldBttns = new JPanel();
-		worldBttns.add(
-				UIBuilder.buildButton().text("Add").action("ADD_WORLD", getController()).focusable(false).create());
-		worldBttns.add(
-				UIBuilder.buildButton().text("Edit").action("EDIT_WORLD", getController()).focusable(false).create());
-		worldBttns.add(UIBuilder.buildButton().text("Remove").action("REMOVE_WORLD", getController()).focusable(false)
+		JPanel treeBttns = new JPanel();
+		treeBttns.add(
+				_BttnEditLevel = UIBuilder.buildButton().image("icons/modify.png").action("EDIT_WORLD", getController())
+						.focusable(false).toolTip("Open this world in the editor.").create());
+		treeBttns.add(_BttnRemoveWorld = UIBuilder.buildButton().image("icons/delete.png")
+				.action("REMOVE_WORLD", getController()).focusable(false).toolTip("Remove this world from this pack.")
 				.create());
-		worldBttns.add(
-				UIBuilder.buildButton().text("Play").action("PLAY_WORLD", getController()).focusable(true).create());
-		worldBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
+		treeBttns.add(
+				_BttnAddWorld = UIBuilder.buildButton().image("icons/add.png").action("ADD_NEW_WORLD", getController())
+						.focusable(false).toolTip("Add a new world to this pack.").create());
+		treeBttns.add(_BttnWorldUp = UIBuilder.buildButton().image("icons/up.png").action("WORLD_UP", getController())
+				.focusable(false).toolTip("Move this world up one slot.").create());
+		treeBttns.add(
+				_BttnWorldDown = UIBuilder.buildButton().image("icons/down.png").action("WORLD_DOWN", getController())
+						.focusable(false).toolTip("Move this world down one slot.").create());
+		treeBttns.add(_BttnPlayLevel = UIBuilder.buildButton().image("icons/play.png").toolTip("Play this world.")
+				.action("PLAY_LEVEL", getController()).focusable(true).create());
+
+		treeBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		JPanel worldPanel = new JPanel(new BorderLayout());
 		worldPanel.add(new JScrollPane(_Tree), BorderLayout.CENTER);
-		worldPanel.add(worldBttns, BorderLayout.PAGE_END);
+		worldPanel.add(treeBttns, BorderLayout.PAGE_END);
 
 
 		this.setLayout(new BorderLayout());
@@ -244,7 +254,7 @@ public class LevelPackScreen extends Screen {
 			}
 			list.add(Box.createVerticalStrut(10));
 			list.add(createDisplayLine("Level Title", info.title, asAuthor));
-			list.add(createDisplayLine("Description", info.title, asAuthor));
+			list.add(createDisplayLine("Description", info.description, asAuthor));
 		} else if (selection instanceof PackInfo) {
 			PackInfo info = (PackInfo) selection;
 			boolean asAuthor = info.getPack().isAuthor(DungeonBotsMain.instance.getUser())
@@ -279,6 +289,8 @@ public class LevelPackScreen extends Screen {
 			list.add(Box.createVerticalStrut(10));
 			list.add(createDisplayLine("Feedback", info.feedbackModel, asAuthor));
 			list.add(Box.createVerticalStrut(10));
+			list.add(UIBuilder.buildButton().text("Transitions").action("TRANSITION_SCRIPT", getController())
+					.maxWidth(80).focusable(false).create());
 		}
 
 		panel.setLayout(new VerticalLayout());
@@ -286,6 +298,7 @@ public class LevelPackScreen extends Screen {
 		for (Component c : list)
 			panel.add(c);
 		panel.revalidate();
+		panel.repaint();
 	}
 
 
@@ -318,9 +331,12 @@ public class LevelPackScreen extends Screen {
 			JPanel pnl = new JPanel(new BorderLayout());
 			pnl.add(UIBuilder.buildLabel().text(name + ": ").foreground(Color.BLACK).create(), BorderLayout.LINE_START);
 			JTextField field = new JTextField();
+			field.setText(initialContents.toString());
 			field.setName(name);
-			
-			// The listener must be spelled out here, because there is no reference to the JTextField in the document that actually fires the events.
+
+			// The listener must be spelled out here, because there is no
+			// reference to the JTextField in the document that actually fires
+			// the events.
 			field.getDocument().addDocumentListener(new DocumentListener() {
 
 				@Override
@@ -370,26 +386,9 @@ public class LevelPackScreen extends Screen {
 	}
 
 
-	/**Create the tree structure to be displayed, from the given LevelPacks.*/
-	private DefaultMutableTreeNode createRootNode() {
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
-		for (int i = 0; i < _Packs.size(); i++) {
-			PackInfo pi = _Packs.get(i);
-			DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pi);
-			rootNode.add(packNode);
-			for (int j = 0; j < _Levels.get(i).size(); j++) {
-				WorldInfo wi = _Levels.get(i).get(j);
-				DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wi);
-				packNode.add(worldNode);
-			}
-		}
-		return rootNode;
-	}
-
-
 	@Override
 	protected void setDefaultLayout() {
-		this.setSize(1024, 600);
+		this.setSize(1024, 640);
 		this.setLocationRelativeTo(null);
 		this.setUndecorated(false);
 		this.setTitle("Choose your adventure.");
@@ -490,21 +489,42 @@ public class LevelPackScreen extends Screen {
 
 	/**Sets the contents of this LevelPackScreen to the indicated PackInfos.*/
 	private void setPacks(PackInfo[] packs) {
-		// Build the pack structure.
-		_Packs.clear();
-		_Levels.clear();
-		for (PackInfo pInfo : packs) {
-			_Packs.add(pInfo);
-			ArrayList<WorldInfo> levels = new ArrayList<WorldInfo>();
-			_Levels.add(levels);
-			for (int i = 0; i < pInfo.levelCount; i++) {
-				WorldInfo wi = WorldInfo.fromLevelIndex(pInfo, i);
-				levels.add(wi);
+
+		// Clear what already exists.
+		if (_Tree == null)
+			setup();
+		_Tree.removeAll();
+
+		// Build the tree.
+		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
+		for (int i = 0; i < packs.length; i++) {
+			PackInfo pInfo = packs[i];
+			pInfo.worlds.clear();
+			DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pInfo);
+			rootNode.add(packNode);
+			LevelPack pack = pInfo.getPack();
+			for (int j = 0; j < pack.getLevelCount(); j++) {
+				WorldInfo wInfo = WorldInfo.fromLevelIndex(pInfo, j);
+				pInfo.worlds.add(wInfo);
+				DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wInfo);
+				packNode.add(worldNode);
 			}
 		}
 
-		// Select the first world in the list.
-		selectFirst();
+		// Set the model and the first selection. Note, this will not work until
+		// the full screen (and the tree) has been validated.
+		DefaultTreeModel m = new DefaultTreeModel(rootNode);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				m.addTreeModelListener((TreeModelListener)getController());
+				_Tree.setModel(m);
+				selectFirst();
+			}
+		});
+
 
 	}
 
@@ -566,6 +586,83 @@ public class LevelPackScreen extends Screen {
 	// ===============================================================
 	// ========== LevelPackScreen EDITING STUFF ======================
 	// ===============================================================
+
+	private Undoable<DefaultMutableTreeNode> addNewWorld() {
+		TreePath path = _Tree.getSelectionPath();
+		PackInfo pInfo = null;
+		DefaultMutableTreeNode nodePack = null;
+		do {
+			nodePack = (DefaultMutableTreeNode) path.getLastPathComponent();
+			if (nodePack.getUserObject() instanceof PackInfo)
+				pInfo = (PackInfo) nodePack.getUserObject();
+			else
+				path = path.getParentPath();
+		} while (pInfo == null);
+
+		WorldInfo newWorld = WorldInfo.fromNew(pInfo, "New level", "(No description)",
+				UIBuilder.getImage(LevelPack.DEFAULT_LEVEL_EMBLEM_FILE));
+		pInfo.worlds.add(newWorld);
+		DefaultTreeModel model = (DefaultTreeModel)_Tree.getModel();
+		DefaultMutableTreeNode nodeNew = new DefaultMutableTreeNode(newWorld);
+		model.insertNodeInto(nodeNew,  nodePack,  nodePack.getChildCount());
+		
+		_Tree.revalidate();
+		_Tree.repaint();
+
+		Undoable<DefaultMutableTreeNode> u = new Undoable<DefaultMutableTreeNode>(null, nodeNew, nodeNew.getParent()) {
+
+			@Override
+			protected boolean okayToUndo() {
+				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
+				if (!after.getParent().equals(parent))
+					return false;
+				if (!parent.isNodeChild(after))
+					return false;
+				WorldInfo wInfo = (WorldInfo) after.getUserObject();
+				if (!wInfo.packInfo.worlds.contains(wInfo))
+					return false;
+				return true;
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				WorldInfo wInfo = (WorldInfo) after.getUserObject();
+				wInfo.packInfo.worlds.remove(wInfo);
+				after.removeFromParent();
+				after.setParent(null);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
+				if (after.getParent() != null)
+					return false;
+				if (parent.isNodeChild(after))
+					return false;
+				WorldInfo wInfo = (WorldInfo) after.getUserObject();
+				if (wInfo.packInfo.worlds.contains(wInfo))
+					return false;
+				return true;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				WorldInfo wInfo = (WorldInfo) after.getUserObject();
+				wInfo.packInfo.worlds.add(wInfo);
+				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
+				parent.add(after);
+				after.setParent(parent);
+			}
+
+		};
+
+		return u;
+
+	}
+
 
 	private Undoable<String> changePackName(String newName) {
 		PackInfo pInfo = (PackInfo) getCurrentSelection();
@@ -738,7 +835,7 @@ public class LevelPackScreen extends Screen {
 			return null;
 		}
 		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
-		wInfo.hasChanged = true;
+		wInfo.packInfo.hasChanged = true;
 		Image oldImg = wInfo.getEmblem();
 		Image newImg = img;
 		wInfo.setEmblem(newImg);
@@ -778,7 +875,7 @@ public class LevelPackScreen extends Screen {
 
 	private Undoable<String> changeLevelDescription(String newDescription) {
 		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
-		wInfo.hasChanged = true;
+		wInfo.packInfo.hasChanged = true;
 		String oldDescription = wInfo.description;
 		wInfo.description = newDescription;
 		return new Undoable<String>(oldDescription, newDescription, wInfo) {
@@ -817,7 +914,7 @@ public class LevelPackScreen extends Screen {
 
 	private Undoable<String> changeLevelTitle(String newTitle) {
 		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
-		wInfo.hasChanged = true;
+		wInfo.packInfo.hasChanged = true;
 		String oldTitle = wInfo.description;
 		wInfo.title = newTitle;
 		return new Undoable<String>(oldTitle, newTitle, wInfo) {
@@ -865,6 +962,7 @@ public class LevelPackScreen extends Screen {
 
 		private final LevelPack _pack;
 		private final String originalJson;
+		public final ArrayList<WorldInfo> worlds = new ArrayList<WorldInfo>();
 		public boolean hasChanged = false;
 
 		private Image _emblem;
@@ -927,13 +1025,79 @@ public class LevelPackScreen extends Screen {
 		 * the thumbnail was updated, and the image has to be correctly scaled.*/
 		public void setEmblem(Image image) {
 			_emblem = image.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT, Image.SCALE_SMOOTH);
-			thumbnail = image.getScaledInstance(FINGERNAIL_WIDTH, FINGERNAIL_HEIGHT, Image.SCALE_SMOOTH);
+			thumbnail = image.getScaledInstance(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, Image.SCALE_SMOOTH);
 		}
 
 
-		/**Writes the PackInfo's stored data to the referenced LevelPack.*/
-		public LevelPack writeData() {
-			throw new RuntimeException("Not implemented yet.");
+		/**Writes the PackInfo's stored data to the referenced LevelPack.  The resulting LevelPack will 
+		 * be completely deserialized, ready to play.*/
+		public LevelPack write() {
+
+			// The result will either start out as a new LevelPack created in
+			// this screen, or a LevelPack completely deserialized from the
+			// JSON. Either way, must ensure the collection of Worlds is in the
+			// correct state, fully deserialized.
+			LevelPack pack;
+			if (this.originalJson != null) {
+				pack = LevelPack.fromJson(originalJson);
+				// Now, figure out how the Worlds have changed. There can be
+				// insertions, deletions, etc.
+
+				// Determine the levels in the correct order.
+				World[] completeWorlds = new World[this.worlds.size()];
+				Image[] emblems = new Image[this.worlds.size()];
+				String[] titles = new String[this.worlds.size()];
+				String[] descriptions = new String[this.worlds.size()];
+				for (int i = 0; i < this.worlds.size(); i++) {
+					WorldInfo wInfo = this.worlds.get(i);
+					if (wInfo.originalIndex < 0) 
+						completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE), wInfo.title);
+					 else 
+						completeWorlds[i] = pack.getWorld(wInfo.originalIndex);
+					
+					completeWorlds[i].setName(wInfo.title);
+					emblems[i] = wInfo.getEmblem();
+					titles[i] = wInfo.title;
+					descriptions[i] = wInfo.description;
+				}
+
+				// Now, simply assign the levels and their header
+				// characteristics.
+				pack.setWorlds(completeWorlds);
+				pack.setLevelEmblems(emblems);
+				pack.setLevelTitles(titles);
+				pack.setLevelDescriptions(descriptions);
+
+			} else {
+				pack = new LevelPack(this.name, this.originalAuthor,
+						this.worlds.toArray(new World[this.worlds.size()]));
+				World[] completeWorlds = new World[this.worlds.size()];
+				Image[] emblems = new Image[this.worlds.size()];
+				String[] titles = new String[this.worlds.size()];
+				String[] descriptions = new String[this.worlds.size()];
+				for (int i = 0; i < this.worlds.size(); i++) {
+					WorldInfo wInfo = this.worlds.get(i);
+					completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE), wInfo.title);
+					emblems[i] = wInfo.getEmblem();
+					titles[i] = wInfo.title;
+					descriptions[i] = wInfo.description;
+				}
+				pack.setWorlds(completeWorlds);
+				pack.setLevelEmblems(emblems);
+				pack.setLevelTitles(titles);
+				pack.setLevelDescriptions(descriptions);
+			}
+
+
+			// Now, write the particulars of the level pack.
+			pack.setEmblem(this.getEmblem());
+			pack.setName(this.name);
+			pack.setDescription(this.description);
+			pack.setPublicationStart(this.publishDate);
+			pack.setPublicationEnd(this.expireDate);
+			pack.setFeedbackModel(this.feedbackModel);
+
+			return pack;
 		}
 	}
 
@@ -949,7 +1113,6 @@ public class LevelPackScreen extends Screen {
 		private Image thumbnail;
 		private final PackInfo packInfo;
 		private final int originalIndex;
-		public boolean hasChanged = false;
 
 
 		private WorldInfo(PackInfo packInfo, String title, String description, Image emblem, int index) {
@@ -978,7 +1141,7 @@ public class LevelPackScreen extends Screen {
 		 * the thumbnail was updated, and the image has be correctly scaled.*/
 		public void setEmblem(Image image) {
 			_emblem = image.getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT, Image.SCALE_SMOOTH);
-			thumbnail = image.getScaledInstance(FINGERNAIL_WIDTH, FINGERNAIL_HEIGHT, Image.SCALE_SMOOTH);
+			thumbnail = image.getScaledInstance(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, Image.SCALE_SMOOTH);
 		}
 
 
@@ -993,19 +1156,15 @@ public class LevelPackScreen extends Screen {
 		}
 
 
-		public static WorldInfo fromNew() {
-			throw new RuntimeException("Not implemented yet.");
+		public static WorldInfo fromNew(PackInfo info, String title, String description, Image emblem) {
+			return new WorldInfo(info, title, description, emblem, -1);
 		}
 
 
-		/**Writes the WorldInfo's stored data to the referenced World level.  Returns the host LevelPack.*/
-		public LevelPack writeData() {
-			throw new RuntimeException("Not implemented yet.");
-		}
 	}
 
 
-	private static final TreeCellRenderer _TreeRenderer = new TreeCellRenderer() {
+	private final TreeCellRenderer _TreeRenderer = new TreeCellRenderer() {
 
 		private final EmptyBorder spacer = new EmptyBorder(2, 2, 2, 2);
 
@@ -1016,13 +1175,13 @@ public class LevelPackScreen extends Screen {
 			if (value instanceof DefaultMutableTreeNode) {
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
 				if (node.getUserObject() instanceof PackInfo) {
-					return createComponent((PackInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, row,
+					return createPackComponent((PackInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, row,
 							hasFocus);
 				} else if (node.getUserObject() instanceof WorldInfo) {
 					// The level should have its row index within the context of
 					// the parent.
 					DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
-					return createComponent((WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf,
+					return createLevelComponent((WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf,
 							parent.getIndex(node), hasFocus);
 				} else if (node.getUserObject() instanceof String) {
 					return new JLabel(node.getUserObject().toString());
@@ -1034,8 +1193,8 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a LevelPack within the tree.*/
-		private final Component createComponent(PackInfo pInfo, boolean isSelected, boolean isExpanded, boolean isLeaf,
-				int row, boolean hasFocus) {
+		private final Component createPackComponent(PackInfo pInfo, boolean isSelected, boolean isExpanded,
+				boolean isLeaf, int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
@@ -1052,8 +1211,8 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a World within the tree.*/
-		private final Component createComponent(WorldInfo info, boolean isSelected, boolean isExpanded, boolean isLeaf,
-				int row, boolean hasFocus) {
+		private final Component createLevelComponent(WorldInfo info, boolean isSelected, boolean isExpanded,
+				boolean isLeaf, int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
@@ -1061,7 +1220,6 @@ public class LevelPackScreen extends Screen {
 			pnl.add(UIBuilder.buildLabel().image(info.getThumbnail()).border(new EmptyBorder(2, 2, 2, 2)).create());
 			pnl.add(UIBuilder.buildLabel().text(info.title).border(new EmptyBorder(2, 2, 2, 2)).create());
 			pnl.add(UIBuilder.buildLabel().text(info.description).border(new EmptyBorder(2, 2, 2, 2)).create());
-
 			return pnl;
 		}
 	};
@@ -1084,14 +1242,23 @@ public class LevelPackScreen extends Screen {
 					_UndoStack.push(packEmblemChange);
 				return;
 			case "CHANGE_FEEDBACK_MODEL":
-				JRadioButton source = (JRadioButton)e.getSource();
+				JRadioButton source = (JRadioButton) e.getSource();
 				LevelPack.FeedbackModel model = LevelPack.FeedbackModel.valueOf(source.getName());
 				Undoable<LevelPack.FeedbackModel> feedbackModelChange = changeFeedbackModel(model);
-				if (feedbackModelChange != null) _UndoStack.push(feedbackModelChange);
+				if (feedbackModelChange != null)
+					_UndoStack.push(feedbackModelChange);
 				return;
-
-
-			case "SAVE_PACK":
+			case "PLAY_LEVEL":
+				WorldInfo selection = (WorldInfo) getCurrentSelection();
+				LevelPack newPack = selection.packInfo.write();
+				newPack.setCurrentWorld(selection.packInfo.worlds.indexOf(selection));
+				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(newPack));
+				break;
+			case "ADD_NEW_WORLD":
+				Undoable<DefaultMutableTreeNode> addWorldChange = addNewWorld();
+				if (addWorldChange != null)
+					_UndoStack.push(addWorldChange);
+				return;
 			default:
 				System.out.println(this.getClass().getName() + " has not implemented command: " + e.getActionCommand());
 			}
@@ -1141,6 +1308,26 @@ public class LevelPackScreen extends Screen {
 		@Override
 		public void valueChanged(TreeSelectionEvent e) {
 			refreshInfoDisplay(_InfoPnl);
+			Object selection = getCurrentSelection();
+			if (selection == null) {
+				_BttnPlayLevel.setEnabled(false);
+				_BttnEditLevel.setEnabled(false);
+				_BttnWorldUp.setEnabled(false);
+				_BttnWorldDown.setEnabled(false);
+				_BttnAddWorld.setEnabled(false);
+				_BttnRemoveWorld.setEnabled(false);
+			} else {
+				_BttnPlayLevel.setEnabled(selection instanceof WorldInfo);
+				_BttnEditLevel.setEnabled(selection instanceof WorldInfo);
+				_BttnWorldUp.setEnabled(selection instanceof WorldInfo
+						&& ((WorldInfo) selection).packInfo.worlds.indexOf(selection) > 0);
+				_BttnWorldDown.setEnabled(selection instanceof WorldInfo && ((WorldInfo) selection).packInfo.worlds
+						.indexOf(selection) < ((WorldInfo) selection).packInfo.worlds.size() - 1);
+				_BttnAddWorld.setEnabled(true);
+				_BttnRemoveWorld.setEnabled(true);
+			}
+
+
 		}
 
 

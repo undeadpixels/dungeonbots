@@ -770,6 +770,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public String getName() {
 		return name;
 	}
+	
+
+
+	public void setName(String newName) {
+		name = newName;
+	}
 
 
 	@Override
@@ -1269,5 +1275,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		for (UserScript is : newScripts)
 			this.levelScripts.add(is);
 	}
+
 
 }

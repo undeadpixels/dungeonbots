@@ -54,19 +54,9 @@ public class MainMenuScreen extends Screen {
 					 * instance.getUser())) { throw new
 					 * RuntimeException("Cannot switch to a game being played by another player."
 					 * ); } */
-					LevelPackScreen lps = LevelPackScreen.fromDirectory(System.getProperty("user.dir"));
-					lps.addWindowListener(new WindowListenerAdapter() {
-
-						@Override
-						protected void event(WindowEvent e) {
-							if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-								return;
-							GameplayScreen gps = new GameplayScreen(lps.getSelectedLevelPack());
-
-						}
-					});
+					LevelPackScreen lps = LevelPackScreen.fromDirectory(System.getProperty("user.dir"));					
 					DungeonBotsMain.instance.setCurrentScreen(lps);
-					lps.setSelection(lps.getLevelPackAt(0),  0);
+					//lps.setSelection(lps.getLevelPackAt(0),  0);
 
 					break;
 				case "CREATE":

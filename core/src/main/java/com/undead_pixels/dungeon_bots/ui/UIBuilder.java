@@ -1193,6 +1193,7 @@ public class UIBuilder {
 	 * file in the current working directory.
 	 */
 	public static Image getImage(String filename, boolean absolute) {
+		filename = filename.toLowerCase();
 		if (filename == null || filename.equals(""))
 			return null;
 		if (_Images.containsKey(filename))
