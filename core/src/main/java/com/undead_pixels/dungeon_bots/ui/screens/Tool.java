@@ -537,7 +537,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 						newTileTypes) {
 
 					@Override
-					protected boolean validateBeforeUndo() {
+					protected boolean okayToUndo() {
 						for (Point p : after.keySet()) {
 							Tile existingTile = world.getTile(p.x, p.y);
 							if (existingTile == null)
@@ -551,7 +551,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 					@Override
-					protected boolean validateBeforeRedo() {
+					protected boolean okayToRedo() {
 						for (Point p : before.keySet()) {
 							Tile existingTile = world.getTile(p.x, p.y);
 							if (existingTile == null)
@@ -700,13 +700,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, ent) {
 
 				@Override
-				protected boolean validateBeforeUndo() {
+				protected boolean okayToUndo() {
 					return world.containsEntity(ent);
 				}
 
 
 				@Override
-				protected boolean validateBeforeRedo() {
+				protected boolean okayToRedo() {
 					return !world.containsEntity(ent);
 				}
 

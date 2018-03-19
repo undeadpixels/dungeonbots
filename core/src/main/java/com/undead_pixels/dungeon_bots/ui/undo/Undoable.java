@@ -33,7 +33,7 @@ public abstract class Undoable<T> {
 
 
 	public final void undo(){
-		if (!validateBeforeUndo()) error();
+		if (!okayToUndo()) error();
 		undoValidated();
 	}
 
@@ -42,7 +42,7 @@ public abstract class Undoable<T> {
 
 
 	public final void redo(){
-		if (!validateBeforeRedo()) error();
+		if (!okayToRedo()) error();
 		redoValidated();
 	}
 	
@@ -52,15 +52,15 @@ public abstract class Undoable<T> {
 	/**Used for detecting corruption of the undo stack.  If the current after-value is not equal to 
 	 * this Undoable instance's 'after', then the undo stack must have been corrupted somehow.  Base 
 	 * class behavior simply returns true.*/
-	protected boolean validateBeforeUndo() {
+	protected boolean okayToUndo() {
 		return true;
 	}
 
 
-	/**Used for detecting corruption of the undo stack.  If the current after-value is not equal to 
-	 * this Undoable instance's 'after', then the undo stack must have been corrupted somehow.  Base 
+	/**Used for detecting corruption of the undo stack.  If the current before-value is not equal to 
+	 * this Undoable instance's 'before', then the undo stack must have been corrupted somehow.  Base 
 	 * class behavior is simply returns true.*/
-	protected boolean validateBeforeRedo() {
+	protected boolean okayToRedo() {
 		return true;
 	}
 	

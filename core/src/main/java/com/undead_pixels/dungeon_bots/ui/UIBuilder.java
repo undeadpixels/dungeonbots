@@ -7,6 +7,7 @@ import org.jdesktop.swingx.auth.PasswordStore;
 import org.jdesktop.swingx.auth.UserNameStore;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
@@ -47,9 +48,11 @@ public class UIBuilder {
 	protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
 	protected static final String FIELD_ALIGNMENT_X = "alignment_x";
 	protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
+	protected static final String FIELD_BACKGROUND = "background";
 	protected static final String FIELD_BORDER = "border";
 	protected static final String FIELD_ENABLED = "enabled";
 	protected static final String FIELD_FOCUSABLE = "focusable";
+	protected static final String FIELD_FOREGROUND = "foreground";
 	protected static final String FIELD_HOTKEY = "hotkey";
 	protected static final String FIELD_IMAGE = "image";
 	protected static final String FIELD_INSETS = "insets";
@@ -148,6 +151,15 @@ public class UIBuilder {
 		}
 
 
+
+
+
+
+
+
+
+
+
 		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
 
 
@@ -176,6 +188,17 @@ public class UIBuilder {
 					label.setAlignmentY(value);
 				}
 			});
+			return this;
+		}
+		
+		/**Specifies the foreground color.*/
+		public final LabelBuilder background(Color color){
+			properties.put(FIELD_BACKGROUND,  new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(JLabel label, Color color) {
+					label.setBackground(color);					
+				}});
 			return this;
 		}
 
@@ -215,6 +238,17 @@ public class UIBuilder {
 				}
 
 			});
+			return this;
+		}
+		
+		/**Specifies the foreground color.*/
+		public final LabelBuilder foreground(Color color){
+			properties.put(FIELD_FOREGROUND,  new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(JLabel label, Color color) {
+					label.setForeground(color);					
+				}});
 			return this;
 		}
 

@@ -4,26 +4,37 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileFilter;
+import java.sql.Date;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -37,12 +48,15 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.jdesktop.swingx.HorizontalLayout;
+import org.jdesktop.swingx.JXDatePicker;
+import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.ui.JXDateTimePicker;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -211,8 +225,8 @@ public class LevelPackScreen extends Screen {
 			list.add(UIBuilder.buildLabel().text("Choose a Level Pack or Level to get started.").create());
 		} else if (selection instanceof WorldInfo) {
 			WorldInfo info = (WorldInfo) selection;
-			boolean asAuthor = info.levelPack.isAuthor(DungeonBotsMain.instance.getUser())
-					|| !info.levelPack.getLocked();
+			boolean asAuthor = info.packInfo.getPack().isAuthor(DungeonBotsMain.instance.getUser())
+					|| !info.packInfo.getPack().getLocked();
 			if (asAuthor) {
 				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem())
 						.toolTip("Click to change emblem for this level.")
@@ -229,50 +243,130 @@ public class LevelPackScreen extends Screen {
 				list.add(lblEmblem);
 			}
 			list.add(Box.createVerticalStrut(10));
-			list.add(createDisplayLine("Level", info.title, asAuthor));
+			list.add(createDisplayLine("Level Title", info.title, asAuthor));
 			list.add(createDisplayLine("Description", info.title, asAuthor));
 		} else if (selection instanceof PackInfo) {
 			PackInfo info = (PackInfo) selection;
 			boolean asAuthor = info.getPack().isAuthor(DungeonBotsMain.instance.getUser())
 					|| !info.getPack().getLocked();
-			LevelPack pack = info.getPack();
 			if (asAuthor) {
-				JButton bttnEmblem = UIBuilder.buildButton()
-						.image(pack.getEmblem().getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
-								Image.SCALE_FAST))
+				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem())
 						.toolTip("Click to change emblem for this Level Pack.")
-						.action("CHANGE_LEVELPACK_EMBLEM", getController())
+						.action("CHANGE_PACK_EMBLEM", getController())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
 								new EmptyBorder(10, 10, 10, 10)))
 						.create();
 				list.add(bttnEmblem);
 			} else {
-				JLabel lblEmblem = UIBuilder.buildLabel()
-						.image(pack.getEmblem().getScaledInstance(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
-								Image.SCALE_FAST))
+				JLabel lblEmblem = UIBuilder.buildLabel().image(info.getEmblem())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
 								new EmptyBorder(10, 10, 10, 10)))
 						.create();
 				list.add(lblEmblem);
 			}
 			list.add(Box.createVerticalStrut(10));
-			list.add(createDisplayLine("LevelPack", pack.getName(), asAuthor));
-			list.add(createDisplayLine("Author", pack.getOriginalAuthor(), asAuthor));
-			list.add(createDisplayLine("Description", pack.getDescription(), asAuthor));
+			list.add(createDisplayLine("Pack Title", info.name, asAuthor));
+			// Original author can't change.
+			list.add(createDisplayLine("Author",
+					(info.originalAuthor == null) ? LevelPack.UNKNOWN_AUTHOR_NAME : info.originalAuthor.getUserName(),
+					false));
+			list.add(createDisplayLine("Description", info.description, asAuthor));
 			list.add(Box.createVerticalStrut(10));
-			list.add(createDisplayLine("Created", pack.getCreationDate(), asAuthor));
-			list.add(createDisplayLine("Published", pack.getPublishStart(), asAuthor));
-			list.add(createDisplayLine("Expires", pack.getPublishEnd(), asAuthor));
+			// Original creation date cannot change.
+			list.add(createDisplayLine("Created", info.creationDate, false));
+			list.add(createDisplayLine("Published", info.publishDate, asAuthor));
+			list.add(createDisplayLine("Expires", info.expireDate, asAuthor));
 			list.add(Box.createVerticalStrut(10));
-			list.add(createDisplayLine("Levels", pack.getLevelCount(), asAuthor));
-			list.add(createDisplayLine("Feedback", pack.getFeedbackModel(), asAuthor));
+			list.add(createDisplayLine("Feedback", info.feedbackModel, asAuthor));
 			list.add(Box.createVerticalStrut(10));
 		}
 
+		panel.setLayout(new VerticalLayout());
 		panel.removeAll();
 		for (Component c : list)
 			panel.add(c);
 		panel.revalidate();
+	}
+
+
+	private Component createDisplayLine(String name, Object initialContents, boolean asAuthor) {
+
+
+		if (initialContents instanceof LocalDateTime) {
+			LocalDateTime dateTime = (LocalDateTime) initialContents;
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+			if (asAuthor) {
+				java.util.Date d = Date.from(dateTime.toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+				JPanel pnl = new JPanel(new BorderLayout());
+				pnl.add(UIBuilder.buildLabel().text(name + ": ").foreground(Color.black).create(),
+						BorderLayout.LINE_START);
+				// TODO: This JXDatePicker is utterly invisible on my screen.
+				// TODO: JXDatePicker uses the deprecated version of Date.
+				JXDatePicker picker = new JXDatePicker();
+				picker.setName("JXDatePicker: " + name);
+				picker.setDate(d);
+				picker.addActionListener(getController());
+				pnl.add(picker, BorderLayout.CENTER);
+				return pnl;
+
+			} else
+				return UIBuilder.buildLabel().text(name + ": " + dateTime.format(formatter)).foreground(Color.BLACK)
+						.create();
+
+		} else if (initialContents instanceof String && asAuthor) {
+			JPanel pnl = new JPanel(new BorderLayout());
+			pnl.add(UIBuilder.buildLabel().text(name + ": ").foreground(Color.BLACK).create(), BorderLayout.LINE_START);
+			JTextField field = new JTextField();
+			field.setName(name);
+			
+			// The listener must be spelled out here, because there is no reference to the JTextField in the document that actually fires the events.
+			field.getDocument().addDocumentListener(new DocumentListener() {
+
+				@Override
+				public void changedUpdate(DocumentEvent e) {
+					LevelPackScreen.Controller ctrlr = (LevelPackScreen.Controller) getController();
+					ctrlr.handleFieldChange(field, e);
+				}
+
+
+				@Override
+				public void insertUpdate(DocumentEvent e) {
+					LevelPackScreen.Controller ctrlr = (LevelPackScreen.Controller) getController();
+					ctrlr.handleFieldChange(field, e);
+				}
+
+
+				@Override
+				public void removeUpdate(DocumentEvent e) {
+					LevelPackScreen.Controller ctrlr = (LevelPackScreen.Controller) getController();
+					ctrlr.handleFieldChange(field, e);
+				}
+			});
+			pnl.add(field, BorderLayout.CENTER);
+			pnl.setMaximumSize(new Dimension(9999, 25));
+			return pnl;
+		} else if (initialContents instanceof LevelPack.FeedbackModel && asAuthor) {
+			JPanel pnl = new JPanel(new VerticalLayout());
+			pnl.add(new JLabel("Feedback model:"));
+			LevelPack.FeedbackModel[] models = LevelPack.FeedbackModel.values();
+			ButtonGroup group = new ButtonGroup();
+			for (int i = 0; i < models.length; i++) {
+				LevelPack.FeedbackModel m = models[i];
+				JRadioButton bttn = new JRadioButton(m.toString());
+				bttn.setSelected(m.equals(initialContents));
+				group.add(bttn);
+				pnl.add(bttn);
+				bttn.setName(m.toString());
+				bttn.setActionCommand("CHANGE_FEEDBACK_MODEL");
+				bttn.addActionListener(getController());
+			}
+			return pnl;
+
+		} else
+			return UIBuilder.buildLabel().text(name + ": " + initialContents.toString()).foreground(Color.BLACK)
+					.create();
+
 	}
 
 
@@ -295,21 +389,10 @@ public class LevelPackScreen extends Screen {
 
 	@Override
 	protected void setDefaultLayout() {
-		this.setSize(1024, 550);
+		this.setSize(1024, 600);
 		this.setLocationRelativeTo(null);
 		this.setUndecorated(false);
 		this.setTitle("Choose your adventure.");
-	}
-
-
-	private static Component createDisplayLine(String name, Object initialContents, boolean asAuthor) {
-		if (!asAuthor) {
-			JLabel result = new JLabel(name + ": " + initialContents);
-			return result;
-		}
-		JLabel result = new JLabel(name + ": " + initialContents);
-		result.setForeground(Color.BLACK);
-		return result;
 	}
 
 
@@ -400,7 +483,7 @@ public class LevelPackScreen extends Screen {
 	public void setPacks(LevelPack[] packs) {
 		PackInfo[] pInfos = new PackInfo[packs.length];
 		for (int i = 0; i < packs.length; i++)
-			pInfos[i] = new PackInfo(packs[i], null);
+			pInfos[i] = PackInfo.withoutJSON(packs[i]);
 		setPacks(pInfos);
 	}
 
@@ -415,7 +498,7 @@ public class LevelPackScreen extends Screen {
 			ArrayList<WorldInfo> levels = new ArrayList<WorldInfo>();
 			_Levels.add(levels);
 			for (int i = 0; i < pInfo.levelCount; i++) {
-				WorldInfo wi = WorldInfo.fromLevel(pInfo.getPack(), i);
+				WorldInfo wi = WorldInfo.fromLevelIndex(pInfo, i);
 				levels.add(wi);
 			}
 		}
@@ -484,6 +567,123 @@ public class LevelPackScreen extends Screen {
 	// ========== LevelPackScreen EDITING STUFF ======================
 	// ===============================================================
 
+	private Undoable<String> changePackName(String newName) {
+		PackInfo pInfo = (PackInfo) getCurrentSelection();
+		pInfo.hasChanged = true;
+		String oldName = pInfo.name;
+		pInfo.name = newName;
+		return new Undoable<String>(oldName, newName, pInfo) {
+
+			@Override
+			protected boolean okayToUndo() {
+				PackInfo info = (PackInfo) context;
+				return info.name.equals(after);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				PackInfo info = (PackInfo) context;
+				return info.name.equals(before);
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.name = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.name = after;
+
+			}
+
+		};
+	}
+
+
+	private Undoable<String> changePackDescription(String newDescription) {
+		PackInfo pInfo = (PackInfo) getCurrentSelection();
+		pInfo.hasChanged = true;
+		String oldDescription = pInfo.description;
+		pInfo.description = newDescription;
+		return new Undoable<String>(oldDescription, newDescription, pInfo) {
+
+			@Override
+			protected boolean okayToUndo() {
+				PackInfo info = (PackInfo) context;
+				return info.description.equals(after);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				PackInfo info = (PackInfo) context;
+				return info.description.equals(before);
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.description = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.description = after;
+
+			}
+
+		};
+	}
+
+
+	private Undoable<LevelPack.FeedbackModel> changeFeedbackModel(LevelPack.FeedbackModel model) {
+		PackInfo pInfo = (PackInfo) getCurrentSelection();
+		pInfo.hasChanged = true;
+		LevelPack.FeedbackModel oldModel = pInfo.feedbackModel;
+		LevelPack.FeedbackModel newModel = model;
+		pInfo.feedbackModel = model;
+		return new Undoable<LevelPack.FeedbackModel>(oldModel, newModel, pInfo) {
+
+			@Override
+			protected boolean okayToUndo() {
+				PackInfo info = (PackInfo) context;
+				return info.feedbackModel.equals(after);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				PackInfo info = (PackInfo) context;
+				return info.feedbackModel.equals(before);
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.feedbackModel = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.feedbackModel = after;
+			}
+
+		};
+	}
+
+
 	private Undoable<Image> changePackImage() {
 		File file = FileControl.openDialog(LevelPackScreen.this);
 		Image img = UIBuilder.getImage(file.getPath(), true);
@@ -492,9 +692,7 @@ public class LevelPackScreen extends Screen {
 			return null;
 		}
 		PackInfo pInfo = (PackInfo) getCurrentSelection();
-
 		pInfo.hasChanged = true;
-
 		Image oldImg = pInfo.getEmblem();
 		Image newImg = img;
 		pInfo.setEmblem(newImg);
@@ -503,14 +701,14 @@ public class LevelPackScreen extends Screen {
 		return new Undoable<Image>(oldImg, pInfo.getEmblem(), pInfo) {
 
 			@Override
-			protected boolean validateBeforeUndo() {
+			protected boolean okayToUndo() {
 				PackInfo info = (PackInfo) context;
 				return (info.getEmblem().equals(after));
 			}
 
 
 			@Override
-			protected boolean validateBeforeRedo() {
+			protected boolean okayToRedo() {
 				PackInfo info = (PackInfo) context;
 				return (info.getEmblem().equals(before));
 			}
@@ -549,14 +747,14 @@ public class LevelPackScreen extends Screen {
 		return new Undoable<Image>(oldImg, wInfo.getEmblem(), wInfo) {
 
 			@Override
-			protected boolean validateBeforeUndo() {
+			protected boolean okayToUndo() {
 				WorldInfo info = (WorldInfo) context;
 				return (info.getEmblem().equals(after));
 			}
 
 
 			@Override
-			protected boolean validateBeforeRedo() {
+			protected boolean okayToRedo() {
 				WorldInfo info = (WorldInfo) context;
 				return (info.getEmblem().equals(before));
 			}
@@ -574,6 +772,84 @@ public class LevelPackScreen extends Screen {
 				WorldInfo info = (WorldInfo) context;
 				info.setEmblem(after);
 			}
+		};
+	}
+
+
+	private Undoable<String> changeLevelDescription(String newDescription) {
+		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
+		wInfo.hasChanged = true;
+		String oldDescription = wInfo.description;
+		wInfo.description = newDescription;
+		return new Undoable<String>(oldDescription, newDescription, wInfo) {
+
+			@Override
+			protected boolean okayToUndo() {
+				PackInfo info = (PackInfo) context;
+				return info.description.equals(after);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				PackInfo info = (PackInfo) context;
+				return info.description.equals(before);
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.description = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				PackInfo info = (PackInfo) context;
+				info.description = after;
+
+			}
+
+		};
+	}
+
+
+	private Undoable<String> changeLevelTitle(String newTitle) {
+		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
+		wInfo.hasChanged = true;
+		String oldTitle = wInfo.description;
+		wInfo.title = newTitle;
+		return new Undoable<String>(oldTitle, newTitle, wInfo) {
+
+			@Override
+			protected boolean okayToUndo() {
+				WorldInfo info = (WorldInfo) context;
+				return info.title.equals(after);
+			}
+
+
+			@Override
+			protected boolean okayToRedo() {
+				WorldInfo info = (WorldInfo) context;
+				return info.title.equals(before);
+			}
+
+
+			@Override
+			protected void undoValidated() {
+				WorldInfo info = (WorldInfo) context;
+				info.title = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				WorldInfo info = (WorldInfo) context;
+				info.title = after;
+
+			}
+
 		};
 	}
 
@@ -655,6 +931,10 @@ public class LevelPackScreen extends Screen {
 		}
 
 
+		/**Writes the PackInfo's stored data to the referenced LevelPack.*/
+		public LevelPack writeData() {
+			throw new RuntimeException("Not implemented yet.");
+		}
 	}
 
 
@@ -667,13 +947,13 @@ public class LevelPackScreen extends Screen {
 		public String description;
 		private Image _emblem;
 		private Image thumbnail;
-		private final LevelPack levelPack;
+		private final PackInfo packInfo;
 		private final int originalIndex;
 		public boolean hasChanged = false;
 
 
-		private WorldInfo(LevelPack levelPack, String title, String description, Image emblem, int index) {
-			this.levelPack = levelPack;
+		private WorldInfo(PackInfo packInfo, String title, String description, Image emblem, int index) {
+			this.packInfo = packInfo;
 			this.title = title;
 			this.description = description;
 			setEmblem(emblem);
@@ -703,16 +983,23 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Reads only enough of the level's basic info to produce a WorldInfo.*/
-		public static WorldInfo fromLevel(LevelPack pack, int index) {
+		public static WorldInfo fromLevelIndex(PackInfo packInfo, int index) {
+			LevelPack pack = packInfo.getPack();
 			String title = pack.getLevelTitle(index);
 			String desc = pack.getLevelDescription(index);
 			Image img = pack.getLevelEmblem(index);
-			WorldInfo wi = new WorldInfo(pack, title, desc, img, index);
+			WorldInfo wi = new WorldInfo(packInfo, title, desc, img, index);
 			return wi;
 		}
 
 
 		public static WorldInfo fromNew() {
+			throw new RuntimeException("Not implemented yet.");
+		}
+
+
+		/**Writes the WorldInfo's stored data to the referenced World level.  Returns the host LevelPack.*/
+		public LevelPack writeData() {
 			throw new RuntimeException("Not implemented yet.");
 		}
 	}
@@ -732,11 +1019,11 @@ public class LevelPackScreen extends Screen {
 					return createComponent((PackInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, row,
 							hasFocus);
 				} else if (node.getUserObject() instanceof WorldInfo) {
+					// The level should have its row index within the context of
+					// the parent.
 					DefaultMutableTreeNode parent = (DefaultMutableTreeNode) node.getParent();
-					int idx = parent.getIndex(node);
-					LevelPack pack = ((PackInfo) parent.getUserObject()).getPack();
-					return createComponent((WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf, idx,
-							hasFocus);
+					return createComponent((WorldInfo) node.getUserObject(), isSelected, isExpanded, isLeaf,
+							parent.getIndex(node), hasFocus);
 				} else if (node.getUserObject() instanceof String) {
 					return new JLabel(node.getUserObject().toString());
 				}
@@ -747,8 +1034,8 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a LevelPack within the tree.*/
-		private final Component createComponent(PackInfo pInfo, boolean isSelected, boolean isExpanded,
-				boolean isLeaf, int row, boolean hasFocus) {
+		private final Component createComponent(PackInfo pInfo, boolean isSelected, boolean isExpanded, boolean isLeaf,
+				int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
@@ -765,8 +1052,8 @@ public class LevelPackScreen extends Screen {
 
 
 		/**Returns a visual component for displaying a World within the tree.*/
-		private final Component createComponent(WorldInfo info, boolean isSelected, boolean isExpanded,
-				boolean isLeaf, int row, boolean hasFocus) {
+		private final Component createComponent(WorldInfo info, boolean isSelected, boolean isExpanded, boolean isLeaf,
+				int row, boolean hasFocus) {
 			JPanel pnl = new JPanel();
 			pnl.setOpaque(false);
 			pnl.setLayout(new HorizontalLayout());
@@ -791,15 +1078,61 @@ public class LevelPackScreen extends Screen {
 				if (levelEmblemChange != null)
 					_UndoStack.push(levelEmblemChange);
 				return;
-			case "CHANGE_LEVELPACK_EMBLEM":
+			case "CHANGE_PACK_EMBLEM":
 				Undoable<Image> packEmblemChange = changePackImage();
 				if (packEmblemChange != null)
 					_UndoStack.push(packEmblemChange);
 				return;
+			case "CHANGE_FEEDBACK_MODEL":
+				JRadioButton source = (JRadioButton)e.getSource();
+				LevelPack.FeedbackModel model = LevelPack.FeedbackModel.valueOf(source.getName());
+				Undoable<LevelPack.FeedbackModel> feedbackModelChange = changeFeedbackModel(model);
+				if (feedbackModelChange != null) _UndoStack.push(feedbackModelChange);
+				return;
+
+
 			case "SAVE_PACK":
 			default:
 				System.out.println(this.getClass().getName() + " has not implemented command: " + e.getActionCommand());
 			}
+
+		}
+
+
+		/**Handles a changed field in the GUI, applying the change to the appropriate WorldInfo or PackInfo.*/
+		public void handleFieldChange(JTextField field, DocumentEvent e) {
+
+			Object context = getCurrentSelection();
+
+			if (context instanceof WorldInfo) {
+				switch (field.getName().toLowerCase()) {
+				case "level title":
+					Undoable<String> titleChange = changeLevelTitle(field.getText());
+					if (titleChange != null)
+						_UndoStack.push(titleChange);
+					return;
+				case "description":
+					Undoable<String> descChange = changeLevelDescription(field.getText());
+					if (descChange != null)
+						_UndoStack.push(descChange);
+					return;
+				}
+			} else if (context instanceof PackInfo) {
+				switch (field.getName().toLowerCase()) {
+				case "pack title":
+					Undoable<String> nameChange = changePackName(field.getText());
+					if (nameChange != null)
+						_UndoStack.push(nameChange);
+					return;
+				case "description":
+					Undoable<String> descChange = changePackDescription(field.getText());
+					if (descChange != null)
+						_UndoStack.push(descChange);
+					return;
+				}
+			}
+			System.out.println("Have not implemented LevelPackScreen.Controller.handleFieldChange() for field "
+					+ field.getName() + " in context " + context.toString());
 
 		}
 
