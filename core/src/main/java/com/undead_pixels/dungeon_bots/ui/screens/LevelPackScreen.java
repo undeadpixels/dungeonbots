@@ -1051,7 +1051,7 @@ public class LevelPackScreen extends Screen {
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
 					if (wInfo.originalIndex < 0) 
-						completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE), wInfo.title);
+						completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
 					 else 
 						completeWorlds[i] = pack.getWorld(wInfo.originalIndex);
 					
@@ -1077,7 +1077,7 @@ public class LevelPackScreen extends Screen {
 				String[] descriptions = new String[this.worlds.size()];
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
-					completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE), wInfo.title);
+					completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
 					emblems[i] = wInfo.getEmblem();
 					titles[i] = wInfo.title;
 					descriptions[i] = wInfo.description;
