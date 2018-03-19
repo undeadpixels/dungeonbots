@@ -23,6 +23,9 @@ public class LevelPack {
 	public static final String EXTENSION = "json";
 	private static final String DEFAULT_MAIN_EMBLEM = "images/shoes_hat.jpg";
 	private static final String DEFAULT_EMBLEM = "images/ice_cave.jpg";
+	
+	public static final int EMBLEM_WIDTH = 300;
+	public static final int EMBLEM_HEIGHT = 200;
 
 
 	public enum FeedbackModel {

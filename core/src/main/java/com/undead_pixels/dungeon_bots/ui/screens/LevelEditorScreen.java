@@ -352,7 +352,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 					@Override
-					protected boolean validateUndo() {
+					protected boolean validateBeforeUndo() {
 						for (Entity e : before)
 							if (world.containsEntity(e))
 								return false;
@@ -361,7 +361,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 					@Override
-					protected boolean validateRedo() {
+					protected boolean validateBeforeRedo() {
 						for (Entity e : before)
 							if (!world.containsEntity(e))
 								return false;

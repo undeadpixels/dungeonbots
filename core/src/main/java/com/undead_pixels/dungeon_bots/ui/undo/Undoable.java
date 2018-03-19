@@ -9,12 +9,19 @@ public abstract class Undoable<T> {
 
 	protected final T before;
 	protected final T after;
+	protected final Object context;
 
 
 	/**Stores the given 'before' and 'after' value within the Undoable object.*/
 	public Undoable(T before, T after) {
 		this.before = before;
 		this.after = after;
+		context = null;
+	}
+	public Undoable(T before, T after, Object context){
+		this.before = before;
+		this.after = after;
+		this.context = context;
 	}
 
 	
@@ -26,7 +33,7 @@ public abstract class Undoable<T> {
 
 
 	public final void undo(){
-		if (!validateUndo()) error();
+		if (!validateBeforeUndo()) error();
 		undoValidated();
 	}
 
@@ -35,7 +42,7 @@ public abstract class Undoable<T> {
 
 
 	public final void redo(){
-		if (!validateRedo()) error();
+		if (!validateBeforeRedo()) error();
 		redoValidated();
 	}
 	
@@ -45,7 +52,7 @@ public abstract class Undoable<T> {
 	/**Used for detecting corruption of the undo stack.  If the current after-value is not equal to 
 	 * this Undoable instance's 'after', then the undo stack must have been corrupted somehow.  Base 
 	 * class behavior simply returns true.*/
-	protected boolean validateUndo() {
+	protected boolean validateBeforeUndo() {
 		return true;
 	}
 
@@ -53,7 +60,7 @@ public abstract class Undoable<T> {
 	/**Used for detecting corruption of the undo stack.  If the current after-value is not equal to 
 	 * this Undoable instance's 'after', then the undo stack must have been corrupted somehow.  Base 
 	 * class behavior is simply returns true.*/
-	protected boolean validateRedo() {
+	protected boolean validateBeforeRedo() {
 		return true;
 	}
 	

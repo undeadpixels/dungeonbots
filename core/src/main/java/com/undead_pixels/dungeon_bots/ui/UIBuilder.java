@@ -148,9 +148,6 @@ public class UIBuilder {
 		}
 
 
-		
-
-
 		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
 
 
@@ -181,18 +178,18 @@ public class UIBuilder {
 			});
 			return this;
 		}
-		
+
 
 		public final LabelBuilder border(Border border) {
-			properties.put(FIELD_BORDER,  new PropertyBuilder<Border>(border){
+			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
 
 				@Override
 				protected void apply(JLabel label, Border value) {
 					label.setBorder(value);
-				}});
+				}
+			});
 			return this;
 		}
-
 
 
 		public final LabelBuilder enabled(boolean value) {
@@ -413,7 +410,6 @@ public class UIBuilder {
 		}
 
 
-
 	}
 
 
@@ -529,14 +525,16 @@ public class UIBuilder {
 			});
 			return this;
 		}
-		
+
+
 		public final ButtonBuilder<T> border(Border border) {
-			properties.put(FIELD_BORDER,  new PropertyBuilder<Border>(border){
+			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
 
 				@Override
 				protected void apply(AbstractButton bttn, Border value) {
 					bttn.setBorder(value);
-				}});
+				}
+			});
 			return this;
 		}
 
@@ -1144,16 +1142,28 @@ public class UIBuilder {
 	 * Gets an Image based on the image at the given location. Also, caches
 	 * loaded images so that a call to the same image resource will not load it
 	 * twice. If no image exists at the given location, returns null and prints
-	 * a missing resource message to System.err.
+	 * a missing resource message to System.err (when verbose is on).
 	 */
 	public static Image getImage(String filename) {
+		return getImage(filename, false);
+	}
+
+
+	/**
+	 * Gets an Image based on the image at the given location. Also, caches
+	 * loaded images so that a call to the same image resource will not load it
+	 * twice. If no image exists at the given location, returns null and prints
+	 * a missing resource message to System.err (when verbose is on).
+	 * @param absolute Whether or not the absolute filename is given.  If true, 
+	 * will simply look for the given filename.  If false, will look for the 
+	 * file in the current working directory.
+	 */
+	public static Image getImage(String filename, boolean absolute) {
 		if (filename == null || filename.equals(""))
 			return null;
-
 		if (_Images.containsKey(filename))
 			return _Images.get(filename);
-
-		String path = System.getProperty("user.dir") + "/" + filename;
+		String path = absolute ? filename : System.getProperty("user.dir") + "/" + filename;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(path));
@@ -1163,9 +1173,7 @@ public class UIBuilder {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
 		_Images.put(filename, img);
-
 		return img;
 	}
 
