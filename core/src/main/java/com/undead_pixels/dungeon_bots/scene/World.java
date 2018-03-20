@@ -335,26 +335,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update level script
 			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 			
-			
-			
-			// XXX - move this elsewhere
-			int numGoals = 0;
-			int numGoalsMet = 0;
-			for(Entity e : entities) {
-				if(e instanceof Goal) {
-					Goal g = (Goal) e;
-					numGoals++;
-					
-					Entity under = this.getEntityUnderLocation(g.getPosition().x, g.getPosition().y);
-					
-					if(under != null && under instanceof Actor && under.getPosition().equals(g.getPosition())) {
-						numGoalsMet++;
-					}
-				}
-			}
-			if(numGoals > 0 && numGoals == numGoalsMet) {
-				this.win();
-			}
+			checkIfWon();
 		}
 
 	}
@@ -399,6 +380,38 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void beginPlay() {
 		for (Entity e : entities) {
 			e.sandboxInit();
+		}
+	}
+	
+	private void checkIfWon() {
+		int numGoals = 0;
+		int numGoalsMet = 0;
+
+		ArrayList<Goal> goals = new ArrayList<>();
+		ArrayList<Actor> actors = new ArrayList<>();
+		
+		// extract all goals and actors
+		for(Entity e : entities) {
+			if(e instanceof Goal) {
+				goals.add((Goal)e);
+				numGoals++;
+			} else if (e instanceof Actor) {
+				actors.add((Actor)e);
+			}
+		}
+		
+		// check if each goal has been met
+		for(Goal g: goals) {
+			for(Actor a: actors) {
+				if(a.getPosition().distance(g.getPosition()) < .1f) {
+					numGoalsMet++;
+					continue;
+				}
+			}
+		}
+		System.out.println("Goals: " + numGoals +" vs "+ numGoalsMet);
+		if(numGoals > 0 && numGoals == numGoalsMet) {
+			this.win();
 		}
 	}
 
