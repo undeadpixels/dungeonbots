@@ -62,6 +62,8 @@ public class UndoStack {
 
 	/**Add an Undoable to the undo stack.  Doing so will clear the redo stack.*/
 	public void push(Undoable<?> u) {
+		if (u == null)
+			throw new RuntimeException("A null undoable cannot be pushed on the stack.");
 		_Lock.lock();
 		try {
 			_Undoables.addLast(u);

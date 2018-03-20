@@ -47,7 +47,7 @@ public class LevelPack {
 	private WorldList levels;
 	private int levelIndex = 0;
 	private int levelCount = -1;
-	private transient ImageList levelEmblems;
+	private ImageList levelEmblems;
 	private ArrayList<String> levelTitles;
 	private ArrayList<String> levelDescriptions;
 
