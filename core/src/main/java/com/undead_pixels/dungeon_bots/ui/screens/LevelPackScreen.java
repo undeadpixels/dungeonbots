@@ -7,8 +7,13 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -95,38 +100,56 @@ public class LevelPackScreen extends Screen {
 	public static LevelPackScreen fromDirectory(String directory) {
 		File[] files = getPackFiles(directory);
 		ArrayList<String> jsons = new ArrayList<String>();
+		ArrayList<String> filenames = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
-			String json = Serializer.readStringFromFile(files[i].getPath());
+			String absPath = files[i].getPath();
+			String json = Serializer.readStringFromFile(absPath);
 			if (json == null)
 				System.err.println("Could not read file: " + files[i].getPath());
-			else
+			else {
 				jsons.add(json);
+				filenames.add(absPath);
+			}
 		}
-		LevelPackScreen lps = fromJSONs(jsons.toArray(new String[jsons.size()]));
+		LevelPackScreen lps = fromJSONs(jsons.toArray(new String[jsons.size()]),
+				filenames.toArray(new String[filenames.size()]));
 		return lps;
 	}
 
 
 	/**Returns a LevelPackScreen whose packs are built (partially) from the given JSON strings.*/
 	public static LevelPackScreen fromJSONs(String[] jsons) {
+		String[] filenames = new String[jsons.length];
+		for (int i = 0; i < filenames.length; i++)
+			filenames[i] = "";
+		return fromJSONs(jsons, filenames);
+	}
 
+
+	/**Returns a LevelPackScreen whose packs are built (partially) from the given JSON strings, and 
+	 * associated with the given filenames.*/
+	private static LevelPackScreen fromJSONs(String[] jsons, String[] filenames) {
 		// Figure out which packs come from good JSONs.
 		ArrayList<LevelPack> goodPacks = new ArrayList<LevelPack>();
 		ArrayList<String> goodJsons = new ArrayList<String>();
+		ArrayList<String> goodFilenames = new ArrayList<String>();
 		for (int i = 0; i < jsons.length; i++) {
 			LevelPack lp = LevelPack.fromJsonPartial(jsons[i]);
 			if (lp == null) {
-				System.err.println("Unrecognized LevelPack format for partial read.");
+				System.err.println(filenames[i] + " unrecognized LevelPack format for partial read.");
 				continue;
 			}
 			goodPacks.add(lp);
 			goodJsons.add(jsons[i]);
+			goodFilenames.add(filenames[i]);
 		}
 
 		// Build the screens.
 		PackInfo[] pInfos = new PackInfo[goodPacks.size()];
-		for (int i = 0; i < goodPacks.size(); i++)
+		for (int i = 0; i < goodPacks.size(); i++) {
 			pInfos[i] = PackInfo.withJSON(goodPacks.get(i), goodJsons.get(i));
+			pInfos[i].filename = goodFilenames.get(i);
+		}
 		LevelPackScreen lps = new LevelPackScreen();
 		lps.setup();
 		lps.setPacks(pInfos);
@@ -149,6 +172,39 @@ public class LevelPackScreen extends Screen {
 	}
 
 
+	private void saveAsPack(PackInfo pInfo) {
+		File saveLevelPackFile = FileControl.saveAsDialog(this, new File(pInfo.filename).getParent());
+		if (saveLevelPackFile == null)
+			System.out.println("Save cancelled.");
+		else
+			save(pInfo, saveLevelPackFile);
+	}
+
+
+	private void savePack(PackInfo pInfo) {
+		File file = new File(pInfo.filename);
+		if (!file.exists()) {
+			saveAsPack(pInfo);
+			return;
+		}
+		save(pInfo, file);
+	}
+
+
+	private void save(PackInfo pInfo, File file) {
+		// Save the level pack
+		LevelPack lp = pInfo.write();
+		String json = lp.toJson();
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+			writer.write(json);
+			System.out.println("Save LevelPack complete to " + file.getPath());
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+		}
+
+	}
+
+
 	// ===============================================================
 	// ========== LevelPackScreen LAYOUT & APPEARANCE ================
 	// ===============================================================
@@ -167,6 +223,8 @@ public class LevelPackScreen extends Screen {
 		JPanel packInfoBttns = new JPanel();
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/application.png").toolTip("Create a new Pack.")
 				.action("NEW_LEVELPACK", getController()).focusable(false).create());
+		packInfoBttns.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save this LevelPack.")
+				.action("SAVE_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		// Layout the left-side LevelPack info stuff.
@@ -187,7 +245,7 @@ public class LevelPackScreen extends Screen {
 		_Tree.setExpandsSelectedPaths(true);
 		_Tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		_Tree.addTreeSelectionListener((TreeSelectionListener) getController());
-		
+
 
 		JPanel treeBttns = new JPanel();
 		treeBttns.add(
@@ -426,6 +484,17 @@ public class LevelPackScreen extends Screen {
 	// ===========================================================
 
 
+	private DefaultMutableTreeNode getContainingNode(PackInfo pInfo) {
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) _Tree.getModel().getRoot();
+		for (int i = 0; i < root.getChildCount(); i++) {
+			DefaultMutableTreeNode candidate = (DefaultMutableTreeNode) root.getChildAt(i);
+			if (candidate.getUserObject().equals(pInfo))
+				return candidate;
+		}
+		return null;
+	}
+
+
 	/**Returns the object that is currently selected.  If there is no selection, returns null.*/
 	private Object getCurrentSelection() {
 		if (_Tree == null)
@@ -514,12 +583,12 @@ public class LevelPackScreen extends Screen {
 		// Set the model and the first selection. Note, this will not work until
 		// the full screen (and the tree) has been validated.
 		DefaultTreeModel m = new DefaultTreeModel(rootNode);
-		
+
 		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
 			public void run() {
-				m.addTreeModelListener((TreeModelListener)getController());
+				m.addTreeModelListener((TreeModelListener) getController());
 				_Tree.setModel(m);
 				selectFirst();
 			}
@@ -587,6 +656,48 @@ public class LevelPackScreen extends Screen {
 	// ========== LevelPackScreen EDITING STUFF ======================
 	// ===============================================================
 
+
+	private Undoable<DefaultMutableTreeNode> addNewPack() {
+		LevelPack lp = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(),
+				new World(new File(LevelPack.DEFAULT_WORLD_FILE)));
+		PackInfo pInfo = PackInfo.withoutJSON(lp);
+		WorldInfo wInfo = WorldInfo.fromLevelIndex(pInfo, 0);
+		pInfo.worlds.add(wInfo);
+		DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) _Tree.getModel().getRoot();
+		DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pInfo);
+		DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wInfo);
+		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
+		model.insertNodeInto(packNode, rootNode, rootNode.getChildCount());
+		model.insertNodeInto(worldNode, packNode, packNode.getChildCount());
+
+		Undoable<DefaultMutableTreeNode> u = new Undoable<DefaultMutableTreeNode>(rootNode, packNode, model) {
+
+			@Override
+			protected void undoValidated() {
+				if (!after.getParent().equals(before))
+					error();
+				if (!before.isNodeChild(after))
+					error();
+				DefaultTreeModel model = (DefaultTreeModel) context;
+				model.removeNodeFromParent(after);
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				if (after.getParent() != null)
+					error();
+				if (before.isNodeChild(after))
+					error();
+				DefaultTreeModel model = (DefaultTreeModel) context;
+				model.insertNodeInto(after, before, before.getChildCount());
+			}
+
+		};
+		return null;
+	}
+
+
 	private Undoable<DefaultMutableTreeNode> addNewWorld() {
 		TreePath path = _Tree.getSelectionPath();
 		PackInfo pInfo = null;
@@ -598,63 +709,38 @@ public class LevelPackScreen extends Screen {
 			else
 				path = path.getParentPath();
 		} while (pInfo == null);
-
 		WorldInfo newWorld = WorldInfo.fromNew(pInfo, "New level", "(No description)",
 				UIBuilder.getImage(LevelPack.DEFAULT_LEVEL_EMBLEM_FILE));
 		pInfo.worlds.add(newWorld);
-		DefaultTreeModel model = (DefaultTreeModel)_Tree.getModel();
-		DefaultMutableTreeNode nodeNew = new DefaultMutableTreeNode(newWorld);
-		model.insertNodeInto(nodeNew,  nodePack,  nodePack.getChildCount());
-		
-		_Tree.revalidate();
-		_Tree.repaint();
+		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
+		DefaultMutableTreeNode nodeWorld = new DefaultMutableTreeNode(newWorld);
+		model.insertNodeInto(nodeWorld, nodePack, nodePack.getChildCount());
 
-		Undoable<DefaultMutableTreeNode> u = new Undoable<DefaultMutableTreeNode>(null, nodeNew, nodeNew.getParent()) {
-
-			@Override
-			protected boolean okayToUndo() {
-				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
-				if (!after.getParent().equals(parent))
-					return false;
-				if (!parent.isNodeChild(after))
-					return false;
-				WorldInfo wInfo = (WorldInfo) after.getUserObject();
-				if (!wInfo.packInfo.worlds.contains(wInfo))
-					return false;
-				return true;
-			}
+		Undoable<DefaultMutableTreeNode> u = new Undoable<DefaultMutableTreeNode>(nodePack, nodeWorld, model) {
 
 
 			@Override
 			protected void undoValidated() {
-				WorldInfo wInfo = (WorldInfo) after.getUserObject();
-				wInfo.packInfo.worlds.remove(wInfo);
-				after.removeFromParent();
-				after.setParent(null);
-			}
+				if (!after.getParent().equals(before))
+					error();
+				DefaultTreeModel model = (DefaultTreeModel) context;
+				if (model.getPathToRoot(nodeWorld) == null)
+					error();
+				model.removeNodeFromParent(after);
+				((PackInfo) before.getUserObject()).worlds.remove((WorldInfo) after.getUserObject());
 
-
-			@Override
-			protected boolean okayToRedo() {
-				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
-				if (after.getParent() != null)
-					return false;
-				if (parent.isNodeChild(after))
-					return false;
-				WorldInfo wInfo = (WorldInfo) after.getUserObject();
-				if (wInfo.packInfo.worlds.contains(wInfo))
-					return false;
-				return true;
 			}
 
 
 			@Override
 			protected void redoValidated() {
-				WorldInfo wInfo = (WorldInfo) after.getUserObject();
-				wInfo.packInfo.worlds.add(wInfo);
-				DefaultMutableTreeNode parent = (DefaultMutableTreeNode) context;
-				parent.add(after);
-				after.setParent(parent);
+				if (after.getParent().equals(before))
+					error();
+				DefaultTreeModel model = (DefaultTreeModel) context;
+				if (model.getPathToRoot(nodeWorld) != null)
+					error();
+				model.insertNodeInto(after, before, before.getChildCount());
+				((PackInfo) before.getUserObject()).worlds.add((WorldInfo) after.getUserObject());
 			}
 
 		};
@@ -976,6 +1062,8 @@ public class LevelPackScreen extends Screen {
 		public int levelCount;
 		public LevelPack.FeedbackModel feedbackModel;
 
+		public String filename;
+
 
 		/**Returns a new PackInfo, associated with the given JSON string.*/
 		public static PackInfo withJSON(LevelPack pack, String json) {
@@ -1045,18 +1133,18 @@ public class LevelPackScreen extends Screen {
 
 				// Determine the levels in the correct order.
 				World[] completeWorlds = new World[this.worlds.size()];
-				Image[] emblems = new Image[this.worlds.size()];
+				BufferedImage[] emblems = new BufferedImage[this.worlds.size()];
 				String[] titles = new String[this.worlds.size()];
 				String[] descriptions = new String[this.worlds.size()];
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
-					if (wInfo.originalIndex < 0) 
+					if (wInfo.originalIndex < 0)
 						completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
-					 else 
+					else
 						completeWorlds[i] = pack.getWorld(wInfo.originalIndex);
-					
+
 					completeWorlds[i].setName(wInfo.title);
-					emblems[i] = wInfo.getEmblem();
+					emblems[i] = createBufferedEmblem(wInfo.getEmblem());
 					titles[i] = wInfo.title;
 					descriptions[i] = wInfo.description;
 				}
@@ -1072,13 +1160,13 @@ public class LevelPackScreen extends Screen {
 				pack = new LevelPack(this.name, this.originalAuthor,
 						this.worlds.toArray(new World[this.worlds.size()]));
 				World[] completeWorlds = new World[this.worlds.size()];
-				Image[] emblems = new Image[this.worlds.size()];
+				BufferedImage[] emblems = new BufferedImage[this.worlds.size()];
 				String[] titles = new String[this.worlds.size()];
 				String[] descriptions = new String[this.worlds.size()];
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
 					completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
-					emblems[i] = wInfo.getEmblem();
+					emblems[i] = createBufferedEmblem(wInfo.getEmblem());
 					titles[i] = wInfo.title;
 					descriptions[i] = wInfo.description;
 				}
@@ -1090,7 +1178,7 @@ public class LevelPackScreen extends Screen {
 
 
 			// Now, write the particulars of the level pack.
-			pack.setEmblem(this.getEmblem());
+			pack.setEmblem(createBufferedEmblem(this.getEmblem()));
 			pack.setName(this.name);
 			pack.setDescription(this.description);
 			pack.setPublicationStart(this.publishDate);
@@ -1098,6 +1186,18 @@ public class LevelPackScreen extends Screen {
 			pack.setFeedbackModel(this.feedbackModel);
 
 			return pack;
+		}
+
+
+		/**A non-BufferedImage cannot be stored in a LevelPack or World, or it causes problems 
+		 * for serialization.*/
+		private static BufferedImage createBufferedEmblem(Image img) {
+			if (img instanceof BufferedImage)
+				return (BufferedImage) img;
+			BufferedImage buffered = new BufferedImage(LevelPack.EMBLEM_WIDTH, LevelPack.EMBLEM_HEIGHT,
+					BufferedImage.TYPE_INT_RGB);
+			buffered.getGraphics().drawImage(img, 0, 0, null);
+			return buffered;
 		}
 	}
 
@@ -1156,6 +1256,8 @@ public class LevelPackScreen extends Screen {
 		}
 
 
+		/**Creates a new WorldInfo, that has no JSON representation.  Such a WorldInfo will have an originalIndex 
+		 * of -1.*/
 		public static WorldInfo fromNew(PackInfo info, String title, String description, Image emblem) {
 			return new WorldInfo(info, title, description, emblem, -1);
 		}
@@ -1231,6 +1333,11 @@ public class LevelPackScreen extends Screen {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
+			case "ADD_NEW_WORLD":
+				Undoable<DefaultMutableTreeNode> addWorldChange = addNewWorld();
+				if (addWorldChange != null)
+					_UndoStack.push(addWorldChange);
+				return;
 			case "CHANGE_LEVEL_EMBLEM":
 				Undoable<Image> levelEmblemChange = changeLevelImage();
 				if (levelEmblemChange != null)
@@ -1248,17 +1355,29 @@ public class LevelPackScreen extends Screen {
 				if (feedbackModelChange != null)
 					_UndoStack.push(feedbackModelChange);
 				return;
+			case "NEW_LEVELPACK":
+				Undoable<DefaultMutableTreeNode> addPackChange = addNewPack();
+				if (addPackChange != null)
+					_UndoStack.push(addPackChange);
+				return;
 			case "PLAY_LEVEL":
 				WorldInfo selection = (WorldInfo) getCurrentSelection();
 				LevelPack newPack = selection.packInfo.write();
 				newPack.setCurrentWorld(selection.packInfo.worlds.indexOf(selection));
 				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(newPack));
-				break;
-			case "ADD_NEW_WORLD":
-				Undoable<DefaultMutableTreeNode> addWorldChange = addNewWorld();
-				if (addWorldChange != null)
-					_UndoStack.push(addWorldChange);
 				return;
+			case "SAVE_LEVELPACK":
+				Object sel = getCurrentSelection();
+				if (sel instanceof PackInfo) {
+					PackInfo pInfo = (PackInfo) sel;
+					savePack(pInfo);
+
+				} else
+					throw new RuntimeException("Sanity check.");
+				return;
+			case "SAVE_ALL":
+
+
 			default:
 				System.out.println(this.getClass().getName() + " has not implemented command: " + e.getActionCommand());
 			}
@@ -1333,25 +1452,33 @@ public class LevelPackScreen extends Screen {
 
 		@Override
 		public void treeNodesChanged(TreeModelEvent e) {
-			System.out.println("treeNodesChanged");
+			_Tree.revalidate();
+			_Tree.repaint();
+
 		}
 
 
 		@Override
 		public void treeNodesInserted(TreeModelEvent e) {
-			System.out.println("treeNodesInserted");
+			_Tree.revalidate();
+			_Tree.repaint();
+
 		}
 
 
 		@Override
 		public void treeNodesRemoved(TreeModelEvent e) {
-			System.out.println("treeNodesRemoved");
+			_Tree.revalidate();
+			_Tree.repaint();
+
 		}
 
 
 		@Override
 		public void treeStructureChanged(TreeModelEvent e) {
-			System.out.println("treeStructureChanged");
+			_Tree.revalidate();
+			_Tree.repaint();
+
 		}
 
 

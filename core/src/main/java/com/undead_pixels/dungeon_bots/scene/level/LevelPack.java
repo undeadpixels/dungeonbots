@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.level;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,13 +41,13 @@ public class LevelPack {
 	private User currentPlayer;
 	private final HashSet<Integer> playerVisible;
 	public UserScript transitionScript;
-	private Image mainEmblem;
+	private ImageList mainEmblem;
 	private String description = null;
 
 	private WorldList levels;
 	private int levelIndex = 0;
 	private int levelCount = -1;
-	private ArrayList<Image> levelEmblems;
+	private transient ImageList levelEmblems;
 	private ArrayList<String> levelTitles;
 	private ArrayList<String> levelDescriptions;
 
@@ -80,13 +81,14 @@ public class LevelPack {
 		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
 		this.levelCount = worlds.length;
-		this.levelEmblems = new ArrayList<Image>();
+		this.levelEmblems = new ImageList();
 		this.levelTitles = new ArrayList<String>();
 		this.levelDescriptions = new ArrayList<String>();
 
 		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
-		this.mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE);
+		this.mainEmblem = new ImageList();
+		this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
 		addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
@@ -365,15 +367,22 @@ public class LevelPack {
 
 	/**The main emblem is an image that represents this level pack.*/
 	public Image getEmblem() {
-		if (mainEmblem == null)
-			mainEmblem = UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE);
-		return mainEmblem;
+		if (mainEmblem == null) {
+			this.mainEmblem = new ImageList();
+			this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+		}
+
+		return mainEmblem.get(0);
 	}
 
 
 	/**The main emblem is an image that represents this level pack.*/
-	public void setEmblem(Image image) {
-		mainEmblem = image;
+	public void setEmblem(BufferedImage image) {
+		if (this.mainEmblem == null) {
+			this.mainEmblem = new ImageList();
+			this.mainEmblem.add((BufferedImage)UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+		} else
+			this.mainEmblem.set(0, image);
 	}
 
 
@@ -434,16 +443,16 @@ public class LevelPack {
 
 
 	/**Sets the emblem representing a world or level.*/
-	public void setLevelEmblem(int index, Image img) {
+	public void setLevelEmblem(int index, BufferedImage img) {
 		levelEmblems.set(index, img);
 	}
 
 
-	public void setLevelEmblems(Image[] emblems) {
+	public void setLevelEmblems(BufferedImage[] emblems) {
 		if (levelEmblems == null)
-			levelEmblems = new ArrayList<Image>();
+			levelEmblems = new ImageList();
 		levelEmblems.clear();
-		for (Image img : emblems)
+		for (BufferedImage img : emblems)
 			levelEmblems.add(img);
 
 	}
@@ -546,7 +555,7 @@ public class LevelPack {
 		if (pack.levelDescriptions == null)
 			pack.levelDescriptions = new ArrayList<String>();
 		if (pack.levelEmblems == null)
-			pack.levelEmblems = new ArrayList<Image>();
+			pack.levelEmblems = new ImageList();
 
 		// If the level header stuff wasn't originally stored, it may be
 		// necessary to populate header info with dummy data. There will always
@@ -559,7 +568,7 @@ public class LevelPack {
 		while (pack.levelDescriptions.size() < pack.levelCount)
 			pack.levelDescriptions.add("No description.");
 		while (pack.levelEmblems.size() < pack.levelCount)
-			pack.levelEmblems.add(UIBuilder.getImage("images/ice_cave.jpg"));
+			pack.levelEmblems.add((BufferedImage)UIBuilder.getImage("images/ice_cave.jpg"));
 
 		// The lock is something new added, but it defaults to false anyway.
 

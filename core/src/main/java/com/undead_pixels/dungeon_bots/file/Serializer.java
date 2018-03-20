@@ -1,5 +1,8 @@
 package com.undead_pixels.dungeon_bots.file;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,8 +23,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.imageio.ImageIO;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -29,9 +35,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.ImageList;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.scene.level.WorldList;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * We have opted to serialize collections of Worlds held within a Level Pack
@@ -71,7 +82,7 @@ public class Serializer {
 			} catch (IOException e) {
 			}
 		}
-		return null;
+		return result;
 	}
 
 
@@ -234,28 +245,27 @@ public class Serializer {
 		builder.serializeNulls();
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsSerializer);
 		builder.registerTypeAdapter((new WorldList()).getClass(), worldsDeserializer);
+		builder.registerTypeAdapter(ImageList.class,  imagesSerializer);
+		builder.registerTypeAdapter(ImageList.class,  imagesDeserializer);		
 		_Gson = builder.create();
 
 		// Setup up the partial deserializer.
 		builder = new GsonBuilder();
 		builder.setPrettyPrinting();
 		builder.serializeNulls();
-		builder.registerTypeAdapter((new WorldList()).getClass(), new JsonDeserializer<WorldList>(){
+		builder.registerTypeAdapter((new WorldList()).getClass(), new JsonDeserializer<WorldList>() {
 
 			@Override
 			public WorldList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 					throws JsonParseException {
 				return new WorldList();
 			}
-			
 		});
+		builder.registerTypeAdapter(ImageList.class,  imagesDeserializer);
 		_GsonPartial = builder.create();
-		
-		
+
+
 	}
-
-
-	
 
 
 	/**This object is registered with the Gson serializer so it can properly serialize/deserialize 
@@ -287,6 +297,55 @@ public class Serializer {
 
 	};
 
+	private static final JsonSerializer<ImageList> imagesSerializer = new JsonSerializer<ImageList>() {
+
+		@Override
+		public JsonElement serialize(ImageList list, Type typeOfSrc, JsonSerializationContext context) {
+			String[] images = new String[list.size()];
+			for (int i = 0; i < list.size(); i++) {
+				RenderedImage img = (RenderedImage) list.get(i);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				try {
+					ImageIO.write(img, "PNG", baos);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Base64.Encoder encoder = Base64.getEncoder();
+				String imgStr = encoder.encodeToString(baos.toByteArray());
+				images[i] = imgStr;
+			}
+			return _Gson.toJsonTree(images);
+		}
+
+	};
+	
+	private static final JsonDeserializer<ImageList> imagesDeserializer = new  JsonDeserializer<ImageList>(){
+
+		@Override
+		public ImageList deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			ImageList result = new ImageList();
+			JsonArray images = json.getAsJsonArray();
+			final Base64.Decoder decoder = Base64.getDecoder();			
+			for (int i = 0; i < images.size(); i++){
+				String imgStr = images.get(i).getAsJsonPrimitive().getAsString();
+				byte[] bytes = decoder.decode(imgStr);
+				BufferedImage img =  null;
+				try {
+					img = ImageIO.read(new ByteArrayInputStream(bytes));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				result.add(img);
+			}
+			return result;
+		}
+		
+	};
+
+
+	
+
 
 	public static String serializeLevelPack(LevelPack levelPack) {
 		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
@@ -297,6 +356,7 @@ public class Serializer {
 
 
 	public static LevelPack deserializeLevelPack(String json) {
+
 		return deserializeFromJSON(json, LevelPack.class);
 	}
 
@@ -307,14 +367,14 @@ public class Serializer {
 	 * description, author, emblems), but not to deserialize the Worlds themselves.  That can be done 
 	 * when a particular LevelPack has been chosen.*/
 	public static LevelPack deserializePartialLevelPack(String json) {
-		//if (_GsonPartial == null)
-			//setupGson();
-		//LevelPack lp = _GsonPartial.fromJson(json, LevelPack.class);
-		//return  lp;
-			
-			if (_Gson == null)
-				setupGson();
-			return (LevelPack) _GsonPartial.fromJson(json, LevelPack.class);
+		// if (_GsonPartial == null)
+		// setupGson();
+		// LevelPack lp = _GsonPartial.fromJson(json, LevelPack.class);
+		// return lp;
+
+		if (_Gson == null)
+			setupGson();
+		return (LevelPack) _GsonPartial.fromJson(json, LevelPack.class);
 	}
 
 
