@@ -4,6 +4,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,6 +51,23 @@ public class MultipleChoiceQuestion extends Question {
 	public MultipleChoiceQuestion(World w, String descr,  String... answers) {
 		super(w, "Multiple Choice Question", descr, 0, 0);
 		this.answers = answers;
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.DEFAULT, doc= "Create a new MultipleChoice question item")
+	public static MultipleChoiceQuestion create(
+			@Doc("The World the question belongs to") LuaValue world,
+			@Doc("The underlying question.") LuaValue descr,
+			@Doc("A List/Table of answers to the question") LuaValue answers) {
+		final Varargs v = answers.checktable().unpack();
+		final String[] ans = new String[v.narg()];
+		for(int i = 0; i < v.narg(); i++) {
+			ans[i] = v.isstring(i) ? v.tojstring(i) : "";
+		}
+		return new MultipleChoiceQuestion(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				descr.checkjstring(),
+				ans);
 	}
 
 	/**

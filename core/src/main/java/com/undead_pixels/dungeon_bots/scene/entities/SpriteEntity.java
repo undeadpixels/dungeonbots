@@ -6,7 +6,12 @@ import com.undead_pixels.dungeon_bots.nogdx.Sprite;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import org.luaj.vm2.LuaValue;
 
 /**
  * A regular Entity that is based upon a Sprite, not some other form of graphic
@@ -74,4 +79,16 @@ public abstract class SpriteEntity extends Entity {
 		return sprite.getScaleX();
 	}
 
+	/**
+	 * TODO: Make this method accessible only to authors
+	 * @param x
+	 * @param y
+	 */
+	@Bind(value=SecurityLevel.DEFAULT,doc="Set the position of the entity")
+	public void setPosition(
+			@Doc("The X position of the entity") LuaValue x,
+			@Doc("The Y position of the entity") LuaValue y) {
+		this.sprite.setX(x.tofloat());
+		this.sprite.setY(y.tofloat());
+	}
 }

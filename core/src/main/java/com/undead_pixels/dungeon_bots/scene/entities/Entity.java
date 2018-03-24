@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import org.luaj.vm2.LuaValue;
 
 /**
  * @author Kevin Parker
@@ -222,6 +223,4 @@ public abstract class Entity
 		for (UserScript is : newScripts)
 			this.scripts.add(is);
 	}
-
-
 }

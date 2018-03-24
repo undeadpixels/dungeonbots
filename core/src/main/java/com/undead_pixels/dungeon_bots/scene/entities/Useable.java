@@ -9,6 +9,7 @@ import org.luaj.vm2.Varargs;
 *  <em>
 *  Using a switch toggles the switch.<br>
 *  Using a door opens the door
+ * Using an Item.
 *  </em>
 *  */
 public interface Useable {

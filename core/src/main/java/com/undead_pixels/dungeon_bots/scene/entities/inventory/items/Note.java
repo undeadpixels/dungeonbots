@@ -4,8 +4,10 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import org.luaj.vm2.LuaValue;
 
 import javax.swing.*;
 
@@ -19,6 +21,15 @@ public class Note extends Item {
 
 	public Note(World world, String descr) {
 		super(world,"Note", descr, 0, 0);
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a new Note item.")
+	public static Note create(@Doc("The World the Note belongs to") LuaValue world,
+							  @Doc("The text body of the Note") LuaValue descr) {
+		return new Note(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				descr.checkjstring());
 	}
 
 	@Override

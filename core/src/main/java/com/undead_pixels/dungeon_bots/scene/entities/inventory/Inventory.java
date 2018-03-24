@@ -94,7 +94,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT,doc="Query the total weight of items in the inventory")
 	public Integer weight() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
@@ -105,7 +105,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * items held within.
 	 * @return An integer representing the number of items currently held in the inventory
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT,doc="Query the current capacity of the Inventory")
 	public Integer capacity() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : 1), (a,b) -> a + b);
@@ -128,6 +128,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 			}
 			return false;
 		}
+	}
+
+	@Bind(value=SecurityLevel.DEFAULT, doc="Adds the Item to the Inventory if possible")
+	public Boolean addItem(@Doc("The Item to add") LuaValue item) {
+		return addItem((Item)item.checktable()
+				.get("this")
+				.checkuserdata(Item.class));
 	}
 
 	public boolean addItems(Item... items) {

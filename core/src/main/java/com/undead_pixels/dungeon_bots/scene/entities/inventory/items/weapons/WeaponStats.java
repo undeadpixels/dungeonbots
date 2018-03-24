@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import org.luaj.vm2.LuaValue;
 
 import java.io.Serializable;
 
@@ -17,6 +18,15 @@ public final class WeaponStats implements Serializable, GetLuaFacade {
 		this.damage = damage;
 		this.speed = speed;
 		this.range = range;
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a WeaponStats table")
+	public static WeaponStats create(
+			@Doc("Weapon Damage in range [0..10]") LuaValue damage,
+			@Doc("Weapon Speed in range [0..10]") LuaValue speed,
+			@Doc("Weapon Range in range [0..10]") LuaValue range) {
+		return new WeaponStats(damage.checkint(), speed.checkint(), range.checkint());
 	}
 
 	@Override

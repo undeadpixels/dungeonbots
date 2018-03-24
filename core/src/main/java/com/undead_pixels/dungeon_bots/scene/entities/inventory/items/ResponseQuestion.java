@@ -4,10 +4,13 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.generic.Pair;
 import org.luaj.vm2.LuaTable;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,6 +54,23 @@ public class ResponseQuestion extends Question {
 	public ResponseQuestion(World w,String descr, String... questions) {
 		super(w, "Response Questions", descr, 0, 0);
 		this.questions = questions;
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a new Response Question item")
+	public static ResponseQuestion create(
+			@Doc("The World the ResponseQuestion belongs to") LuaValue world,
+			@Doc("A description of the Response Question") LuaValue descr,
+			@Doc("A List/Table of Questions that will each have their own responses") LuaValue questions) {
+		final Varargs v = questions.checktable().unpack();
+		final String[] ans = new String[v.narg()];
+		for(int i = 0; i < v.narg(); i++) {
+			ans[i] = v.isstring(i) ? v.tojstring(i) : "";
+		}
+		return new ResponseQuestion(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				descr.checkjstring(),
+				ans);
 	}
 
 	/**

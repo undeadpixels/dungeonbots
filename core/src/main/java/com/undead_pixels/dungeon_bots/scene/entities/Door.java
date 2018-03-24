@@ -11,7 +11,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
-public class Door extends SpriteEntity implements Lockable {
+public class Door extends SpriteEntity implements Lockable, Useable {
 	
 	/**
 	 * 
@@ -36,7 +36,8 @@ public class Door extends SpriteEntity implements Lockable {
 		return 10;
 	}
 
-	@Bind Key genKey() {
+	@Bind
+	public Key genKey() {
 		this.key = new Key(
 				this.world,
 				getName() + "key",
@@ -72,4 +73,18 @@ public class Door extends SpriteEntity implements Lockable {
 		this.locked = false;
 	}
 
+	@Override
+	@Bind(value=SecurityLevel.DEFAULT, doc="Toggle the open state of the door depending on if it is locked.")
+	public Boolean use() {
+		return toggleOpen();
+	}
+
+	private boolean toggleOpen() {
+		if(!locked) {
+			this.solid = !this.solid;
+			// Do something that changes the sprite to an 'open door' sprite
+			return true;
+		}
+		return false;
+	}
 }

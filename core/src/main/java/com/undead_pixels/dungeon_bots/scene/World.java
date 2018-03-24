@@ -1162,10 +1162,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
-	 * Try to use the Item provided with the ItemReference at the specified location
-	 * @param itemReference
-	 * @param location
-	 * @return
+	 * Try to use the Item provided with the ItemReference on any entities found at the specified location
+	 * @param itemReference The Item to use
+	 * @param location The location to find entities to use the associated Item with
+	 * @return True If any entity/ies successfully used the Item
 	 */
 	public Boolean tryUse(ItemReference itemReference, Point2D location) {
 		return entities.stream()
