@@ -9,7 +9,8 @@ import org.luaj.vm2.LuaValue;
 public interface HasInventory {
 	Inventory getInventory();
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the Inventory of the associated entity")
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the Inventory of the associated entity\n" +
+			"Returns a list of tables with a 'name' and 'description' keys with the associated values.")
 	default LuaValue peekInventory() {
 		final Inventory inv = this.getInventory();
 		final LuaTable lt = new LuaTable();

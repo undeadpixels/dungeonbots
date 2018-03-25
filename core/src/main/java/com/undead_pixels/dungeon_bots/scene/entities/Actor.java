@@ -441,4 +441,48 @@ public class Actor extends SpriteEntity implements HasInventory {
 				return LuaValue.NIL;
 		}
 	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found in the specified direction if possible")
+	public Boolean take(LuaValue dir, LuaValue index) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return takeUp(index);
+			case "down":
+				return takeDown(index);
+			case "left":
+				return takeLeft(index);
+			case "right":
+				return takeRight(index);
+			default:
+				return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found UP relative to the Actor")
+	private Boolean takeUp(LuaValue index) {
+		final Point2D.Float pos = this.getPosition();
+		pos.y -= 1f;
+		return world.tryTake(pos, index.checkint(), this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
+	private Boolean takeDown(LuaValue index) {
+		final Point2D.Float pos = this.getPosition();
+		pos.y += 1f;
+		return world.tryTake(pos, index.checkint(), this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
+	private Boolean takeLeft(LuaValue index) {
+		final Point2D.Float pos = this.getPosition();
+		pos.x -= 1f;
+		return world.tryTake(pos, index.checkint(), this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
+	private Boolean takeRight(LuaValue index) {
+		final Point2D.Float pos = this.getPosition();
+		pos.x += 1f;
+		return world.tryTake(pos, index.checkint(), this.inventory);
+	}
 }
