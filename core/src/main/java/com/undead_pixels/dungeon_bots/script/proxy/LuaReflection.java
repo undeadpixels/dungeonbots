@@ -138,6 +138,9 @@ public class LuaReflection {
 		try {
 			while (temp != null) {
 				classes.add(temp);
+				Stream.of(temp.getInterfaces())
+						.filter(clz -> !classes.contains(clz))
+						.forEach(clz -> classes.add(clz));
 				temp = temp.getSuperclass();
 			}
 		}

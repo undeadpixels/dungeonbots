@@ -26,7 +26,7 @@ import static org.luaj.vm2.LuaValue.*;
  * TODO - mark as abstract
  */
 @Doc("The base type for Bot and Player entities")
-public class Actor extends SpriteEntity implements HasInventory, Useable {
+public class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
 	 * 
@@ -397,29 +397,48 @@ public class Actor extends SpriteEntity implements HasInventory, Useable {
 		return this.inventory.addItem(item) || ir.inventory.addItem(item);
 	}
 
-	@Override
-	public Boolean use(final Varargs v) {
-		if(v.narg() > 0 && v.arg1().isstring() || v.arg(2).isstring()) {
-			final String dir = v.arg1().isstring() ? v.arg1().tojstring() : v.arg(2).tojstring();
-			switch (dir.toLowerCase()) {
-				case "up":
-					return useUp();
-				case "down":
-					return useDown();
-				case "left":
-					return useLeft();
-				case "right":
-					return useRight();
-				default:
-					return false;
-			}
-		}
-		return false;
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity UP relative to the actor")
+	public LuaValue peekUp() {
+		final Point2D.Float pos = this.getPosition();
+		pos.y -= 1.0f;
+		return world.tryPeek(pos);
 	}
 
-	@Override
-	public Boolean useUp() {
-		Point2D.Float dir = new Point2D.Float(getPosition().x, getPosition().y - 1.0f);
-		return world.tryUse(dir);
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity DOWN relative to the actor")
+	public LuaValue peekDown() {
+		final Point2D.Float pos = this.getPosition();
+		pos.y += 1.0f;
+		return world.tryPeek(pos);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity LEFT relative to the actor")
+	public LuaValue peekLeft() {
+		final Point2D.Float pos = this.getPosition();
+		pos.x -= 1.0f;
+		return world.tryPeek(pos);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity RIGHT relative to the actor")
+	public LuaValue peekRight() {
+		final Point2D.Float pos = this.getPosition();
+		pos.x += 1.0f;
+		return world.tryPeek(pos);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at an entities inventory in the specified direction\nrelative to the actor.")
+	public LuaValue peek(@Doc("The direction to peek [up,down,left,right]") LuaValue dir) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return peekUp();
+			case "down":
+				return peekDown();
+			case "left":
+				return peekLeft();
+			case "right":
+				return peekRight();
+			default:
+				return LuaValue.NIL;
+		}
 	}
 }

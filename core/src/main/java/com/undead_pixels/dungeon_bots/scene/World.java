@@ -20,6 +20,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
@@ -1242,5 +1243,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.levelScripts.clear();
 		for (UserScript is : newScripts)
 			this.levelScripts.add(is);
+	}
+
+	public LuaValue tryPeek(final Point2D.Float pos) {
+		return entities.stream()
+				.filter(e -> e.getPosition().distance(pos) < 0.01
+						&& e.getClass().isAssignableFrom(HasInventory.class))
+				.findFirst()
+				.map(e -> HasInventory.class.cast(e).peekInventory())
+				.orElse(LuaValue.NIL);
 	}
 }

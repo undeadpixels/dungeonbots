@@ -13,8 +13,9 @@ public final class Gold extends Treasure {
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a new Gold item")
-	public static Gold create(@Doc("The World the gold belongs to") LuaValue world,
-							  @Doc("The weight of the Gold item") LuaValue weight) {
+	public static Gold create(
+			@Doc("The World the gold belongs to") LuaValue world,
+			@Doc("The weight of the Gold item") LuaValue weight) {
 		return new Gold(
 				(World)world.checktable().get("this").checkuserdata(World.class),
 				weight.checkint());

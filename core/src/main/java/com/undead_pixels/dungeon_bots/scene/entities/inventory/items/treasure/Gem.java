@@ -16,7 +16,8 @@ public final class Gem extends Treasure {
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Creates a new Gem")
 	@BindTo("new")
-	public static Gem create(@Doc("The World the Gem belongs to") LuaValue world) {
+	public static Gem create(
+			@Doc("The World the Gem belongs to") LuaValue world) {
 		return new Gem((World)world.checktable().get("this").checkuserdata(World.class));
 	}
 }
