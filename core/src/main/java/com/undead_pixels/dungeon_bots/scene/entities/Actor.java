@@ -425,6 +425,11 @@ public class Actor extends SpriteEntity implements HasInventory {
 		return world.tryPeek(pos);
 	}
 
+	/**
+	 * Peek at the inventory of the first entity found int he target direction relative to the Actor
+	 * @param dir The Direction of the target entity
+	 * @return A LuaTable that is an array of tables containing the name and description of items.
+	 */
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Peek at an entities inventory in the specified direction\nrelative to the actor.")
 	public LuaValue peek(@Doc("The direction to peek [up,down,left,right]") LuaValue dir) {
@@ -442,6 +447,12 @@ public class Actor extends SpriteEntity implements HasInventory {
 		}
 	}
 
+	/**
+	 * Takes an item from an entity found in the specified direction at the argument index
+	 * @param dir The direction of the target entity
+	 * @param index The index into the inventory of the target entity
+	 * @return True if taking the item succeeded, False otherwise
+	 */
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found in the specified direction if possible")
 	public Boolean take(LuaValue dir, LuaValue index) {
 		switch (dir.checkjstring().toLowerCase()) {

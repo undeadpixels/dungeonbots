@@ -34,8 +34,6 @@ public class Bot extends RpgActor {
 		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 7, 1), world.getPlayerTeamScripts());
 		steps = 0;
 		bumps = 0;
-
-		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}
 
 	/**
@@ -61,6 +59,11 @@ public class Bot extends RpgActor {
 
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
+	}
+
+	@Override
+	public Boolean canTake() {
+		return true;
 	}
 
 }

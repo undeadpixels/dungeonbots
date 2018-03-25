@@ -156,4 +156,9 @@ public class RpgActor extends Actor implements GetLuaFacade {
 		}
 		return false;
 	}
+
+	@Override
+	public Boolean canTake() {
+		return this.health <= 0;
+	}
 }

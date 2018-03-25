@@ -21,15 +21,15 @@ import org.luaj.vm2.LuaValue;
 /**
  * An Actor intended to be scripted and controlled by player users in a code
  * REPL or Editor
- * 
+ *
  * @author Stewart Charles
  * @version 1.0
  */
 @Doc("A Player is an Actor afforded with more privileges")
 public class Player extends RpgActor {
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -105,7 +105,7 @@ public class Player extends RpgActor {
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
 	}
-	
+
 	public void resetInventory() {
 		this.inventory.reset();
 		this.inventory.addItems(

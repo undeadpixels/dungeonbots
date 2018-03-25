@@ -22,7 +22,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private boolean locked = false;
+	private volatile boolean locked = false;
 
 	private final Inventory inventory = new Inventory(this, 100);
 
@@ -76,5 +76,10 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	public Boolean giveItem(ItemReference item) {
 		return this.locked && this.inventory.addItem(item.derefItem());
+	}
+
+	@Override
+	public Boolean canTake() {
+		return !this.locked;
 	}
 }

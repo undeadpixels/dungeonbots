@@ -1246,6 +1246,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.levelScripts.add(is);
 	}
 
+	/**
+	 * Invokes the peekInventory method on any valid entities found at the specified position.
+	 * @param pos The position to try to peek at an inventory
+	 * @return A table/array of item names and descriptions of items in the inventory
+	 */
 	public LuaValue tryPeek(final Point2D.Float pos) {
 		return entities.stream()
 				.filter(e -> e.getPosition().distance(pos) < 0.01
@@ -1255,6 +1260,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.orElse(LuaValue.NIL);
 	}
 
+	/**
+	 * Takes the item from found at the specified index of the inventory found at the argument position
+	 * @param pos The position to find an entity with an inventory to take an item from
+	 * @param index The index into the inventory of the entity to take the item
+	 * @param inventory The destination inventory to add the item to.
+	 * @return True if taking the item succeeded, false otherwise.
+	 */
 	public Boolean tryTake(final Point2D.Float pos, final int index, final Inventory inventory) {
 		return entities.stream()
 				.filter(e -> e.getPosition().distance(pos) < 0.01
