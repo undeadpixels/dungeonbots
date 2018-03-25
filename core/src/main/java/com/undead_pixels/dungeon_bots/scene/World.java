@@ -1260,7 +1260,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> e.getPosition().distance(pos) < 0.01
 					&& e.getClass().isAssignableFrom(HasInventory.class))
 				.findFirst()
-				.map(e -> inventory.addItem(HasInventory.class.cast(e).getInventory().getItem(index)))
+				.map(e -> HasInventory.class.cast(e))
+				.filter(e -> e.canTake())
+				.map(e -> inventory.addItem(e.getInventory().getItem(index)))
 				.orElse(false);
 	}
 }

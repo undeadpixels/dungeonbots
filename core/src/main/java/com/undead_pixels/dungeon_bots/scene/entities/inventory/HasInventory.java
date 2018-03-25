@@ -23,4 +23,8 @@ public interface HasInventory {
 		}
 		return lt;
 	}
+
+	default Boolean canTake() {
+		return false;
+	}
 }
