@@ -27,7 +27,6 @@ import java.util.stream.Stream;
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
 @Doc("A type that encapsulates abilities and stats for players with Rpg attributes")
-public class RpgActor extends Actor implements GetLuaFacade {
 public abstract class RpgActor extends Actor implements GetLuaFacade {
 
 	/**
