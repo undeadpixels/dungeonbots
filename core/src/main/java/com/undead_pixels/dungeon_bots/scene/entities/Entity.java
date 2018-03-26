@@ -223,4 +223,40 @@ public abstract class Entity
 		for (UserScript is : newScripts)
 			this.scripts.add(is);
 	}
+
+	protected Point2D.Float add(final Point2D.Float toAdd, float x, float y) {
+		return new Point2D.Float(toAdd.x + x, toAdd.y + y);
+	}
+
+	/**
+	 * Get the position left relative to the player
+	 * @return
+	 */
+	protected Point2D.Float left() {
+		return add(this.getPosition(), -1f, 0f);
+	}
+
+	/**
+	 * Get the position right relative to the player
+	 * @return
+	 */
+	protected Point2D.Float right() {
+		return add(this.getPosition(), 1f, 0f);
+	}
+
+	/**
+	 * Get the position up relative to the player
+	 * @return
+	 */
+	protected Point2D.Float up() {
+		return add(this.getPosition(), 0f, -1f);
+	}
+
+	/**
+	 * Get the position down relative to the player
+	 * @return
+	 */
+	protected Point2D.Float down() {
+		return add(this.getPosition(), 0f, 1f);
+	}
 }

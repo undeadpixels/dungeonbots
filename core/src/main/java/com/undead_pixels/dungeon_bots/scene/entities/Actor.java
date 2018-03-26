@@ -399,30 +399,22 @@ public class Actor extends SpriteEntity implements HasInventory {
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity UP relative to the actor")
 	public LuaValue peekUp() {
-		final Point2D.Float pos = this.getPosition();
-		pos.y -= 1.0f;
-		return world.tryPeek(pos);
+		return world.tryPeek(up());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity DOWN relative to the actor")
 	public LuaValue peekDown() {
-		final Point2D.Float pos = this.getPosition();
-		pos.y += 1.0f;
-		return world.tryPeek(pos);
+		return world.tryPeek(down());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity LEFT relative to the actor")
 	public LuaValue peekLeft() {
-		final Point2D.Float pos = this.getPosition();
-		pos.x -= 1.0f;
-		return world.tryPeek(pos);
+		return world.tryPeek(left());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity RIGHT relative to the actor")
 	public LuaValue peekRight() {
-		final Point2D.Float pos = this.getPosition();
-		pos.x += 1.0f;
-		return world.tryPeek(pos);
+		return world.tryPeek(right());
 	}
 
 	/**
@@ -454,7 +446,9 @@ public class Actor extends SpriteEntity implements HasInventory {
 	 * @return True if taking the item succeeded, False otherwise
 	 */
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found in the specified direction if possible")
-	public Boolean take(LuaValue dir, LuaValue index) {
+	public Boolean take(
+			@Doc("The Direction of the entity to take the item from") LuaValue dir,
+			@Doc("The Index of the Item") LuaValue index) {
 		switch (dir.checkjstring().toLowerCase()) {
 			case "up":
 				return takeUp(index);
@@ -470,30 +464,70 @@ public class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found UP relative to the Actor")
-	private Boolean takeUp(LuaValue index) {
-		final Point2D.Float pos = this.getPosition();
-		pos.y -= 1f;
-		return world.tryTake(pos, index.checkint(), this.inventory);
+	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(
+				up(),
+				index.checkint(),
+				this.inventory);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
-	private Boolean takeDown(LuaValue index) {
-		final Point2D.Float pos = this.getPosition();
-		pos.y += 1f;
-		return world.tryTake(pos, index.checkint(), this.inventory);
+	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(
+				down(),
+				index.checkint(),
+				this.inventory);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
-	private Boolean takeLeft(LuaValue index) {
-		final Point2D.Float pos = this.getPosition();
-		pos.x -= 1f;
-		return world.tryTake(pos, index.checkint(), this.inventory);
+	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(
+				left(),
+				index.checkint(),
+				this.inventory);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
-	private Boolean takeRight(LuaValue index) {
-		final Point2D.Float pos = this.getPosition();
-		pos.x += 1f;
-		return world.tryTake(pos, index.checkint(), this.inventory);
+	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(
+				right(),
+				index.checkint(),
+				this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object/entity in the specified direction relative to the actor")
+	public Boolean use(@Doc("The direction of the entity or object to Use") LuaValue dir) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return useUp();
+			case "down":
+				return useDown();
+			case "left":
+				return useLeft();
+			case "right":
+				return useRight();
+			default:
+				return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object or entity RIGHT relative to the actor")
+	private Boolean useRight() {
+		return world.tryUse(right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object or entity LEFT relative to the actor")
+	private Boolean useLeft() {
+		return world.tryUse(left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object or entity DOWN relative to the actor")
+	private Boolean useDown() {
+		return world.tryUse(down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object or entity UP relative to the actor")
+	private Boolean useUp() {
+		return world.tryUse(up());
 	}
 }

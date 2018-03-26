@@ -23,8 +23,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -214,7 +212,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist())
+					.addBindableClass(Player.class)
+					.addBindableClasses(Setup.getItemClasses());
 			LuaInvocation initScript = mapSandbox.init().join();
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
@@ -1127,40 +1127,39 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
+	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
+		return entities.stream()
+				.filter(e -> e.getPosition().distance(pos) < 0.1);
+	}
 
 	/**
-	 * Try to use an item
-	 * 
-	 * @param itemRef
-	 * @param d
-	 * @param a
-	 * @return
+	 * Invokes the peekInventory method on any valid entities found at the specified position.
+	 * @param pos The position to try to peek at an inventory
+	 * @return A table/array of item names and descriptions of items in the inventory
 	 */
-	public Boolean tryUse(ItemReference itemRef, Actor.Direction d, Actor a) {
-		Point2D.Float pos = a.getPosition();
-		Point2D.Float toUse = null;
-		switch (d) {
-		case UP:
-			toUse = new Point2D.Float(pos.x, pos.y + 1);
-			break;
-		case DOWN:
-			toUse = new Point2D.Float(pos.x, pos.y - 1);
-			break;
-		case LEFT:
-			toUse = new Point2D.Float(pos.x - 1, pos.y);
-			break;
-		case RIGHT:
-			toUse = new Point2D.Float(pos.x + 1, pos.y);
-			break;
-		}
-		// There's a better way to do this that would require changing how we
-		// store entities
-		for (Entity e : entities) {
-			if (e.getPosition().x == toUse.getX() && e.getPosition().y == toUse.getY()) {
-				return e.useItem(itemRef);
-			}
-		}
-		return false;
+	public LuaValue tryPeek(final Point2D.Float pos) {
+		return entitiesAtPos(pos)
+				.filter(e -> e.getClass().isAssignableFrom(HasInventory.class))
+				.findFirst()
+				.map(e -> HasInventory.class.cast(e).peekInventory())
+				.orElse(LuaValue.NIL);
+	}
+
+	/**
+	 * Takes the item from the entity found at the specified index from the entities inventory at the specified index
+	 * @param pos The position to find an entity with an inventory to take an item from
+	 * @param index The index into the inventory of the entity to take the item
+	 * @param inventory The destination inventory to add the item to.
+	 * @return True if taking the item succeeded, false otherwise.
+	 */
+	public Boolean tryTake(final Point2D.Float pos, final int index, final Inventory inventory) {
+		return entitiesAtPos(pos)
+				.filter(e -> e.getClass().isAssignableFrom(HasInventory.class))
+				.findFirst()
+				.map(e -> HasInventory.class.cast(e))
+				.filter(e -> e.canTake())
+				.map(e -> inventory.addItem(e.getInventory().getItem(index)))
+				.orElse(false);
 	}
 
 	/**
@@ -1169,9 +1168,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param location The location to find entities to use the associated Item with
 	 * @return True If any entity/ies successfully used the Item
 	 */
-	public Boolean tryUse(ItemReference itemReference, Point2D location) {
-		return entities.stream()
-				.filter(e -> e.getPosition().distance(location) < 0.1)
+	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
+		return entitiesAtPos(location)
 				.anyMatch(e -> e.useItem(itemReference));
 	}
 
@@ -1180,10 +1178,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param location
 	 * @return
 	 */
-	public Boolean tryUse(Point2D location) {
-		return entities.stream()
-				.filter(e -> e.getPosition().distance(location) < 0.1
-						&&e.getClass().isAssignableFrom(Useable.class))
+	public Boolean tryUse(final Point2D.Float location) {
+		return entitiesAtPos(location)
+				.filter(e -> e.getClass().isAssignableFrom(Useable.class))
 				.anyMatch(e -> Useable.class.cast(e).use());
 	}
 
@@ -1193,9 +1190,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param location
 	 * @return
 	 */
-	public Boolean tryGive(ItemReference itemReference, Point2D location) {
-		return entities.stream()
-				.filter(e -> e.getPosition().distance(location) < 0.1)
+	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
+		return entitiesAtPos(location)
 				.anyMatch(e -> e.giveItem(itemReference));
 	}
 
@@ -1244,37 +1240,5 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.levelScripts.clear();
 		for (UserScript is : newScripts)
 			this.levelScripts.add(is);
-	}
-
-	/**
-	 * Invokes the peekInventory method on any valid entities found at the specified position.
-	 * @param pos The position to try to peek at an inventory
-	 * @return A table/array of item names and descriptions of items in the inventory
-	 */
-	public LuaValue tryPeek(final Point2D.Float pos) {
-		return entities.stream()
-				.filter(e -> e.getPosition().distance(pos) < 0.01
-						&& e.getClass().isAssignableFrom(HasInventory.class))
-				.findFirst()
-				.map(e -> HasInventory.class.cast(e).peekInventory())
-				.orElse(LuaValue.NIL);
-	}
-
-	/**
-	 * Takes the item from found at the specified index of the inventory found at the argument position
-	 * @param pos The position to find an entity with an inventory to take an item from
-	 * @param index The index into the inventory of the entity to take the item
-	 * @param inventory The destination inventory to add the item to.
-	 * @return True if taking the item succeeded, false otherwise.
-	 */
-	public Boolean tryTake(final Point2D.Float pos, final int index, final Inventory inventory) {
-		return entities.stream()
-				.filter(e -> e.getPosition().distance(pos) < 0.01
-					&& e.getClass().isAssignableFrom(HasInventory.class))
-				.findFirst()
-				.map(e -> HasInventory.class.cast(e))
-				.filter(e -> e.canTake())
-				.map(e -> inventory.addItem(e.getInventory().getItem(index)))
-				.orElse(false);
 	}
 }

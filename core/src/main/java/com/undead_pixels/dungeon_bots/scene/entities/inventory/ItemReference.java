@@ -156,7 +156,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean useUp() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
+		final Point2D.Float newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
 		return owner.getWorld().tryUse(this, newPos);
 	}
 
@@ -169,7 +169,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean useDown() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
+		final Point2D.Float newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
 		return owner.getWorld().tryUse(this, newPos);
 	}
 
@@ -182,7 +182,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean useLeft() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
+		final Point2D.Float newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
 		return owner.getWorld().tryUse(this, newPos);
 	}
 
@@ -195,7 +195,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean useRight() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
+		final Point2D.Float newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
 		return owner.getWorld().tryUse(this, newPos);
 	}
 
@@ -223,7 +223,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean giveUp() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
+		final Point2D.Float newPos = new Point2D.Float(pos.x, pos.y - 1.0f);
 		return owner.getWorld().tryGive(this, newPos);
 	}
 
@@ -233,7 +233,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean giveDown() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
+		final Point2D.Float newPos = new Point2D.Float(pos.x, pos.y + 1.0f);
 		return owner.getWorld().tryGive(this, newPos);
 	}
 
@@ -243,7 +243,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean giveLeft() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
+		final Point2D.Float newPos = new Point2D.Float(pos.x - 1.0f, pos.y);
 		return owner.getWorld().tryGive(this, newPos);
 	}
 
@@ -253,7 +253,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	public Boolean giveRight() {
 		final Entity owner = inventory.owner;
 		final Point2D.Float pos = owner.getPosition();
-		final Point2D newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
+		final Point2D.Float newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
 		return owner.getWorld().tryGive(this, newPos);
 	}
 

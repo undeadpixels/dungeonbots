@@ -119,12 +119,14 @@ public final class LuaSandbox implements Serializable {
 	 * @param clz The Class to add the static Bindings of
 	 * @return The source LuaSandbox
 	 */
-	@SafeVarargs
-	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
-		for(Class<? extends GetLuaFacade> c : clz) {
-			securityContext.getWhitelist().addAutoLevelsForBindables(c);
-			add(LuaProxyFactory.getBindings(c));
-		}
+	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade> clz) {
+		securityContext.getWhitelist().addAutoLevelsForBindables(clz);
+		add(LuaProxyFactory.getBindings(clz));
+		return this;
+	}
+
+	public final LuaSandbox addBindableClasses(final List<Class<? extends GetLuaFacade>> classes) {
+		classes.forEach(clz -> addBindableClass(clz));
 		return this;
 	}
 
@@ -379,7 +381,7 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
-	 * @param object
+	 * @param trigger
 	 */
 	public void safeWaitUntil (Supplier<Boolean> trigger) {
 		LuaInvocation currentInvoke = this.getQueue().getCurrent();
