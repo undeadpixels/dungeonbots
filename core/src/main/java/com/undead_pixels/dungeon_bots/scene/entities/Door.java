@@ -9,6 +9,7 @@ import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
 public class Door extends SpriteEntity implements Lockable, Useable {
@@ -18,12 +19,14 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
+
 	private boolean solid = false;
 	private Key key;
 	private volatile boolean locked = false;
 
-	public Door(World world, TextureRegion tex) {
-		super(world, "door", tex, new UserScriptCollection());
+	public Door(World world, float x, float y) {
+		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
 	@Override

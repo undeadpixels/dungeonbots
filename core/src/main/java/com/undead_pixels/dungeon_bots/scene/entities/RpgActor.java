@@ -28,7 +28,8 @@ import java.util.stream.Stream;
  */
 @Doc("A type that encapsulates abilities and stats for players with Rpg attributes")
 public class RpgActor extends Actor implements GetLuaFacade {
-	
+public abstract class RpgActor extends Actor implements GetLuaFacade {
+
 	/**
 	 * 
 	 */
@@ -41,14 +42,14 @@ public class RpgActor extends Actor implements GetLuaFacade {
 	// Skill stats determine the effectiveness and potency of associated skill abilities
 	protected final int[] stats = new int[] { 5, 5, 5, 5 };
 
-	public RpgActor(World world, String name, TextureRegion tex, int[] s, UserScriptCollection scripts) {
-		super(world, name, tex, scripts);
+	public RpgActor(World world, String name, TextureRegion tex, int[] s, UserScriptCollection scripts, float x, float y) {
+		super(world, name, tex, scripts, x, y);
 		assert s.length == STAT_COUNT;
 		System.arraycopy(s, 0, stats, 0, STAT_COUNT);
 	}
 
-	public RpgActor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
-		super(world, name, tex, scripts);
+	public RpgActor(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
+		super(world, name, tex, scripts, x, y);
 	}
 
 	/* -- LuaBindings -- */

@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
@@ -32,6 +33,8 @@ public class Player extends RpgActor {
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1);
 
 	@Deprecated
 	protected String defaultCode;
@@ -42,7 +45,7 @@ public class Player extends RpgActor {
 	 * @param name The name of this player
 	 */
 	public Player(World world, String name) {
-		super(world, name, AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1), world.getPlayerTeamScripts());
+		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), 0, 0);
 
 		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
 	}

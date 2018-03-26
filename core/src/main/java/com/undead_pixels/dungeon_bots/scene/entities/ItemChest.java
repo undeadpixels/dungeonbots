@@ -11,6 +11,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 @Doc("An ItemChest is an Entity that contains a large Inventory.\n" +
 		"The ItemChest can be isLocked or unlocked based off of events or by unlocking\n" +
@@ -22,12 +23,14 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0);
+
 	private volatile boolean locked = false;
 
 	private final Inventory inventory = new Inventory(this, 100);
 
-	public ItemChest(World world, String name, TextureRegion tex) {
-		super(world, name, tex, new UserScriptCollection());
+	public ItemChest(World world, String name, float x, float y) {
+		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
 	@Override

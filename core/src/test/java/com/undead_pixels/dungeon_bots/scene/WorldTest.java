@@ -1,5 +1,4 @@
 package com.undead_pixels.dungeon_bots.scene;
-import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -15,7 +14,7 @@ public class WorldTest {
 	@Test
 	public void simpleTest() {
 		World w = new World();
-		Actor p = new ActorBuilder().setWorld(w).setName("test actor").setTex(null).createActor();
+		Actor p = new ActorBuilder().setWorld(w).setName("test actor").createActor();
 		
 		Assert.assertEquals("Actor x at beginning", 0.0f, p.getPosition().x, .0001);
 		Assert.assertEquals("Actor y at beginning", 0.0f, p.getPosition().y, .0001);

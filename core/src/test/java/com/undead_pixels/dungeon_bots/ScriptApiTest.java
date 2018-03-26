@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots;
 
+import com.undead_pixels.dungeon_bots.scene.ActorBuilder;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -7,7 +8,6 @@ import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import org.junit.*;
 import org.luaj.vm2.*;
-import com.undead_pixels.dungeon_bots.utils.builders.ActorBuilder;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import static java.lang.String.*;
