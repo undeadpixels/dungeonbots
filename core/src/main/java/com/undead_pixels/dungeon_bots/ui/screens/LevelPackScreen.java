@@ -304,6 +304,7 @@ public class LevelPackScreen extends Screen {
 								new EmptyBorder(10, 10, 10, 10)))
 						.create();
 				bttnEmblem.setTransferHandler(new ImageTransferHandler());
+				
 				list.add(bttnEmblem);
 			} else {
 				JLabel lblEmblem = UIBuilder.buildLabel().image(info.getEmblem())
@@ -1136,7 +1137,7 @@ public class LevelPackScreen extends Screen {
 	private static class ImageTransferHandler extends TransferHandler{
 		
 		@Override
-		public boolean canImport(TransferSupport app){
+		public boolean canImport(TransferSupport support){
 			
 			return true;
 		}
