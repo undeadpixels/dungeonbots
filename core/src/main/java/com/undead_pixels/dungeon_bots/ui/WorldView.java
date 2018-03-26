@@ -65,7 +65,7 @@ public class WorldView extends JComponent {
 	 * Renders the world using the camera transform specific to this WorldView
 	 */
 	@Override
-	public void paint(Graphics g) {
+	public void paintComponent(Graphics g) {
 
 		long nowTime = System.nanoTime();
 		float dt = (nowTime - lastTime) / 1_000_000_000.0f;

@@ -39,6 +39,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.JSemitransparentPanel;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
@@ -193,6 +194,15 @@ public class GameplayScreen extends Screen {
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
 		this.setJMenuBar(menuBar);
+		
+		
+		
+		JSemitransparentPanel semitrans = new JSemitransparentPanel();
+		semitrans.setSize(600, 600);
+		ImageIcon terminalImage = new ImageIcon("icons/terminal@2x.png");
+		semitrans.getContentPane().add(new JLabel(terminalImage));
+		//semitrans.getContentPane().add(new JButton("TEST"));
+		this.getLayeredPane().add(semitrans, (Integer) 100);
 	}
 
 
