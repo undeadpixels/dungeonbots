@@ -4,8 +4,10 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
@@ -14,6 +16,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Float;
 import java.awt.geom.RoundRectangle2D;
+import java.util.function.BiConsumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -32,29 +35,34 @@ public class JSemitransparentPanel extends JPanel {
 		 * (just the tail)
 		 */
 		ANCHORED,
+		
 		/**
-		 * Moves slowly
+		 * Keeps a constant distance but not direction
 		 */
-		WOBBLY,
+		SPRINGY,
+		
 		/**
-		 * Always moves to follow the anchor point
+		 * Maintains a constant distance and direction
 		 */
-		FLOATY
+		FOLLOW
 	}
 	
 	private boolean draggable;
 	private float blur = 0.0f;
 	private Color color = new Color(0, 0, 0, 127);
-	private int roundingRadius = 32;
+	private int roundingRadius = 8;
 	private Shape shape;
 	private boolean hasAnchorTail = true;
-	private FloatingFlavor floatingFlavor = FloatingFlavor.ANCHORED;
+	private FloatingFlavor floatingFlavor = FloatingFlavor.FOLLOW;
 	private float anchorX, anchorY;
 	private float tailWidth = 32.0f;
 	private JPanel contentPane = new JPanel();
+
+	private float centerOffsetX, centerOffsetY;
+	private float targetDistance = 200f, sloshiness = .01f;
 	
 	public JSemitransparentPanel() {
-		this.setBorder(BorderFactory.createEmptyBorder(roundingRadius, roundingRadius, roundingRadius, roundingRadius));
+		contentPane.setBorder(BorderFactory.createEmptyBorder(roundingRadius, roundingRadius, roundingRadius, roundingRadius));
 		
 		setSize(100, 100);
 		setAnchor(150, 150);
@@ -67,10 +75,11 @@ public class JSemitransparentPanel extends JPanel {
 		//contentPane.setSize(100, 100);
 		
 
-		javax.swing.Timer t = new Timer(1000, new ActionListener() {
+		javax.swing.Timer t = new Timer(15, new ActionListener() {
 			@Override
 			public void actionPerformed (ActionEvent e) {
-				repaint();
+				setAnchor(150, (float) (200 + Math.sin(System.currentTimeMillis() / 1000.0) * 200));
+				update(.015f);
 			}
 		});
 		
@@ -82,7 +91,57 @@ public class JSemitransparentPanel extends JPanel {
 		return contentPane;
 	}
 	
-	public void setAnchor(int x, int y) {
+	private float accumulatedDx = 0.0f, accumulatedDy = 0.0f;
+	public void update(float dt) {
+		Point2D.Float center = this.getCenter();
+		Point2D.Float target = center;
+		switch(floatingFlavor) {
+			case ANCHORED:
+				// do nothing
+				break;
+			case FOLLOW:
+				target = new Point2D.Float(anchorX + centerOffsetX, anchorY + centerOffsetX);
+				break;
+			case SPRINGY:
+				Point2D.Float delta = new Point2D.Float(center.x - anchorX, center.y - anchorY);
+				float deltaLen = (float) delta.distance(new Point2D.Float());
+				if(deltaLen > .0001) {
+					target = new Point2D.Float(
+							center.x + delta.x / deltaLen * targetDistance,
+							center.y + delta.y / deltaLen * targetDistance);
+				} else {
+					target = new Point2D.Float(center.x + targetDistance , center.y);
+				}
+				break;
+			default:
+				break;
+		}
+		
+		float dxTarget = target.x - center.x;
+		float dyTarget = target.y - center.y;
+
+		float dx = dxTarget * (1 - sloshiness) * dt;
+		float dy = dyTarget * (1 - sloshiness) * dt;
+
+
+		accumulatedDx += dx;
+		accumulatedDy += dy;
+		int dxInt = (int) (accumulatedDx);
+		int dyInt = (int) (accumulatedDy);
+		
+		if(dxInt != 0 || dyInt != 0) {
+			Point before = contentPane.getLocation();
+			this.contentPane.setLocation(before.x + dxInt, before.y + dyInt);
+			System.out.println("Putting at "+(before.x + dxInt)+","+ (before.y + dyInt));
+			this.repaint();
+			accumulatedDx -= dxInt;
+			accumulatedDy -= dyInt;
+		} else {
+			System.out.println("Staying ("+dxTarget+", "+dyTarget+")");
+		}
+	}
+	
+	public void setAnchor(float x, float y) {
 		//this.setLocation(x, y);
 		this.anchorX = x;
 		this.anchorY = y;
@@ -91,7 +150,9 @@ public class JSemitransparentPanel extends JPanel {
 	}
 	
 	private void reformGeometry() {
-		Shape rect = new RoundRectangle2D.Float(200, 200, 100, 100, roundingRadius, roundingRadius);
+		Point topLeft = this.contentPane.getLocation();
+		Dimension size = this.contentPane.getSize();
+		Shape rect = new RoundRectangle2D.Float(topLeft.x, topLeft.y, size.width, size.height, roundingRadius*2, roundingRadius*2);
 		
 		if(hasAnchorTail) {
 			Point2D.Float center = getCenter();
@@ -121,9 +182,9 @@ public class JSemitransparentPanel extends JPanel {
 	 * @return
 	 */
 	private Float getCenter () {
-		// TODO Auto-generated method stub
-		//return new Point2D.Float(this.getX() + this.getWidth()/2, this.getY() + this.getHeight()/2);stub
-		return new Point2D.Float(250, 250);
+		Point topLeft = this.contentPane.getLocation();
+		Dimension size = this.contentPane.getSize();
+		return new Point2D.Float(topLeft.x + size.width/2.0f, topLeft.y + size.height/2.0f);
 	}
 
 	@Override

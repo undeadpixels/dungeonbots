@@ -199,8 +199,9 @@ public class GameplayScreen extends Screen {
 		
 		JSemitransparentPanel semitrans = new JSemitransparentPanel();
 		semitrans.setSize(600, 600);
-		ImageIcon terminalImage = new ImageIcon("icons/terminal@2x.png");
-		semitrans.getContentPane().add(new JLabel(terminalImage));
+		ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
+		JLabel label = new JLabel(terminalImage);
+		semitrans.getContentPane().add(label);
 		//semitrans.getContentPane().add(new JButton("TEST"));
 		this.getLayeredPane().add(semitrans, (Integer) 100);
 	}
