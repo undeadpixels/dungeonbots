@@ -221,8 +221,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			tileTypesCollection = new TileTypes();
 
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist())
-					.addBindableClasses(Setup.getEntityClasses())
-					.addBindableClasses(Setup.getItemClasses());
+					.addBindableClasses(GetLuaFacade.getEntityClasses())
+					.addBindableClasses(GetLuaFacade.getItemClasses());
 			LuaInvocation initScript = mapSandbox.init().join();
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
@@ -243,8 +243,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
 		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist())
-				.addBindableClasses(Setup.getEntityClasses())
-				.addBindableClasses(Setup.getItemClasses());
+				.addBindableClasses(GetLuaFacade.getEntityClasses())
+				.addBindableClasses(GetLuaFacade.getItemClasses());
 		LuaInvocation initScript = mapSandbox.init().join();
 		this.serialized = false;
 

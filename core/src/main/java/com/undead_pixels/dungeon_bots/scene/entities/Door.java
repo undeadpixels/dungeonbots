@@ -7,9 +7,11 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import org.luaj.vm2.LuaValue;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
 public class Door extends SpriteEntity implements Lockable, Useable {
@@ -27,6 +29,18 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 
 	public Door(World world, float x, float y) {
 		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Door instance")
+	public static Door create(
+			@Doc("The World the Door belongs to") LuaValue world,
+			@Doc("The X position of the door") LuaValue x,
+			@Doc("The Y position of the door") LuaValue y) {
+		return new Door(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				x.tofloat(),
+				y.tofloat());
 	}
 
 	@Override
@@ -82,7 +96,8 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 		return toggleOpen();
 	}
 
-	private boolean toggleOpen() {
+	@Bind(value=SecurityLevel.AUTHOR, doc="Toggles the open state of the door")
+	public Boolean toggleOpen() {
 		if(!locked) {
 			this.solid = !this.solid;
 			// Do something that changes the sprite to an 'open door' sprite

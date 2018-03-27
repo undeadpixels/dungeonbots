@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
@@ -29,6 +30,7 @@ public class Switch extends SpriteEntity implements Useable {
 
 	@Override
 	public Boolean use() {
-		return null;
+		// Signal appropriate observer to invoke onUse script if present
+		return false;
 	}
 }

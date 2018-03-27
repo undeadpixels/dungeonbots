@@ -261,6 +261,9 @@ tbl.init = function()
 
 		local player = Player.new(world, 2, 2)
 		player.setDefaultCode("")
+		local itemChest = ItemChest.new(world,'itemChest',2,5)
+		itemChest:inventory():addItem(Note.new(world,"Don't forget to bring a towel!"))
+		world:addEntity(itemChest)
 		world:setPlayer(player)
 	end
 tbl.update = function(dt)

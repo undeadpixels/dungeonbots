@@ -89,7 +89,8 @@ public abstract class Entity
 			sandbox = new LuaSandbox(this);
 			this.sandbox.addBindable(this);
 			this.sandbox.addBindable(world);
-			this.sandbox.addBindableClasses(Setup.getItemClasses());
+			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
+					.addBindableClasses(GetLuaFacade.getEntityClasses());
 		}
 		return sandbox;
 	}

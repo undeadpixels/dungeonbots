@@ -117,6 +117,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return
 	 */
 	public boolean addItem(Item item) {
+		if(item.isEmpty())
+			return true;
 		synchronized (this.inventory) {
 			if(weight() + item.getWeight() > maxWeight)
 				return false;
