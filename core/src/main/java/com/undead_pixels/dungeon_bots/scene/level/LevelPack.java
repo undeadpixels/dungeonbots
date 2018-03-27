@@ -89,7 +89,8 @@ public class LevelPack {
 		this.originalAuthor = author;
 		this.mainEmblem = new ImageList();
 		this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
-		addAuthor(author);
+		if (author != null)
+			addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
 		publishEnd = publishStart.plusYears(1);
@@ -265,7 +266,13 @@ public class LevelPack {
 	public boolean isAuthor(User user) {
 		if (user == null)
 			return false;
-		return authors.contains(user);
+		if (authors == null)
+			return false;
+		for (User u : authors) {
+			if (u.getUserName().equals(user.getUserName()))
+				return true;
+		}
+		return false;
 	}
 
 
@@ -380,7 +387,7 @@ public class LevelPack {
 	public void setEmblem(BufferedImage image) {
 		if (this.mainEmblem == null) {
 			this.mainEmblem = new ImageList();
-			this.mainEmblem.add((BufferedImage)UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+			this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
 		} else
 			this.mainEmblem.set(0, image);
 	}
@@ -438,6 +445,8 @@ public class LevelPack {
 
 	/**The emblem is an image representing a world/level.*/
 	public Image getLevelEmblem(int index) {
+		while (index >= levelEmblems.size())
+			levelEmblems.add((BufferedImage) UIBuilder.getImage(LevelPack.DEFAULT_LEVEL_EMBLEM_FILE));
 		return levelEmblems.get(index);
 	}
 
@@ -459,6 +468,10 @@ public class LevelPack {
 
 
 	public String getLevelTitle(int index) {
+
+		while (index >= levelTitles.size())
+			levelTitles.add("Unnamed level.");
+
 		return levelTitles.get(index);
 	}
 
@@ -478,6 +491,8 @@ public class LevelPack {
 
 
 	public String getLevelDescription(int index) {
+		while (index >= levelDescriptions.size())
+			levelDescriptions.add("No description yet.");
 		return levelDescriptions.get(index);
 	}
 
@@ -568,7 +583,7 @@ public class LevelPack {
 		while (pack.levelDescriptions.size() < pack.levelCount)
 			pack.levelDescriptions.add("No description.");
 		while (pack.levelEmblems.size() < pack.levelCount)
-			pack.levelEmblems.add((BufferedImage)UIBuilder.getImage("images/ice_cave.jpg"));
+			pack.levelEmblems.add((BufferedImage) UIBuilder.getImage("images/ice_cave.jpg"));
 
 		// The lock is something new added, but it defaults to false anyway.
 

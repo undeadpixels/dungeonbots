@@ -79,7 +79,7 @@ public class UndoStack {
 
 	/**Returns the next Undoable on the stack (which will be added to the internal redo stack for later redo() ).
 	 * Use this function to find the next action to undo.  If no such item for undo is present, returns null.*/
-	public Undoable<?> nextUndo() {
+	public Undoable<?> popUndo() {
 
 		_Lock.lock();
 		try {
@@ -97,7 +97,7 @@ public class UndoStack {
 
 	/** Returns the next Undoable on the internal redo stack (which will be added to the undo stack for later undo() ).
 	 * Use this function to find the next action to redo.  If no such item for redo is present, returns null.*/
-	public Undoable<?> nextRedo() {
+	public Undoable<?> popRedo() {
 		if (_Redoables.size() == 0)
 			return null;
 		_Lock.lock();

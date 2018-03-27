@@ -106,20 +106,24 @@ public final class LevelEditorScreen extends Screen {
 	/** Creates all the entity types available in this Level Editor. */
 	public ArrayList<EntityType> createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
-		
-		// TODO - some of the names produced by lambdas might need to be changed later
-		
+
+		// TODO - some of the names produced by lambdas might need to be changed
+		// later
+
 		result.add(new EntityType("fish", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x,
+					y);
 		}));
 		result.add(new EntityType("demon", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x, y);
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x,
+					y);
 		}));
 		result.add(new EntityType("ghost", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
+			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x,
+					y);
 		}));
 		result.add(new EntityType("key", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
@@ -151,7 +155,8 @@ public final class LevelEditorScreen extends Screen {
 	 * correctly handle inputs in the game view, whereas the controller itself
 	 * handles Level Editor-related actions.
 	 */
-	protected final class Controller extends ScreenController implements ListSelectionListener, MouseWheelListener, MouseInputListener, ChangeListener {
+	protected final class Controller extends ScreenController
+			implements ListSelectionListener, MouseWheelListener, MouseInputListener, ChangeListener {
 
 		/** The list managing the selection of a tool. */
 		public JList<Tool> toolPalette;
@@ -255,6 +260,9 @@ public final class LevelEditorScreen extends Screen {
 					ioex.printStackTrace();
 				}
 				return;
+			case "SaveAs to LevelPack":
+				System.err.println("Not implemented SaveAs.");
+				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
 				if (openLevelPackFile == null)
@@ -318,7 +326,6 @@ public final class LevelEditorScreen extends Screen {
 
 			case "WORLD_SCRIPTS":
 				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
-
 					@Override
 					public void pushUndoable(Undoable<?> u) {
 						Tool.pushUndo(world, u);
@@ -449,7 +456,6 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 
-
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			if (selections.tool != null)
@@ -578,7 +584,7 @@ public final class LevelEditorScreen extends Screen {
 		// Create the zoom slider.
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
-		zoomSlider.addChangeListener((ChangeListener)getController());
+		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		// Build the control panel.
@@ -595,18 +601,13 @@ public final class LevelEditorScreen extends Screen {
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
-				.text("Save to LevelPack").action("Save to LevelPack", getController()).create());
+				.text("Save").action("Save to LevelPack", getController()).create());
+		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('a')
+				.text("Save As...").action("SaveAs to LevelPack", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
-				.text("Open LevelPack").action("Open LevelPack", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().text("Save to Stand-Alone")
-				.action("Save to Stand-Alone", getController()).create());
+				.text("Open").action("Open LevelPack", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
 				.create());
-		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_I, ActionEvent.CTRL_MASK).mnemonic('i')
-				.text("Import").action("Import", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_E, ActionEvent.CTRL_MASK).mnemonic('e')
-				.text("Export").action("Export", getController()).create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
 				.text("Exit to Main").action("Exit to Main", getController()).create());

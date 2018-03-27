@@ -66,6 +66,7 @@ public class GameplayScreen extends Screen {
 	}
 
 
+	@Deprecated
 	public GameplayScreen(LevelPack pack) {
 		this(pack, false);
 	}
@@ -155,7 +156,7 @@ public class GameplayScreen extends Screen {
 				.text("Save As").action("Save As", getController()).create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
-				.action("Exit to Main", getController()).create());
+				.text("Exit to main").action("Exit to Main", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
 				.text("Quit").action("Quit", getController()).create());
 
@@ -189,7 +190,8 @@ public class GameplayScreen extends Screen {
 		});
 
 		// Create the message pane
-		Image emblemImg = levelPack.getLevelEmblem(levelPack.getLevelIndex()).getScaledInstance(250, 100, Image.SCALE_DEFAULT);
+		Image emblemImg = levelPack.getLevelEmblem(levelPack.getLevelIndex()).getScaledInstance(250, 100,
+				Image.SCALE_DEFAULT);
 		JLabel emblem = new JLabel(new ImageIcon(emblemImg));
 		emblem.setLayout(new BorderLayout());
 		emblem.setPreferredSize(new Dimension(250, 100));
@@ -237,10 +239,11 @@ public class GameplayScreen extends Screen {
 
 
 	/**Posts the given message to the message pane.*/
-	public void message(String text){
+	public void message(String text) {
 		message(text, Color.white);
 	}
-	
+
+
 	/**Posts the given message to the message pane.*/
 	public void message(String text, Color color) {
 		_MessagePane.message(text, color);
@@ -257,7 +260,6 @@ public class GameplayScreen extends Screen {
 			implements MouseWheelListener, MouseInputListener, ChangeListener {
 
 		private Tool.Selector selector = null;
-
 
 
 		/** Called when the zoom slider's state changes. */
@@ -283,10 +285,12 @@ public class GameplayScreen extends Screen {
 				File openFile = FileControl.openDialog(GameplayScreen.this);
 				if (openFile != null) {
 					if (openFile.getName().endsWith(".lua")) {
+						System.err.println("Loading from a Lua file should not be allowed at this point.  Load from json");
 						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
 					} else {
 						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+						//DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					}
 				}
 
@@ -332,7 +336,6 @@ public class GameplayScreen extends Screen {
 		}
 
 
-
 		@Override
 		public void mousePressed(MouseEvent e) {
 			selector.mousePressed(e);
@@ -356,7 +359,7 @@ public class GameplayScreen extends Screen {
 			selector.mouseWheelMoved(e);
 		}
 
-		
+
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
 			// TODO Auto-generated method stub

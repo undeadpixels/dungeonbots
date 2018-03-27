@@ -80,7 +80,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable<?> u = stack.nextUndo();
+		Undoable<?> u = stack.popUndo();
 		if (u == null)
 			return false;
 		try {
@@ -99,7 +99,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable<?> r = stack.nextRedo();
+		Undoable<?> r = stack.popRedo();
 		if (r == null)
 			return false;
 		try {
