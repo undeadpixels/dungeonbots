@@ -1,11 +1,13 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.Container;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -54,9 +56,9 @@ public class MainMenuScreen extends Screen {
 					 * instance.getUser())) { throw new
 					 * RuntimeException("Cannot switch to a game being played by another player."
 					 * ); } */
-					LevelPackScreen lps = LevelPackScreen.fromDirectory(System.getProperty("user.dir"));					
+					LevelPackScreen lps = LevelPackScreen.fromDirectory(System.getProperty("user.dir"));
 					DungeonBotsMain.instance.setCurrentScreen(lps);
-					//lps.setSelection(lps.getLevelPackAt(0),  0);
+					// lps.setSelection(lps.getLevelPackAt(0), 0);
 
 					break;
 				case "CREATE":
@@ -86,10 +88,19 @@ public class MainMenuScreen extends Screen {
 
 	@Override
 	protected void addComponents(Container pane) {
+		JLabel lblTitle = UIBuilder.buildLabel().text("DungeonBots").alignmentX(CENTER_ALIGNMENT).create();
+		try {
+			Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("DawnLike/GUI/SDS_8x8.ttf"));
+			font  = font.deriveFont(36f);
+			lblTitle.setFont(font);
+		} catch (Exception ex) {
+
+		}
 
 		JButton bttnPlay = UIBuilder.buildButton().toolTip("Start a game as a player.").text("Play")
 				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
+
 		bttnPlay.requestFocus();
 
 		JButton bttnCreate = UIBuilder.buildButton().toolTip("Edit a game as an author.").text("Create")
@@ -105,7 +116,10 @@ public class MainMenuScreen extends Screen {
 				.create();
 
 		JPanel buttonPanel = new JPanel();
+
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+		buttonPanel.add(lblTitle);
+		buttonPanel.add(Box.createVerticalStrut(50));
 		buttonPanel.add(bttnPlay);
 		buttonPanel.add(Box.createVerticalStrut(10));
 		buttonPanel.add(bttnCreate);

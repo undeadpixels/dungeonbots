@@ -22,6 +22,7 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * Defines GUI and control interface. A protected GUI state can be stored.
@@ -55,6 +56,9 @@ public abstract class Screen extends JFrame {
 		super();
 		this.world = (this.levelPack = levelPack).getCurrentWorld();		
 	}
+	
+	/**NOTE:  this constructur should not be used, as every level should have an associated World*/
+	@Deprecated
 	protected Screen (World world){
 		this.world = world;
 		this.levelPack = null;
@@ -62,6 +66,7 @@ public abstract class Screen extends JFrame {
 
 
 	public void setup() {
+		this.setIconImage(UIBuilder.getImage("images/sprite.jpg"));
 		this._Controller = this.makeController();
 		this.setDefaultLayout();
 		this.addComponents(this.getContentPane());
