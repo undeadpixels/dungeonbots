@@ -34,6 +34,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -43,9 +44,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -84,6 +87,10 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
  *
  */
 public final class LevelEditorScreen extends Screen {
+
+	private static final String COMMAND_SAVE_TO_LEVELPACK = "SAVE_TO_LEVELPACK";
+	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
+
 
 	/**
 	 * 
@@ -248,6 +255,9 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 
+		private String filename = "";
+
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
@@ -258,11 +268,13 @@ public final class LevelEditorScreen extends Screen {
 			case "REDO":
 				Tool.redo(world);
 				break;
-			case "Save to LevelPack":
-				File saveLevelPackFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveLevelPackFile == null)
+			case COMMAND_SAVE_TO_LEVELPACK:
+				File sfd = new File(filename);
+				if (!sfd.exists())
+					sfd = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (sfd == null)
 					System.out.println("Save cancelled.");
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveLevelPackFile))) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(sfd))) {
 					String json = levelPack.toJson();
 					writer.write(json);
 					System.out.println("Save LevelPack complete.");
@@ -270,8 +282,17 @@ public final class LevelEditorScreen extends Screen {
 					ioex.printStackTrace();
 				}
 				return;
-			case "SaveAs to LevelPack":
-				System.err.println("Not implemented SaveAs.");
+			case COMMAND_SAVEAS_TO_LEVELPACK:
+				File safd = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (safd == null)
+					System.out.println("Save cancelled.");
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(safd))) {
+					String json = levelPack.toJson();
+					writer.write(json);
+					System.out.println("Save LevelPack complete.");
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
 				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
@@ -586,7 +607,7 @@ public final class LevelEditorScreen extends Screen {
 		// JPanel toolCollapser = UIBuilder.makeCollapser(new
 		// JScrollPane(toolList), "Tools", "Tools", "", false);
 		JScrollPane toolScroller = new JScrollPane(toolList);
-		toolScroller.setPreferredSize(new Dimension(150, 150));
+		//toolScroller.setPreferredSize(new Dimension(150, 150));
 		// Set up the members of the tool list
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
@@ -597,26 +618,34 @@ public final class LevelEditorScreen extends Screen {
 				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
 		toolList.setModel(tm);
 		toolList.setSelectedValue(selections.tool = _Selector, true);
+		JComboBox<Tool> cboxTools = new JComboBox<Tool>();
+		cboxTools.addItem(_Selector);
+		cboxTools.addItem(_TilePen);
+		cboxTools.addItem(_EntityPlacer);
+		cboxTools.setRenderer(_ToolRenderer);
+		cboxTools.setSelectedItem(selections.tool = _Selector);
 
 		// Create the tile palette GUI.
 		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
 		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
 		tileTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JScrollPane tileTypeScroller = new JScrollPane(tileTypeList);
-		tileTypeScroller.setPreferredSize(new Dimension(150, 250));
+		//tileTypeScroller.setPreferredSize(new Dimension(150, 250));
 		// Set up the tile list.
 		tileTypeList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
 		for (TileType i : world.getTileTypes())
 			im.addElement(i);
 		tileTypeList.setModel(im);
+		
+		
 
 		// Create the entity palette GUI.
 		JList<EntityType> entityList = ((Controller) getController()).entityPalette = new JList<EntityType>();
 		entityList.setCellRenderer(_EntityItemRenderer);
 		entityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JScrollPane entityScroller = new JScrollPane(entityList);
-		entityScroller.setPreferredSize(new Dimension(150, 230));
+		//entityScroller.setPreferredSize(new Dimension(150, 230));
 		// JPanel entitiesCollapser = UIBuilder.makeCollapser(new
 		// JScrollPane(entityList), "Entities", "Entities", "",
 		// false);
@@ -635,6 +664,24 @@ public final class LevelEditorScreen extends Screen {
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		// Build the control panel.
+		JToolBar toolBar = new JToolBar();
+		//toolBar.setLayout(new VerticalLayout());
+		toolBar.setOrientation(SwingConstants.VERTICAL);
+		toolBar.setFocusable(false);
+		toolBar.setFloatable(true);
+		toolBar.add(zoomSlider);
+		toolBar.addSeparator();
+		toolBar.add(cboxTools);
+		toolBar.add(new JLabel("Tools"));
+		toolBar.add(toolScroller);
+		toolBar.addSeparator();
+		toolBar.add(new JLabel("Tile Types"));
+		toolBar.add(tileTypeScroller);
+		toolBar.addSeparator();
+		toolBar.add(new JLabel("Entities"));
+		toolBar.add(entityScroller);
+		
+		/*
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
 		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
@@ -647,20 +694,18 @@ public final class LevelEditorScreen extends Screen {
 		controlPanel.add(tileTypeScroller);
 		controlPanel.add(Box.createVerticalStrut(10));
 		controlPanel.add(new JLabel("Entity types"));
-		controlPanel.add(entityScroller);
+		controlPanel.add(entityScroller);*/
 
 
 		// Create the file menu
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
-				.text("Save").action("Save to LevelPack", getController()).create());
+				.text("Save").action(COMMAND_SAVE_TO_LEVELPACK, getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('a')
-				.text("Save As...").action("SaveAs to LevelPack", getController()).create());
+				.text("Save As...").action(COMMAND_SAVEAS_TO_LEVELPACK, getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
-				.text("Open").action("Open LevelPack", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
-				.create());
+				.text("Open").action("Open LevelPack", getController()).create());		
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
 				.text("Exit to Main").action("Exit to Main", getController()).create());
@@ -706,7 +751,8 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 
 		// Put together the entire page
-		pane.add(controlPanel, BorderLayout.LINE_START);
+		//pane.add(controlPanel, BorderLayout.LINE_START);
+		pane.add(toolBar, BorderLayout.LINE_START);
 		pane.add(_View, BorderLayout.CENTER);
 		menuBar.setPreferredSize(new Dimension(-1, 30));
 		this.setJMenuBar(menuBar);
