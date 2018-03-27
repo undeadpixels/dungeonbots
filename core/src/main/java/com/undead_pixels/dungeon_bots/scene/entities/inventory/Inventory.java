@@ -132,6 +132,28 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
+	/**
+	 * Overload of method that only derefs item if an item can be 'added'
+	 * Otherwise, does not deref the item from the ItemReference
+	 * @param ir
+	 * @return
+	 */
+	public boolean addItem(ItemReference ir) {
+		if(ir.item.isEmpty())
+			return true;
+		synchronized (this.inventory) {
+			if(weight() + ir.item.getWeight() > maxWeight)
+				return false;
+			for(int i = 0; i < this.inventory.length; i++) {
+				if(inventory[i].getItem().isEmpty()) {
+					inventory[i].setItem(ir.derefItem());
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
 	@Bind(value=SecurityLevel.DEFAULT, doc="Adds the Item to the Inventory if possible")
 	public Boolean addItem(@Doc("The Item to add") LuaValue item) {
 		return addItem((Item)item.checktable()

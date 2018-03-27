@@ -14,6 +14,7 @@ import org.luaj.vm2.Varargs;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Doc("Inventory Item type that represents an item at a given spot in an Inventory.\n" +
 		"Item changes if the Inventory is modified.")
@@ -256,7 +257,6 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 		final Point2D.Float newPos = new Point2D.Float(pos.x + 1.0f, pos.y);
 		return owner.getWorld().tryGive(this, newPos);
 	}
-
 
 	/**
 	 *

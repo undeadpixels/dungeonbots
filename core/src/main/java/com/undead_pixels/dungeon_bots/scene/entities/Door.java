@@ -20,12 +20,16 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
-
-	private boolean solid = false;
-	private Key key;
+	private static final TextureRegion LOCKED_TEXUTRE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
+	private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
+	private volatile boolean open = false;
 	private volatile boolean locked = false;
+
+	@Deprecated
+	private Key key;
+
+
 
 	public Door(World world, float x, float y) {
 		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
@@ -45,7 +49,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 
 	@Override
 	public boolean isSolid() {
-		return this.solid;
+		return !this.open;
 	}
 
 	@Override
@@ -53,6 +57,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 		return 10;
 	}
 
+	@Deprecated
 	@Bind(SecurityLevel.AUTHOR)
 	public Key genKey() {
 		this.key = new Key(
@@ -64,7 +69,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		if(itemRef.getItem().getClass() == Key.class) {
+		if(itemRef.getItem() instanceof Key) {
 			itemRef.derefItem();
 			this.unlock();
 			return true;
@@ -82,12 +87,15 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to a locked state.")
 	public void lock() {
 		this.locked = true;
+		this.open = false;
+		this.sprite.setTexture(LOCKED_TEXUTRE);
 	}
 
 	@Override
 	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
+		this.sprite.setTexture(DEFAULT_TEXTURE);
 	}
 
 	@Override
@@ -96,11 +104,12 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 		return toggleOpen();
 	}
 
-	@Bind(value=SecurityLevel.AUTHOR, doc="Toggles the open state of the door")
+	@Bind(value=SecurityLevel.AUTHOR, doc = "Toggles the open state of the door")
 	public Boolean toggleOpen() {
 		if(!locked) {
-			this.solid = !this.solid;
-			// Do something that changes the sprite to an 'open door' sprite
+			this.open = !this.open;
+			this.sprite.setTexture(this.open ? OPEN_TEXTURE : DEFAULT_TEXTURE);
+			this.world.updateEntity(this);
 			return true;
 		}
 		return false;

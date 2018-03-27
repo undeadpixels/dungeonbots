@@ -441,6 +441,11 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		}
 	}
 
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Grabs any Item Entities that exist in the tile the player is in")
+	public Boolean grab() {
+		return world.tryGrab(this);
+	}
+
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object/entity in the specified direction relative to the actor")
 	public Boolean use(@Doc("The direction of the entity or object to Use") LuaValue dir) {
 		switch (dir.checkjstring().toLowerCase()) {

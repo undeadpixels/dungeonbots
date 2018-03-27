@@ -9,7 +9,6 @@ import java.awt.Component;
 import java.awt.Container;
 
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -60,7 +59,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Goal;
 import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
-import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
@@ -112,23 +110,23 @@ public final class LevelEditorScreen extends Screen {
 		
 		// TODO - some of the names produced by lambdas might need to be changed later
 		
-		result.add(new EntityType("fish", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("fish", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
 		}));
-		result.add(new EntityType("demon", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("demon", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x, y);
 		}));
-		result.add(new EntityType("ghost", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("ghost", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
 		}));
-		result.add(new EntityType("key", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("key", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), x, y);
 		}));
-		result.add(new EntityType("chest", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("chest", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			return new ItemChest(world, "item chest (level editor)", x, y);
 		}));
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {

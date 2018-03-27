@@ -427,14 +427,25 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The entity to add
 	 */
 	public void addEntity(Entity e) {
+
+		if(entitiesAtPos(e.getPosition())
+				.anyMatch(entity -> e.isSolid() && e.getClass().equals(entity.getClass()))) {
+			return;
+		}
+
 		if(entities.contains(e)) {
+			return;
+		}
+
+		Tile tile = this.getTile(e.getPosition());
+
+		if(tile.isOccupied() && e.isSolid()) {
 			return;
 		}
 
 		entities.add(e);
 
 		if (e.isSolid()) {
-			Tile tile = this.getTile(e.getPosition());
 			if (tile != null) {
 				tile.setOccupiedBy(e);
 			}
@@ -442,6 +453,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		if(e instanceof Goal) {
 			// TODO
+		}
+	}
+
+	public void updateEntity(Entity e) {
+		if(entities.contains(e)) {
+			Tile tile = this.getTile(e.getPosition());
+			if(tile != null)
+				tile.setOccupiedBy(e.isSolid() ? e : null);
 		}
 	}
 
@@ -1216,7 +1235,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return entitiesAtPos(pos)
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.findFirst()
-				.map(e -> HasInventory.class.cast(e).peekInventory())
+				.map(e -> HasInventory.class.cast(e))
+				.filter(e -> e.canTake())
+				.map(e -> e.peekInventory())
 				.orElse(LuaValue.NIL);
 	}
 
@@ -1267,7 +1288,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
 		return entitiesAtPos(location)
-				.anyMatch(e -> e.giveItem(itemReference));
+				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
+				.map(e -> HasInventory.class.cast(e))
+				.findFirst()
+				.filter(e -> e.canTake())
+				.map(e -> e.getInventory().addItem(itemReference))
+				.orElse(false);
+	}
+
+	public Boolean tryGrab(final Actor dst) {
+		return entitiesAtPos(dst.getPosition())
+				.filter(e -> !e.equals(dst) && ItemEntity.class.isAssignableFrom(e.getClass()))
+				.findFirst()
+				.map(e -> ItemEntity.class.cast(e))
+				.map(e -> e.pickUp(dst))
+				.orElse(false);
 	}
 
 	/**
@@ -1315,5 +1350,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.levelScripts.clear();
 		for (UserScript is : newScripts)
 			this.levelScripts.add(is);
+	}
+
+	public void setTilesAreStale() {
+		this.tilesAreStale = true;
 	}
 }

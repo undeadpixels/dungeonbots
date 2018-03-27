@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.ItemInfo;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.LuaTable;
@@ -14,13 +15,9 @@ public interface HasInventory {
 		final Inventory inv = this.getInventory();
 		final LuaTable lt = new LuaTable();
 		for(int i = 0, index = 0; index < inv.inventory.length; index++) {
-			final ItemReference itemReference = inv.inventory[index];
-			final LuaTable item = new LuaTable();
-			if(itemReference.hasItem()) {
-				item.set("name", LuaValue.valueOf(itemReference.getName()));
-				item.set("description", LuaValue.valueOf(itemReference.getDescription()));
-				item.set("index", LuaValue.valueOf(index + 1));
-				lt.set(i + 1, item);
+			final ItemReference ir = inv.inventory[index];
+			if(ir.hasItem()) {
+				lt.set(i + 1, new ItemInfo(ir.getName(), ir.getDescription(), index + 1, ir.getWeight(), ir.getValue()).getLuaValue());
 				i++;
 			}
 		}

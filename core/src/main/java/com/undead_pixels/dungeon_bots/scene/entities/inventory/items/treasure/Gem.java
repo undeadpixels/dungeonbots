@@ -14,7 +14,7 @@ public final class Gem extends Treasure {
 		super(w, "Gem", 25, 1);
 	}
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Creates a new Gem")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates a new Gem")
 	@BindTo("new")
 	public static Gem create(
 			@Doc("The World the Gem belongs to") LuaValue world) {

@@ -13,7 +13,7 @@ public final class Diamond extends Treasure {
 		super(w, "Diamond", 1000, 1);
 	}
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a Diamond")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a Diamond")
 	@BindTo("new")
 	public static Diamond create(@Doc("The World the Diamond belongs to") LuaValue world) {
 		return new Diamond((World)world.checktable().get("this").checkuserdata(World.class));

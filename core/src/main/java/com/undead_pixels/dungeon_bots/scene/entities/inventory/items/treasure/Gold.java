@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure;
 
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
@@ -12,7 +13,8 @@ public final class Gold extends Treasure {
 		super(w, "Gold", 100 * weight, weight);
 	}
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a new Gold item")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Gold item")
+	@BindTo("new")
 	public static Gold create(
 			@Doc("The World the gold belongs to") LuaValue world,
 			@Doc("The weight of the Gold item") LuaValue weight) {

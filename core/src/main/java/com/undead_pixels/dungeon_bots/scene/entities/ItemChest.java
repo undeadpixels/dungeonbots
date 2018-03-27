@@ -24,14 +24,15 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0);
+	public static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Chest0.png", 1, 0);
+	public static final TextureRegion UNLOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Chest1.png", 1, 0);
 
 	private volatile boolean locked = false;
 
 	private final Inventory inventory = new Inventory(this, 100);
 
 	public ItemChest(World world, String name, float x, float y) {
-		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+		super(world, name, UNLOCKED_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates a new ItemChest instance")
@@ -74,17 +75,19 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Bind(value=SecurityLevel.AUTHOR, doc = "Set the ItemChest to a isLocked state.")
 	public void lock() {
 		this.locked = true;
+		this.sprite.setTexture(LOCKED_TEXTURE);
 	}
 
 	@Override
 	@Bind(value=SecurityLevel.AUTHOR, doc = "Set the ItemChest to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
+		this.sprite.setTexture(UNLOCKED_TEXTURE);
 	}
 
 	@Override
 	public Boolean useItem(ItemReference item) {
-		if(item.getItem().getClass() == Key.class) {
+		if(item.getItem() instanceof Key) {
 			item.derefItem();
 			unlock();
 			return true;
@@ -94,7 +97,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 
 	@Override
 	public Boolean giveItem(ItemReference item) {
-		return this.locked && this.inventory.addItem(item.derefItem());
+		return !this.locked && this.inventory.addItem(item.derefItem());
 	}
 
 	@Override
