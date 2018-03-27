@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -10,8 +11,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.geom.Point2D;
 import java.io.File;
 
 import javax.swing.BorderFactory;
@@ -22,23 +21,23 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Bot;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.JMessagePane;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 
@@ -54,29 +53,27 @@ public class GameplayScreen extends Screen {
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
-	protected final World world;
-	protected final LevelPack levelPack;
 	private final boolean isSwitched;
+	private JMessagePane _MessagePane;
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
 	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
 	@Deprecated
 	public GameplayScreen(World world) {
-		this.world = world;
-		this.levelPack = null;
+		super(world);
 		this.isSwitched = false;
 	}
 
 
+	@Deprecated
 	public GameplayScreen(LevelPack pack) {
 		this(pack, false);
 	}
 
 
 	public GameplayScreen(LevelPack pack, boolean switched) {
-		this.levelPack = pack;
-		this.world = levelPack.getCurrentWorld();
+		super(pack);
 		this.isSwitched = switched;
 	}
 
@@ -94,7 +91,7 @@ public class GameplayScreen extends Screen {
 
 		// At the world at the bottom layer.
 		view = new WorldView(world);
-		getController().registerSignals(view);
+		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
 
@@ -113,7 +110,7 @@ public class GameplayScreen extends Screen {
 				.action("REWIND", getController()).preferredSize(50, 50).create();
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
-		zoomSlider.addChangeListener(getController());
+		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 		JPanel arrowPanel = new JPanel();
 		arrowPanel.setLayout(new GridLayout(3, 3));
@@ -137,7 +134,8 @@ public class GameplayScreen extends Screen {
 		tglGrid.setActionCommand("TOGGLE_GRID");
 		tglGrid.addActionListener(getController());
 
-		// Layout the toolbar at the bottom of the screen for game stop/start and for view control.
+		// Layout the toolbar at the bottom of the screen for game stop/start
+		// and for view control.
 		playToolBar.add(playBttn);
 		playToolBar.add(stopBttn);
 		playToolBar.add(rewindBttn);
@@ -146,7 +144,7 @@ public class GameplayScreen extends Screen {
 		playToolBar.add(arrowPanel);
 		playToolBar.add(tglGrid);
 
-		//Create the file menu.
+		// Create the file menu.
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setPreferredSize(new Dimension(80, 30));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -158,7 +156,7 @@ public class GameplayScreen extends Screen {
 				.text("Save As").action("Save As", getController()).create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
-				.action("Exit to Main", getController()).create());
+				.text("Exit to main").action("Exit to Main", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
 				.text("Quit").action("Quit", getController()).create());
 
@@ -183,16 +181,43 @@ public class GameplayScreen extends Screen {
 			// property hasn't been set when addComponents is called.
 			@Override
 			public void run() {
-				// TODO: adding a button cause compatibility issues for a JMenuBar?
+				// TODO: adding a button cause compatibility issues for a
+				// JMenuBar?
 				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
 						.action("Switch to Editor", getController()).enabled(isSwitched).create();
 				menuBar.add(switchBttn);
 			}
 		});
 
+		// Create the message pane
+		Image emblemImg = levelPack.getLevelEmblem(levelPack.getLevelIndex()).getScaledInstance(250, 100,
+				Image.SCALE_DEFAULT);
+		JLabel emblem = new JLabel(new ImageIcon(emblemImg));
+		emblem.setLayout(new BorderLayout());
+		emblem.setPreferredSize(new Dimension(250, 100));
+		_MessagePane = JMessagePane.create();
+		_MessagePane.setFocusable(false);
+		_MessagePane.setPreferredSize(new Dimension(250, -1));
+		// TODO: consult http://java-sl.com/wrap.html for forced wrap of long
+		// lines
+		JScrollPane messageScroller = new JScrollPane(_MessagePane);
+		JPanel messagePanel = new JPanel();
+		messagePanel.setLayout(new BorderLayout());
+		messagePanel.add(emblem, BorderLayout.PAGE_START);
+		messagePanel.add(messageScroller, BorderLayout.CENTER);
+		message("This is a regular message from the world.\n", Color.white);
+		message("This is an error message from the world.\n", Color.red);
+		message(world.getPlayer(), "This is a regular message from an entity.\n", Color.WHITE);
+		message(world.getPlayer(), "This is an error message from an entity.\n", Color.RED);
+		message(world.getPlayer(), "This is a green message.  Just because.\n", Color.green);
+
+
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
+		pane.add(messagePanel, BorderLayout.LINE_END);
 		this.setJMenuBar(menuBar);
+
+
 	}
 
 
@@ -213,33 +238,28 @@ public class GameplayScreen extends Screen {
 	}
 
 
-	private class Controller extends ScreenController implements MouseWheelListener {
+	/**Posts the given message to the message pane.*/
+	public void message(String text) {
+		message(text, Color.white);
+	}
+
+
+	/**Posts the given message to the message pane.*/
+	public void message(String text, Color color) {
+		_MessagePane.message(text, color);
+	}
+
+
+	/**Posts the given message to the message pane, with the given sender's icon.*/
+	public void message(HasImage sender, String text, Color color) {
+		_MessagePane.message(sender, text, color);
+	}
+
+
+	private class Controller extends ScreenController
+			implements MouseWheelListener, MouseInputListener, ChangeListener {
 
 		private Tool.Selector selector = null;
-
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			selector.mousePressed(e);
-		}
-
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			selector.mouseReleased(e);
-		}
-
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			selector.mouseDragged(e);
-		}
-
-
-		@Override
-		public void mouseWheelMoved(MouseWheelEvent e) {
-			selector.mouseWheelMoved(e);
-		}
 
 
 		/** Called when the zoom slider's state changes. */
@@ -265,10 +285,12 @@ public class GameplayScreen extends Screen {
 				File openFile = FileControl.openDialog(GameplayScreen.this);
 				if (openFile != null) {
 					if (openFile.getName().endsWith(".lua")) {
+						System.err.println("Loading from a Lua file should not be allowed at this point.  Load from json");
 						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
 					} else {
 						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+						//DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
 					}
 				}
 
@@ -315,38 +337,57 @@ public class GameplayScreen extends Screen {
 
 
 		@Override
+		public void mousePressed(MouseEvent e) {
+			selector.mousePressed(e);
+		}
+
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			selector.mouseReleased(e);
+		}
+
+
+		@Override
+		public void mouseDragged(MouseEvent e) {
+			selector.mouseDragged(e);
+		}
+
+
+		@Override
+		public void mouseWheelMoved(MouseWheelEvent e) {
+			selector.mouseWheelMoved(e);
+		}
+
+
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
+		}
+
+
+		@Override
 		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
 		}
 
 
 		@Override
 		public void mouseExited(MouseEvent arg0) {
-		}
+			// TODO Auto-generated method stub
 
-
-		@Override
-		public void keyPressed(KeyEvent arg0) {
-		}
-
-
-		@Override
-		public void keyReleased(KeyEvent arg0) {
-		}
-
-
-		@Override
-		public void keyTyped(KeyEvent arg0) {
 		}
 
 
 		@Override
 		public void mouseMoved(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+
 		}
 
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
 	}
 
 }

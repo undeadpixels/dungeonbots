@@ -73,14 +73,8 @@ public abstract class Item implements GetLuaFacade, Serializable, Useable {
 		return true;
 	}
 
-	@Override
 	public String getName() {
 		return this.name;
-	}
-
-	@Override
-	public int getId() {
-		return this.hashCode();
 	}
 
 	public boolean isEmpty() {

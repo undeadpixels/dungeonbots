@@ -3,10 +3,7 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -41,7 +38,6 @@ import org.luaj.vm2.Varargs;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -63,9 +59,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	private boolean _ShowInstructionPane;
-	// private boolean _IsExecuting;
-
+	
 	private LuaInvocation _RunningScript = null;
 
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
