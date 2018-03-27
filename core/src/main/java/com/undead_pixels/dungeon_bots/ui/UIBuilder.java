@@ -13,6 +13,7 @@ import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -23,6 +24,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -151,15 +153,6 @@ public class UIBuilder {
 		}
 
 
-
-
-
-
-
-
-
-
-
 		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
 
 
@@ -190,15 +183,17 @@ public class UIBuilder {
 			});
 			return this;
 		}
-		
+
+
 		/**Specifies the foreground color.*/
-		public final LabelBuilder background(Color color){
-			properties.put(FIELD_BACKGROUND,  new PropertyBuilder<Color>(color) {
+		public final LabelBuilder background(Color color) {
+			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
 
 				@Override
 				protected void apply(JLabel label, Color color) {
-					label.setBackground(color);					
-				}});
+					label.setBackground(color);
+				}
+			});
 			return this;
 		}
 
@@ -240,15 +235,17 @@ public class UIBuilder {
 			});
 			return this;
 		}
-		
+
+
 		/**Specifies the foreground color.*/
-		public final LabelBuilder foreground(Color color){
-			properties.put(FIELD_FOREGROUND,  new PropertyBuilder<Color>(color) {
+		public final LabelBuilder foreground(Color color) {
+			properties.put(FIELD_FOREGROUND, new PropertyBuilder<Color>(color) {
 
 				@Override
 				protected void apply(JLabel label, Color color) {
-					label.setForeground(color);					
-				}});
+					label.setForeground(color);
+				}
+			});
 			return this;
 		}
 
@@ -1169,7 +1166,7 @@ public class UIBuilder {
 
 
 	/** The cached GUI images. */
-	private static HashMap<String, Image> _Images = new HashMap<String, Image>();
+	private static final HashMap<String, Image> _Images = new HashMap<String, Image>();
 
 
 	/**
@@ -1204,12 +1201,42 @@ public class UIBuilder {
 			img = ImageIO.read(new File(path));
 		} catch (IOException ioex) {
 			if (verbose)
-				System.err.println("Image resource missing: " + path);
+				System.err.println("Image resource missing: " + filename);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		_Images.put(filename, img);
 		return img;
+	}
+
+
+	private static final HashMap<String, Font> _Fonts = new HashMap<String, Font>();
+
+
+	public static Font getFont(String filename) {
+		return getFont(filename, false);
+	}
+
+
+	public static Font getFont(String filename, boolean absolute) {
+		filename = filename.toLowerCase();
+		if (filename == null || filename.equals(""))
+			return null;
+		if (_Fonts.containsKey(filename))
+			return _Fonts.get(filename);
+		String path = absolute ? filename : System.getProperty("user.dir") + "/" + filename;
+		Font f = null;
+		try {
+			f = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path));
+			_Fonts.put(filename, f);
+			return f;
+		} catch (IOException ex) {
+			if (verbose)
+				System.err.println("Font resource missing: " + filename);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
 	}
 
 

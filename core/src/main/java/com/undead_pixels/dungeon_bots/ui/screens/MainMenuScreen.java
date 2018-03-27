@@ -90,8 +90,7 @@ public class MainMenuScreen extends Screen {
 	protected void addComponents(Container pane) {
 		JLabel lblTitle = UIBuilder.buildLabel().text("DungeonBots").alignmentX(CENTER_ALIGNMENT).create();
 		try {
-			Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("DawnLike/GUI/SDS_8x8.ttf"));
-			font  = font.deriveFont(36f);
+			Font font = UIBuilder.getFont("DawnLike/GUI/SDS_8x8.ttf").deriveFont(36f);
 			lblTitle.setFont(font);
 		} catch (Exception ex) {
 

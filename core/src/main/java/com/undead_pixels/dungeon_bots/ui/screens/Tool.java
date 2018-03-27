@@ -219,7 +219,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			if (screenOrigin != null)
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
-			gameCenterOrigin = view.getCamera().getPosition();			
+			gameCenterOrigin = view.getCamera().getPosition();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			e.consume();
 		}
@@ -288,7 +288,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
-			super("Selector", UIBuilder.getImage("selector.gif"));
+			super("Selector", UIBuilder.getImage("icons/blue key.png"));
 			this.view = view;
 			this.owner = owner;
 			this.world = view.getWorld();
@@ -406,7 +406,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
-				
+
 				System.out.println(se);
 
 				// If only one tile is selected, and one entity is selected, and
@@ -490,7 +490,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public TilePen(WorldView view, SelectionModel selection, ViewControl viewControl) {
-			super("Tile Pen", null);
+			super("Tile Pen", UIBuilder.getImage("icons/pie chart.png"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
@@ -661,7 +661,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel,
 				ViewControl viewControl) {
-			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
+			super("EntityPlacer", UIBuilder.getImage("icons/apply.png"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
@@ -673,15 +673,16 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			
-			//What is the world location we're dealing with?
+
+			// What is the world location we're dealing with?
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
-			
-			//What if an entity already exists at this spot?
+
+			// What if an entity already exists at this spot?
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
-			if (alreadyThere != null){
+			if (alreadyThere != null) {
 				view.setSelectedEntities(new Entity[] { alreadyThere });
 				JEntityEditor.create(owner, alreadyThere, securityLevel, "Entity Editor", new Undoable.Listener() {
+
 					@Override
 					public void pushUndoable(Undoable<?> u) {
 						pushUndo(world, u);
@@ -690,7 +691,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				view.setSelectedTiles(null);
 				return;
 			}
-			
+
 			EntityType type = selection.entityType;
 			if (type == null)
 				return;

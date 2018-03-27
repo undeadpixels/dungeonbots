@@ -9,6 +9,9 @@ import java.awt.Component;
 import java.awt.Container;
 
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -26,7 +29,10 @@ import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -40,12 +46,14 @@ import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
+import org.jdesktop.swingx.HorizontalLayout;
 import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
@@ -190,8 +198,10 @@ public final class LevelEditorScreen extends Screen {
 				if (e.getSource() == toolPalette) {
 					if (_PropogateChange) {
 						_PropogateChange = false;
-						entityPalette.clearSelection();
-						tilePalette.clearSelection();
+						if (entityPalette != null)
+							entityPalette.clearSelection();
+						if (tilePalette != null)
+							tilePalette.clearSelection();
 						_PropogateChange = true;
 					}
 					selections.tool = toolPalette.getSelectedValue();
@@ -326,6 +336,7 @@ public final class LevelEditorScreen extends Screen {
 
 			case "WORLD_SCRIPTS":
 				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
+
 					@Override
 					public void pushUndoable(Undoable<?> u) {
 						Tool.pushUndo(world, u);
@@ -470,39 +481,69 @@ public final class LevelEditorScreen extends Screen {
 	/** Handles the rendering of an item in the TilePen palette. */
 	private static ListCellRenderer<TileType> _TileTypeItemRenderer = new ListCellRenderer<TileType>() {
 
+		private final Font font = UIBuilder.getFont("DawnLike/GUI/SDS_8x8.ttf").deriveFont(12f);
+
+
 		@Override
-		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType item, int index,
+		public Component getListCellRendererComponent(JList<? extends TileType> list, TileType tileType, int index,
 				boolean isSelected, boolean cellHasFocus) {
-			JLabel lbl = new JLabel();
-			lbl.setText(item.getName());
+			JPanel pnl = new JPanel(new HorizontalLayout());
+			pnl.setOpaque(false);
+			JLabel lbl1 = UIBuilder.buildLabel()
+					.image(tileType.getTexture().toImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)).create();
+			JLabel lbl2 = UIBuilder.buildLabel().text(tileType.getName()).create();
+			lbl2.setFont(font);
 			if (isSelected || cellHasFocus)
-				lbl.setForeground(Color.red);
-			return lbl;
+				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
+			else
+				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
+			// lbl2.setForeground(Color.red);
+			pnl.add(lbl1);
+			pnl.add(lbl2);
+			return pnl;
 		}
 	};
 	/** Handles the rendering of an item in the EntityPLacer palette. */
 	private static ListCellRenderer<EntityType> _EntityItemRenderer = new ListCellRenderer<EntityType>() {
 
+		private final Font font = UIBuilder.getFont("DawnLike/GUI/SDS_8x8.ttf").deriveFont(12f);
+
+
 		@Override
-		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType item, int index,
-				boolean isSelected, boolean cellHasFocus) {
-			JLabel lbl = new JLabel();
-			lbl.setText(item.name);
+		public Component getListCellRendererComponent(JList<? extends EntityType> list, EntityType entityType,
+				int index, boolean isSelected, boolean cellHasFocus) {
+			JPanel pnl = new JPanel(new HorizontalLayout());
+			pnl.setOpaque(false);
+			JLabel lbl1 = UIBuilder.buildLabel()
+					.image(entityType.previewTexture.toImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)).create();
+			JLabel lbl2 = UIBuilder.buildLabel().text(entityType.name).create();
+			lbl2.setFont(font);
 			if (isSelected || cellHasFocus)
-				lbl.setForeground(Color.red);
-			return lbl;
+				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
+			else
+				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
+			// lbl2.setForeground(Color.red);
+			pnl.add(lbl1);
+			pnl.add(lbl2);
+			return pnl;
 		}
 	};
 	/** Handles the rendering of an item in the Tool palette. */
-	private static ListCellRenderer<Tool> _ToolItemRenderer = new ListCellRenderer<Tool>() {
+	private static ListCellRenderer<Tool> _ToolRenderer = new ListCellRenderer<Tool>() {
 
 		@Override
-		public Component getListCellRendererComponent(JList<? extends Tool> list, Tool item, int index,
+		public Component getListCellRendererComponent(JList<? extends Tool> list, Tool tool, int index,
 				boolean isSelected, boolean cellHasFocus) {
-			JLabel lbl = new JLabel();
-			lbl.setText(item.name);
+			ImageIcon icon = null;
+			if (tool.image != null)
+				icon = new ImageIcon(tool.image);
+			JLabel lbl = new JLabel(icon);
+
+			lbl.setText(tool.name);
 			if (isSelected || cellHasFocus)
-				lbl.setForeground(Color.red);
+				lbl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
+			else
+				lbl.setBorder(new EmptyBorder(3, 3, 3, 3));
 			return lbl;
 		}
 
@@ -536,41 +577,17 @@ public final class LevelEditorScreen extends Screen {
 			}
 		});
 
-
-		// Create the tile palette GUI.
-		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
-		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
-		tileTypeList.setMinimumSize(new Dimension(150, 400));
-		tileTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel tilesCollapser = UIBuilder.makeCollapser(new JScrollPane(tileTypeList), "Tiles", "Tiles", "", false);
-		// Set up the tile list.
-		tileTypeList.addListSelectionListener((LevelEditorScreen.Controller) getController());
-		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
-		for (TileType i : world.getTileTypes())
-			im.addElement(i);
-		tileTypeList.setModel(im);
-
-		// Create the entity palette GUI.
-		JList<EntityType> entityList = ((Controller) getController()).entityPalette = new JList<EntityType>();
-		entityList.setCellRenderer(_EntityItemRenderer);
-		entityList.setPreferredSize(new Dimension(150, 400));
-		entityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel entitiesCollapser = UIBuilder.makeCollapser(new JScrollPane(entityList), "Entities", "Entities", "",
-				false);
-		// Set up the entity list.
-		entityList.addListSelectionListener((LevelEditorScreen.Controller) getController());
-		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
-		for (EntityType e : createEntityTypes())
-			em.addElement(e);
-		entityList.setModel(em);
-
 		// Create the tool palette GUI.
 		JList<Tool> toolList = ((Controller) getController()).toolPalette = new JList<Tool>();
-		toolList.setCellRenderer(_ToolItemRenderer);
-		toolList.setMinimumSize(new Dimension(150, 400));
+		toolList.setCellRenderer(_ToolRenderer);
 		toolList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JPanel toolCollapser = UIBuilder.makeCollapser(new JScrollPane(toolList), "Tools", "Tools", "", false);
-		// Set up the members of the lists.
+		toolList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		toolList.setVisibleRowCount(-1);
+		// JPanel toolCollapser = UIBuilder.makeCollapser(new
+		// JScrollPane(toolList), "Tools", "Tools", "", false);
+		JScrollPane toolScroller = new JScrollPane(toolList);
+		toolScroller.setPreferredSize(new Dimension(150, 150));
+		// Set up the members of the tool list
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
 		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl)
@@ -581,6 +598,36 @@ public final class LevelEditorScreen extends Screen {
 		toolList.setModel(tm);
 		toolList.setSelectedValue(selections.tool = _Selector, true);
 
+		// Create the tile palette GUI.
+		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
+		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
+		tileTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane tileTypeScroller = new JScrollPane(tileTypeList);
+		tileTypeScroller.setPreferredSize(new Dimension(150, 250));
+		// Set up the tile list.
+		tileTypeList.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
+		for (TileType i : world.getTileTypes())
+			im.addElement(i);
+		tileTypeList.setModel(im);
+
+		// Create the entity palette GUI.
+		JList<EntityType> entityList = ((Controller) getController()).entityPalette = new JList<EntityType>();
+		entityList.setCellRenderer(_EntityItemRenderer);
+		entityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		JScrollPane entityScroller = new JScrollPane(entityList);
+		entityScroller.setPreferredSize(new Dimension(150, 230));
+		// JPanel entitiesCollapser = UIBuilder.makeCollapser(new
+		// JScrollPane(entityList), "Entities", "Entities", "",
+		// false);
+		// Set up the entity list.
+		entityList.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
+		for (EntityType e : createEntityTypes())
+			em.addElement(e);
+		entityList.setModel(em);
+
+
 		// Create the zoom slider.
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
@@ -590,11 +637,17 @@ public final class LevelEditorScreen extends Screen {
 		// Build the control panel.
 		JPanel controlPanel = new JPanel();
 		controlPanel.setFocusable(false);
-		controlPanel.setLayout(new VerticalLayout());
+		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
 		controlPanel.add(zoomSlider);
-		controlPanel.add(toolCollapser);
-		controlPanel.add(tilesCollapser);
-		controlPanel.add(entitiesCollapser);
+		controlPanel.add(Box.createVerticalStrut(10));
+		controlPanel.add(new JLabel("Tools"));
+		controlPanel.add(toolScroller);
+		controlPanel.add(Box.createVerticalStrut(10));
+		controlPanel.add(new JLabel("Tile types"));
+		controlPanel.add(tileTypeScroller);
+		controlPanel.add(Box.createVerticalStrut(10));
+		controlPanel.add(new JLabel("Entity types"));
+		controlPanel.add(entityScroller);
 
 
 		// Create the file menu
