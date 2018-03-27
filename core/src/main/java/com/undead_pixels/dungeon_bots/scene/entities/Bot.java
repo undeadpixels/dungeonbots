@@ -39,7 +39,6 @@ public class Bot extends RpgActor {
 
 	/**
 	 * @param world
-	 * @param string
 	 * @param x
 	 * @param y
 	 */

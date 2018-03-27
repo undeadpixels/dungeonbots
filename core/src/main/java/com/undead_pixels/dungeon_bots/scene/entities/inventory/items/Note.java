@@ -27,6 +27,7 @@ public class Note extends Item {
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Create a new Note item.")
 	public static Note create(@Doc("The World the Note belongs to") LuaValue world,
 							  @Doc("The text body of the Note") LuaValue descr) {
+		System.out.println("Hit!");
 		return new Note(
 				(World)world.checktable().get("this").checkuserdata(World.class),
 				descr.checkjstring());

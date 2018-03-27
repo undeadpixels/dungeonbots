@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -220,7 +221,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			tileTypesCollection = new TileTypes();
 
 			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist())
-					.addBindableClass(Player.class)
+					.addBindableClasses(Setup.getEntityClasses())
 					.addBindableClasses(Setup.getItemClasses());
 			LuaInvocation initScript = mapSandbox.init().join();
 
@@ -241,7 +242,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
-		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
+		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist())
+				.addBindableClasses(Setup.getEntityClasses())
+				.addBindableClasses(Setup.getItemClasses());
 		LuaInvocation initScript = mapSandbox.init().join();
 		this.serialized = false;
 
@@ -286,11 +289,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			entities.remove(oldIdx);
 			entities.add(oldIdx, p);
 		} else {
-			entities.add(p);
+			//entities.add(p);
 			this.addEntity(p);
 		}
 		player = p;
-		p.resetInventory();
+		//p.resetInventory();
 	}
 
 
@@ -409,10 +412,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	@Bind
-	public void addEntity(LuaValue v) {
+	@Bind(value = SecurityLevel.AUTHOR, doc = "")
+	public World addEntity(LuaValue v) {
 		Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
 		addEntity(e);
+		return this;
 	}
 
 
@@ -1192,8 +1196,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param alert
 	 * @param title
 	 */
-	@Bind(SecurityLevel.AUTHOR)
-	public void showAlert(LuaValue alert, LuaValue title) {
+	@Bind(value=SecurityLevel.AUTHOR,doc="Creates an alert message")
+	public void showAlert(@Doc("The Content of the Alert Message") LuaValue alert,
+						  @Doc("The Title of the Alert window") LuaValue title) {
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
@@ -1209,7 +1214,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public LuaValue tryPeek(final Point2D.Float pos) {
 		return entitiesAtPos(pos)
-				.filter(e -> e.getClass().isAssignableFrom(HasInventory.class))
+				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.findFirst()
 				.map(e -> HasInventory.class.cast(e).peekInventory())
 				.orElse(LuaValue.NIL);
@@ -1224,11 +1229,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Boolean tryTake(final Point2D.Float pos, final int index, final Inventory inventory) {
 		return entitiesAtPos(pos)
-				.filter(e -> e.getClass().isAssignableFrom(HasInventory.class))
+				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.findFirst()
 				.map(e -> HasInventory.class.cast(e))
 				.filter(e -> e.canTake())
-				.map(e -> inventory.addItem(e.getInventory().getItem(index)))
+				.map(e -> inventory.addItem(e.getInventory().removeItem(index)))
 				.orElse(false);
 	}
 
@@ -1250,7 +1255,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Boolean tryUse(final Point2D.Float location) {
 		return entitiesAtPos(location)
-				.filter(e -> e.getClass().isAssignableFrom(Useable.class))
+				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
 				.anyMatch(e -> Useable.class.cast(e).use());
 	}
 

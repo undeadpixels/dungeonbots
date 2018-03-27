@@ -395,26 +395,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		return this.inventory.addItem(item) || ir.inventory.addItem(item);
 	}
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity UP relative to the actor")
-	public LuaValue peekUp() {
-		return world.tryPeek(up());
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity DOWN relative to the actor")
-	public LuaValue peekDown() {
-		return world.tryPeek(down());
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity LEFT relative to the actor")
-	public LuaValue peekLeft() {
-		return world.tryPeek(left());
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity RIGHT relative to the actor")
-	public LuaValue peekRight() {
-		return world.tryPeek(right());
-	}
-
 	/**
 	 * Peek at the inventory of the first entity found int he target direction relative to the Actor
 	 * @param dir The Direction of the target entity
@@ -461,38 +441,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		}
 	}
 
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found UP relative to the Actor")
-	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(
-				up(),
-				index.checkint(),
-				this.inventory);
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
-	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(
-				down(),
-				index.checkint(),
-				this.inventory);
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
-	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(
-				left(),
-				index.checkint(),
-				this.inventory);
-	}
-
-	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
-	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(
-				right(),
-				index.checkint(),
-				this.inventory);
-	}
-
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object/entity in the specified direction relative to the actor")
 	public Boolean use(@Doc("The direction of the entity or object to Use") LuaValue dir) {
 		switch (dir.checkjstring().toLowerCase()) {
@@ -507,6 +455,46 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			default:
 				return false;
 		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity UP relative to the actor")
+	public LuaValue peekUp() {
+		return world.tryPeek(up());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity DOWN relative to the actor")
+	public LuaValue peekDown() {
+		return world.tryPeek(down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity LEFT relative to the actor")
+	public LuaValue peekLeft() {
+		return world.tryPeek(left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Peek at the inventory of any entity RIGHT relative to the actor")
+	public LuaValue peekRight() {
+		return world.tryPeek(right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found UP relative to the Actor")
+	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(up(), index.checkint() - 1, this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
+	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(down(), index.checkint() - 1, this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
+	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(left(), index.checkint() - 1, this.inventory);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
+	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(right(), index.checkint() - 1, this.inventory);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT, doc = "Contextually use an object or entity RIGHT relative to the actor")

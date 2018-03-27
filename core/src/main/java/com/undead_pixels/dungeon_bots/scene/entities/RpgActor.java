@@ -27,7 +27,7 @@ import java.util.stream.Stream;
  * Prototype of an RpgActor class that has traditional RpgStats and fields.
  */
 @Doc("A type that encapsulates abilities and stats for players with Rpg attributes")
-public abstract class RpgActor extends Actor implements GetLuaFacade {
+public abstract class RpgActor extends Actor {
 
 	/**
 	 * 
@@ -141,7 +141,7 @@ public abstract class RpgActor extends Actor implements GetLuaFacade {
 	}
 
 	@Doc("Sets the Stamina of the Player to the provided value.")
-	@Bind(SecurityLevel.AUTHOR)
+	@Bind(value=SecurityLevel.AUTHOR)
 	public RpgActor setStamina(@Doc("An Integer value greater than 0") LuaValue s) {
 		this.stamina = s.checkint();
 		return this;

@@ -8,6 +8,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
@@ -33,9 +34,23 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates a new ItemChest instance")
+	@BindTo("new")
+	public static ItemChest create(
+			@Doc("The World the ItemChest belongs to") LuaValue world,
+			@Doc("The name the ItemChest is bound to in it's script environment") LuaValue name,
+			@Doc("The X position of the ItemChest") LuaValue x,
+			@Doc("The Y position of the ItemChest") LuaValue y) {
+		return new ItemChest(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				name.checkjstring(),
+				x.tofloat(),
+				y.tofloat());
+	}
+
 	@Override
 	public boolean isSolid() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -43,7 +58,8 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 		return 0;
 	}
 
-	@Override
+	@Bind(value = SecurityLevel.AUTHOR, doc ="")
+	@BindTo("inventory")
 	public Inventory getInventory() {
 		return inventory;
 	}

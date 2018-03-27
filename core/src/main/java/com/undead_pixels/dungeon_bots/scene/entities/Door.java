@@ -39,7 +39,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 		return 10;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public Key genKey() {
 		this.key = new Key(
 				this.world,
@@ -59,25 +59,25 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc="Returns true if Door is locked, false otherwise.")
+	@Bind(value=SecurityLevel.AUTHOR, doc = "Returns true if Door is locked, false otherwise.")
 	public boolean isLocked() {
 		return this.locked;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc="Sets the Door to a locked state.")
+	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to a locked state.")
 	public void lock() {
 		this.locked = true;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc="Sets the Door to an unlocked state.")
+	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.DEFAULT, doc="Toggle the open state of the door depending on if it is locked.")
+	@Bind(value=SecurityLevel.DEFAULT, doc = "Toggle the open state of the door depending on if it is locked.")
 	public Boolean use() {
 		return toggleOpen();
 	}

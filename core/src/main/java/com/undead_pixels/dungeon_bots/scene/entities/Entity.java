@@ -89,12 +89,14 @@ public abstract class Entity
 			sandbox = new LuaSandbox(this);
 			this.sandbox.addBindable(this);
 			this.sandbox.addBindable(world);
+			this.sandbox.addBindableClasses(Setup.getItemClasses());
 		}
 		return sandbox;
 	}
 	
 	public void sandboxInit() {
 		if(this.scripts != null && this.scripts.get("init") != null) {
+			System.out.println("Hit");
 			getSandbox().init();
 		}
 	}
@@ -249,7 +251,7 @@ public abstract class Entity
 	 * @return
 	 */
 	protected Point2D.Float up() {
-		return add(this.getPosition(), 0f, -1f);
+		return add(this.getPosition(), 0f, 1f);
 	}
 
 	/**
@@ -257,6 +259,6 @@ public abstract class Entity
 	 * @return
 	 */
 	protected Point2D.Float down() {
-		return add(this.getPosition(), 0f, 1f);
+		return add(this.getPosition(), 0f, -1f);
 	}
 }

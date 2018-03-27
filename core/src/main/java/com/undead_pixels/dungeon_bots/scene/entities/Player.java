@@ -3,13 +3,9 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.*;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Sword;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -58,9 +54,8 @@ public class Player extends RpgActor {
 	 * @return A newly constructed Player that has been coerced into it's<br>
 	 * associated LuaValue
 	 */
-	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
-	@Doc("Assigns a new player")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Assigns a new player")
 	public static Player newPlayer(
 			@Doc("The assigned World") LuaValue world,
 			@Doc("The X position of the player") LuaValue x,
@@ -111,6 +106,7 @@ public class Player extends RpgActor {
 
 	public void resetInventory() {
 		this.inventory.reset();
+		/*
 		this.inventory.addItems(
 				new Note(this.world,"Welcome to Dungeonbots!"),
 				new Website(this.world, "Youtube", "https://www.youtube.com/"),
@@ -118,21 +114,7 @@ public class Player extends RpgActor {
 				new ResponseQuestion(this.world, "What's your favorite?", "Movie", "Game"),
 				new Sword(this.world),
 				new Gold(this.world, 25));
-	}
-
-	/**
-	 *
-	 * @param luaDir
-	 * @param itemReference
-	 * @return
-	 */
-	@Bind(SecurityLevel.DEFAULT)
-	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
-		String dir = luaDir.checkjstring().toUpperCase();
-		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
-				.checkuserdata(ItemReference.class);
-		Direction direction = Direction.valueOf(dir);
-		return false;
+		*/
 	}
 
 	@Override
