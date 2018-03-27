@@ -227,10 +227,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
 			assert initScript.getResults().isPresent(); // XXX
-			assert player != null; // XXX
-			if (player != null) {
-				mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
-			}
+			assert player != null;
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}

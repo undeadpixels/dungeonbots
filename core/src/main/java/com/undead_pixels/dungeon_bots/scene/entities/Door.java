@@ -2,7 +2,6 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -21,15 +20,13 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	 */
 	private static final long serialVersionUID = 1L;
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
-	private static final TextureRegion LOCKED_TEXUTRE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
+	private static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
 	private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
 	private volatile boolean open = false;
 	private volatile boolean locked = false;
 
 	@Deprecated
 	private Key key;
-
-
 
 	public Door(World world, float x, float y) {
 		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
@@ -88,7 +85,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	public void lock() {
 		this.locked = true;
 		this.open = false;
-		this.sprite.setTexture(LOCKED_TEXUTRE);
+		this.sprite.setTexture(LOCKED_TEXTURE);
 	}
 
 	@Override
