@@ -118,22 +118,22 @@ public final class LevelEditorScreen extends Screen {
 		// TODO - some of the names produced by lambdas might need to be changed
 		// later
 
-		result.add(new EntityType("fish", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x,
 					y);
 		}));
-		result.add(new EntityType("demon", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x,
 					y);
 		}));
-		result.add(new EntityType("ghost", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x,
 					y);
 		}));
-		result.add(new EntityType("key", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
 			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), x, y);
 		}));
@@ -143,7 +143,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
 			return new Door(world, x, y);
 		}));
-		result.add(new EntityType("goal", Door.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("goal", Goal.DEFAULT_TEXTURE, (x, y) -> {
 			return new Goal(world, "goal", x, y);
 		}));
 		result.add(new EntityType("player", Player.DEFAULT_TEXTURE, (x, y) -> {
@@ -151,7 +151,7 @@ public final class LevelEditorScreen extends Screen {
 			ret.setPosition(new Point2D.Float(x, y));
 			return ret;
 		}));
-		result.add(new EntityType("bot", Player.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("bot", Bot.DEFAULT_TEXTURE, (x, y) -> {
 			return new Bot(world, "bot", x, y);
 		}));
 		return result;
