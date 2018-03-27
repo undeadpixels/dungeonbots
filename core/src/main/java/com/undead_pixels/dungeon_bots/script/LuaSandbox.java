@@ -106,11 +106,9 @@ public final class LuaSandbox implements Serializable {
 	 * @param <T> A Type that implements the GetLuaFacade interface
 	 * @return The source LuaSandbox
 	 */
-	@SafeVarargs
-	public final <T extends GetLuaFacade> LuaSandbox  addBindable(T... bindables) {
-		securityContext.getWhitelist().addAutoLevelsForBindables(bindables);
-		add(Stream.of(bindables)
-				.map(GetLuaFacade::getLuaBinding));
+	public final <T extends GetLuaFacade> LuaSandbox  addBindable(String bindName, T bindable) {
+		securityContext.getWhitelist().addAutoLevelsForBindables(bindable);
+		add(new LuaBinding(bindName, bindable.getLuaValue()));
 		return this;
 	}
 

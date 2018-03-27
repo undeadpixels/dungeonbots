@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.geom.Point2D;
@@ -72,6 +73,13 @@ public class Bot extends RpgActor {
 
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
+	}
+
+	@Override
+	public LuaSandbox getSandbox() {
+		LuaSandbox ret = super.getSandbox();
+		ret.addBindable("bot", this);
+		return ret;
 	}
 
 }

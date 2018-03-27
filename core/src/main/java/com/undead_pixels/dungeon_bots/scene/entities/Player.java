@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
@@ -121,6 +122,13 @@ public class Player extends RpgActor {
 		Direction direction = Direction.valueOf(dir);
 		return false;
 		//return this.world.tryUse(itemRef, direction, this);
+	}
+
+	@Override
+	public LuaSandbox getSandbox() {
+		LuaSandbox ret = super.getSandbox();
+		ret.addBindable("player", this);
+		return ret;
 	}
 
 }
