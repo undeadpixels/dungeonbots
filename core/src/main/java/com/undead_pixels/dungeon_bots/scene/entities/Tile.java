@@ -15,6 +15,8 @@ import org.luaj.vm2.LuaValue;
  * NOTE - this might eventually have its hierarchy changed, as I'm not sure it
  * needs to extend Entity. If I get around to thinking about it more, I'll make
  * some kind of github issue
+ * 
+ * TODO - that will be soon
  */
 public class Tile extends SpriteEntity {
 

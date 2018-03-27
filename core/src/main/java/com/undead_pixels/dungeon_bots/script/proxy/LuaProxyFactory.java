@@ -69,19 +69,6 @@ public class LuaProxyFactory {
 		return proxy;
 	}
 
-
-	/**
-	 * Generates a LuaBinding associated with the target objects
-	 * that has been decorated with LuaFunctions that can invoke
-	 * methods of the target object that have been annotated with @Bind.
-	 * @param src The target object
-	 * @param <T> A Type that implements GetLuaFacade
-	 * @return A LuaBinding to the src object
-	 */
-	public static <T extends GetLuaFacade> LuaBinding getBindings(final T src) {
-		return new LuaBinding(src.getName(), src.getLuaValue());
-	}
-
 	/**
 	 * Generates a LuaBinding that contains a name and LuaValue that can invoke methods of the target class
 	 * @param src The target class

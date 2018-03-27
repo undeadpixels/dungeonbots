@@ -217,15 +217,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist()).addBindableClass(Player.class);
+			mapSandbox.addBindable("world", this);
+			mapSandbox.addBindable("tileTypes", tileTypesCollection);
+			mapSandbox.addBindable("whitelist", this.getWhitelist());
+			mapSandbox.addBindableClass(Player.class);
 			LuaInvocation initScript = mapSandbox.init().join();
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
 			assert initScript.getResults().isPresent(); // XXX
-			assert player != null; // XXX
-			if (player != null) {
-				mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
-			}
 		}
 		SandboxManager.register(Thread.currentThread(), mapSandbox);
 	}
@@ -237,16 +236,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
-		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist()).addBindableClass(Player.class);
+		mapSandbox.addBindable("world", this);
+		mapSandbox.addBindable("tileTypes", tileTypesCollection);
+		mapSandbox.addBindable("whitelist", this.getWhitelist());
+		mapSandbox.addBindableClass(Player.class);
 		LuaInvocation initScript = mapSandbox.init().join();
 		this.serialized = false;
 
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
-		assert player != null; // XXX
-		if (player != null) {
-			mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
-		}
 	}
 
 
@@ -778,13 +776,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return ret;
 	}
 
-
-	@Override
 	public String getName() {
 		return name;
 	}
 	
-
 
 	public void setName(String newName) {
 		name = newName;
@@ -797,12 +792,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		}
 		return this.luaValue;
-	}
-
-
-	@Override
-	public int getId() {
-		return this.hashCode();
 	}
 
 
