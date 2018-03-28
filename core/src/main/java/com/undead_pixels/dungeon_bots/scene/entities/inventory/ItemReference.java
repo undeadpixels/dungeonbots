@@ -76,7 +76,6 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns a String name of the associated Item
 	 * @return The Name of the Item
 	 */
-	@Override
 	@Bind(SecurityLevel.DEFAULT) @BindTo("name")
 	@Doc("Asks the Item Reference for the name of the given Item")
 	public String getName() {
@@ -266,10 +265,5 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 		Item i = item;
 		this.item = new Item.EmptyItem();
 		return i;
-	}
-
-	@Override
-	public int getId() {
-		return this.hashCode();
 	}
 }

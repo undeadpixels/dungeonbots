@@ -83,8 +83,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private transient LuaSandbox mapSandbox;
 
 	/**
-	 * The level pack of which this World is a part.
+	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
 	 */
+	@Deprecated
 	private transient LevelPack levelPack = null;
 
 	/**
@@ -220,8 +221,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			tileTypesCollection = new TileTypes();
 
-			mapSandbox.addBindable(this, tileTypesCollection, this.getWhitelist())
-					.addBindableClasses(GetLuaFacade.getEntityClasses())
+			mapSandbox.addBindable("world", this);
+			mapSandbox.addBindable("tileTypes", tileTypesCollection);
+			mapSandbox.addBindable("whitelist", this.getWhitelist());
+			mapSandbox.addBindableClass(Player.class);
+			mapSandbox.addBindableClasses(GetLuaFacade.getEntityClasses())
 					.addBindableClasses(GetLuaFacade.getItemClasses());
 			LuaInvocation initScript = mapSandbox.init().join();
 
@@ -239,18 +243,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void worldSomewhatInit() {
 		mapSandbox = new LuaSandbox(this);
 		mapSandbox.registerEventType("UPDATE");
-		mapSandbox.addBindable(this, tileTypesCollection, this.getDefaultWhitelist())
-				.addBindableClasses(GetLuaFacade.getEntityClasses())
+		mapSandbox.addBindable("world", this);
+		mapSandbox.addBindable("tileTypes", tileTypesCollection);
+		mapSandbox.addBindable("whitelist", this.getWhitelist());
+		mapSandbox.addBindableClass(Player.class);
+		mapSandbox.addBindableClasses(GetLuaFacade.getEntityClasses())
 				.addBindableClasses(GetLuaFacade.getItemClasses());
 		LuaInvocation initScript = mapSandbox.init().join();
 		this.serialized = false;
 
 		assert initScript.getStatus() == ScriptStatus.COMPLETE;
 		assert initScript.getResults().isPresent();
-		assert player != null; // XXX
-		if (player != null) {
-			mapSandbox.addBindable(player.getSandbox().getWhitelist(), player.getInventory());
-		}
 	}
 
 
@@ -313,7 +316,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// =============================================
 
 	/**
-	 * Updates this world and all children. Update means.... ?
+	 * Updates this world and all children.
 	 * 
 	 * @param dt
 	 *            Delta time
@@ -339,27 +342,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			playstyle.update();
 			// update level script
 			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
-
-
-
-			// XXX - move this elsewhere
-			int numGoals = 0;
-			int numGoalsMet = 0;
-			for(Entity e : entities) {
-				if(e instanceof Goal) {
-					Goal g = (Goal) e;
-					numGoals++;
-
-					Entity under = this.getEntityUnderLocation(g.getPosition().x, g.getPosition().y);
-
-					if(under != null && under instanceof Actor && under.getPosition().equals(g.getPosition())) {
-						numGoalsMet++;
-					}
-				}
-			}
-			if(numGoals > 0 && numGoals == numGoalsMet) {
-				this.win();
-			}
+			
+			checkIfWon();
 		}
 
 	}
@@ -408,6 +392,37 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	private void checkIfWon() {
+		int numGoals = 0;
+		int numGoalsMet = 0;
+
+		ArrayList<Goal> goals = new ArrayList<>();
+		ArrayList<Actor> actors = new ArrayList<>();
+
+		// extract all goals and actors
+		for(Entity e : entities) {
+			if(e instanceof Goal) {
+				goals.add((Goal)e);
+				numGoals++;
+			} else if (e instanceof Actor) {
+				actors.add((Actor)e);
+			}
+		}
+
+		// check if each goal has been met
+		for(Goal g: goals) {
+			for(Actor a: actors) {
+				if(a.getPosition().distance(g.getPosition()) < .1f) {
+					numGoalsMet++;
+					continue;
+				}
+			}
+		}
+		//System.out.println("Goals: " + numGoals +" vs "+ numGoalsMet);
+		if(numGoals > 0 && numGoals == numGoalsMet) {
+			this.win();
+		}
+	}
 
 	@Bind(value = SecurityLevel.AUTHOR, doc = "")
 	public World addEntity(LuaValue v) {
@@ -790,10 +805,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return ret;
 	}
 
-
-	@Override
 	public String getName() {
 		return name;
+	}
+
+
+	public void setName(String newName) {
+		name = newName;
 	}
 
 
@@ -803,12 +821,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		}
 		return this.luaValue;
-	}
-
-
-	@Override
-	public int getId() {
-		return this.hashCode();
 	}
 
 
@@ -1086,6 +1098,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
 		// TODO - cleanup at some point
+		//System.out.println("Get goal  called.");
 		Point2D.Float searchPos = this.getSize();
 		searchPos.x /= 2;
 		searchPos.y /= 2;
@@ -1352,4 +1365,5 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setTilesAreStale() {
 		this.tilesAreStale = true;
 	}
+
 }

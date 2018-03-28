@@ -4,8 +4,6 @@ import java.awt.Container;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.undead_pixels.dungeon_bots.scene.World;
-
 public class CommunityScreen extends Screen {
 	
 	/**

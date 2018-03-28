@@ -56,7 +56,7 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 		return value;
 	}
 
-	@Doc("Get the Weiht of the Item")
+	@Doc("Get the Weight of the Item")
 	@Bind(SecurityLevel.AUTHOR) public Integer getWeight() {
 		return weight;
 	}
@@ -66,15 +66,8 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 	}
 
 	@Doc("Get the Name of the Item")
-	@Override
-	@Bind(SecurityLevel.AUTHOR)
 	public String getName() {
 		return this.name;
-	}
-
-	@Override
-	public int getId() {
-		return this.hashCode();
 	}
 
 	public boolean isEmpty() {

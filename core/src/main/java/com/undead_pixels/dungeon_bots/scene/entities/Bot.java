@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
 
@@ -95,6 +96,13 @@ public class Bot extends RpgActor {
 	@Override
 	public Boolean canTake() {
 		return true;
+	}
+
+	@Override
+	public LuaSandbox getSandbox() {
+		LuaSandbox ret = super.getSandbox();
+		ret.addBindable("bot", this);
+		return ret;
 	}
 
 }

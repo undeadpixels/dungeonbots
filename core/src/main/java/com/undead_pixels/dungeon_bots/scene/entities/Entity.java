@@ -87,8 +87,8 @@ public abstract class Entity
 	public LuaSandbox getSandbox() {
 		if (sandbox == null) {
 			sandbox = new LuaSandbox(this);
-			this.sandbox.addBindable(this);
-			this.sandbox.addBindable(world);
+			this.sandbox.addBindable("this", this);
+			this.sandbox.addBindable("world", world);
 			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
 					.addBindableClasses(GetLuaFacade.getEntityClasses());
 		}
@@ -97,7 +97,6 @@ public abstract class Entity
 	
 	public void sandboxInit() {
 		if(this.scripts != null && this.scripts.get("init") != null) {
-			System.out.println("Hit");
 			getSandbox().init();
 		}
 	}
@@ -111,28 +110,6 @@ public abstract class Entity
 		if (sandbox != null) {
 			sandbox.update(dt);
 		}
-	}
-
-
-	/**
-	 * @param sandbox
-	 *            The user sandbox to set
-	 */
-	@Deprecated
-	public void setSandbox(LuaSandbox sandbox) {
-		this.sandbox = sandbox;
-	}
-
-
-	/**
-	 * @param vals
-	 *            The values to add to the sandbox
-	 * @return this
-	 */
-	@SafeVarargs
-	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
-		this.getSandbox().addBindable(vals);
-		return this;
 	}
 
 

@@ -260,17 +260,6 @@ tbl.init = function()
 		world:setTile(16, 16, tileTypes:getTile("wall"))
 
 		local player = Player.new(world, 2, 2)
-        local inv = player:inventory()
-        inv:addItem(Key.new(world))
-		player.setDefaultCode("")
-		local itemChest = ItemChest.new(world,'itemChest',2,5)
-        itemChest:lock();
-		inv = itemChest:inventory()
-		inv:addItem(Note.new(world,"Don't forget to bring a towel!"))
-		inv:addItem(Gem.new(world))
-		inv:addItem(Diamond.new(world))
-		inv:addItem(Gold.new(world,5))
-		world:addEntity(itemChest)
 		world:setPlayer(player)
 	end
 tbl.update = function(dt)

@@ -44,16 +44,6 @@ public class Inventory implements GetLuaFacade, Serializable {
 		owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
-	@Override
-	public int getId() {
-		return this.hashCode();
-	}
-
-	@Override
-	public String getName() {
-		return "inventory";
-	}
-
 	/**
 	 * Lua Binding to return but not remove an item at the associated index
 	 * from the inventory.

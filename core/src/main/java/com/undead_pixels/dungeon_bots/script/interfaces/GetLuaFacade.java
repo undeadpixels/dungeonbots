@@ -22,23 +22,12 @@ import java.util.stream.Stream;
  */
 public interface GetLuaFacade {
 
-	int getId();
-	String getName();
-
 	/**
 	 * Get a LuaValue of this object.
 	 * @return A LuaTable decorated with LuaFunctions that will invoke the methods of <br>this object.
 	 */
 	default LuaValue getLuaValue() {
 		return LuaProxyFactory.getLuaValue(this);
-	}
-
-	/**
-	 * Get a LuaBinding object that is a tuple containing the name and LuaValue of the desired binding.
-	 * @return A LuaBining for this object.
-	 */
-	default LuaBinding getLuaBinding() {
-		return new LuaBinding(getName(), getLuaValue());
 	}
 
 	/**

@@ -2,8 +2,7 @@ package com.undead_pixels.dungeon_bots.ui.screens;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.Graphics;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -18,31 +17,22 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
 
-import javax.swing.AbstractListModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
-import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.RpgActor;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
-import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
-import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 /** A tool is a class which determines how input is handled. */
 public abstract class Tool implements MouseInputListener, KeyListener, MouseWheelListener {
@@ -76,7 +66,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	private static final HashMap<World, UndoStack> undoStacks = new HashMap<World, UndoStack>();
 
 
-	public static void pushUndo(World world, Undoable u) {
+	public static void pushUndo(World world, Undoable<?> u) {
 		if (!undoStacks.containsKey(world))
 			undoStacks.put(world, new UndoStack());
 		UndoStack stack = undoStacks.get(world);
@@ -90,7 +80,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable<?> u = stack.nextUndo();
+		Undoable<?> u = stack.popUndo();
 		if (u == null)
 			return false;
 		try {
@@ -109,7 +99,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		UndoStack stack = undoStacks.get(world);
 		if (stack == null)
 			return false;
-		Undoable<?> r = stack.nextRedo();
+		Undoable<?> r = stack.popRedo();
 		if (r == null)
 			return false;
 		try {
@@ -230,6 +220,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
+			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			e.consume();
 		}
 
@@ -241,6 +232,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
+			view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			e.consume();
 		}
 
@@ -296,7 +288,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
-			super("Selector", UIBuilder.getImage("selector.gif"));
+			super("Selector", UIBuilder.getImage("icons/blue key.png"));
 			this.view = view;
 			this.owner = owner;
 			this.world = view.getWorld();
@@ -414,7 +406,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// is selected.
 				List<Actor> se = world.getActorsUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
-				
+
 				System.out.println(se);
 
 				// If only one tile is selected, and one entity is selected, and
@@ -498,7 +490,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public TilePen(WorldView view, SelectionModel selection, ViewControl viewControl) {
-			super("Tile Pen", null);
+			super("Tile Pen", UIBuilder.getImage("icons/pie chart.png"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
@@ -545,7 +537,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 						newTileTypes) {
 
 					@Override
-					protected boolean validateUndo() {
+					protected boolean okayToUndo() {
 						for (Point p : after.keySet()) {
 							Tile existingTile = world.getTile(p.x, p.y);
 							if (existingTile == null)
@@ -559,7 +551,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 					@Override
-					protected boolean validateRedo() {
+					protected boolean okayToRedo() {
 						for (Point p : before.keySet()) {
 							Tile existingTile = world.getTile(p.x, p.y);
 							if (existingTile == null)
@@ -669,7 +661,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel,
 				ViewControl viewControl) {
-			super("EntityPlacer", UIBuilder.getImage("entity_placer.gif"));
+			super("EntityPlacer", UIBuilder.getImage("icons/apply.png"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
@@ -681,7 +673,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
+
+			// What is the world location we're dealing with?
 			Point2D.Float gamePos = view.getScreenToGameCoords(e.getX(), e.getY());
+
+			// What if an entity already exists at this spot?
+			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
+			if (alreadyThere != null) {
+				view.setSelectedEntities(new Entity[] { alreadyThere });
+				JEntityEditor.create(owner, alreadyThere, securityLevel, "Entity Editor", new Undoable.Listener() {
+
+					@Override
+					public void pushUndoable(Undoable<?> u) {
+						pushUndo(world, u);
+					}
+				});
+				view.setSelectedTiles(null);
+				return;
+			}
+
 			EntityType type = selection.entityType;
 			if (type == null)
 				return;
@@ -691,13 +701,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, ent) {
 
 				@Override
-				protected boolean validateUndo() {
+				protected boolean okayToUndo() {
 					return world.containsEntity(ent);
 				}
 
 
 				@Override
-				protected boolean validateRedo() {
+				protected boolean okayToRedo() {
 					return !world.containsEntity(ent);
 				}
 

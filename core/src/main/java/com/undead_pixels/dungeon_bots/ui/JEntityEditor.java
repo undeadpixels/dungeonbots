@@ -29,7 +29,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
-import com.undead_pixels.dungeon_bots.ui.undo.Undoable.Listener;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;
 
 /**
@@ -50,7 +49,7 @@ public final class JEntityEditor extends JPanel {
 	private final Controller _Controller;
 	private SecurityLevel _SecurityLevel;
 	private JButton _BttnRemoveScript; // A reference is kept because the button
-										// is disabled when no script is
+										// should be disabled when no script is
 										// selected.
 	private DefaultListModel<UserScript> _EditedScripts;
 	private String _EditedHelp;
@@ -86,6 +85,7 @@ public final class JEntityEditor extends JPanel {
 		dialog.add(jee);
 		dialog.pack();
 		dialog.addWindowListener(new WindowListenerAdapter() {
+
 			@Override
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
@@ -104,7 +104,7 @@ public final class JEntityEditor extends JPanel {
 
 	private JEntityEditor(Entity entity, SecurityLevel securityLevel) {
 		super(new BorderLayout());
-		
+
 		_Entity = entity;
 		_Controller = new Controller();
 		_SecurityLevel = securityLevel;
@@ -134,7 +134,8 @@ public final class JEntityEditor extends JPanel {
 				.action("CLOSE", _Controller).create();
 		bttnBottomPanel.add(bttnReset);
 		bttnBottomPanel.add(bttnOK);
-		// TODO:  Should there be a close button? Only if this script editor is in its
+		// TODO: Should there be a close button? Only if this script editor is
+		// in its
 		// own dialog. But, I won't know that until after construction time.
 		SwingUtilities.invokeLater(new Runnable() {
 
@@ -219,7 +220,7 @@ public final class JEntityEditor extends JPanel {
 		// Step #3 - signal that an undoable change has happened.
 		if (_UndoableListener != null) {
 			HashMap<String, Object> newState = new HashMap<String, Object>();
-			newState.put("entity",  _Entity);
+			newState.put("entity", _Entity);
 			newState.put("scripts", newScripts);
 			newState.put("help", newHelp);
 			Undoable<HashMap<String, Object>> u = new Undoable<HashMap<String, Object>>(_OriginalState, newState) {
@@ -335,7 +336,7 @@ public final class JEntityEditor extends JPanel {
 			switch (e.getActionCommand()) {
 			case "HELP":
 				showHelp();
-				return;			
+				return;
 			default:
 				System.out.println("JEntityEditor has not implemented command " + e.getActionCommand());
 				return;

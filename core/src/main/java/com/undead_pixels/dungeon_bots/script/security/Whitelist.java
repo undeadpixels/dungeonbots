@@ -121,23 +121,6 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	}
 
 	/**
-	 *
-	 * @return
-	 */
-	@Override
-	public int getId() {
-		return this.hashCode();
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public String getName() {
-		return "whitelist";
-	}
-
-	/**
 	 * Creates or return an existing LuaValue facade of the Whitelist
 	 * @return
 	 */

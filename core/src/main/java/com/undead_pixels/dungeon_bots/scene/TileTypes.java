@@ -166,16 +166,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	}
 
 	@Override
-	public int getId() {
-		return 0;
-	}
-
-	@Override
-	public String getName() {
-		return "tileTypes";
-	}
-
-	@Override
 	public LuaValue getLuaValue() {
 		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
