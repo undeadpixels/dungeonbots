@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
@@ -59,27 +60,27 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 		return 0;
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR, doc ="")
+	@Bind(value = SecurityLevel.ENTITY, doc ="")
 	@BindTo("inventory")
 	public Inventory getInventory() {
 		return inventory;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Returns true if ItemChest is isLocked, false otherwise.")
+	@Bind(value=SecurityLevel.NONE, doc = "Returns true if ItemChest is isLocked, false otherwise.")
 	public boolean isLocked() {
 		return this.locked;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Set the ItemChest to a isLocked state.")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to a isLocked state.")
 	public void lock() {
 		this.locked = true;
 		this.sprite.setTexture(LOCKED_TEXTURE);
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Set the ItemChest to an unlocked state.")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
 		this.sprite.setTexture(UNLOCKED_TEXTURE);
@@ -98,6 +99,11 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	public Boolean giveItem(ItemReference item) {
 		return !this.locked && this.inventory.addItem(item.derefItem());
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 
 	@Override

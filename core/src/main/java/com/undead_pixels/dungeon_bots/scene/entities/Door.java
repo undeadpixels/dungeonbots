@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
@@ -33,7 +34,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	}
 
 	@BindTo("new")
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Door instance")
+	@Bind(value = SecurityLevel.ENTITY, doc = "Create a new Door instance")
 	public static Door create(
 			@Doc("The World the Door belongs to") LuaValue world,
 			@Doc("The X position of the door") LuaValue x,
@@ -75,13 +76,13 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Returns true if Door is locked, false otherwise.")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Returns true if Door is locked, false otherwise.")
 	public boolean isLocked() {
 		return this.locked;
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to a locked state.")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to a locked state.")
 	public void lock() {
 		this.locked = true;
 		this.open = false;
@@ -89,7 +90,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	}
 
 	@Override
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Sets the Door to an unlocked state.")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
 		this.sprite.setTexture(DEFAULT_TEXTURE);
@@ -101,7 +102,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 		return toggleOpen();
 	}
 
-	@Bind(value=SecurityLevel.AUTHOR, doc = "Toggles the open state of the door")
+	@Bind(value=SecurityLevel.ENTITY, doc = "Toggles the open state of the door")
 	public Boolean toggleOpen() {
 		if(!locked) {
 			this.open = !this.open;
@@ -110,5 +111,10 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 }
