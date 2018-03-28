@@ -104,6 +104,11 @@ public final class LevelEditorScreen extends Screen {
 		super(levelPack);
 	}
 
+	public LevelEditorScreen() {
+		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
+				new World()));
+	}
+
 
 	@Override
 	protected ScreenController makeController() {

@@ -151,9 +151,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * The playstyle of this world
 	 * 
-	 * TODO - add a lua binding to be able to configure this from the level
-	 * script
-	 * 
 	 * TODO - add a knob for this in the level editor
 	 */
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
@@ -165,6 +162,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public World() {
 		this(null, "world");
 		tileTypesCollection = new TileTypes();
+		
+		this.setSize(16, 16);
+		for(int y = 0; y < 16; y++) {
+			for(int x = 0; x < 16; x++) {
+				if(x == 0 || y == 0 || x == 15 || y == 15) {
+					this.setTile(x, y, tileTypesCollection.getTile("wall"));
+				} else {
+					this.setTile(x, y, tileTypesCollection.getTile("floor"));
+				}
+			}
+		}
 	}
 
 
@@ -174,6 +182,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param luaScriptFile
 	 *            The level script
 	 */
+	@Deprecated
 	public World(File luaScriptFile) {
 		this(luaScriptFile, "world");
 		tileTypesCollection = new TileTypes();
@@ -189,6 +198,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public World(String name) {
 		this(null, name);
 		tileTypesCollection = new TileTypes();
+
+		backgroundImage = null;
+		tiles = new Tile[0][0];
 	}
 
 
@@ -200,6 +212,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param name
 	 *            The name
 	 */
+	@Deprecated
 	public World(File luaScriptFile, String name) {
 		this.name = name;
 
@@ -208,6 +221,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
+		} else {
+			this.levelScripts.add(new UserScript("init", ""));
 		}
 
 		playerTeamScripts.add(new UserScript("init", "--TODO"));
@@ -574,6 +589,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
 					Tile current = tiles[i][j];
+					current.setPosition(i, j);
 
 					Tile l = i >= 1 ? tiles[i - 1][j] : null;
 					Tile r = i < w - 1 ? tiles[i + 1][j] : null;
@@ -1191,6 +1207,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
+		this.tilesAreStale = true;
 		this.worldSomewhatInit();
 		this.serialized = false;
 	}

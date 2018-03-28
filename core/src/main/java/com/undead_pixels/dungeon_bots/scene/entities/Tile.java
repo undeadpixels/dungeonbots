@@ -43,7 +43,7 @@ public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializab
 	/**
 	 * The current texture of this tile, based on its neighbors
 	 */
-	private TextureRegion currentTexture;
+	private transient TextureRegion currentTexture;
 	
 	/**
 	 * Position of this tile
@@ -156,7 +156,7 @@ public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializab
 		if(currentTexture != null) {
 			AffineTransform xform;
 			xform = AffineTransform.getTranslateInstance((.5f-.5f) + x, .5f + .5f+y);
-			xform.scale(1 / currentTexture.getW(), -1 / currentTexture.getH());
+			xform.scale(1.0f / currentTexture.getW(), -1.0f / currentTexture.getH());
 			batch.draw(currentTexture, xform);
 		}
 	}
@@ -167,6 +167,14 @@ public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializab
 	 */
 	public Point2D.Float getPosition() {
 		return new Point2D.Float(x, y);
+	}
+	/**
+	 * @param i
+	 * @param j
+	 */
+	public void setPosition (int x, int y) {
+		this.x = x;
+		this.y = y;
 	}
 
 
@@ -180,4 +188,6 @@ public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializab
 	public Image getImage() {
 		return currentTexture.toImage();
 	}
+
+
 }
