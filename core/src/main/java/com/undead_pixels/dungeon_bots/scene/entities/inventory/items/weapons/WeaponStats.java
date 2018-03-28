@@ -29,12 +29,6 @@ public final class WeaponStats implements Serializable, GetLuaFacade {
 		return new WeaponStats(damage.checkint(), speed.checkint(), range.checkint());
 	}
 
-	@Override
-	public int getId() {
-		return this.hashCode();
-	}
-
-	@Override
 	public String getName() {
 		return "Weapon Stats";
 	}

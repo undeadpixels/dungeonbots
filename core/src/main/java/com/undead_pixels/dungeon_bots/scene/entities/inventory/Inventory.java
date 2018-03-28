@@ -50,7 +50,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param index The index in the inventory to return an item.
 	 * @return The Item
 	 */
-	@Bind(SecurityLevel.DEFAULT) public ItemReference peek(LuaValue index) {
+	@Bind(value = SecurityLevel.DEFAULT,doc = "Get the ItemReference at the specified index of the Inventory")
+	public ItemReference peek(@Doc("The Index into the Inventory") LuaValue index) {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
 		return inventory[i];
@@ -70,14 +71,20 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
-	public Optional<Integer> findIndex(Item item) {
+	/**
+	 * Find the Index of an item in the Inventory if it exists
+	 * @param item The Item possibly contained in the inventory
+	 * @return An Optional of the Index of the Item into the Inventory.
+	 */
+	public Optional<Integer> findIndex(final Item item) {
 		return Stream.of(inventory).filter(itemReference -> itemReference.getItem() == item)
 				.findFirst()
 				.map(val -> val.index);
 	}
 
-	public Item getItem(int index) {
-		return this.inventory[index].getItem();
+	@Bind(value = SecurityLevel.ENTITY, doc = "Get the underlying Item contained by the ItemReference at the index in the Inventory")
+	public Item getItem(@Doc("The Index of the Item") LuaValue index) {
+		return this.inventory[index.checkint()].getItem();
 	}
 
 	/**
@@ -144,7 +151,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
-	@Bind(value=SecurityLevel.DEFAULT, doc="Adds the Item to the Inventory if possible")
+	@Bind(value=SecurityLevel.ENTITY, doc="Adds the Item to the Inventory if possible")
 	public Boolean addItem(@Doc("The Item to add") LuaValue item) {
 		return addItem((Item)item.checktable()
 				.get("this")
@@ -169,24 +176,30 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param luaItem An ItemReference to an item in an inventory.
 	 * @return If the item was added to the inventory
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Boolean putItem(LuaValue luaItem) {
-		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class))
-				.derefItem());
+	@Bind(value=SecurityLevel.ENTITY,doc = "Puts an ItemReferences Item into this inventory")
+	public Boolean putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
+		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Integer size() {
+	@Bind(value=SecurityLevel.DEFAULT,doc = "Get the Size of the Inventory")
+	public Integer size() {
 		return this.maxSize;
 	}
 
+	@Bind(value=SecurityLevel.DEFAULT,doc = "Get the Max Weight this Inventory can support")
+	public Integer maxWeight() {
+		return maxWeight;
+	}
+
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT,doc = "Get an array of ItemReferences to the Inventory")
 	public LuaTable get() {
 		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
@@ -203,7 +216,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * }</pre>
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value=SecurityLevel.DEFAULT, doc = "Unpacks the Inventory contents to a Lua Varargs type")
 	public Varargs unpack() {
 		final LuaValue[] ans = new LuaValue[inventory.length];
 		IntStream.range(0, inventory.length)
@@ -214,6 +227,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	/**
 	 *
 	 */
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Resets the inventory to Empty Item values")
 	public void reset() {
 		Stream.of(inventory).forEach(itemRef ->
 				itemRef.setItem(new Item.EmptyItem()));
@@ -227,5 +241,23 @@ public class Inventory implements GetLuaFacade, Serializable {
 		return Stream.of(inventory)
 				.map(ItemReference::getItem)
 				.collect(Collectors.toList());
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Get a String representation of the Inventory")
+	public String tostr() {
+		final StringBuilder ans = new StringBuilder();
+		ans.append("Index\tName\tDescription\tValue\tWeight\n");
+		for(final ItemReference ir : inventory) {
+			if(ir.hasItem()) {
+				ans.append(String.format(
+						"%d\t%s\t%s\t%s\t%s\n",
+						ir.index + 1,
+						ir.getName(),
+						ir.getDescription(),
+						ir.getValue(),
+						ir.getWeight()));
+			}
+		}
+		return ans.toString();
 	}
 }

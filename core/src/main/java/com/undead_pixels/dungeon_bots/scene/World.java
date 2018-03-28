@@ -424,8 +424,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR, doc = "")
-	public World addEntity(LuaValue v) {
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Add and Entity to the World")
+	public World addEntity(@Doc("The Argument Entity to add to the World") LuaValue v) {
 		Entity e = (Entity) v.checktable().get("this").checkuserdata(Entity.class);
 		addEntity(e);
 		return this;
@@ -451,7 +451,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		Tile tile = this.getTile(e.getPosition());
 
-		if(tile.isOccupied() && e.isSolid()) {
+		if(tile == null || (tile.isOccupied() && e.isSolid())) {
 			return;
 		}
 

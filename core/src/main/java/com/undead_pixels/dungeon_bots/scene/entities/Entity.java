@@ -239,4 +239,8 @@ public abstract class Entity
 	protected Point2D.Float down() {
 		return add(this.getPosition(), 0f, -1f);
 	}
+
+	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
+		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
+	}
 }

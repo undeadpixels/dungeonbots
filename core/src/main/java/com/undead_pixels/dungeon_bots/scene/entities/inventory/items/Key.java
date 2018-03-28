@@ -20,8 +20,12 @@ public class Key extends Item {
 		super(w,name, descr, 0, 0);
 	}
 
+	public Key(World w) {
+		super(w, "Key", "A Key that can be used to unlock Doors or Item Chests", 0, 0);
+	}
+
 	@BindTo("new")
-	@Bind(value = SecurityLevel.DEFAULT, doc="Create a new Key item")
+	@Bind(value = SecurityLevel.AUTHOR, doc="Create a new Key item")
 	public static Key create(
 			@Doc("The World the Key should belong to") LuaValue world) {
 		World w = (World)world.checktable().get("this").checkuserdata(World.class);

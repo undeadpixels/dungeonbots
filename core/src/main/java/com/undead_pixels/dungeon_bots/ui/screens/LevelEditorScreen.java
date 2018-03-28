@@ -53,6 +53,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
+import com.undead_pixels.dungeon_bots.scene.entities.*;
 import org.jdesktop.swingx.HorizontalLayout;
 import org.jdesktop.swingx.VerticalLayout;
 
@@ -62,13 +63,6 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Bot;
-import com.undead_pixels.dungeon_bots.scene.entities.DeletemeEntity;
-import com.undead_pixels.dungeon_bots.scene.entities.Door;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Goal;
-import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
@@ -135,9 +129,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), x, y);
+			return ItemEntity.key(world, x, y);
 		}));
-		result.add(new EntityType("chest", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("chest", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			return new ItemChest(world, "item chest (level editor)", x, y);
 		}));
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
@@ -154,6 +148,16 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("bot", Bot.DEFAULT_TEXTURE, (x, y) -> {
 			return new Bot(world, "bot", x, y);
 		}));
+		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
+			return ItemEntity.gold(world, x, y, 2);
+		}));
+		result.add(new EntityType("gem", ItemEntity.GEM_TEXTURE, (x, y) -> {
+			return ItemEntity.gem(world, x, y);
+		}));
+		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x,y) -> {
+			return ItemEntity.diamond(world, x, y);
+		}));
+
 		return result;
 	}
 

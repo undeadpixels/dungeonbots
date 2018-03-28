@@ -34,12 +34,6 @@ public class ItemInfo implements GetLuaFacade {
 		return String.format("%d -> %s : %s\n\tWeight := %d\tValue := %d", index, name, description, weight, value);
 	}
 
-	@Override
-	public int getId() {
-		return this.hashCode();
-	}
-
-	@Override
 	public String getName() {
 		return name;
 	}
