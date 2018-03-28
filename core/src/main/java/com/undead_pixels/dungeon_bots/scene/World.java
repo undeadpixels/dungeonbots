@@ -993,56 +993,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @return
 	 */
-	@Override
-	@Deprecated
-	public String getMapScript() {
-		String script = "tbl = {}\n" + "tbl.init = function()\n%s\n\tend\n" + "tbl.update = function(dt)\n%s\n\tend\n"
-				+ "return tbl";
-		return String.format(script, createInit(), createUpdate());
-	}
-
-
-	@Deprecated
-	private String put(String... a) {
-		return Stream.of(a).reduce("", (c, d) -> c + "\n" + d);
-	}
-
-
-	@Deprecated
-	private String createUpdate() {
-		StringBuilder ans = new StringBuilder();
-		ans.append(put("\t\tlocal x, y = world:getPlayer():position()",
-				String.format("" + "\t\tif x == %d and y == %d then", goalPosition[0] + 1, goalPosition[1] + 1),
-				"\t\t\tworld.win()", "\t\tend"));
-		return ans.toString();
-	}
-
-
-	@Deprecated
-	private String createInit() {
-		final StringBuilder ans = new StringBuilder();
-		final int width = tiles.length;
-		final int height = tiles[0].length;
-		ans.append(put(String.format("\t\tworld:setSize(%d,%d)", width, height)));
-		for (int i = 0; i < tiles.length; i++) {
-			for (int j = 0; j < tiles[i].length; j++) {
-				Tile t = tiles[i][j];
-				ans.append(put(String.format("\t\tworld:setTile(%d, %d, tileTypes:getTile(\"%s\"))", i + 1, j + 1,
-						t.getName())));
-			}
-		}
-		Point2D.Float pos = player.getPosition();
-		ans.append(String.format("local player = Player.new(world, %d, %d)", (int) pos.x + 1, (int) pos.y + 1));
-		ans.append(String.format("player.setDefaultCode(\"%s\")", player.getDefaultCode()));
-		ans.append(put("\t\tworld:setPlayer(player)"));
-		return ans.toString();
-	}
-
-
-	/**
-	 *
-	 * @return
-	 */
 	public Integer[] goal() {
 		return goalPosition;
 	}

@@ -285,30 +285,6 @@ public final class LevelEditorScreen extends Screen {
 					System.out.println("Unsupported file type: " + openLevelPackFile.getName());
 				}
 				return;
-			case "Save to Stand-Alone":
-				File saveStandAloneFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveStandAloneFile == null)
-					return;
-				String lua = world.getMapScript();
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveStandAloneFile))) {
-					writer.write(lua);
-					System.out.println("Save to Stand-Alone complete.");
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
-				return;
-			case "Open Stand-Alone":
-				File openStandAloneFile = FileControl.openDialog(LevelEditorScreen.this);
-				if (openStandAloneFile == null) {
-					System.out.println("Open cancelled.");
-					return;
-				} else if (openStandAloneFile.getName().endsWith(".lua")) {
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level",
-							DungeonBotsMain.instance.getUser(), new World(openStandAloneFile))));
-					System.out.println("Open from Stand-Alone complete.");
-				} else
-					System.out.println("Unsupported Stand-Alone file type: " + openStandAloneFile.getName());
-				return;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
@@ -659,8 +635,6 @@ public final class LevelEditorScreen extends Screen {
 				.text("Save As...").action("SaveAs to LevelPack", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
 				.text("Open").action("Open LevelPack", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
-				.create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
 				.text("Exit to Main").action("Exit to Main", getController()).create());
