@@ -132,9 +132,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@State
 	private Player player;
 
-	// TODO: specify the goal position with a goal entity?
-	private Integer[] goalPosition = new Integer[] {};
-
 	/**
 	 * The number of times the "reset" button was pressed
 	 */
@@ -662,8 +659,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		} else if (this.serialized) {
 			return;
 		}
-		if (tileType.getName().equals("goal"))
-			setGoal(x, y);
+		
 		tilesAreStale = true;
 
 		tiles[x][y].setType(tileType);
@@ -1011,28 +1007,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @return
 	 */
-	public Integer[] goal() {
-		return goalPosition;
-	}
-
-
-	/**
-	 *
-	 * @param lx
-	 * @param ly
-	 */
-	@Bind(SecurityLevel.AUTHOR)
-	@Doc("Sets the location and position of the Goal for the world.")
-	public void setGoal(@Doc("The X position of the World") LuaValue lx,
-						@Doc("The Y position of the World") LuaValue ly) {
-		setGoal(lx.checkint() - 1, ly.checkint() - 1);
-	}
-
-
-	/**
-	 *
-	 * @return
-	 */
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
@@ -1066,36 +1040,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		
 		if(closest == null) {
-			Integer[] goal = goal();
-			return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(goal[0] + 1), LuaValue.valueOf(goal[1] + 1) });
+			return LuaValue.NIL;
 		} else {
 			Point2D.Float p = closest.getPosition();
 			return LuaValue.varargsOf(new LuaValue[] { LuaValue.valueOf(p.x + 1), LuaValue.valueOf(p.y + 1) });
 		}
-	}
-
-
-	/**
-	 *
-	 * @return
-	 */
-	public Integer[] getGoalPosition() {
-		return goalPosition;
-	}
-
-
-	/**
-	 *
-	 * @param x
-	 * @param y
-	 */
-	public void setGoal(int x, int y) {
-		Integer[] newGoal = new Integer[] { x, y };
-		if (!Arrays.equals(newGoal, goalPosition) && goalPosition.length == 2) {
-			setTile(goalPosition[0], goalPosition[1], tileTypesCollection.getTile("floor"));
-		}
-		goalPosition = newGoal;
-
 	}
 
 
