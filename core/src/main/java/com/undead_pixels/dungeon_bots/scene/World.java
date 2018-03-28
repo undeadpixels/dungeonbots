@@ -449,6 +449,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		
 		entities.add(e);
+		e.onAddedToWorld(this);
+		
 		
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
@@ -627,7 +629,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (player != null) {
 			return this.player;
 		} else {
-			player = new Player(this, "player");
+			player = new Player(this, "player", 1, 1);
 			this.addEntity(player);
 			return player;
 		}

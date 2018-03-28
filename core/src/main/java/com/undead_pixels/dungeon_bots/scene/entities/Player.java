@@ -38,10 +38,8 @@ public class Player extends RpgActor {
 	 * @param world The world this player belongs to
 	 * @param name The name of this player
 	 */
-	public Player(World world, String name) {
-		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), 0, 0);
-
-		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
+	public Player(World world, String name, float x, float y) {
+		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), x, y);
 	}
 
 	/**
@@ -71,13 +69,6 @@ public class Player extends RpgActor {
 	@Bind(SecurityLevel.DEFAULT)
 	public void tryAgain() {
 		world.reset();
-	}
-	/**
-	 * Used to create a non-useful player to display in the Level Editor's
-	 * palette.
-	 */
-	public static Player worldlessPlayer() {
-		return new Player(null, "A player");
 	}
 
 	@Bind(SecurityLevel.AUTHOR)

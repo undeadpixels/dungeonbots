@@ -14,13 +14,13 @@ public class EntityScriptTest {
 	@Test public void testEntitySandbox() {
 		World w = new World();
 		w.setSize(16,16);
-		Player p = new Player(w, "player");
+		Player p = new Player(w, "player", 1, 1);
 		w.addEntity(p);
 		LuaInvocation luaScript = p.getSandbox().init("player:queueUp()").join();
 		assertTrue(luaScript.getStatus() == COMPLETE);
 		w.update(1.f);
 		w.update(1.f);
-		assertEquals(1.0, p.getPosition().y, 0.001);
+		assertEquals(2.0, p.getPosition().y, 0.001);
 	}
 
 }

@@ -97,6 +97,14 @@ public abstract class Entity
 			getSandbox().init();
 		}
 	}
+	
+
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	public void onAddedToWorld(World world) {
+	}
 
 
 	/** Called during the game loop to update the entity's status. */
