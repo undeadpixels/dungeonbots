@@ -1637,6 +1637,19 @@ public class LevelPackScreen extends Screen {
 				newPack.setCurrentWorld(index);
 				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(newPack, false));
 				return;
+			case "EDIT_WORLD":
+				selWorld = (WorldInfo) getCurrentSelection();
+				int idx = selWorld.packInfo.worlds.indexOf(selWorld);
+				LevelPack partPack = selWorld.packInfo.getPack();
+				if (!selWorld.packInfo.hasAuthorPermission()) {
+					JOptionPane.showMessageDialog(LevelPackScreen.this,
+							"Sorry, you do not have permission to edit this world.");
+					return;
+				}
+				LevelPack completePack = selWorld.packInfo.writeComplete();
+				completePack.setCurrentWorld(idx);
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(completePack));
+				return;
 			case "SAVE_LEVELPACK":
 				sel = getCurrentSelection();
 				if (sel instanceof PackInfo) {
