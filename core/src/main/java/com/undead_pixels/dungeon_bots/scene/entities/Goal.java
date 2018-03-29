@@ -17,7 +17,9 @@ import org.luaj.vm2.LuaValue;
  *
  */
 public class Goal extends SpriteEntity {
+
 	private static final long serialVersionUID = 1L;
+
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 3, 5);
 
 	/**

@@ -1,13 +1,15 @@
 package com.undead_pixels.dungeon_bots.file;
 
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -17,11 +19,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Base64;
-//import java.util.Base64;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -31,18 +31,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.ImageList;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.scene.level.WorldList;
-import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * We have opted to serialize collections of Worlds held within a Level Pack
@@ -54,6 +49,47 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  * support specifically for our classes.
  */
 public class Serializer {
+	
+	/**
+	 * Forces serialization to still work despite uid changes.
+	 * Bad practice, but helpful.
+	 * 
+	 * @author https://stackoverflow.com/questions/1816559/make-java-runtime-ignore-serialversionuids
+	 *
+	 */
+	public static class DecompressibleInputStream extends ObjectInputStream {
+		
+		public DecompressibleInputStream(InputStream in) throws IOException {
+			super(in);
+		}
+		
+		protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+			ObjectStreamClass resultClassDescriptor = super.readClassDescriptor(); // initially streams descriptor
+			Class<?> localClass; // the class in the local JVM that this descriptor represents.
+			try {
+				localClass = Class.forName(resultClassDescriptor.getName()); 
+			} catch (ClassNotFoundException e) {
+				System.err.println("No local class for " + resultClassDescriptor.getName());
+				e.printStackTrace();
+				return resultClassDescriptor;
+			}
+			ObjectStreamClass localClassDescriptor = ObjectStreamClass.lookup(localClass);
+			if (localClassDescriptor != null) { // only if class implements serializable
+				final long localSUID = localClassDescriptor.getSerialVersionUID();
+				final long streamSUID = resultClassDescriptor.getSerialVersionUID();
+				if (streamSUID != localSUID) { // check for serialVersionUID mismatch.
+					final StringBuffer s = new StringBuffer("Overriding serialized class version mismatch: ");
+					s.append("local serialVersionUID = ").append(localSUID);
+					s.append(" stream serialVersionUID = ").append(streamSUID);
+					Exception e = new InvalidClassException(s.toString());
+					System.err.println("Non-matching serialVersionUID " + resultClassDescriptor.getName());
+					e.printStackTrace();
+					resultClassDescriptor = localClassDescriptor; // Use local class descriptor for deserialization
+				}
+			}
+			return resultClassDescriptor;
+		}
+	}
 
 	/** Uses Java serialization to make a deep copy of the given object. 
 	 * @throws IOException 
@@ -90,16 +126,21 @@ public class Serializer {
 	@SuppressWarnings("unchecked")
 	public static <T> T deserializeFromBytes(byte[] bytes) {
 		ByteArrayInputStream byte_in = null;
+		ObjectInputStream in = null;
 		T result = null;
 		try {
 			byte_in = new ByteArrayInputStream(bytes);
-			ObjectInputStream in = new ObjectInputStream(byte_in);
+			in = new DecompressibleInputStream(byte_in);
 			result = (T) in.readObject();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				byte_in.close();
+				if(in != null) {
+					in.close();
+				} else {
+					byte_in.close();
+				}
 			} catch (IOException e) {
 				// Do nothing.
 			}

@@ -35,6 +35,11 @@ import org.jdesktop.swingx.calendar.SingleDaySelectionModel;
  */
 public class JXDateTimePicker extends JXDatePicker {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private JSpinner timeSpinner;
 	private JPanel timePanel;
 	private DateFormat timeFormat;
