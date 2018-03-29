@@ -348,9 +348,7 @@ public class Serializer {
 
 
 	public static String serializeLevelPack(LevelPack levelPack) {
-		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = true);
 		String ans = serializeToJSON(levelPack);
-		Stream.of(levelPack.getAllWorlds()).forEach(world -> world.serialized = false);
 		return ans;
 	}
 

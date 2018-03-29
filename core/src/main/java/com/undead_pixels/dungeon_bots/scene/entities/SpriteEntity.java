@@ -68,11 +68,6 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	@Override
 	public void render(RenderingContext batch) {
 		if (sprite != null && sprite.getTexture() != null) {
-			// sprite.setRotation((float) ((System.currentTimeMillis() % 5000l)
-			// * (360f / 5000)));
-			// System.out.println("Rendering sprite "+name+" @ "+getPosition() +
-			// ", scale = " + sprite.getScaleX()+", origin =
-			// "+sprite.getOriginX());
 			sprite.draw(batch);
 		}
 	}

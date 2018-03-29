@@ -62,7 +62,6 @@ public class EditorSaveTest {
 	@Test
 	public void testSerializeLevelPack() throws Exception {
 		LevelPack lp1 = new LevelPack("lp01", User.dummy());
-		lp1.getCurrentWorld().setGoal(0,0);
 		//String serialized = Serializer.serializeLevelPack(lp1);
 		LevelPack lp2 = Serializer.deserializeLevelPack(Serializer.serializeLevelPack(lp1));
 		Serializer.validate(lp1, lp2, lp1.getName() + " LevelPack", false, true,

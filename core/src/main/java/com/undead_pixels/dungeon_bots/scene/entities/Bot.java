@@ -49,7 +49,7 @@ public class Bot extends RpgActor {
 	 * @param y
 	 */
 	public Bot(World world, String name, float x, float y) {
-		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), x, y);
+		super(world, name, DEFAULT_TEXTURE, world.getBotScripts(), x, y);
 		steps = 0;
 		bumps = 0;
 	}

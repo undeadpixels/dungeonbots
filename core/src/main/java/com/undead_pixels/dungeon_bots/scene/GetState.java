@@ -34,6 +34,4 @@ public interface GetState {
 		});
 		return s;
 	}
-
-	String getMapScript();
 }

@@ -7,6 +7,7 @@ import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -136,7 +137,12 @@ public class FloatingText extends ChildEntity {
 	/**
 	 * Internal info/rendering about text
 	 */
-	private class TextInfo {
+	private class TextInfo implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		
 		private String text;
 		private Color color = Color.white;
 		

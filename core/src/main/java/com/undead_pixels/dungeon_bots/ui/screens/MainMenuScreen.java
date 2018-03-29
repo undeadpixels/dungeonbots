@@ -62,9 +62,7 @@ public class MainMenuScreen extends Screen {
 
 					break;
 				case "CREATE":
-					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
-							new World(new File("blank.lua")));
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new
