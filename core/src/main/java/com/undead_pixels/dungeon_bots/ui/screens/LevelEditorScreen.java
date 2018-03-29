@@ -152,8 +152,7 @@ public final class LevelEditorScreen extends Screen {
 			return new Goal(world, "goal", x, y);
 		}));
 		result.add(new EntityType("player", Player.DEFAULT_TEXTURE, (x, y) -> {
-			Player ret = world.getPlayer();
-			ret.setPosition(new Point2D.Float(x, y));
+			Player ret = new Player(world, "player", x, y);
 			return ret;
 		}));
 		result.add(new EntityType("bot", Bot.DEFAULT_TEXTURE, (x, y) -> {

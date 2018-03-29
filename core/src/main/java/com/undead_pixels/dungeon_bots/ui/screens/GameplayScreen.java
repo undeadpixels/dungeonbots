@@ -36,6 +36,7 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JMessagePane;
@@ -220,9 +221,9 @@ public class GameplayScreen extends Screen {
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
 		message("This is a regular message from the world.\n", Color.white);
 		message("This is an error message from the world.\n", Color.red);
-		message(world.getPlayer(), "This is a regular message from an entity.\n", Color.WHITE);
-		message(world.getPlayer(), "This is an error message from an entity.\n", Color.RED);
-		message(world.getPlayer(), "This is a green message.  Just because.\n", Color.green);
+		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", Color.WHITE);
+		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", Color.RED);
+		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -324,9 +325,10 @@ public class GameplayScreen extends Screen {
 			case "Rewind":
 				World oldWorld = world;
 				world = Serializer.deepCopy(originalWorld);
-				world.persistScriptsFrom(oldWorld);
+				world.resetFrom(oldWorld);
 				view.setWorld(world);
 				world.onBecomingVisibleInGameplay();
+				((Controller) getController()).selector.setWorld(world);
 				break;
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));

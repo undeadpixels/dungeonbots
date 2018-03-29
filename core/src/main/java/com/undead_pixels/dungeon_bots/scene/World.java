@@ -65,7 +65,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * The scripts the players entities all own
 	 */
-	private final UserScriptCollection playerTeamScripts = new UserScriptCollection();
+	private final UserScriptCollection botScripts = new UserScriptCollection();
 
 	/**
 	 * The LuaBindings to the World Lazy initialized
@@ -140,12 +140,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Collection of all entities in this world
 	 */
 	private ArrayList<Entity> entities = new ArrayList<>();
-
-	/**
-	 * The player object
-	 */
-	@State
-	private Player player;
 
 	/**
 	 * The number of times the "reset" button was pressed
@@ -267,7 +261,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.levelScripts.add(new UserScript("init", defaultInitScript));
 		}
 
-		playerTeamScripts.add(new UserScript("init", "--TODO"));
+		botScripts.add(new UserScript("init", "--TODO"));
 		
 		this.autoPlay = autoPlay;
 	}
@@ -322,35 +316,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	
 	public boolean isWon() {
 		return isWon;
-	}
-
-
-	@Deprecated
-	public void setPlayer(Player p) {
-		int oldIdx = entities.indexOf(player);
-		if (oldIdx >= 0) {
-			entities.remove(oldIdx);
-			entities.add(oldIdx, p);
-		} else {
-			entities.add(p);
-			this.addEntity(p);
-		}
-		player = p;
-		p.resetInventory();
-	}
-
-
-	/**
-	 * Gets the object of class Player that exists in the Lua sandbox and sets
-	 * the World's player reference to that.
-	 *
-	 * @param luaPlayer
-	 */
-	@Deprecated
-	@Bind(SecurityLevel.AUTHOR)
-	public void setPlayer(LuaValue luaPlayer) {
-		Player p = (Player) luaPlayer.checktable().get("this").checkuserdata(Player.class);
-		setPlayer(p);
 	}
 
 
@@ -701,13 +666,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind
 	public Player getPlayer() {
-		if (player != null) {
-			return this.player;
-		} else {
-			player = new Player(this, "player", 1, 1);
-			this.addEntity(player);
-			return player;
+		for(Entity e: entities) {
+			if(e instanceof Player) {
+				return (Player)e;
+			}
 		}
+		return null;
 	}
 
 
@@ -1061,11 +1025,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public synchronized void persistScriptsFrom(World other) {
 		synchronized (this) {
-			// TODO - timesReset++;
+			// TODO - this only persists the changes to the level script and bot scripts
 			this.levelScripts.setTo(other.levelScripts);
-			this.playerTeamScripts.setTo(other.playerTeamScripts);
+			this.botScripts.setTo(other.botScripts);
 
 		}
+	}
+
+
+	/**
+	 * @param oldWorld
+	 */
+	public void resetFrom (World oldWorld) {
+		persistScriptsFrom(oldWorld);
+		this.timesReset = oldWorld.timesReset + 1;
 	}
 
 
@@ -1077,11 +1050,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Map<String, Object> getState() {
 		final Map<String, Object> state = new HashMap<>();
 		state.put("Times Reset", timesReset);
-		state.put("Steps", player.steps());
-		state.put("Bumps", player.bumps());
-		state.put("Health", player.getHealth());
-		state.put("Mana", player.getMana());
-		state.put("Stamina", player.getStamina());
+		// TODO - this should involve bots and stuff, too...
+		Player player = getPlayer();
+		if(player != null) {
+			state.put("Steps", player.steps());
+			state.put("Bumps", player.bumps());
+			state.put("Health", player.getHealth());
+			state.put("Mana", player.getMana());
+			state.put("Stamina", player.getStamina());
+		}
 		return state;
 	}
 
@@ -1266,8 +1243,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	public UserScriptCollection getPlayerTeamScripts() {
-		return playerTeamScripts;
+	public UserScriptCollection getBotScripts() {
+		return botScripts;
 	}
 
 

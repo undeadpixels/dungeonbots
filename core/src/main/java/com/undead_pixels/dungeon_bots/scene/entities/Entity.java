@@ -74,8 +74,13 @@ public abstract class Entity
 	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
-		this.id = world.makeID();
 		this.scripts = scripts;
+
+		if(world != null) {
+			this.id = world.makeID();
+		} else {
+			this.id = -1;
+		}
 	}
 
 

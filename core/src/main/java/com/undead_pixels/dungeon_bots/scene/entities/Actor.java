@@ -79,7 +79,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
 		super(world, name, tex, scripts, x, y);
 		floatingText = new FloatingText(this, name+"-text");
-		world.addEntity(floatingText);
 	}
 	
 	/**
