@@ -30,6 +30,8 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  */
 public abstract class Screen extends JFrame {
 
+	// NOTE - these really should be in only the screens where it's actually relevant
+	// for example, the main menu does not need them, and they are duplicated other places.
 	protected LevelPack levelPack;
 	protected World world;
 	

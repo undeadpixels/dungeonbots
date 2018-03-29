@@ -103,6 +103,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private boolean delayInit = true;
 	
 	/**
+	 * If this world has been won
+	 */
+	private transient boolean isWon = false;
+	
+	/**
 	 * If the init scripts were already run
 	 */
 	private transient boolean didInit = false;
@@ -258,6 +263,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.didInit = true;
 		}
 	}
+	
+	public void onBecomingVisible() {
+		if(!didInit && !delayInit) {
+			runInitScripts();
+		}
+	}
 
 
 	// =============================================
@@ -281,7 +292,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
+		isWon = true;
 		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
+		// TODO - this call should be indirected to allow for other levels in the pack
+	}
+	
+	public boolean isWon() {
+		return isWon;
 	}
 
 
@@ -325,10 +342,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            Delta time
 	 */
 	public void update(float dt) {
-		if(!didInit && !delayInit) {
-			runInitScripts();
-		}
-		
 		// update tiles from tileTypes, if dirty
 		synchronized (this) {
 			refreshTiles();
@@ -1018,18 +1031,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * Resets this world
-	 * 
-	 * TODO - what exactly does that mean?
 	 */
-	public synchronized void reset() {
+	public synchronized void persistUsefulStuffFrom(World other) {
 		synchronized (this) {
-			timesReset++;
-			// levelScript = null;
-			// tiles = new Tile[0][0];
-			// entities.clear();
-			// backgroundImage = null;
-			// level.init();
-			// TODO
+			// TODO - timesReset++;
+			this.levelScripts.setTo(other.levelScripts);
+			this.playerTeamScripts.setTo(other.playerTeamScripts);
 		}
 	}
 

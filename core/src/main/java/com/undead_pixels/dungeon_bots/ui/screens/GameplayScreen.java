@@ -314,10 +314,9 @@ public class GameplayScreen extends Screen {
 
 			case "REWIND":
 			case "Rewind":
-				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
-						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-					world.reset();
-				}
+				World oldWorld = world;
+				world = Serializer.deepCopy(originalWorld);
+				world.persistUsefulStuffFrom(oldWorld);
 				break;
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));

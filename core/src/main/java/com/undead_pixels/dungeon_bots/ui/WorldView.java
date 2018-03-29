@@ -15,6 +15,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -42,6 +44,7 @@ public class WorldView extends JComponent {
 	private transient Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
 	private boolean isPlaying = false;
+	private final Timer timer;
 
 	/*
 	 * @Deprecated public WorldView() { // world = new World(new //
@@ -55,13 +58,14 @@ public class WorldView extends JComponent {
 
 	public WorldView(World world) {
 		this.world = world;
+		world.onBecomingVisible();
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
 		
-		Timer t = new Timer(16, new ActionListener() {
+		timer = new Timer(16, new ActionListener() {
 
 			@Override
 			public void actionPerformed (ActionEvent e) {
@@ -75,6 +79,10 @@ public class WorldView extends JComponent {
 					
 					lastTime = nowTime;
 					world.update(dt);
+					
+					if(world.isWon()) {
+						timer.stop();
+					}
 				}
 				
 				repaint();
@@ -86,10 +94,32 @@ public class WorldView extends JComponent {
 			isPlaying = true;
 		}
 
-		t.start();
+		timer.start();
 		
 		this.setFocusable(true);
 		this.requestFocusInWindow();
+		
+		this.addComponentListener(new ComponentListener() {
+
+			@Override
+			public void componentResized (ComponentEvent e) {
+			}
+
+			@Override
+			public void componentMoved (ComponentEvent e) {
+			}
+
+			@Override
+			public void componentShown (ComponentEvent e) {
+				timer.start();
+			}
+
+			@Override
+			public void componentHidden (ComponentEvent e) {
+				timer.stop();
+			}
+			
+		});
 	}
 
 	/**
@@ -184,6 +214,7 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
+		world.onBecomingVisible();
 	}
 
 	// ==================================================

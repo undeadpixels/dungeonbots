@@ -66,11 +66,6 @@ public class Player extends RpgActor {
 		return p;
 	}
 
-	@Bind(SecurityLevel.DEFAULT)
-	public void tryAgain() {
-		world.reset();
-	}
-
 	@Bind(SecurityLevel.AUTHOR)
 	public void setDefaultCode(LuaValue df) {
 		defaultCode = df.tojstring();

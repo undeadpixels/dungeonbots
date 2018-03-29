@@ -67,4 +67,13 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 		Arrays.sort(result);
 		return result;
 	}
+
+
+	/**
+	 * @param playerTeamScripts
+	 */
+	public void setTo (UserScriptCollection playerTeamScripts) {
+		storage.clear();
+		storage.putAll(playerTeamScripts.storage);
+	}
 }
