@@ -679,7 +679,7 @@ public class LevelPackScreen extends Screen {
 
 	private Undoable<DefaultMutableTreeNode> addNewPack() {
 		LevelPack newPack = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(),
-				new World(new File(LevelPack.DEFAULT_WORLD_FILE)));
+				new World());
 		PackInfo pInfo = PackInfo.withoutJSON(newPack);
 		return addNewPack(pInfo);
 	}

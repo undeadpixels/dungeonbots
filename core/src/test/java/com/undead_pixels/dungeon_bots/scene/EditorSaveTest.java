@@ -54,6 +54,7 @@ public class EditorSaveTest {
 	private static void testWorldMadeFromScript(String filename, Serializer.PrintOptions options) throws Exception {
 
 		World w1 = new World(new File(filename));
+		w1.runInitScripts();
 		World w2 = Serializer.deserializeWorld(Serializer.serializeWorld(w1));
 
 		Serializer.validate(w1, w2, filename + " world", false, true, options);

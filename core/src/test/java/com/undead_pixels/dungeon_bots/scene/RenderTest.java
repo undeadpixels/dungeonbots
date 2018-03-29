@@ -132,6 +132,7 @@ public class RenderTest {
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
 		World world = new World(new File(levelName));
+		world.runInitScripts();
 		RenderingContext batch = new RenderingContext(img.createGraphics(), img.getWidth(), img.getHeight());
 		OrthographicCamera cam = new OrthographicCamera(w, h);
 		
