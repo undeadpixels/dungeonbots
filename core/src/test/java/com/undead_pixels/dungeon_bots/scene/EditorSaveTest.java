@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene;
 
-import java.io.File;
 import java.util.Base64;
 
 import org.junit.Test;
@@ -55,7 +54,6 @@ public class EditorSaveTest {
 
 		// TODO - probably should test the whole pack, instead of just worlds, now that this is reading json's
 		World w1 = LevelPack.fromFile(filename).getCurrentWorld();
-		w1.runInitScripts();
 		World w2 = Serializer.deserializeWorld(Serializer.serializeWorld(w1));
 
 		Serializer.validate(w1, w2, filename + " world", false, true, options);
