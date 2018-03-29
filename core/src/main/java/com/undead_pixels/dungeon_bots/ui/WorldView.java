@@ -41,6 +41,7 @@ public class WorldView extends JComponent {
 	private transient Tile[] selectedTiles = null;
 	private transient Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
+	private boolean isPlaying = false;
 
 	/*
 	 * @Deprecated public WorldView() { // world = new World(new //
@@ -59,22 +60,43 @@ public class WorldView extends JComponent {
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
+		
+		Timer t = new Timer(16, new ActionListener() {
+
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				if (world != null && isPlaying) {
+					long nowTime = System.nanoTime();
+					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
+					
+					if(dt > 1_000_000_000.0f) {
+						dt = 1_000_000_000; // cap dt at 1 second
+					}
+					
+					lastTime = nowTime;
+					world.update(dt);
+				}
+				
+				repaint();
+			}
+			
+		});
+		
+		if(world.isPlayOnStart()) {
+			isPlaying = true;
+		}
+
+		t.start();
+		
+		this.setFocusable(true);
+		this.requestFocusInWindow();
 	}
 
 	/**
 	 * Renders the world using the camera transform specific to this WorldView
 	 */
 	@Override
-	public void paint(Graphics g) {
-
-		long nowTime = System.nanoTime();
-		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
-		lastTime = nowTime;
-
-		// TODO - move this update() thing elsewhere.
-		if (world != null) {
-			world.update(dt);
-		}
+	public void paintComponent(Graphics g) {
 
 		try {
 			Graphics2D g2d = (Graphics2D) g;
@@ -124,24 +146,6 @@ public class WorldView extends JComponent {
 
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
-		}
-
-		// TODO - this should live elsewhere, but it'll at least help cap fps
-		// for now.
-		long spareTime = 15_000_000 - (System.nanoTime() - lastTime);
-		int sleepTime = (int) (spareTime / 1000_000);
-		// System.out.println("DT = "+dt+", sleep = "+sleepTime);
-		if (sleepTime > 0) {
-			Timer t = new Timer(sleepTime, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					repaint();
-				}
-			});
-			t.setRepeats(false);
-			t.start();
-		} else {
-			repaint();
 		}
 	}
 
@@ -296,6 +300,17 @@ public class WorldView extends JComponent {
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @param isPlaying
+	 */
+	public void setPlaying (boolean isPlaying) {
+		this.isPlaying = isPlaying;
+		
+		if(isPlaying) {
+			world.runInitScripts();
+		}
 	}
 
 }

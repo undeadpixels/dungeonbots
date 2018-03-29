@@ -74,7 +74,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private transient LuaValue luaValue;
 
 	/**
-	 * The sandbox that the levelScript runs inside of
+	 * The sandbox that the levelScript runs inside of.
+	 * 
+	 * Lazy-loaded
 	 */
 	private transient LuaSandbox mapSandbox;
 
@@ -93,8 +95,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * The whitelist governing what functions are accessible by whom
 	 */
 	private Whitelist sharedWhitelist = new Whitelist();
-
-	public boolean serialized = false;
+	
+	/**
+	 * If the gameplay view should not automagically begin play when the world is loaded
+	 * (Should wait until the user hits "play" to run init)
+	 */
+	private boolean delayInit = true;
+	
+	/**
+	 * If the init scripts were already run
+	 */
+	private transient boolean didInit = false;
 
 	// =============================================
 	// ====== World CONSTRUCTOR AND STARTUP STUFF
@@ -142,6 +153,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * An id counter, used to hand out id's to entities
 	 * 
 	 * TODO - see if this conflicts with anything Stewart is doing.
+	 * 
+	 * Also TODO - is this even useful anymore?
 	 */
 	private int idCounter = 0;
 
@@ -157,7 +170,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Simple constructor
 	 */
 	public World() {
-		this(null, "world");
+		this(null, "world", true);
 		tileTypesCollection = new TileTypes();
 		
 		this.setSize(16, 16);
@@ -181,7 +194,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Deprecated
 	public World(File luaScriptFile) {
-		this(luaScriptFile, "world");
+		this(luaScriptFile, "world", false);
 		tileTypesCollection = new TileTypes();
 	}
 
@@ -193,7 +206,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The name
 	 */
 	public World(String name) {
-		this(null, name);
+		this(null, name, true);
 		tileTypesCollection = new TileTypes();
 
 		backgroundImage = null;
@@ -210,8 +223,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The name
 	 */
 	@Deprecated
-	public World(File luaScriptFile, String name) {
+	private World(File luaScriptFile, String name, boolean delayInit) {
 		this.name = name;
+
+		tileTypesCollection = new TileTypes();
 
 		backgroundImage = null;
 		tiles = new Tile[0][0];
@@ -223,40 +238,25 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 
 		playerTeamScripts.add(new UserScript("init", "--TODO"));
-
-		mapSandbox = new LuaSandbox(this);
-		mapSandbox.registerEventType("UPDATE");
-		if (luaScriptFile != null) {
-			tileTypesCollection = new TileTypes();
-
-			mapSandbox.addBindable("world", this);
-			mapSandbox.addBindable("tileTypes", tileTypesCollection);
-			mapSandbox.addBindable("whitelist", this.getWhitelist());
-			mapSandbox.addBindableClass(Player.class);
-			LuaInvocation initScript = mapSandbox.init().join();
-
-			assert initScript.getStatus() == ScriptStatus.COMPLETE;
-			assert initScript.getResults().isPresent(); // XXX
-		}
-		SandboxManager.register(Thread.currentThread(), mapSandbox);
+		
+		this.delayInit = delayInit;
 	}
 
 
 	/**
 	 * Perform some initializations that need to be done upon deserialization
 	 */
-	private void worldSomewhatInit() {
-		mapSandbox = new LuaSandbox(this);
-		mapSandbox.registerEventType("UPDATE");
-		mapSandbox.addBindable("world", this);
-		mapSandbox.addBindable("tileTypes", tileTypesCollection);
-		mapSandbox.addBindable("whitelist", this.getWhitelist());
-		mapSandbox.addBindableClass(Player.class);
-		LuaInvocation initScript = mapSandbox.init().join();
-		this.serialized = false;
-
-		assert initScript.getStatus() == ScriptStatus.COMPLETE;
-		assert initScript.getResults().isPresent();
+	public void runInitScripts() {
+		if(!didInit) {
+			LuaInvocation initScript = getSandbox().init().join(2000);
+			
+			assert initScript.getStatus() == ScriptStatus.COMPLETE;
+			
+			for (Entity e : entities) {
+				e.sandboxInit();
+			}
+			this.didInit = true;
+		}
 	}
 
 
@@ -325,6 +325,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            Delta time
 	 */
 	public void update(float dt) {
+		if(!didInit && !delayInit) {
+			runInitScripts();
+		}
+		
 		// update tiles from tileTypes, if dirty
 		synchronized (this) {
 			refreshTiles();
@@ -344,7 +348,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 			playstyle.update();
 			// update level script
-			this.mapSandbox.fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
+			getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 			
 			checkIfWon();
 		}
@@ -387,12 +391,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
-
-	public void beginPlay() {
-		for (Entity e : entities) {
-			e.sandboxInit();
-		}
-	}
 	
 	private void checkIfWon() {
 		int numGoals = 0;
@@ -507,6 +505,46 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind
 	public void makeBot(LuaValue x, LuaValue y) {
 		makeBot("bot", x.tofloat(), y.tofloat());
+	}
+
+
+	
+	public boolean isPlayOnStart () {
+		return !this.delayInit;
+	}
+
+
+	
+	public void setPlayOnStart (boolean playOnStart) {
+		this.delayInit = !playOnStart;
+	}
+
+	@Bind
+	public void setFlag(LuaValue flagName, LuaValue flagVal) {
+		switch (flagName.checkjstring()) {
+			case "delayInit":
+				this.delayInit = flagVal.checkboolean();
+				break;
+			case "name":
+				this.name = flagVal.checkjstring();
+				break;
+			case "playstyle":
+				if(flagVal.checkjstring().equals("EntityTurns")) {
+					this.playstyle = new ActionGrouping.EntityTurnsGrouping();
+				} else if(flagVal.checkjstring().equals("RTS")) {
+					this.playstyle = new ActionGrouping.RTSGrouping();
+				} else if(flagVal.checkjstring().equals("TeamTurns")) {
+					this.playstyle = new ActionGrouping.TeamTurnsGrouping();
+				} else {
+					
+				}
+				break;
+			case "timesReset":
+				this.timesReset = flagVal.checkint();
+				break;
+			default:
+				throw new LuaError("Bad flag name");
+		}
 	}
 
 
@@ -656,8 +694,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setTile(int x, int y, TileType tileType) {
 		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
 			return; // out of bounds; TODO - should something else happen?
-		} else if (this.serialized) {
-			return;
 		}
 		
 		tilesAreStale = true;
@@ -953,7 +989,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * script runs here.
 	 */
 	public LuaSandbox getSandbox() {
-		return this.mapSandbox;
+		if(this.mapSandbox != null) {
+			return this.mapSandbox;
+		} else {
+			mapSandbox = new LuaSandbox(this);
+			mapSandbox.registerEventType("UPDATE");
+			mapSandbox.addBindable("this", this);
+			mapSandbox.addBindable("world", this);
+			mapSandbox.addBindable("tileTypes", tileTypesCollection);
+			mapSandbox.addBindable("whitelist", this.getWhitelist());
+			mapSandbox.addBindableClass(Player.class);
+			
+			return mapSandbox;
+		}
 	}
 
 
@@ -1159,8 +1207,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		this.tilesAreStale = true;
-		this.worldSomewhatInit();
-		this.serialized = false;
 	}
 
 

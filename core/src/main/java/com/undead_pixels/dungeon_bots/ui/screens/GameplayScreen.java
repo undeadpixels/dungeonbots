@@ -32,6 +32,7 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
+import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
@@ -55,14 +56,16 @@ public class GameplayScreen extends Screen {
 	private WorldView view;
 	private final boolean isSwitched;
 	private JMessagePane _MessagePane;
+	private final World originalWorld;
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
 	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
 	@Deprecated
 	public GameplayScreen(World world) {
-		super(world);
+		super(Serializer.deepCopy(world));
 		this.isSwitched = false;
+		this.originalWorld = world;
 	}
 
 
@@ -75,6 +78,8 @@ public class GameplayScreen extends Screen {
 	public GameplayScreen(LevelPack pack, boolean switched) {
 		super(pack);
 		this.isSwitched = switched;
+		this.originalWorld = world;
+		this.world = Serializer.deepCopy(originalWorld);
 	}
 
 
@@ -319,7 +324,7 @@ public class GameplayScreen extends Screen {
 				return;
 			case "PLAY":
 			case "Play":
-				world.beginPlay();
+				view.setPlaying(true);
 				break;
 			case "Save":
 			case "Save As":
