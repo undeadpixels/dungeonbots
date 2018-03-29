@@ -68,7 +68,7 @@ public class WorldView extends JComponent {
 
 			@Override
 			public void actionPerformed (ActionEvent e) {
-				if (world != null && isPlaying) {
+				if (WorldView.this.world != null && isPlaying) {
 					long nowTime = System.nanoTime();
 					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 					
@@ -77,9 +77,9 @@ public class WorldView extends JComponent {
 					}
 					
 					lastTime = nowTime;
-					world.update(dt);
+					WorldView.this.world.update(dt);
 					
-					if(world.isWon()) {
+					if(WorldView.this.world.isWon()) {
 						timer.stop();
 					}
 				}
@@ -213,6 +213,12 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
+		
+		if(world.isPlayOnStart()) {
+			isPlaying = true;
+		} else {
+			isPlaying = false;
+		}
 	}
 
 	// ==================================================
