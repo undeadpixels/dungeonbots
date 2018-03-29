@@ -129,11 +129,6 @@ public class TileType implements GetLuaFacade, Serializable {
 				down == null ? null : down.getType());
 	}
 
-	@Override
-	public int getId() {
-		return 0;
-	}
-
 	public String getName() {
 		return name;
 	}
