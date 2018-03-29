@@ -106,31 +106,7 @@ public class Player extends RpgActor {
 
 	public void resetInventory() {
 		this.inventory.reset();
-		/*
-		this.inventory.addItems(
-				new Note(this.world,"Welcome to Dungeonbots!"),
-				new Website(this.world, "Youtube", "https://www.youtube.com/"),
-				new MultipleChoiceQuestion(this.world, "What is the correct answer", "This", "or this"),
-				new ResponseQuestion(this.world, "What's your favorite?", "Movie", "Game"),
-				new Sword(this.world),
-				new Gold(this.world, 25));
-		*/
-	}
 
-	/**
-	 *
-	 * @param luaDir
-	 * @param itemReference
-	 * @return
-	 */
-	@Bind(SecurityLevel.DEFAULT)
-	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
-		String dir = luaDir.checkjstring().toUpperCase();
-		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
-				.checkuserdata(ItemReference.class);
-		Direction direction = Direction.valueOf(dir);
-		return false;
-		//return this.world.tryUse(itemRef, direction, this);
 	}
 
 	@Override
