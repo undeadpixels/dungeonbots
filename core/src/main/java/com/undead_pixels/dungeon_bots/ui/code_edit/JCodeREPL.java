@@ -213,7 +213,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 				messageError("^Q");
 				Component parent = _EditorPane.getParent();
 				while (parent != null) {
-					// System.out.println(parent.getClass().toString());
 					parent = parent.getParent();
 					if (parent instanceof JDialog) {
 						JDialog dialog = (JDialog) parent;

@@ -48,8 +48,8 @@ public class EntityActionTest {
 		int i = 0;
 		for(Point2D.Float expect : expected) {
 			world.update(p.getMoveDuration() / 2 + .0001f);
-			System.out.println(p.getActionQueue());
-			System.out.println(p.getPosition());
+			//System.out.println(p.getActionQueue());
+			//System.out.println(p.getPosition());
 			assertEquals("Trying time step #"+(i+1), expect, p.getPosition(), 0.01f);
 			i++;
 		}

@@ -679,7 +679,7 @@ public class LevelPackScreen extends Screen {
 
 	private Undoable<DefaultMutableTreeNode> addNewPack() {
 		LevelPack newPack = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(),
-				new World(new File(LevelPack.DEFAULT_WORLD_FILE)));
+				new World());
 		PackInfo pInfo = PackInfo.withoutJSON(newPack);
 		return addNewPack(pInfo);
 	}
@@ -1338,9 +1338,9 @@ public class LevelPackScreen extends Screen {
 				String[] descriptions = new String[this.worlds.size()];
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
-					if (wInfo.originalIndex < 0)
-						completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
-					else
+					//if (wInfo.originalIndex < 0)
+					//	completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
+					//else
 						completeWorlds[i] = pack.getWorld(wInfo.originalIndex);
 
 					completeWorlds[i].setName(wInfo.title);

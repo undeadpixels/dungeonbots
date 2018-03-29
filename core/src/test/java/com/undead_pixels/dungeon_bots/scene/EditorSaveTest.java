@@ -15,17 +15,17 @@ public class EditorSaveTest {
 
 	@Test
 	public void testSerializeWorld() throws Exception {
-		testWorldMadeFromScript("level1.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("maze1.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("maze2.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("default.lua", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_level1.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_maze1.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_maze2.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("multigoals.json", Serializer.PrintOptions.NONE);
 	}
 
 	@Test
 	public void testSerializeWorldList() throws Exception {
-		World w1 = new World(new File("level1.lua"));
-		World w2 = new World(new File("maze1.lua"));
-		World w3 = new World(new File("maze2.lua"));
+		World w1 = LevelPack.fromFile("legacy_level1.json").getCurrentWorld();
+		World w2 = LevelPack.fromFile("legacy_maze1.json").getCurrentWorld();
+		World w3 = LevelPack.fromFile("legacy_maze2.json").getCurrentWorld();
 
 		WorldList original = new WorldList();
 		original.add(w1);
@@ -51,9 +51,11 @@ public class EditorSaveTest {
 
 	}
 
-	private static void testWorldMadeFromScript(String filename, Serializer.PrintOptions options) throws Exception {
+	private static void testWorldReserialize(String filename, Serializer.PrintOptions options) throws Exception {
 
-		World w1 = new World(new File(filename));
+		// TODO - probably should test the whole pack, instead of just worlds, now that this is reading json's
+		World w1 = LevelPack.fromFile(filename).getCurrentWorld();
+		w1.runInitScripts();
 		World w2 = Serializer.deserializeWorld(Serializer.serializeWorld(w1));
 
 		Serializer.validate(w1, w2, filename + " world", false, true, options);
