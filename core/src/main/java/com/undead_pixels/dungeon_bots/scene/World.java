@@ -238,7 +238,33 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		} else {
-			this.levelScripts.add(new UserScript("init", ""));
+			// TODO - these comments aren't correct anymore
+			String defaultInitScript =
+					"--[[\n" + 
+					"stuff that's passed in:\n" + 
+					"\n" + 
+					"world\n" + 
+					" - tiles        custom class\n" + 
+					"   - setSize      function(width, height)\n" + 
+					"   - setTile      function(x, y, Tile)\n" + 
+					"   - getTile      function(x, y, Tile)\n" + 
+					" - bots         array of Actors\n" + 
+					" - player       player reference\n" + 
+					" - enemies      array of Actors\n" + 
+					" - win          function(info)\n" + 
+					" - listenFor    function(eventName, funcPtr)\n" + 
+					"\n" + 
+					"tileTypes\n" + 
+					" - floor\n" + 
+					" - wall\n" + 
+					" - goal\n" + 
+					" - ???\n" + 
+					"]]\n" + 
+					"\n" +
+					"registerUpdateListener(function(dt)\n" +
+					"  -- put any code you want to run every frame in here\n" +
+					"end)";
+			this.levelScripts.add(new UserScript("init", defaultInitScript));
 		}
 
 		playerTeamScripts.add(new UserScript("init", "--TODO"));
@@ -292,8 +318,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
 		isWon = true;
-		DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(this));
-		// TODO - this call should be indirected to allow for other levels in the pack
 	}
 	
 	public boolean isWon() {
@@ -359,10 +383,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				e.update(dt);
 			}
 			playstyle.update();
-			// update level script
-			getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 			
-			checkIfWon();
+			
+			// update level script
+			if(this.didInit) {
+				getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
+				
+				checkIfWon();
+			}
 		}
 
 	}
@@ -531,7 +559,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.autoPlay = autoPlay;
 	}
 
-	@Bind
+	@Bind(SecurityLevel.AUTHOR)
 	public void setFlag(LuaValue flagName, LuaValue flagVal) {
 		switch (flagName.checkjstring()) {
 			case "autoPlay":
@@ -1031,11 +1059,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Resets this world
 	 */
-	public synchronized void persistUsefulStuffFrom(World other) {
+	public synchronized void persistScriptsFrom(World other) {
 		synchronized (this) {
 			// TODO - timesReset++;
 			this.levelScripts.setTo(other.levelScripts);
 			this.playerTeamScripts.setTo(other.playerTeamScripts);
+
 		}
 	}
 

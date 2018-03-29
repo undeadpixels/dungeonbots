@@ -97,7 +97,13 @@ public class GameplayScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// At the world at the bottom layer.
-		view = new WorldView(world);
+		if(this.isSwitched) {
+			view = new WorldView(world,
+					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));});
+		} else {
+			view = new WorldView(world,
+					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(w));});
+		}
 		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
@@ -318,7 +324,7 @@ public class GameplayScreen extends Screen {
 			case "Rewind":
 				World oldWorld = world;
 				world = Serializer.deepCopy(originalWorld);
-				world.persistUsefulStuffFrom(oldWorld);
+				world.persistScriptsFrom(oldWorld);
 				view.setWorld(world);
 				world.onBecomingVisibleInGameplay();
 				break;

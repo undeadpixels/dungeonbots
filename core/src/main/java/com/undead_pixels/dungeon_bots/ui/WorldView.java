@@ -19,6 +19,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -45,6 +46,7 @@ public class WorldView extends JComponent {
 	private Tool renderingTool = null;
 	private boolean isPlaying = false;
 	private final Timer timer;
+	private final Consumer<World> winAction;
 
 	/*
 	 * @Deprecated public WorldView() { // world = new World(new //
@@ -56,8 +58,9 @@ public class WorldView extends JComponent {
 	 * this.setFocusable(true); this.requestFocusInWindow(); }
 	 */
 
-	public WorldView(World world) {
+	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
+		this.winAction = winAction;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
@@ -68,7 +71,7 @@ public class WorldView extends JComponent {
 
 			@Override
 			public void actionPerformed (ActionEvent e) {
-				if (WorldView.this.world != null && isPlaying) {
+				if (WorldView.this.world != null) {
 					long nowTime = System.nanoTime();
 					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 					
@@ -81,6 +84,7 @@ public class WorldView extends JComponent {
 					
 					if(WorldView.this.world.isWon()) {
 						timer.stop();
+						winAction.accept(world);
 					}
 				}
 				
@@ -90,7 +94,7 @@ public class WorldView extends JComponent {
 		});
 		
 		if(world.isPlayOnStart()) {
-			isPlaying = true;
+			setPlaying(true);
 		}
 
 		timer.start();
@@ -214,11 +218,7 @@ public class WorldView extends JComponent {
 	public void setWorld(World world) {
 		this.world = world;
 		
-		if(world.isPlayOnStart()) {
-			isPlaying = true;
-		} else {
-			isPlaying = false;
-		}
+		setPlaying(world.isPlayOnStart());
 	}
 
 	// ==================================================

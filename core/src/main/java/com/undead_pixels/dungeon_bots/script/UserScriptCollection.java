@@ -70,10 +70,22 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 
 
 	/**
-	 * @param playerTeamScripts
+	 * @param other
 	 */
-	public void setTo (UserScriptCollection playerTeamScripts) {
+	public void setTo (UserScriptCollection other) {
 		storage.clear();
-		storage.putAll(playerTeamScripts.storage);
+		storage.putAll(other.storage);
+	}
+
+
+	@Override
+	public String toString () {
+		StringBuilder ret = new StringBuilder();
+		
+		for(String name: storage.keySet()) {
+			ret.append(storage.get(name).toString());
+		}
+		
+		return ret.toString();
 	}
 }

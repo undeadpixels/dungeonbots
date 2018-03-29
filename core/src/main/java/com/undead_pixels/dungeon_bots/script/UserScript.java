@@ -122,7 +122,7 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 
 	@Override
 	public final String toString() {
-		return "Script: " + name;
+		return "Script: " + name + "\n" + code.replaceAll("^", "    ");
 	}
 
 	/**
