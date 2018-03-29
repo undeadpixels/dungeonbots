@@ -14,6 +14,8 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
  */
 public class Goal extends SpriteEntity {
 	
+	private static final long serialVersionUID = 1L;
+	
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 3, 5);
 
 	/**
