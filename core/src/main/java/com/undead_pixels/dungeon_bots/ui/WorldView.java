@@ -58,7 +58,6 @@ public class WorldView extends JComponent {
 
 	public WorldView(World world) {
 		this.world = world;
-		world.onBecomingVisible();
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
@@ -214,7 +213,6 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
-		world.onBecomingVisible();
 	}
 
 	// ==================================================

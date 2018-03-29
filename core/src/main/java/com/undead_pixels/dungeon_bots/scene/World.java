@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Stream;
 
 import javax.swing.JOptionPane;
 
@@ -100,7 +99,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * If the gameplay view should not automagically begin play when the world is loaded
 	 * (Should wait until the user hits "play" to run init)
 	 */
-	private boolean delayInit = true;
+	private boolean autoPlay = false;
 	
 	/**
 	 * If this world has been won
@@ -199,7 +198,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Deprecated
 	public World(File luaScriptFile) {
-		this(luaScriptFile, "world", false);
+		this(luaScriptFile, "world", true);
 		tileTypesCollection = new TileTypes();
 	}
 
@@ -211,7 +210,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The name
 	 */
 	public World(String name) {
-		this(null, name, true);
+		this(null, name, false);
 		tileTypesCollection = new TileTypes();
 
 		backgroundImage = null;
@@ -228,7 +227,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The name
 	 */
 	@Deprecated
-	private World(File luaScriptFile, String name, boolean delayInit) {
+	private World(File luaScriptFile, String name, boolean autoPlay) {
 		this.name = name;
 
 		tileTypesCollection = new TileTypes();
@@ -244,7 +243,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		playerTeamScripts.add(new UserScript("init", "--TODO"));
 		
-		this.delayInit = delayInit;
+		this.autoPlay = autoPlay;
 	}
 
 
@@ -264,8 +263,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 	
-	public void onBecomingVisible() {
-		if(!didInit && !delayInit) {
+	public void onBecomingVisibleInGameplay() {
+		if(!didInit && autoPlay) {
 			runInitScripts();
 		}
 	}
@@ -523,20 +522,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	
 	public boolean isPlayOnStart () {
-		return !this.delayInit;
+		return this.autoPlay;
 	}
 
 
 	
-	public void setPlayOnStart (boolean playOnStart) {
-		this.delayInit = !playOnStart;
+	public void setPlayOnStart (boolean autoPlay) {
+		this.autoPlay = autoPlay;
 	}
 
 	@Bind
 	public void setFlag(LuaValue flagName, LuaValue flagVal) {
 		switch (flagName.checkjstring()) {
-			case "delayInit":
-				this.delayInit = flagVal.checkboolean();
+			case "autoPlay":
+				this.autoPlay = flagVal.checkboolean();
 				break;
 			case "name":
 				this.name = flagVal.checkjstring();

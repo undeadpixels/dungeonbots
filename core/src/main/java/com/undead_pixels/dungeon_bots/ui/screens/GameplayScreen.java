@@ -66,6 +66,7 @@ public class GameplayScreen extends Screen {
 		super(Serializer.deepCopy(world));
 		this.isSwitched = false;
 		this.originalWorld = world;
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -80,6 +81,7 @@ public class GameplayScreen extends Screen {
 		this.isSwitched = switched;
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -317,6 +319,8 @@ public class GameplayScreen extends Screen {
 				World oldWorld = world;
 				world = Serializer.deepCopy(originalWorld);
 				world.persistUsefulStuffFrom(oldWorld);
+				view.setWorld(world);
+				world.onBecomingVisibleInGameplay();
 				break;
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
