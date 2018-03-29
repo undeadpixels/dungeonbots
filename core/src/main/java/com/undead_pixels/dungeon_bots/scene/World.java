@@ -423,7 +423,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				}
 			}
 		}
-		//System.out.println("Goals: " + numGoals +" vs "+ numGoalsMet);
 		if(numGoals > 0 && numGoals == numGoalsMet) {
 			this.win();
 		}
@@ -1071,7 +1070,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
 		// TODO - cleanup at some point
-		//System.out.println("Get goal  called.");
 		Point2D.Float searchPos = this.getSize();
 		searchPos.x /= 2;
 		searchPos.y /= 2;

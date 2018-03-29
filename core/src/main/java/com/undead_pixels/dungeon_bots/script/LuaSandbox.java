@@ -163,7 +163,6 @@ public final class LuaSandbox implements Serializable {
 	 */
 	public LuaInvocation init() {
 		UserScript script = this.scripts.get("init");
-		System.out.println("Running:\n\n"+script.code);
 		assert script != null;
 		LuaInvocation ret = this.enqueueCodeBlock(script.code);
 		scriptQueue.update(0.f);
