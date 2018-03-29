@@ -19,7 +19,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	//private static final long serialVersionUID = 1L;
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
 	private static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
 	private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
@@ -40,7 +40,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 			@Doc("The X position of the door") LuaValue x,
 			@Doc("The Y position of the door") LuaValue y) {
 		return new Door(
-				(World)world.checktable().get("this").checkuserdata(World.class),
+				userDataOf(World.class, world),
 				x.tofloat(),
 				y.tofloat());
 	}

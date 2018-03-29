@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1300,17 +1301,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return entitiesAtPos(location)
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.map(e -> HasInventory.class.cast(e))
-				.findFirst()
 				.filter(e -> e.canTake())
-				.map(e -> e.getInventory().addItem(itemReference))
-				.orElse(false);
+				.anyMatch(e -> e.getInventory().addItem(itemReference));
 	}
 
 	public Boolean tryGrab(final Actor dst) {
 		return entitiesAtPos(dst.getPosition())
 				.filter(e -> !e.equals(dst) && ItemEntity.class.isAssignableFrom(e.getClass()))
-				.findFirst()
 				.map(e -> ItemEntity.class.cast(e))
+				.findFirst()
 				.map(e -> e.pickUp(dst))
 				.orElse(false);
 	}
@@ -1366,4 +1365,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.tilesAreStale = true;
 	}
 
+	public void tryPush(Point2D.Float pos, Actor.Direction dir) {
+		entitiesAtPos(pos)
+				.filter(e -> Pushable.class.isAssignableFrom(e.getClass()))
+				.map(e -> Pushable.class.cast(e))
+				.forEach(e -> e.push(dir));
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Query the total value of Treasure and Items found in the World")
+	public Integer getTotalValue() {
+		return entities.parallelStream()
+				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
+				.map(e -> HasInventory.class.cast(e).getInventory().getTotalValue())
+				.reduce(0, (a,b) -> a + b);
+	}
 }

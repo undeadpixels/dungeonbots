@@ -17,14 +17,14 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
 
-public class ItemEntity extends SpriteEntity {
+public class ItemEntity extends SpriteEntity implements HasInventory {
 
 	private static final long serialVersionUID = 1L;
-	protected Item item;
+	private final Inventory inventory = new Inventory(this, 1);
 
 	public ItemEntity(World world, String name, TextureRegion tex, Item item, float x, float y) {
 		super(world, name, tex, new UserScriptCollection());
-		this.item = item;
+		this.inventory.addItem(item);
 		this.sprite.setPosition(x, y);
 	}
 
@@ -34,7 +34,11 @@ public class ItemEntity extends SpriteEntity {
 	}
 
 	public Item getItem() {
-		return this.item;
+		return this.inventory.getItems().get(0);
+	}
+	public void setItem(Item i) {
+		this.inventory.reset();
+		this.inventory.addItem(i);
 	}
 
 	@Override
@@ -43,9 +47,9 @@ public class ItemEntity extends SpriteEntity {
 	}
 
 	public <T extends HasInventory> Boolean pickUp(final T dst) {
-		if(dst.getInventory().addItem(this.item)) {
+		if(dst.getInventory().addItem(getItem())) {
 			world.removeEntity(this);
-			this.item = null;
+			this.inventory.reset();
 			return true;
 		}
 		return false;
@@ -107,5 +111,11 @@ public class ItemEntity extends SpriteEntity {
 			@Doc("The Y position of the GemEntity") LuaValue y) {
 		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat(), y.tofloat());
 	}
-	
+
+	@Override
+	@BindTo("inventory")
+	@Bind(value = SecurityLevel.ENTITY, doc = "Get the ItemEntity's inventory")
+	public Inventory getInventory() {
+		return inventory;
+	}
 }

@@ -148,6 +148,9 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("bot", Bot.DEFAULT_TEXTURE, (x, y) -> {
 			return new Bot(world, "bot", x, y);
 		}));
+		result.add(new EntityType("block", Block.DEFAULT_TEXTURE, (x, y) -> {
+			return new Block(world, x, y);
+		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);
 		}));

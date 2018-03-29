@@ -50,7 +50,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param index The index in the inventory to return an item.
 	 * @return The Item
 	 */
-	@Bind(value = SecurityLevel.DEFAULT,doc = "Get the ItemReference at the specified index of the Inventory")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get the ItemReference at the specified index of the Inventory")
 	public ItemReference peek(@Doc("The Index into the Inventory") LuaValue index) {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
@@ -82,7 +83,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 				.map(val -> val.index);
 	}
 
-	@Bind(value = SecurityLevel.ENTITY, doc = "Get the underlying Item contained by the ItemReference at the index in the Inventory")
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Get the underlying Item contained by the ItemReference at the index in the Inventory")
 	public Item getItem(@Doc("The Index of the Item") LuaValue index) {
 		return this.inventory[index.checkint()].getItem();
 	}
@@ -91,7 +93,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 * @return
 	 */
-	@Bind(value=SecurityLevel.DEFAULT,doc="Query the total weight of items in the inventory")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Query the total weight of items in the inventory")
 	public Integer weight() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
@@ -102,7 +105,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * items held within.
 	 * @return An integer representing the number of items currently held in the inventory
 	 */
-	@Bind(value=SecurityLevel.DEFAULT,doc="Query the current capacity of the Inventory")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Query the current capacity of the Inventory")
 	public Integer capacity() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : 1), (a,b) -> a + b);
@@ -151,7 +155,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
-	@Bind(value=SecurityLevel.ENTITY, doc="Adds the Item to the Inventory if possible")
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Adds the Item to the Inventory if possible")
 	public Boolean addItem(@Doc("The Item to add") LuaValue item) {
 		return addItem((Item)item.checktable()
 				.get("this")
@@ -176,7 +181,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param luaItem An ItemReference to an item in an inventory.
 	 * @return If the item was added to the inventory
 	 */
-	@Bind(value=SecurityLevel.ENTITY,doc = "Puts an ItemReferences Item into this inventory")
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Puts an ItemReferences Item into this inventory")
 	public Boolean putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
 		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
 	}
@@ -199,7 +205,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 *
 	 * @return
 	 */
-	@Bind(value=SecurityLevel.DEFAULT,doc = "Get an array of ItemReferences to the Inventory")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get an array of ItemReferences to the Inventory")
 	public LuaTable get() {
 		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
@@ -216,7 +223,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * }</pre>
 	 * @return
 	 */
-	@Bind(value=SecurityLevel.DEFAULT, doc = "Unpacks the Inventory contents to a Lua Varargs type")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Unpacks the Inventory contents to a Lua Varargs type")
 	public Varargs unpack() {
 		final LuaValue[] ans = new LuaValue[inventory.length];
 		IntStream.range(0, inventory.length)
@@ -227,7 +235,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	/**
 	 *
 	 */
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Resets the inventory to Empty Item values")
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Resets the inventory to Empty Item values")
 	public void reset() {
 		Stream.of(inventory).forEach(itemRef ->
 				itemRef.setItem(new Item.EmptyItem()));
@@ -243,7 +252,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 				.collect(Collectors.toList());
 	}
 
-	@Bind(value = SecurityLevel.NONE, doc = "Get a String representation of the Inventory")
+	@Bind(value = SecurityLevel.NONE,
+			doc = "Get a String representation of the Inventory")
 	public String tostr() {
 		final StringBuilder ans = new StringBuilder();
 		ans.append("Index\tName\tDescription\tValue\tWeight\n");
@@ -259,5 +269,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 			}
 		}
 		return ans.toString();
+	}
+
+	@Bind(value = SecurityLevel.NONE,
+			doc = "Calculates the total value of the contents of the Inventory")
+	public Integer getTotalValue() {
+		return Stream.of(inventory)
+				.map(i -> i.getValue())
+				.reduce(0, (a,b) -> a + b);
 	}
 }

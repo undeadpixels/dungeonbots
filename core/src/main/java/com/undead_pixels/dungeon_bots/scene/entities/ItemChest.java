@@ -44,7 +44,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 			@Doc("The X position of the ItemChest") LuaValue x,
 			@Doc("The Y position of the ItemChest") LuaValue y) {
 		return new ItemChest(
-				(World)world.checktable().get("this").checkuserdata(World.class),
+				userDataOf(World.class, world),
 				name.checkjstring(),
 				x.tofloat(),
 				y.tofloat());

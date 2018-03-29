@@ -240,6 +240,14 @@ public abstract class Entity
 		return add(this.getPosition(), 0f, -1f);
 	}
 
+	/**
+	 * Convenience function for extracting a Userdata class of the specified type from
+	 * a LuaValue argument.
+	 * @param clz The UserData type to return
+	 * @param lv The LuaValue that contains the user data type
+	 * @param <T>
+	 * @return
+	 */
 	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
 		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
 	}
