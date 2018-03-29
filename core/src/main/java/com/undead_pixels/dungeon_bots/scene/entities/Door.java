@@ -21,8 +21,13 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	 */
 	//private static final long serialVersionUID = 1L;
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
-	private static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
-	private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
+	//private static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
+	//private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
+
+	private final TextureRegion defaultTexture;
+	private final TextureRegion lockedTexture;
+	private final TextureRegion openTexture;
+
 	private volatile boolean open = false;
 	private volatile boolean locked = false;
 
@@ -31,6 +36,15 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 
 	public Door(World world, float x, float y) {
 		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+		final Tile UP = world.getTile(x, y + 1f);
+		final Tile DOWN = world.getTile(x, y -1f);
+		final boolean IS_UP = UP == null || UP.isSolid();
+		final boolean IS_DOWN = DOWN == null || DOWN.isSolid();
+		final boolean UP_DOWN = IS_UP || IS_DOWN;
+		defaultTexture = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", UP_DOWN ? 1 : 0 , 0);
+		lockedTexture = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", UP_DOWN ? 3 : 2 , 0);
+		openTexture = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", UP_DOWN ? 1 : 0 , 0);
+		sprite.setTexture(defaultTexture);
 	}
 
 	@BindTo("new")
@@ -86,14 +100,14 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	public void lock() {
 		this.locked = true;
 		this.open = false;
-		this.sprite.setTexture(LOCKED_TEXTURE);
+		this.sprite.setTexture(lockedTexture);
 	}
 
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
 		this.locked = false;
-		this.sprite.setTexture(DEFAULT_TEXTURE);
+		this.sprite.setTexture(defaultTexture);
 	}
 
 	@Override
@@ -106,7 +120,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	public Boolean toggleOpen() {
 		if(!locked) {
 			this.open = !this.open;
-			this.sprite.setTexture(this.open ? OPEN_TEXTURE : DEFAULT_TEXTURE);
+			this.sprite.setTexture(this.open ? openTexture : defaultTexture);
 			this.world.updateEntity(this);
 			return true;
 		}

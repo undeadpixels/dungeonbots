@@ -10,13 +10,10 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.*;
 
-import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
@@ -43,7 +40,6 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
-import com.undead_pixels.dungeon_bots.ui.screens.ResultsScreen;
 import org.luaj.vm2.*;
 
 /**
@@ -1239,7 +1235,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.findFirst()
 				.map(e -> HasInventory.class.cast(e))
 				.filter(e -> e.canTake())
-				.map(e -> inventory.addItem(e.getInventory().removeItem(index)))
+				.map(e -> inventory.tryTakeItem(e.getInventory().peek(index)))
 				.orElse(false);
 	}
 
@@ -1276,9 +1272,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.map(e -> HasInventory.class.cast(e))
 				.filter(e -> e.canTake())
-				.anyMatch(e -> e.getInventory().addItem(itemReference));
+				.anyMatch(e -> e.getInventory().tryTakeItem(itemReference));
 	}
 
+	/**
+	 * Try to grab an ItemEntity in the space currently occupied by the argument entity.
+	 * @param dst The Entity that will receive the item
+	 * @return True if an Item was successfully grabed and placed into the dst entity's inventory
+	 */
 	public Boolean tryGrab(final Actor dst) {
 		return entitiesAtPos(dst.getPosition())
 				.filter(e -> !e.equals(dst) && ItemEntity.class.isAssignableFrom(e.getClass()))
@@ -1286,6 +1287,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.findFirst()
 				.map(e -> e.pickUp(dst))
 				.orElse(false);
+	}
+
+	public void tryPush(Point2D.Float pos, Actor.Direction dir) {
+		entitiesAtPos(pos)
+				.filter(e -> Pushable.class.isAssignableFrom(e.getClass()))
+				.map(e -> Pushable.class.cast(e))
+				.forEach(e -> e.push(dir));
 	}
 
 	/**
@@ -1334,13 +1342,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			this.levelScripts.add(is);
 	}
 
-	public void tryPush(Point2D.Float pos, Actor.Direction dir) {
-		entitiesAtPos(pos)
-				.filter(e -> Pushable.class.isAssignableFrom(e.getClass()))
-				.map(e -> Pushable.class.cast(e))
-				.forEach(e -> e.push(dir));
-	}
-
+	@BindTo("totalValue")
 	@Bind(value = SecurityLevel.NONE, doc = "Query the total value of Treasure and Items found in the World")
 	public Integer getTotalValue() {
 		return entities.parallelStream()

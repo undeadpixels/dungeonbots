@@ -108,7 +108,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * @param dir The direction to move
 	 * @param blocking 
 	 */
-	protected void queueMoveSlowly(Direction dir, boolean blocking) {
+	public void queueMoveSlowly(Direction dir, boolean blocking) {
 		int dx = 0, dy = 0;
 
 		switch (dir) {

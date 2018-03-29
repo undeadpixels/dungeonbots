@@ -116,13 +116,20 @@ public class Player extends RpgActor {
 		*/
 	}
 
-	@Override
-	public Boolean useItem(ItemReference ir) {
-		Item item = ir.getItem();
-		if(item.applyTo(this)) {
-			ir.derefItem();
-		}
-		return true;
+	/**
+	 *
+	 * @param luaDir
+	 * @param itemReference
+	 * @return
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
+		String dir = luaDir.checkjstring().toUpperCase();
+		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
+				.checkuserdata(ItemReference.class);
+		Direction direction = Direction.valueOf(dir);
+		return false;
+		//return this.world.tryUse(itemRef, direction, this);
 	}
 
 	@Override

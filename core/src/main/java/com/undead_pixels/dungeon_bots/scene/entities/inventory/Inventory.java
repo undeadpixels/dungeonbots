@@ -58,6 +58,11 @@ public class Inventory implements GetLuaFacade, Serializable {
 		return inventory[i];
 	}
 
+	public ItemReference peek(int index) {
+		assert index < this.inventory.length;
+		return inventory[index];
+	}
+
 	/**
 	 *
 	 * @param i
@@ -139,7 +144,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param ir
 	 * @return
 	 */
-	public boolean addItem(ItemReference ir) {
+	public boolean tryTakeItem(ItemReference ir) {
 		if(ir.item.isEmpty())
 			return true;
 		synchronized (this.inventory) {
@@ -184,7 +189,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 	@Bind(value = SecurityLevel.ENTITY,
 			doc = "Puts an ItemReferences Item into this inventory")
 	public Boolean putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
-		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
+		return tryTakeItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
 	}
 
 	/**
@@ -254,7 +259,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 
 	@Bind(value = SecurityLevel.NONE,
 			doc = "Get a String representation of the Inventory")
-	public String tostr() {
+	public String tos() {
 		final StringBuilder ans = new StringBuilder();
 		ans.append("Index\tName\tDescription\tValue\tWeight\n");
 		for(final ItemReference ir : inventory) {
@@ -271,6 +276,7 @@ public class Inventory implements GetLuaFacade, Serializable {
 		return ans.toString();
 	}
 
+	@BindTo("totalValue")
 	@Bind(value = SecurityLevel.NONE,
 			doc = "Calculates the total value of the contents of the Inventory")
 	public Integer getTotalValue() {
