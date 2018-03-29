@@ -18,7 +18,6 @@ public class Note extends Item {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
 	public Note(World world, String descr) {
 		super(world,"Note", descr, 0, 0);
 	}

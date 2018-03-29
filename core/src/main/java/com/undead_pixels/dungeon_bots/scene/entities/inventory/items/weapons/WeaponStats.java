@@ -10,6 +10,7 @@ import org.luaj.vm2.LuaValue;
 import java.io.Serializable;
 
 public final class WeaponStats implements Serializable, GetLuaFacade {
+	private static final long serialVersionUID = 1L;
 	final int damage;
 	final int speed;
 	final int range;

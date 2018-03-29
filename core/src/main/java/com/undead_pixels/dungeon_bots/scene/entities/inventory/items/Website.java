@@ -16,7 +16,7 @@ import org.luaj.vm2.LuaValue;
 public class Website extends Item {
 
 	private final String url;
-
+	private static final long serialVersionUID = 1L;
 	public Website(World w, String descr, String url) {
 		super(w, "Website", descr, 0, 0);
 		this.url = url;

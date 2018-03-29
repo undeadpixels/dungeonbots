@@ -9,7 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("Gems are a Treasure that have some value")
 public final class Gem extends Treasure {
-
+	private static final long serialVersionUID = 1L;
 	public Gem(World w) {
 		super(w, "Gem", 25, 1);
 	}

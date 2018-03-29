@@ -11,7 +11,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 		"Different types of weapons have different properties, such as more Damage, more Range, or\n" +
 		"a higher attack Speed (less cool down after an attack)")
 public abstract class Weapon extends Item {
-
+	private static final long serialVersionUID = 1L;
 	final WeaponStats weaponStats;
 
 	Weapon(World w, String descr, int value, int weight, WeaponStats weaponStats) {

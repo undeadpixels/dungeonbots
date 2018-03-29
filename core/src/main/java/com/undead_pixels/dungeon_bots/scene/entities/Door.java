@@ -19,10 +19,8 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	/**
 	 * 
 	 */
-	//private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 0, 0);
-	//private static final TextureRegion LOCKED_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 2, 0);
-	//private static final TextureRegion OPEN_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door1.png", 0, 0);
 
 	private final TextureRegion defaultTexture;
 	private final TextureRegion lockedTexture;

@@ -9,6 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("A Bow is a ranged weapon with a low attack speed.")
 public final class Bow extends Weapon {
+	private static final long serialVersionUID = 1L;
 	public Bow(World w) {
 		super(w, "Bow", 30, 5, new WeaponStats(5, 3, 10));
 	}

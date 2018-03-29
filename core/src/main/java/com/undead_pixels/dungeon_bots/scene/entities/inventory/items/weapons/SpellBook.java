@@ -9,7 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("A Spell book is a powerful weapon that has a medium range and is quite slow.")
 public final class SpellBook extends Weapon {
-
+	private static final long serialVersionUID = 1L;
 	public SpellBook(World w) {
 		super(w, "Spell Book", 30, 5, new WeaponStats(10,5,2));
 	}

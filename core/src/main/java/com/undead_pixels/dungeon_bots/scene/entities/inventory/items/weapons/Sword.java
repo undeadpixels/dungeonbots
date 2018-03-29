@@ -9,6 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("A Sword is a fast weapon that does a reasonable amount of damage, but has a limited range.")
 public final class Sword extends Weapon {
+	private static final long serialVersionUID = 1L;
 	public Sword(World w) {
 		super(w, "Sword", 30, 10, new WeaponStats(7,10,1));
 	}

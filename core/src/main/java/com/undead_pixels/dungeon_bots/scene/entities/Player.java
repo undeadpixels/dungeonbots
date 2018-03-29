@@ -68,6 +68,7 @@ public class Player extends RpgActor {
 	@BindTo("new")
 	@Doc("Assigns a new player")
 	@Deprecated
+	@Bind(SecurityLevel.AUTHOR)
 	public static Player newPlayer(
 			@Doc("The assigned World") LuaValue world,
 			@Doc("The X position of the player") LuaValue x,

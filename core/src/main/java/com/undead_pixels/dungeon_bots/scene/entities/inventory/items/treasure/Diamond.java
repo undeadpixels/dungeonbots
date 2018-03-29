@@ -9,6 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("An Item is a Treasure that is very valuable!")
 public final class Diamond extends Treasure {
+	private static final long serialVersionUID = 1L;
 	public Diamond(World w) {
 		super(w, "Diamond", 1000, 1);
 	}

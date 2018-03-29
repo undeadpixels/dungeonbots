@@ -9,6 +9,7 @@ import org.luaj.vm2.LuaValue;
 
 @Doc("Gold is a Treasure that has a value that is a function of it's weight.")
 public final class Gold extends Treasure {
+	private static final long serialVersionUID = 1L;
 	public Gold(World w, int weight) {
 		super(w, "Gold", 100 * weight, weight);
 	}
