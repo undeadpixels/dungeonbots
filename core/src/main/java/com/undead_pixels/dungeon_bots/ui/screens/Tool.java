@@ -208,8 +208,16 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public void adjustZoom(int delta) {
+			Point2D.Float size = view.getWorld().getSize();
+			float min = Math.min(size.x, size.y);
+			float max = Math.max(size.x, size.y);
 			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
+
+			// These scalars are arbitrary for now.
 			newZoom /= 100f;
+			newZoom = Math.max(newZoom, 0.01f * min); // Limit on zoom out
+			newZoom = Math.min(newZoom, 0.3f * max); // Limit on zoom in
+			
 			setZoom(newZoom);
 		}
 
@@ -551,8 +559,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null || selection.tileType==null)
-				return;			
+			if (e.isConsumed() || oldTileTypes == null || selection.tileType == null)
+				return;
 			assert drawingTileType != null;
 			drawTile(e.getX(), e.getY(), drawingTileType);
 			e.consume();
@@ -650,7 +658,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void undoValidated() {
-					if (world.containsEntity(ent)) error();
+					if (world.containsEntity(ent))
+						error();
 					view.setSelectedEntities(null);
 					world.removeEntity(ent);
 
@@ -659,7 +668,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void redoValidated() {
-					if (!world.containsEntity(ent)) error();
+					if (!world.containsEntity(ent))
+						error();
 					view.setSelectedEntities(new Entity[] { ent });
 					world.addEntity(ent);
 				}

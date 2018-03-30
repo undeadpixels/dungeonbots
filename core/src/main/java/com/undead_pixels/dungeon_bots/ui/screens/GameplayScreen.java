@@ -13,6 +13,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -46,35 +47,31 @@ import com.undead_pixels.dungeon_bots.ui.WorldView;
 /**
  * A screen for gameplay
  */
+@SuppressWarnings("serial")
 public class GameplayScreen extends Screen {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final String COMMAND_PLAY_STOP = "PLAY/STOP";
+	private static final String COMMAND_SAVE = "SAVE";
+	private static final String COMMAND_TOGGLE_GRID = "TOGGLE_GRID";
+	private static final String COMMAND_REWIND = "REWIND";
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
 	private final boolean isSwitched;
 	private JMessagePane _MessagePane;
 	private final World originalWorld;
+	private AbstractButton _PlayStopBttn;
+	private Tool.ViewControl _ViewControl;
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
 	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
-	@Deprecated
-	public GameplayScreen(World world) {
-		super(Serializer.deepCopy(world));
-		this.isSwitched = false;
-		this.originalWorld = world;
-		world.onBecomingVisibleInGameplay();
-	}
+	/* @Deprecated public GameplayScreen(World world) {
+	 * super(Serializer.deepCopy(world)); this.isSwitched = false;
+	 * this.originalWorld = world; world.onBecomingVisibleInGameplay(); } */
 
 
-	@Deprecated
-	public GameplayScreen(LevelPack pack) {
-		this(pack, false);
-	}
+	/* @Deprecated public GameplayScreen(LevelPack pack) { this(pack, false); } */
 
 
 	public GameplayScreen(LevelPack pack, boolean switched) {
@@ -110,6 +107,7 @@ public class GameplayScreen extends Screen {
 		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
+		_ViewControl = new Tool.ViewControl(view);
 
 		// Set up the selection and view control.
 		((Controller) getController()).selector = new Tool.Selector(view, GameplayScreen.this, SecurityLevel.DEFAULT)
@@ -118,47 +116,24 @@ public class GameplayScreen extends Screen {
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
-		JButton playBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
-				.action("PLAY", getController()).preferredSize(50, 50).create();
-		JButton stopBttn = UIBuilder.buildButton().image("icons/stop.png").toolTip("Stop the game.")
-				.action("STOP", getController()).preferredSize(50, 50).create();
-		JButton rewindBttn = UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
-				.action("REWIND", getController()).preferredSize(50, 50).create();
+
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
-		JPanel arrowPanel = new JPanel();
-		arrowPanel.setLayout(new GridLayout(3, 3));
-		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.buildToggleButton().image("up_arrow.gif").preferredSize(20, 20)
-				.toolTip("Move view up.").action("PAN_UP", getController()).create());
-		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.buildToggleButton().image("left_arrow.gif").preferredSize(20, 20)
-				.toolTip("Move view left.").action("PAN_LEFT", getController()).create());
-		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.buildToggleButton().image("right_arrow.gif").preferredSize(20, 20)
-				.toolTip("Move view right.").action("PAN_RIGHT", getController()).create());
-		arrowPanel.add(new JPanel());
-		arrowPanel.add(UIBuilder.buildToggleButton().image("down_arrow.gif").preferredSize(20, 20)
-				.toolTip("Move view down.").action("PAN_DOWN", getController()).create());
-		arrowPanel.add(new JPanel());
-		arrowPanel.setBorder(BorderFactory.createBevelBorder(NORMAL));
-		Image gridImage = UIBuilder.getImage("grid.gif");
-		JToggleButton tglGrid = (gridImage == null) ? new JToggleButton("Grid")
-				: new JToggleButton(new ImageIcon(gridImage));
-		tglGrid.setActionCommand("TOGGLE_GRID");
-		tglGrid.addActionListener(getController());
 
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
-		playToolBar.add(playBttn);
-		playToolBar.add(stopBttn);
-		playToolBar.add(rewindBttn);
+		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
+				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).create());
+		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
+				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).create());
 		playToolBar.addSeparator();
+		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
+				.action(COMMAND_SAVE, getController()).create());
 		playToolBar.add(zoomSlider);
-		playToolBar.add(arrowPanel);
-		playToolBar.add(tglGrid);
+		playToolBar.add(UIBuilder.buildToggleButton().image("images/grid.jpg").toolTip("Turn grid off/on")
+				.action(COMMAND_TOGGLE_GRID, getController()).create());
 
 		// Create the file menu.
 		JMenu fileMenu = new JMenu("File");
@@ -166,10 +141,6 @@ public class GameplayScreen extends Screen {
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
 				.text("Open").action("Open", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
-				.text("Save").action("Save", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.ALT_MASK)
-				.text("Save As").action("Save As", getController()).create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
 				.text("Exit to main").action("Exit to Main", getController()).create());
@@ -284,6 +255,17 @@ public class GameplayScreen extends Screen {
 	}
 
 
+	/**Updates the GUI state based on current options.*/
+	private void updateGUIState() {
+		if (view.getPlaying()) {
+			_PlayStopBttn.setIcon(new ImageIcon("icons/abort.png"));
+		} else {
+			_PlayStopBttn.setIcon(new ImageIcon("icons/play.png"));
+		}
+
+	}
+
+
 	private class Controller extends ScreenController
 			implements MouseWheelListener, MouseInputListener, ChangeListener {
 
@@ -312,16 +294,8 @@ public class GameplayScreen extends Screen {
 			case "Open":
 				File openFile = FileControl.openDialog(GameplayScreen.this);
 				if (openFile != null) {
-					if (openFile.getName().endsWith(".lua")) {
-						System.err.println(
-								"Loading from a Lua file should not be allowed at this point.  Load from json");
-						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
-					} else {
-						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
-						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
-						// DungeonBotsMain.instance.setCurrentScreen(new
-						// GameplayScreen(levelPack.getCurrentWorld()));
-					}
+					LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
 				}
 
 				break;
@@ -337,8 +311,7 @@ public class GameplayScreen extends Screen {
 					System.exit(0);
 				break;
 
-			case "REWIND":
-			case "Rewind":
+			case COMMAND_REWIND:
 				World oldWorld = world;
 				world = Serializer.deepCopy(originalWorld);
 				world.resetFrom(oldWorld);
@@ -349,14 +322,14 @@ public class GameplayScreen extends Screen {
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 				return;
-			case "PLAY":
-			case "Play":
-				view.setPlaying(true);
-				break;
-			case "Save":
-			case "Save As":
-			case "Stop":
-
+			case COMMAND_PLAY_STOP:
+				view.setPlaying(!view.getPlaying());
+				updateGUIState();
+				return;
+			case COMMAND_TOGGLE_GRID:
+				view.setShowGrid(!view.getShowGrid());
+				return;
+			case COMMAND_SAVE:
 			case "Last Result":
 			case "Statistics":
 			case "Upload":
@@ -371,52 +344,52 @@ public class GameplayScreen extends Screen {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			selector.mousePressed(e);
+			if (!e.isConsumed()) _ViewControl.mousePressed(e);
 		}
 
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			selector.mouseReleased(e);
+			if (!e.isConsumed()) _ViewControl.mouseReleased(e);
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			selector.mouseDragged(e);
+			if (!e.isConsumed()) _ViewControl.mouseDragged(e);
 		}
 
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			selector.mouseWheelMoved(e);
+			if (!e.isConsumed()) _ViewControl.mouseWheelMoved(e);
 		}
 
 
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
+			
 		}
 
 
 		@Override
 		public void mouseEntered(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
+			
 		}
 
 
 		@Override
 		public void mouseExited(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
+			
 		}
 
 
 		@Override
 		public void mouseMoved(MouseEvent arg0) {
-			// TODO Auto-generated method stub
-
+			
 		}
 
 

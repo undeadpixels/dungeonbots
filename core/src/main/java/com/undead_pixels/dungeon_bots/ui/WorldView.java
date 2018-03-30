@@ -48,15 +48,7 @@ public class WorldView extends JComponent {
 	private final Timer timer;
 	private final Consumer<World> winAction;
 
-	/*
-	 * @Deprecated public WorldView() { // world = new World(new //
-	 * File("sample-level-packs/sample-pack-1/levels/level1.lua")); world = new
-	 * World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
-	 * 
-	 * this.setPreferredSize(new Dimension(9999, 9999));
-	 * 
-	 * this.setFocusable(true); this.requestFocusInWindow(); }
-	 */
+	
 
 	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
@@ -217,9 +209,22 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
-		
+
 		setPlaying(world.isPlayOnStart());
 	}
+
+
+	/**Returns whether the grid is being displayed.*/
+	public boolean getShowGrid() {
+		return this.showGrid;
+	}
+
+
+	/**Sets whether to display the grid.*/
+	public void setShowGrid(boolean value) {
+		this.showGrid = value;
+	}
+
 
 	// ==================================================
 	// ======= WorldView SELECTION STUFF ================
@@ -346,6 +351,10 @@ public class WorldView extends JComponent {
 		if(isPlaying) {
 			world.runInitScripts();
 		}
+	}
+	/**Returns whether this WorldView is current playing.*/
+	public boolean getPlaying(){
+		return this.isPlaying;
 	}
 
 }
