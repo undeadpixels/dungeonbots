@@ -173,7 +173,7 @@ public final class JScriptEditor extends JPanel {
 		_Controller.resetLocks();
 
 		// Restore filtering.
-		_Controller.setFiltering(true);
+		//_Controller.setFiltering(true);
 	}
 
 
@@ -195,7 +195,7 @@ public final class JScriptEditor extends JPanel {
 
 	public void setLiveEditing(boolean value) {
 		if (_Controller._LockFilter != null)
-			_Controller._LockFilter.setLocked(value);
+			_Controller._LockFilter.setLocked(!value);
 	}
 
 
@@ -363,11 +363,12 @@ public final class JScriptEditor extends JPanel {
 
 			// Prohibit editing if in a locked region.
 			if (_LockFilter != null) {
+				/*
 				if (_SecurityLevel.level < SecurityLevel.AUTHOR.level)
 					_LockFilter.setLocked(!getHighlightIntervals().includes(_SelectionStart));
 				else
 					_LockFilter.setLocked(true);
-
+*/
 			}
 
 			updateButton();

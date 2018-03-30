@@ -239,7 +239,6 @@ public final class LevelEditorScreen extends Screen {
 				_PropogateChange = false;
 				toolPalette.setSelectedValue(_TilePen, true);
 				_PropogateChange = true;
-
 			}
 			selections.tileType = (TileType) ((JComboBox<TileType>) _TileScroller).getSelectedItem();
 			updateGUIState();
@@ -370,7 +369,6 @@ public final class LevelEditorScreen extends Screen {
 
 			case "WORLD_SCRIPTS":
 				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
-
 					@Override
 					public void pushUndoable(Undoable<?> u) {
 						Tool.pushUndo(world, u);
