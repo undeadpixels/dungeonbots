@@ -159,20 +159,17 @@ public final class LuaDoc {
 	}
 
 	private static String docMethodToString(final Method m) {
-		final String name = GetLuaFacade.bindTo(m);
-		final String doc = Optional.ofNullable(m.getDeclaredAnnotation(Doc.class))
-				.map(a -> a.value())
-				.orElse(Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
-						.map(a -> a.doc())
-						.orElse(""));
-		final String access = Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
-				.map(a -> a.value().name())
-				.orElse("NONE");
 		return String.format(
 				"%s\t%s\n-- %s\n%s\n",
-				name,
-				access,
-				doc,
+				GetLuaFacade.bindTo(m),
+				Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+						.map(a -> a.value().name())
+						.orElse("NONE"),
+				Optional.ofNullable(m.getDeclaredAnnotation(Doc.class))
+						.map(a -> a.value())
+						.orElse(Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+								.map(a -> a.doc())
+								.orElse("")),
 				docParametersToString(m.getParameters()));
 	}
 
@@ -185,13 +182,4 @@ public final class LuaDoc {
 								.orElse("")))
 				.reduce("", (a,b) -> a + b);
 	}
-
-	private static Stream<LuaValue> luaValueStream(final Varargs v) {
-		List<LuaValue> ans = new ArrayList<>();
-		for(int i = 1; i < v.narg(); i++) {
-			ans.add(v.arg(i));
-		}
-		return ans.stream();
-	}
-
 }
