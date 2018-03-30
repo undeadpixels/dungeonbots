@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -36,6 +38,7 @@ import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -68,6 +71,7 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JSemaphorePane;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -86,6 +90,7 @@ public final class LevelEditorScreen extends Screen {
 	private static final int ICON_HEIGHT = 30;
 	private static final String COMMAND_SAVE_TO_LEVELPACK = "SAVE_TO_LEVELPACK";
 	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
+	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
 
 	// Defined by Swing, don't change this:
 	private static final String COMMAND_COMBOBOX_CHANGED = "comboBoxChanged";
@@ -369,12 +374,28 @@ public final class LevelEditorScreen extends Screen {
 
 			case "WORLD_SCRIPTS":
 				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
+
 					@Override
 					public void pushUndoable(Undoable<?> u) {
 						Tool.pushUndo(world, u);
 					}
 				});
 				return;
+			case COMMAND_PERMISSIONS:
+				JDialog d = new JDialog();
+
+				JSemaphorePane<SecurityLevel> jsp = new JSemaphorePane<SecurityLevel>(SecurityLevel.values());
+				for (Entry<String, SecurityLevel> entry : world.getWhitelist()) {
+					jsp.addField(entry.getKey(), "no help for " + entry.getKey(), entry.getValue());
+				}
+				jsp.addField("Field 1", "Help for Field 1", SecurityLevel.AUTHOR);
+				jsp.addField("Field 2", "Help for Field 2", SecurityLevel.DEFAULT);
+				jsp.addField("Field 3", "Help for Field 3", SecurityLevel.DEBUG);
+				jsp.addField("Field 4", "Help for Field 4", SecurityLevel.NONE);
+				d.add(jsp);
+				d.pack();
+				d.setVisible(true);
+				break;
 			case "delete":
 				Entity[] selectedEntities = _View.getSelectedEntities();
 				if (selectedEntities == null || selectedEntities.length == 0)
@@ -709,6 +730,8 @@ public final class LevelEditorScreen extends Screen {
 				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
 				.create());
+		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('p').text("Permissions")
+				.action(COMMAND_PERMISSIONS, getController()).create());
 
 		// Create the edit menu.
 		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(50).create();
