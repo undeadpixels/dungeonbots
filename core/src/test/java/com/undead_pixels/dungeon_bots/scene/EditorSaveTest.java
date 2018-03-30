@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene;
 
-import java.io.File;
 import java.util.Base64;
 
 import org.junit.Test;
@@ -15,17 +14,17 @@ public class EditorSaveTest {
 
 	@Test
 	public void testSerializeWorld() throws Exception {
-		testWorldMadeFromScript("level1.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("maze1.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("maze2.lua", Serializer.PrintOptions.NONE);
-		testWorldMadeFromScript("default.lua", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_level1.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_maze1.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("legacy_maze2.json", Serializer.PrintOptions.NONE);
+		testWorldReserialize("multigoals.json", Serializer.PrintOptions.NONE);
 	}
 
 	@Test
 	public void testSerializeWorldList() throws Exception {
-		World w1 = new World(new File("level1.lua"));
-		World w2 = new World(new File("maze1.lua"));
-		World w3 = new World(new File("maze2.lua"));
+		World w1 = LevelPack.fromFile("legacy_level1.json").getCurrentWorld();
+		World w2 = LevelPack.fromFile("legacy_maze1.json").getCurrentWorld();
+		World w3 = LevelPack.fromFile("legacy_maze2.json").getCurrentWorld();
 
 		WorldList original = new WorldList();
 		original.add(w1);
@@ -51,9 +50,10 @@ public class EditorSaveTest {
 
 	}
 
-	private static void testWorldMadeFromScript(String filename, Serializer.PrintOptions options) throws Exception {
+	private static void testWorldReserialize(String filename, Serializer.PrintOptions options) throws Exception {
 
-		World w1 = new World(new File(filename));
+		// TODO - probably should test the whole pack, instead of just worlds, now that this is reading json's
+		World w1 = LevelPack.fromFile(filename).getCurrentWorld();
 		World w2 = Serializer.deserializeWorld(Serializer.serializeWorld(w1));
 
 		Serializer.validate(w1, w2, filename + " world", false, true, options);
@@ -62,7 +62,6 @@ public class EditorSaveTest {
 	@Test
 	public void testSerializeLevelPack() throws Exception {
 		LevelPack lp1 = new LevelPack("lp01", User.dummy());
-		lp1.getCurrentWorld().setGoal(0,0);
 		//String serialized = Serializer.serializeLevelPack(lp1);
 		LevelPack lp2 = Serializer.deserializeLevelPack(Serializer.serializeLevelPack(lp1));
 		Serializer.validate(lp1, lp2, lp1.getName() + " LevelPack", false, true,

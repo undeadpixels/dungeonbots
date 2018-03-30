@@ -5,9 +5,6 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.swing.Box;
@@ -18,10 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
-import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
-import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 
 /**
  * The menu where users select Play, Create, or Community
@@ -62,9 +56,7 @@ public class MainMenuScreen extends Screen {
 
 					break;
 				case "CREATE":
-					levelPack = new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
-							new World(new File("blank.lua")));
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
 					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new

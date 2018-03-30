@@ -70,7 +70,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
 		super(world, name, tex, scripts);
 		floatingText = new FloatingText(this, name+"-text");
-		world.addEntity(floatingText);
 	}
 	
 	/**
@@ -80,6 +79,14 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
 		super(world, name, tex, scripts, x, y);
 		floatingText = new FloatingText(this, name+"-text");
+	}
+	
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	@Override
+	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
 	}
 
@@ -91,28 +98,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Override
 	public boolean isSolid() {
 		return true;
-	}
-	
-	/**
-	 * @param dir
-	 * @param dist
-	 */
-	@Deprecated
-	public void moveInstantly(Direction dir, int dist) {
-		switch (dir) {
-			case UP:
-				sprite.setY(sprite.getY() + dist);
-				break;
-			case DOWN:
-				sprite.setY(sprite.getY() - dist);
-				break;
-			case LEFT:
-				sprite.setX(sprite.getX() - dist);
-				break;
-			case RIGHT:
-				sprite.setX(sprite.getX() + dist);
-				break;
-		}
 	}
 
 	/**

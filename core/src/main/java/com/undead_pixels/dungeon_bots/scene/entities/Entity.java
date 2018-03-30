@@ -74,8 +74,13 @@ public abstract class Entity
 	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
-		this.id = world.makeID();
 		this.scripts = scripts;
+
+		if(world != null) {
+			this.id = world.makeID();
+		} else {
+			this.id = -1;
+		}
 	}
 
 
@@ -96,6 +101,14 @@ public abstract class Entity
 		if(this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
 		}
+	}
+	
+
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	public void onAddedToWorld(World world) {
 	}
 
 

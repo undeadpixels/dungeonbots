@@ -6,6 +6,8 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScript;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
@@ -38,10 +40,17 @@ public class Player extends RpgActor {
 	 * @param world The world this player belongs to
 	 * @param name The name of this player
 	 */
-	public Player(World world, String name) {
-		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), 0, 0);
+	public Player(World world, String name, float x, float y) {
+		super(world, name, DEFAULT_TEXTURE, makePlayerScript(), x, y);
+	}
 
-		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
+	/**
+	 * @return
+	 */
+	private static UserScriptCollection makePlayerScript () {
+		UserScriptCollection ret = new UserScriptCollection();
+		ret.add(new UserScript("init", "--TODO")); // TODO
+		return ret;
 	}
 
 	/**
@@ -55,29 +64,17 @@ public class Player extends RpgActor {
 	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
 	@Doc("Assigns a new player")
+	@Deprecated
 	public static Player newPlayer(
 			@Doc("The assigned World") LuaValue world,
 			@Doc("The X position of the player") LuaValue x,
 			@Doc("The Y Position of the player") LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
-		Player p = w.getPlayer();
+		Player p = new Player(w, "player", (float) x.checkdouble() - 1.0f, (float) y.checkdouble() - 1.0f);
 		p.steps = 0;
 		p.bumps = 0;
-		p.sprite.setX((float) x.checkdouble() - 1.0f);
-		p.sprite.setY((float) y.checkdouble() - 1.0f);
+		w.addEntity(p);
 		return p;
-	}
-
-	@Bind(SecurityLevel.DEFAULT)
-	public void tryAgain() {
-		world.reset();
-	}
-	/**
-	 * Used to create a non-useful player to display in the Level Editor's
-	 * palette.
-	 */
-	public static Player worldlessPlayer() {
-		return new Player(null, "A player");
 	}
 
 	@Bind(SecurityLevel.AUTHOR)

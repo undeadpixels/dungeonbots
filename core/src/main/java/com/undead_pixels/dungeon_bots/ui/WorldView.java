@@ -15,8 +15,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
@@ -41,6 +44,9 @@ public class WorldView extends JComponent {
 	private transient Tile[] selectedTiles = null;
 	private transient Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
+	private boolean isPlaying = false;
+	private final Timer timer;
+	private final Consumer<World> winAction;
 
 	/*
 	 * @Deprecated public WorldView() { // world = new World(new //
@@ -52,29 +58,78 @@ public class WorldView extends JComponent {
 	 * this.setFocusable(true); this.requestFocusInWindow(); }
 	 */
 
-	public WorldView(World world) {
+	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
+		this.winAction = winAction;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
+		
+		timer = new Timer(16, new ActionListener() {
+
+			@Override
+			public void actionPerformed (ActionEvent e) {
+				if (WorldView.this.world != null) {
+					long nowTime = System.nanoTime();
+					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
+					
+					if(dt > 1_000_000_000.0f) {
+						dt = 1_000_000_000; // cap dt at 1 second
+					}
+					
+					lastTime = nowTime;
+					WorldView.this.world.update(dt);
+					
+					if(WorldView.this.world.isWon()) {
+						timer.stop();
+						winAction.accept(world);
+					}
+				}
+				
+				repaint();
+			}
+			
+		});
+		
+		if(world.isPlayOnStart()) {
+			setPlaying(true);
+		}
+
+		timer.start();
+		
+		this.setFocusable(true);
+		this.requestFocusInWindow();
+		
+		this.addComponentListener(new ComponentListener() {
+
+			@Override
+			public void componentResized (ComponentEvent e) {
+			}
+
+			@Override
+			public void componentMoved (ComponentEvent e) {
+			}
+
+			@Override
+			public void componentShown (ComponentEvent e) {
+				timer.start();
+			}
+
+			@Override
+			public void componentHidden (ComponentEvent e) {
+				timer.stop();
+			}
+			
+		});
 	}
 
 	/**
 	 * Renders the world using the camera transform specific to this WorldView
 	 */
 	@Override
-	public void paint(Graphics g) {
-
-		long nowTime = System.nanoTime();
-		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
-		lastTime = nowTime;
-
-		// TODO - move this update() thing elsewhere.
-		if (world != null) {
-			world.update(dt);
-		}
+	public void paintComponent(Graphics g) {
 
 		try {
 			Graphics2D g2d = (Graphics2D) g;
@@ -125,24 +180,6 @@ public class WorldView extends JComponent {
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
-
-		// TODO - this should live elsewhere, but it'll at least help cap fps
-		// for now.
-		long spareTime = 15_000_000 - (System.nanoTime() - lastTime);
-		int sleepTime = (int) (spareTime / 1000_000);
-		// System.out.println("DT = "+dt+", sleep = "+sleepTime);
-		if (sleepTime > 0) {
-			Timer t = new Timer(sleepTime, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					repaint();
-				}
-			});
-			t.setRepeats(false);
-			t.start();
-		} else {
-			repaint();
-		}
 	}
 
 	/** Returns the camera being used to view the world. */
@@ -180,6 +217,8 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
+		
+		setPlaying(world.isPlayOnStart());
 	}
 
 	// ==================================================
@@ -296,6 +335,17 @@ public class WorldView extends JComponent {
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * @param isPlaying
+	 */
+	public void setPlaying (boolean isPlaying) {
+		this.isPlaying = isPlaying;
+		
+		if(isPlaying) {
+			world.runInitScripts();
+		}
 	}
 
 }

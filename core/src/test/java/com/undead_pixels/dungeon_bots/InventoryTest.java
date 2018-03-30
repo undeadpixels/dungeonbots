@@ -20,7 +20,7 @@ public class InventoryTest {
 
 	@Before public void setup() {
 		w = new World();
-		p = new Player(w, "player");
+		p = new Player(w, "player", 1, 1);
 		i = new Note(w, "This is a test");
 	}
 

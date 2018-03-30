@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.undead_pixels.dungeon_bots.scene.ActorBuilder;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -14,12 +13,12 @@ import static java.lang.String.*;
 
 public class ScriptApiTest {
 
-	private final double EPSILON = 0.00001;
+	private final double EPSILON = 0.001;
 	private volatile boolean eventCalled = false;
 
 	@Test public void testGetBindings() {
 		World w = new World();
-		Player player = new Player(w, "player");
+		Player player = new Player(w, "player", 1, 1);
 		w.addEntity(player);
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
 		se.addBindable("player", player);
@@ -28,7 +27,7 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		player.getWorld().setSize(16,16);
 		player.getWorld().update(1.f);
-		Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
+		Assert.assertEquals( 2.0, player.getPosition().y, EPSILON);
 	}
 
 	@Test public void testScriptApiSingleArgumentFunction() {
@@ -82,39 +81,40 @@ public class ScriptApiTest {
 	}
 
 	@Test public void testActorMovement() {
-		Actor player = new ActorBuilder().setName("player").createActor();
-		World w = player.getWorld();
-		w.setSize(16,16);
+		World w = new World();
+		Actor player = new Player(w, "player", 1, 1);
+		w.addEntity(player);
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("player", player);
 
 		LuaInvocation luaScript = se.init("player:queueUp();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player Y Position not moved 'UP'",
-				1.0, player.getPosition().y, EPSILON);
+				2.0, player.getPosition().y, EPSILON);
 
 		luaScript = se.init("player:queueDown();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player Y Position not moved 'DOWN'",
-				0.0, player.getPosition().y, EPSILON);
+				1.0, player.getPosition().y, EPSILON);
 
 		luaScript = se.init("player:queueRight();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player X Position not moved 'RIGHT'",
-				1.0, player.getPosition().x, EPSILON);
+				2.0, player.getPosition().x, EPSILON);
 
 		luaScript = se.init("player:queueLeft();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player X Position not moved 'LEFT'",
-				0.0, player.getPosition().x, EPSILON);
+				1.0, player.getPosition().x, EPSILON);
 
 	}
 
 	@Test public void testActorPosition() {
-		Actor player = new ActorBuilder().setName("player").createActor();
+		World w = new World();
+		Actor player = new Player(w, "player", 1, 1);
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("player", player);
 
 		LuaInvocation luaScript = se.init("return player.position();");
@@ -122,8 +122,8 @@ public class ScriptApiTest {
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
-		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(2).todouble(), EPSILON);
 	}
 
 	@Test public void testTwoArgFunction() {

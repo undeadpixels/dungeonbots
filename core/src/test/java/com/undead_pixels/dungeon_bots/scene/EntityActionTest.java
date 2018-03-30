@@ -22,34 +22,34 @@ public class EntityActionTest {
 	public void animatedMoveInSqureTest() {
 		World world = new World();
 		world.setSize(16, 16);
-		Player p = new Player(world, "player");
+		Player p = new Player(world, "player", 1, 1);
 		world.addEntity(p);
 
 		p.queueMoveSlowly(Direction.UP, false);
 		p.queueMoveSlowly(Direction.RIGHT, false);
 		p.queueMoveSlowly(Direction.DOWN, false);
 		p.queueMoveSlowly(Direction.LEFT, false);
-		assertEquals("", new Point2D.Float(0, 0), p.getPosition(), 0.01f);
+		assertEquals("", new Point2D.Float(1, 1), p.getPosition(), 0.01f);
 
 		Point2D.Float[] expected = {
-				new Point2D.Float(.0f, .5f),
-				new Point2D.Float(.0f, 1.f),
+				new Point2D.Float(1.0f, 1.5f),
+				new Point2D.Float(1.0f, 2.0f),
 
-				new Point2D.Float(.5f, 1.f),
-				new Point2D.Float(1.f, 1.f),
+				new Point2D.Float(1.5f, 2.0f),
+				new Point2D.Float(2.0f, 2.0f),
 
-				new Point2D.Float(1.f, .5f),
-				new Point2D.Float(1.f, .0f),
+				new Point2D.Float(2.0f, 1.5f),
+				new Point2D.Float(2.0f, 1.0f),
 
-				new Point2D.Float(.5f, .0f),
-				new Point2D.Float(.0f, .0f)
+				new Point2D.Float(1.5f, 1.0f),
+				new Point2D.Float(1.0f, 1.0f)
 		};
 
 		int i = 0;
 		for(Point2D.Float expect : expected) {
 			world.update(p.getMoveDuration() / 2 + .0001f);
-			System.out.println(p.getActionQueue());
-			System.out.println(p.getPosition());
+			//System.out.println(p.getActionQueue());
+			//System.out.println(p.getPosition());
 			assertEquals("Trying time step #"+(i+1), expect, p.getPosition(), 0.01f);
 			i++;
 		}

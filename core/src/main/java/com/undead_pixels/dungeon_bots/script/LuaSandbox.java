@@ -132,9 +132,9 @@ public final class LuaSandbox implements Serializable {
 	 * @param bindings A variable number of LuaBinding parameters
 	 * @return The modified LuaSandbox
 	 */
-	public LuaSandbox add(LuaBinding... bindings) {
-        return add(Stream.of(bindings));
-    }
+	public LuaSandbox add (LuaBinding... bindings) {
+		return add(Stream.of(bindings));
+	}
 
 	/**
 	 * @param script
@@ -170,13 +170,14 @@ public final class LuaSandbox implements Serializable {
 		return ret;
 	}
 	
-    /**
-     * Accessor for the Globals for the LuaSandbox
-     * @return The Globals for the LuaSandbox
-     */
-    public Globals getGlobals() {
-        return globals;
-    }
+	/**
+	 * Accessor for the Globals for the LuaSandbox
+	 * 
+	 * @return The Globals for the LuaSandbox
+	 */
+	public Globals getGlobals () {
+		return globals;
+	}
 
 	/**
 	 * Get the Whitelist of the LuaSandbox
