@@ -137,5 +137,27 @@ public final class JMessagePane extends JComponent {
 		}
 	}
 
+	/**Insert an image, scaled to the given width and height.*/
+	public void message(Image image, int width, int height) {
+		message(new Image[] { image }, width, height);
+	}
+
+
+	/**Insert a set of images, scaled to the given width and height.*/
+	public void message(Image[] images, int width, int height) {
+		StyledDocument doc = messagePane.getStyledDocument();
+		Style style = doc.addStyle(null, null);
+		for (int i = 0; i < images.length; i++) {
+			Image img = images[i].getScaledInstance(width, height, Image.SCALE_FAST);
+			JLabel lbl = new JLabel(new ImageIcon(img));
+			messagePane.insertComponent(lbl);
+		}
+		try {
+			doc.insertString(doc.getLength(), LocalDateTime.now().toLocalTime() + "\n", style);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
+
 
 }

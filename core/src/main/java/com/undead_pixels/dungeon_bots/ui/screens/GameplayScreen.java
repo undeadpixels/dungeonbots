@@ -272,6 +272,18 @@ public class GameplayScreen extends Screen {
 	}
 
 
+	/**Posts the given image to the message pane.*/
+	public void message(Image image, int width, int height) {
+		_MessagePane.message(image, width, height);
+	}
+
+
+	/**Posts the given images to the message pane.*/
+	public void message(Image[] images, int width, int height) {
+		_MessagePane.message(images, width, height);
+	}
+
+
 	private class Controller extends ScreenController
 			implements MouseWheelListener, MouseInputListener, ChangeListener {
 
