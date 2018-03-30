@@ -19,8 +19,6 @@ public class Goal extends SpriteEntity {
 	/**
 	 * @param world
 	 * @param name
-	 * @param tex
-	 * @param scripts
 	 * @param x
 	 * @param y
 	 */
