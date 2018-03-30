@@ -3,12 +3,20 @@ package com.undead_pixels.dungeon_bots;
 import com.google.gson.GsonBuilder;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
+
 import java.io.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.*;
 
-public final class GenDocs {
+public final class LuaDoc {
+
+	public static final Collection<DocClass> DOCS = build();
 
 	/* Create Simple container classes
 	*  for game Documentation that
@@ -134,4 +142,55 @@ public final class GenDocs {
 
 		return ans.values();
 	}
+
+	public static  String docClassToString(final Class<?> clz) {
+		return String.format(
+				"---- %s -----\n__ %s __\n\n%s",
+				clz.getSimpleName(),
+				Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
+						.map(c -> c.value())
+						.orElse(clz.getSuperclass().getSimpleName()),
+				LuaReflection.getAllMethods(clz)
+						.filter(m -> m.getDeclaredAnnotation(Bind.class) != null
+								|| m.getDeclaredAnnotation(Doc.class ) != null)
+						.map(m -> docMethodToString(m))
+						.reduce("", (a,b) -> a + b));
+	}
+
+	private static String docMethodToString(final Method m) {
+		final String name = GetLuaFacade.bindTo(m);
+		final String doc = Optional.ofNullable(m.getDeclaredAnnotation(Doc.class))
+				.map(a -> a.value())
+				.orElse(Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+						.map(a -> a.doc())
+						.orElse(""));
+		final String access = Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+				.map(a -> a.value().name())
+				.orElse("NONE");
+		return String.format(
+				"%s\t%s\n-- %s\n%s\n",
+				name,
+				access,
+				doc,
+				docParametersToString(m.getParameters()));
+	}
+
+	private static String docParametersToString(final Parameter[] parameters) {
+		return Stream.of(parameters)
+				.map(p -> String.format("\t%s: %s\n",
+						p.getName(),
+						Optional.ofNullable(p.getDeclaredAnnotation(Doc.class))
+								.map(a -> a.value())
+								.orElse("")))
+				.reduce("", (a,b) -> a + b);
+	}
+
+	private static Stream<LuaValue> luaValueStream(final Varargs v) {
+		List<LuaValue> ans = new ArrayList<>();
+		for(int i = 1; i < v.narg(); i++) {
+			ans.add(v.arg(i));
+		}
+		return ans.stream();
+	}
+
 }
