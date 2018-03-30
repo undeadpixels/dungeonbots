@@ -472,6 +472,51 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities in the specified direction")
+	public String look(
+			@Doc("A Varargs of either the Dir to look. Nil if Looking at the players position") Varargs args) {
+		if(args.narg() > 0 && args.arg(1).isstring()) {
+			switch (args.arg1().checkjstring().toLowerCase()) {
+				case "up":
+					return lookUp();
+				case "down":
+					return lookDown();
+				case "left":
+					return lookLeft();
+				case "right":
+					return lookRight();
+				default:
+					return "Nothing...";
+			}
+		}
+		else return world.tryLook(getPosition());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities UP relative to their position")
+	public String lookUp() {
+		return world.tryLook(up());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities DOWN relative to their position")
+	public String lookDown() {
+		return world.tryLook(down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities LEFT relative to their position")
+	public String lookLeft() {
+		return world.tryLook(left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities RIGHT relative to their position")
+	public String lookRight() {
+		return world.tryLook(right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Push objects UP relative to the Actor")
 	public Actor pushUp() {
 		world.tryPush(up(), Direction.UP);

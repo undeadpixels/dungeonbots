@@ -65,4 +65,9 @@ public class Block extends Actor implements Pushable {
 			queueMoveSlowly(direction, true);
 		}
 	}
+
+	@Override
+	public String inspect() {
+		return "A Heavy Block of Ice. Perhaps you can push it?";
+	}
 }

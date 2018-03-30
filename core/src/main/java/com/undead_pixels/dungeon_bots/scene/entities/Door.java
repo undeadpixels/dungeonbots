@@ -129,4 +129,9 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	public TeamFlavor getTeam() {
 		return TeamFlavor.AUTHOR;
 	}
+
+	@Override
+	public String inspect() {
+		return String.format("A %s Door", locked ? "locked" : open ? "open" : "closed");
+	}
 }

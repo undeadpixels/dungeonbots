@@ -110,4 +110,9 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	public Boolean canTake() {
 		return !this.locked;
 	}
+
+	@Override
+	public String inspect() {
+		return String.format("A %s Item Chest that probably contains precious loot!", locked ? "locked" : "unlocked");
+	}
 }

@@ -32,7 +32,8 @@ public class Goal extends SpriteEntity {
 		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Goal Instance")
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Create a new Goal Instance")
 	public static Goal create(
 			@Doc("The world the Goal belongs to") LuaValue world,
 			@Doc("The name of the goal") LuaValue string,
@@ -60,5 +61,9 @@ public class Goal extends SpriteEntity {
 	public boolean isSolid () {
 		return false;
 	}
-	
+
+	@Override
+	public String inspect() {
+		return "The GOAL! What are you waiting for?";
+	}
 }

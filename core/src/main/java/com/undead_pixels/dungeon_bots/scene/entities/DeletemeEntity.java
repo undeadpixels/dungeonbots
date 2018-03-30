@@ -28,5 +28,9 @@ public class DeletemeEntity extends RpgActor {
 	public DeletemeEntity(World world, TextureRegion tex, float x, float y) {
 		super(world, "deleteme", tex, new UserScriptCollection(), x, y);
 	}
-	
+
+	@Override
+	public String inspect() {
+		return "How can you see this?";
+	}
 }

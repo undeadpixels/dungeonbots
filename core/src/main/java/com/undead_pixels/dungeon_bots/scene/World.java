@@ -1287,11 +1287,19 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.orElse(false);
 	}
 
-	public void tryPush(Point2D.Float pos, Actor.Direction dir) {
+	public void tryPush(final Point2D.Float pos, final Actor.Direction dir) {
 		entitiesAtPos(pos)
 				.filter(e -> Pushable.class.isAssignableFrom(e.getClass()))
 				.map(e -> Pushable.class.cast(e))
 				.forEach(e -> e.push(dir));
+	}
+
+	public String tryLook(final Point2D.Float dir) {
+		return entitiesAtPos(dir)
+				.filter(e -> Inspectable.class.isAssignableFrom(e.getClass()))
+				.filter(e -> !ChildEntity.class.isAssignableFrom(e.getClass()))
+				.map(e -> Inspectable.class.cast(e).inspect())
+				.reduce("", (a,b) -> a + "\n" + b);
 	}
 
 	/**

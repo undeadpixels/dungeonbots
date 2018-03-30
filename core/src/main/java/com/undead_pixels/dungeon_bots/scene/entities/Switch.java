@@ -33,4 +33,9 @@ public class Switch extends SpriteEntity implements Useable {
 		// Signal appropriate observer to invoke onUse script if present
 		return false;
 	}
+
+	@Override
+	public String inspect() {
+		return "A Switch that can probably be used to trigger something?";
+	}
 }

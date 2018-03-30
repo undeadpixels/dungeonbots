@@ -118,4 +118,11 @@ public class ItemEntity extends SpriteEntity implements HasInventory {
 	public Inventory getInventory() {
 		return inventory;
 	}
+
+	@Override
+	public String inspect() {
+		return String.format(
+				"%s that looks like it's just sitting there waiting to be grabbed.",
+				getItem().getDescription());
+	}
 }
