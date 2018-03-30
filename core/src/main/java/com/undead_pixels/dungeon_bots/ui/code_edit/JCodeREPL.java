@@ -26,6 +26,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -88,6 +89,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_MessagePane.setText("");
 		_EditorPane.setText("");
+		AbstractDocument doc = (AbstractDocument)_EditorPane.getDocument();
+		doc.setDocumentFilter(new JScriptEditor.LockFilter(doc));
 
 		addKeyBindings();
 	}

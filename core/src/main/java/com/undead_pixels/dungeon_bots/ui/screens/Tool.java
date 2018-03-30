@@ -286,7 +286,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private boolean selectsTiles = true;
 
 
-		public Selector(WorldView view, Window owner, SecurityLevel securityLevel, ViewControl viewControl) {
+		public Selector(WorldView view, Window owner, SecurityLevel securityLevel) {
 			super("Selector", UIBuilder.getImage("icons/blue key.png"));
 			this.view = view;
 			this.owner = owner;
@@ -474,7 +474,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private TileType drawingTileType;
 
 
-		public TilePen(WorldView view, SelectionModel selection, ViewControl viewControl) {
+		public TilePen(WorldView view, SelectionModel selection) {
 			super("Tile Pen", UIBuilder.getImage("icons/pie chart.png"));
 			this.view = view;
 			this.world = view.getWorld();
@@ -608,8 +608,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private final SecurityLevel securityLevel;
 
 
-		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel,
-				ViewControl viewControl) {
+		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel) {
 			super("EntityPlacer", UIBuilder.getImage("icons/apply.png"));
 			this.view = view;
 			this.world = view.getWorld();

@@ -648,11 +648,10 @@ public final class LevelEditorScreen extends Screen {
 		// Set up the members of the tool list
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl)
-				.setSelectsEntities(true).setSelectsTiles(true));
-		tm.addElement(_TilePen = new Tool.TilePen(_View, selections, _ViewControl));
-		tm.addElement(
-				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
+		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR).setSelectsEntities(true)
+				.setSelectsTiles(true));
+		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
+		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
 		toolList.setModel(tm);
 
 

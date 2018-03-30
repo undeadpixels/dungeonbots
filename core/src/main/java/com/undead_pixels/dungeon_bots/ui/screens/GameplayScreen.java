@@ -98,20 +98,22 @@ public class GameplayScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// At the world at the bottom layer.
-		if(this.isSwitched) {
-			view = new WorldView(world,
-					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));});
+		if (this.isSwitched) {
+			view = new WorldView(world, (w) -> {
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+			});
 		} else {
-			view = new WorldView(world,
-					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(w));});
+			view = new WorldView(world, (w) -> {
+				DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(w));
+			});
 		}
 		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
 
 		// Set up the selection and view control.
-		((Controller) getController()).selector = new Tool.Selector(view, GameplayScreen.this, SecurityLevel.DEFAULT,
-				new Tool.ViewControl(view)).setSelectsEntities(true).setSelectsTiles(false);
+		((Controller) getController()).selector = new Tool.Selector(view, GameplayScreen.this, SecurityLevel.DEFAULT)
+				.setSelectsEntities(true).setSelectsTiles(false);
 
 		// Set up the toolbar, which will be at the bottom of the screen
 		JToolBar playToolBar = new JToolBar();
@@ -299,12 +301,14 @@ public class GameplayScreen extends Screen {
 				File openFile = FileControl.openDialog(GameplayScreen.this);
 				if (openFile != null) {
 					if (openFile.getName().endsWith(".lua")) {
-						System.err.println("Loading from a Lua file should not be allowed at this point.  Load from json");
+						System.err.println(
+								"Loading from a Lua file should not be allowed at this point.  Load from json");
 						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(new World(openFile)));
 					} else {
 						LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
 						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
-						//DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack.getCurrentWorld()));
+						// DungeonBotsMain.instance.setCurrentScreen(new
+						// GameplayScreen(levelPack.getCurrentWorld()));
 					}
 				}
 
