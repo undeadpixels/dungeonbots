@@ -16,7 +16,6 @@ import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -112,8 +111,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		toolBar.setFocusable(false);
 
 		_MessagePane = new JTextPane();
-		_MessagePane.setFocusable(false);
+		_MessagePane.setFocusable(true);
 		_MessagePane.setText("");
+		_MessagePane.setEditable(false);
 		_MessageScroller = new JScrollPane(_MessagePane);
 
 		_EditorPane = new JEditorPane();
@@ -353,15 +353,16 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		String code = getCode();
 
-		
+
 		message(">>> " + code, _EchoMessageStyle);
 		if (this._PrependSilentReturn && code.indexOf("\n") < 0 && !code.toLowerCase().startsWith("return")) {
 			code = "return " + code;
-			message("a 'return' is prepended and is now \"" + code + "\"\nThis message for testing purposes, will be deleted.");
-			
+			message("a 'return' is prepended and is now \"" + code
+					+ "\"\nThis message for testing purposes, will be deleted.");
+
 		}
 		_RunningScript = _Sandbox.enqueueCodeBlock(code, listener);
-		//_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		// _RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
 		_EditorPane.setText("");
 
 		// Update the command history records.
@@ -475,12 +476,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		if (_MessagePane == null || attribs == null)
 			return;
 
-		StyledDocument doc = _MessagePane.getStyledDocument();
+
 		try {
+			AbstractDocument doc = (AbstractDocument) _MessagePane.getDocument();
 			doc.insertString(doc.getLength(), message + "\n\n", attribs);
 			doc.remove(0, Math.max(0, doc.getLength() - _MessageMax));
 			pageEnd(_MessageScroller);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

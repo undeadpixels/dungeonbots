@@ -232,9 +232,9 @@ public final class JScriptEditor extends JPanel {
 			this._locked = isLocked;
 		}
 
-
+/**Creates a new, unlocked LockFilter.*/
 		public LockFilter(AbstractDocument document) {
-			this(document, true);
+			this(document, false);
 		}
 
 
@@ -256,7 +256,7 @@ public final class JScriptEditor extends JPanel {
 		public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
 				throws BadLocationException {
 
-			if (!_locked)
+			if (_locked)
 				return;
 
 			// Parentheses problem fix - this is somewhat hackish but it works
@@ -274,7 +274,7 @@ public final class JScriptEditor extends JPanel {
 		@Override
 		public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
 				throws BadLocationException {
-			if (!_locked)
+			if (_locked)
 				return;
 			else
 				super.replace(fb, offset, length, text, attrs);
@@ -284,7 +284,7 @@ public final class JScriptEditor extends JPanel {
 
 		@Override
 		public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-			if (!_locked)
+			if (_locked)
 				return;
 			else
 				super.remove(fb, offset, length);
