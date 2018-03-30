@@ -145,7 +145,7 @@ public final class LuaDoc {
 
 	public static  String docClassToString(final Class<?> clz) {
 		return String.format(
-				"---- %s -----\n__ %s __\n\n%s",
+				"---- %s ----\n__ %s __\n\n%s",
 				clz.getSimpleName(),
 				Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
 						.map(c -> c.value())
