@@ -474,9 +474,9 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Actor inspects objects or entities in the specified direction")
 	public String look(
-			@Doc("A Varargs of either the Dir to look. Nil if Looking at the players position") Varargs args) {
-		if(args.narg() > 0 && args.arg(1).isstring()) {
-			switch (args.arg1().checkjstring().toLowerCase()) {
+			@Doc("A Varargs of either the Dir to look. Nil if Looking at the players position") LuaValue v) {
+		if(v.isstring()) {
+			switch (v.checkjstring().toLowerCase()) {
 				case "up":
 					return lookUp();
 				case "down":
