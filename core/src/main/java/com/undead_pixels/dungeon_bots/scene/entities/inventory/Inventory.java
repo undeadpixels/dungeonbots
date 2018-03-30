@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -153,6 +155,11 @@ public class Inventory implements GetLuaFacade, Serializable {
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
+					this.owner.getWorld().message(
+							ir.inventory.owner.getName(),
+							String.format("Gives %s to %s", ir.getName(), owner.getName()),
+							LoggingLevel.GENERAL,
+							ItemChest.LOCKED_TEXTURE);
 					return true;
 				}
 			}

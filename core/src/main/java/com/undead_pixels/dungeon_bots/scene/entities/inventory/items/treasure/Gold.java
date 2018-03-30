@@ -7,7 +7,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.LuaValue;
 
-@Doc("Gold is a Treasure that has a value that is a function of it's weight.")
+@Doc("Gold is a Treasure that has a value that is a function of its weight.")
 public final class Gold extends Treasure {
 	private static final long serialVersionUID = 1L;
 	public Gold(World w, int weight) {
