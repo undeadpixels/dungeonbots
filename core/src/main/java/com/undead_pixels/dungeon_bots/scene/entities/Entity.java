@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import org.luaj.vm2.LuaValue;
 
 /**
  * @author Kevin Parker
@@ -74,8 +75,13 @@ public abstract class Entity
 	public Entity(World world, String name, UserScriptCollection scripts) {
 		this.world = world;
 		this.name = name;
-		this.id = world.makeID();
 		this.scripts = scripts;
+
+		if(world != null) {
+			this.id = world.makeID();
+		} else {
+			this.id = -1;
+		}
 	}
 
 
@@ -86,8 +92,10 @@ public abstract class Entity
 	public LuaSandbox getSandbox() {
 		if (sandbox == null) {
 			sandbox = new LuaSandbox(this);
-			this.sandbox.addBindable(this);
-			this.sandbox.addBindable(world);
+			this.sandbox.addBindable("this", this);
+			this.sandbox.addBindable("world", world);
+			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
+					.addBindableClasses(GetLuaFacade.getEntityClasses());
 		}
 		return sandbox;
 	}
@@ -96,6 +104,14 @@ public abstract class Entity
 		if(this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
 		}
+	}
+	
+
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	public void onAddedToWorld(World world) {
 	}
 
 
@@ -107,28 +123,6 @@ public abstract class Entity
 		if (sandbox != null) {
 			sandbox.update(dt);
 		}
-	}
-
-
-	/**
-	 * @param sandbox
-	 *            The user sandbox to set
-	 */
-	@Deprecated
-	public void setSandbox(LuaSandbox sandbox) {
-		this.sandbox = sandbox;
-	}
-
-
-	/**
-	 * @param vals
-	 *            The values to add to the sandbox
-	 * @return this
-	 */
-	@SafeVarargs
-	public final <T extends GetLuaFacade> Entity addToSandbox(T... vals) {
-		this.getSandbox().addBindable(vals);
-		return this;
 	}
 
 
@@ -223,5 +217,51 @@ public abstract class Entity
 			this.scripts.add(is);
 	}
 
+	protected Point2D.Float add(final Point2D.Float toAdd, float x, float y) {
+		return new Point2D.Float(toAdd.x + x, toAdd.y + y);
+	}
 
+	/**
+	 * Get the position left relative to the player
+	 * @return
+	 */
+	protected Point2D.Float left() {
+		return add(this.getPosition(), -1f, 0f);
+	}
+
+	/**
+	 * Get the position right relative to the player
+	 * @return
+	 */
+	protected Point2D.Float right() {
+		return add(this.getPosition(), 1f, 0f);
+	}
+
+	/**
+	 * Get the position up relative to the player
+	 * @return
+	 */
+	protected Point2D.Float up() {
+		return add(this.getPosition(), 0f, 1f);
+	}
+
+	/**
+	 * Get the position down relative to the player
+	 * @return
+	 */
+	protected Point2D.Float down() {
+		return add(this.getPosition(), 0f, -1f);
+	}
+
+	/**
+	 * Convenience function for extracting a Userdata class of the specified type from
+	 * a LuaValue argument.
+	 * @param clz The UserData type to return
+	 * @param lv The LuaValue that contains the user data type
+	 * @param <T>
+	 * @return
+	 */
+	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
+		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
+	}
 }

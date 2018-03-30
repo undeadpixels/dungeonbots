@@ -1,0 +1,1296 @@
+[
+  {
+    "name": "Treasure",
+    "descr": "Treasures are Items that are have high monetary value.",
+    "methods": []
+  },
+  {
+    "name": "ResponseQuestion",
+    "descr": "When invoked, a ResponseQuestion presents the user with a Dialog window of\nconsisting of questions and text input responses that the user can provide\nand submit.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Response Question item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the ResponseQuestion belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "A description of the Response Question"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "A List/Table of Questions that will each have their own responses"
+          }
+        ]
+      },
+      {
+        "name": "getResponseQuestions",
+        "descr": "Get the Response questions the User submitted.",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "getDescription",
+        "descr": "Gets a String representation of the Question and currently input solutions.",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "ItemInfo",
+    "descr": "Type that encapsulates descriptive information about an item queried from a peek method",
+    "methods": [
+      {
+        "name": "tostr",
+        "descr": "Returns a string representation of the item",
+        "role": "DEFAULT",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Website",
+    "descr": "A Website is an item that encapsulates opening a Browser Window to a given constant URL",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Website item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Website belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "A description of the Website item"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The underlying URL of the Website item"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "World",
+    "descr": "The current map can be interfaced with via the \u0027world\u0027",
+    "methods": [
+      {
+        "name": "addEntity",
+        "descr": "Add and Entity to the World",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Argument Entity to add to the World"
+          }
+        ]
+      },
+      {
+        "name": "showAlert",
+        "descr": "Creates an alert message",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Content of the Alert Message"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Title of the Alert window"
+          }
+        ]
+      },
+      {
+        "name": "totalValue",
+        "descr": "Query the total value of Treasure and Items found in the World",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "getGoal",
+        "descr": "Returns the location of the Goal in the world.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "alert",
+        "descr": "Creates and displays an Alert window.",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Alert message"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Title of the Alert Window"
+          }
+        ]
+      },
+      {
+        "name": "openBrowser",
+        "descr": "Opens a Browser Window using the argument URL string",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The desired URL"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ItemChest",
+    "descr": "An ItemChest is an Entity that contains a large Inventory.\nThe ItemChest can be isLocked or unlocked based off of events or by unlocking\nwith a key.",
+    "methods": [
+      {
+        "name": "lock",
+        "descr": "Set the ItemChest to a isLocked state.",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "new",
+        "descr": "Creates a new ItemChest instance",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the ItemChest belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The name the ItemChest is bound to in it\u0027s script environment"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the ItemChest"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the ItemChest"
+          }
+        ]
+      },
+      {
+        "name": "unlock",
+        "descr": "Set the ItemChest to an unlocked state.",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "isLocked",
+        "descr": "Returns true if ItemChest is isLocked, false otherwise.",
+        "role": "NONE",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "RpgActor",
+    "descr": "A type that encapsulates abilities and stats for players with Rpg attributes",
+    "methods": [
+      {
+        "name": "health",
+        "descr": "Get the Health of the Player.\nWhen the Players health is Zero, the player dies.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "mana",
+        "descr": "Get the Mana of the Player\nMana is consumed when using spells, or Items that require magic power.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "stamina",
+        "descr": "Get the Stamina of the Player\nCertain actions require stamina to perform, such as attacks, or pushing heavy objects.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "stats",
+        "descr": "Get the stats of the player.\n(strength, dexterity, intelligence, wisdom) \u003d player:getStats()",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "strength",
+        "descr": "Get the Strength stat of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "dexterity",
+        "descr": "Get the Dexterity stat of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "intelligence",
+        "descr": "Get the Intelligence stat of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "wisdom",
+        "descr": "Get the Wisdom stat of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "setStats",
+        "descr": "Sets the Stats of the Player character to the specified values.",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "A list of Integers corresponding to the players stats"
+          }
+        ]
+      },
+      {
+        "name": "setHealth",
+        "descr": "Sets the Health of the Player to the provided value.",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "An Integer value greater than 0"
+          }
+        ]
+      },
+      {
+        "name": "setMana",
+        "descr": "Sets the Mana of the Player to the provided value.",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "An Integer value greater than 0"
+          }
+        ]
+      },
+      {
+        "name": "setStamina",
+        "descr": "Sets the Stamina of the Player to the provided value.",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "An Integer value greater than 0"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "MultipleChoiceQuestion",
+    "descr": "A MultipleChoiceQuestion is a question that presents the invoker with a dialog window\nWith multiple options, where only one option can be selected.\nBy clicking Submit, the player sets a field in the Question that can be queried\nfrom a grading script.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new MultipleChoice question item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the question belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The underlying question."
+          },
+          {
+            "type": "LuaValue",
+            "descr": "A List/Table of answers to the question"
+          }
+        ]
+      },
+      {
+        "name": "getSubmittedAnswer",
+        "descr": "Get the Answer to submitted for the question.",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Weapon",
+    "descr": "A Weapon is an Item that can be used to damage adjacent Entities not on the players Team.\nDifferent types of weapons have different properties, such as more Damage, more Range, or\na higher attack Speed (less cool down after an attack)",
+    "methods": [
+      {
+        "name": "stats",
+        "descr": "Gets the Stats of the Weapon",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Item",
+    "descr": "An Item is a type representing an immaterial game item that is carried in an Inventory.",
+    "methods": [
+      {
+        "name": "getName",
+        "descr": "Get the Name of the Item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "getValue",
+        "descr": "Get the Value of the Item",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "getDescription",
+        "descr": "Get the Description of the Item",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "getWeight",
+        "descr": "Get the Weight of the Item",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Goal",
+    "descr": "",
+    "methods": [
+      {
+        "name": "create",
+        "descr": "Create a new Goal Instance",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The world the Goal belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The name of the goal"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the Goal"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the Goal"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Sword",
+    "descr": "A Sword is a fast weapon that does a reasonable amount of damage, but has a limited range.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Sword item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Sword should belong to"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Actor",
+    "descr": "The base type for Bot and Player entities",
+    "methods": [
+      {
+        "name": "position",
+        "descr": "Get the position of the player as an x,y varargs pair",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "push",
+        "descr": "Pushes any pushable objects in the associated direction",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Direction to try to push an object"
+          }
+        ]
+      },
+      {
+        "name": "peek",
+        "descr": "Peek at an entities inventory in the specified direction\nrelative to the actor.",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The direction to peek [up,down,left,right]"
+          }
+        ]
+      },
+      {
+        "name": "steps",
+        "descr": "Get the Number of Steps taken by the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "bumps",
+        "descr": "Get the Number of Collisions made by the Actor with walls",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "inventory",
+        "descr": "Get the Inventory of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "use",
+        "descr": "Contextually use an object/entity in the specified direction relative to the actor",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The direction of the entity or object to Use"
+          }
+        ]
+      },
+      {
+        "name": "say",
+        "descr": "Prints the argument text above the player",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The text for the player to say"
+          }
+        ]
+      },
+      {
+        "name": "grab",
+        "descr": "Grabs any Item Entities that exist in the tile the player is in",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "pushUp",
+        "descr": "Push objects UP relative to the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "pushDown",
+        "descr": "Push objects DOWN relative to the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "pushLeft",
+        "descr": "Push objects LEFT relative to the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "pushRight",
+        "descr": "Push objects RIGHT relative to the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "peekUp",
+        "descr": "Peek at the inventory of any entity UP relative to the actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "peekDown",
+        "descr": "Peek at the inventory of any entity DOWN relative to the actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "peekLeft",
+        "descr": "Peek at the inventory of any entity LEFT relative to the actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "peekRight",
+        "descr": "Peek at the inventory of any entity RIGHT relative to the actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "take",
+        "descr": "Take an item from the inventory of any entity found in the specified direction if possible",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Direction of the entity to take the item from"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Index of the Item"
+          }
+        ]
+      },
+      {
+        "name": "left",
+        "descr": "Moves the player LEFT",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The number of spaces to move"
+          }
+        ]
+      },
+      {
+        "name": "right",
+        "descr": "Moves the player RIGHT",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The number of spaces to move"
+          }
+        ]
+      },
+      {
+        "name": "up",
+        "descr": "Moves the player UP",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The number of spaces to move"
+          }
+        ]
+      },
+      {
+        "name": "down",
+        "descr": "Moves the player DOWN",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The number of spaces to move"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "HasInventory",
+    "descr": "",
+    "methods": [
+      {
+        "name": "peekInventory",
+        "descr": "Peek at the Inventory of the associated entity\nReturns a list of tables with a \u0027name\u0027 and \u0027description\u0027 keys with the associated values.",
+        "role": "DEFAULT",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Gold",
+    "descr": "Gold is a Treasure that has a value that is a function of it\u0027s weight.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Gold item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the gold belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The weight of the Gold item"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ItemEntity",
+    "descr": "",
+    "methods": [
+      {
+        "name": "key",
+        "descr": "Create a new Key Entity that exists in the game map",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World that the Key Item belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the Key Item"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the Key Item"
+          }
+        ]
+      },
+      {
+        "name": "gold",
+        "descr": "Create a new GoldItem",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the GoldItem belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the GoldItem"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the GoldItem"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Weight of the GoldItem"
+          }
+        ]
+      },
+      {
+        "name": "diamond",
+        "descr": "Create a new DiamondEntity",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the DiamondEntity belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the DiamondEntity"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the DiamondEntity"
+          }
+        ]
+      },
+      {
+        "name": "gem",
+        "descr": "Create a new Gem Entity",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the GemEntity belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the GemEntity"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the GemEntity"
+          }
+        ]
+      },
+      {
+        "name": "inventory",
+        "descr": "Get the ItemEntity\u0027s inventory",
+        "role": "ENTITY",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Player",
+    "descr": "A Player is an Actor afforded with more privileges",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Assigns a new player",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The assigned World"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the player"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y Position of the player"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SpriteEntity",
+    "descr": "",
+    "methods": [
+      {
+        "name": "setPosition",
+        "descr": "Set the position of the entity",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the entity"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the entity"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bot",
+    "descr": "",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Bot instance",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Bot belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Name of the Bot"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the Bot"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the Bot"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "TileTypes",
+    "descr": "A collection of Tile Types of the following varieties.\nfloor,grass,wall,pit,goal",
+    "methods": [
+      {
+        "name": "getTile",
+        "descr": "Returns a TileType of the specific type",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "A TileType of the specified Type"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Diamond",
+    "descr": "An Item is a Treasure that is very valuable!",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a Diamond",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Diamond belongs to"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bow",
+    "descr": "A Bow is a ranged weapon with a low attack speed.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Bow item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World that the Bow should belong to"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Door",
+    "descr": "A Door is an entity that can be triggered to open by events or unlocked with Keys",
+    "methods": [
+      {
+        "name": "lock",
+        "descr": "Sets the Door to a locked state.",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "new",
+        "descr": "Create a new Door instance",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Door belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the door"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the door"
+          }
+        ]
+      },
+      {
+        "name": "unlock",
+        "descr": "Sets the Door to an unlocked state.",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "isLocked",
+        "descr": "Returns true if Door is locked, false otherwise.",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "use",
+        "descr": "Toggle the open state of the door depending on if it is locked.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "toggleOpen",
+        "descr": "Toggles the open state of the door",
+        "role": "ENTITY",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Gem",
+    "descr": "Gems are a Treasure that have some value",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Creates a new Gem",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Gem belongs to"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ItemReference",
+    "descr": "Inventory Item type that represents an item at a given spot in an Inventory.\nItem changes if the Inventory is modified.",
+    "methods": [
+      {
+        "name": "use",
+        "descr": "Contextually uses the Item. Action varies depending on the Item.",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "useRight",
+        "descr": "Uses the Item at the Location right relative to the owner of the Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "useLeft",
+        "descr": "Uses the Item at the Location left relative to the owner of the Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "useDown",
+        "descr": "Uses the Item at the Location down relative to the owner of the Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "useUp",
+        "descr": "Uses the Item at the Location up relative to owner of the Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "useSelf",
+        "descr": "Contextually uses the Item on the caller. Action varies depending on the Item.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveUp",
+        "descr": "Give the Item to any entities \u0027Up\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "give",
+        "descr": "Give the item to any entities found at the specified direction relative to the owner of the item.",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "A direction relative to the entity"
+          }
+        ]
+      },
+      {
+        "name": "giveDown",
+        "descr": "Give the Item to any entities \u0027Down\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveLeft",
+        "descr": "Give the Item to any entities \u0027Left\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveRight",
+        "descr": "Give the Item to any entities \u0027Right\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "name",
+        "descr": "Asks the Item Reference for the name of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "value",
+        "descr": "Asks the Item Reference for the monetary value of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "setItem",
+        "descr": "Sets the underlying value of the Item Reference to the provided Item.",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "An Item"
+          }
+        ]
+      },
+      {
+        "name": "description",
+        "descr": "Asks the Item Reference for a description of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "weight",
+        "descr": "Asks the Item Reference for the weight of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "getItem",
+        "descr": "Gets the referenced Item",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Switch",
+    "descr": "A Switch is an Entity that\u0027s contextual use function invokes a event",
+    "methods": []
+  },
+  {
+    "name": "SpellBook",
+    "descr": "A Spell book is a powerful weapon that has a medium range and is quite slow.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Spell Book item",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World that the Spell Book should belong to"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "WeaponStats",
+    "descr": "",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a WeaponStats table",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "Weapon Damage in range [0..10]"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "Weapon Speed in range [0..10]"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "Weapon Range in range [0..10]"
+          }
+        ]
+      },
+      {
+        "name": "speed",
+        "descr": "Gets the Speed stat of the Weapon",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "range",
+        "descr": "Gets the Range stat of the Weapon",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "damage",
+        "descr": "Gets the Damage stat of the Weapon",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
+  },
+  {
+    "name": "Note",
+    "descr": "A Note is an Item that contains user or author provided text.",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Note item.",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Note belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The text body of the Note"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Whitelist",
+    "descr": "",
+    "methods": []
+  },
+  {
+    "name": "Block",
+    "descr": "",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Block",
+        "role": "TEAM",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World that contains the Block"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the Block"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the Block"
+          }
+        ]
+      },
+      {
+        "name": "setMovable",
+        "descr": "Set the entity to a movable state with a boolean flag",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "A Boolean: True if Block should be moveable, false otherwise"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Inventory",
+    "descr": "",
+    "methods": [
+      {
+        "name": "get",
+        "descr": "Get an array of ItemReferences to the Inventory",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "size",
+        "descr": "Get the Size of the Inventory",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "capacity",
+        "descr": "Query the current capacity of the Inventory",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "reset",
+        "descr": "Resets the inventory to Empty Item values",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
+        "name": "peek",
+        "descr": "Get the ItemReference at the specified index of the Inventory",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Index into the Inventory"
+          }
+        ]
+      },
+      {
+        "name": "maxWeight",
+        "descr": "Get the Max Weight this Inventory can support",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "putItem",
+        "descr": "Puts an ItemReferences Item into this inventory",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The ItemReference to deref and place into this inventory"
+          }
+        ]
+      },
+      {
+        "name": "tos",
+        "descr": "Get a String representation of the Inventory",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "unpack",
+        "descr": "Unpacks the Inventory contents to a Lua Varargs type",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "weight",
+        "descr": "Query the total weight of items in the inventory",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "totalValue",
+        "descr": "Calculates the total value of the contents of the Inventory",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "addItem",
+        "descr": "Adds the Item to the Inventory if possible",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Item to add"
+          }
+        ]
+      },
+      {
+        "name": "getItem",
+        "descr": "Get the underlying Item contained by the ItemReference at the index in the Inventory",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Index of the Item"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Key",
+    "descr": "A Key is an Item that is typically used to Open Doors or Item Chests",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Key item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Key should belong to"
+          }
+        ]
+      }
+    ]
+  }
+]

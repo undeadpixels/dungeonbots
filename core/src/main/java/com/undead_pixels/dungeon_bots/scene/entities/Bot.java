@@ -3,7 +3,13 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import org.luaj.vm2.LuaValue;
 
 import java.awt.geom.Point2D;
 
@@ -39,14 +45,27 @@ public class Bot extends RpgActor {
 
 	/**
 	 * @param world
-	 * @param string
 	 * @param x
 	 * @param y
 	 */
 	public Bot(World world, String name, float x, float y) {
-		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), x, y);
+		super(world, name, DEFAULT_TEXTURE, world.getBotScripts(), x, y);
 		steps = 0;
 		bumps = 0;
+	}
+
+	@BindTo("new")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Bot instance")
+	public static Bot create(
+			@Doc("The World the Bot belongs to") LuaValue world,
+			@Doc("The Name of the Bot") LuaValue name,
+			@Doc("The X position of the Bot") LuaValue x,
+			@Doc("The Y position of the Bot") LuaValue y) {
+		return new Bot(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				name.checkjstring(),
+				x.tofloat(),
+				y.tofloat());
 	}
 
 	/**
@@ -72,6 +91,18 @@ public class Bot extends RpgActor {
 
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
+	}
+
+	@Override
+	public Boolean canTake() {
+		return true;
+	}
+
+	@Override
+	public LuaSandbox getSandbox() {
+		LuaSandbox ret = super.getSandbox();
+		ret.addBindable("bot", this);
+		return ret;
 	}
 
 }

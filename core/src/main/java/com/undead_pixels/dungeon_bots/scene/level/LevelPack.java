@@ -1,18 +1,19 @@
 package com.undead_pixels.dungeon_bots.scene.level;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.HashSet;
-import java.util.stream.Stream;
 
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * A collection of levels, potentially loaded from a file and sharable with
@@ -20,25 +21,47 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
  */
 public class LevelPack {
 
+	public static final String EXTENSION = "json";
+	public static final String DEFAULT_MAIN_EMBLEM_FILE = "images/shoes_hat.jpg";
+	public static final String DEFAULT_LEVEL_EMBLEM_FILE = "images/ice_cave.jpg";
+	public static final String UNKNOWN_AUTHOR_NAME = "Unknown author";
+
+	public static final int EMBLEM_WIDTH = 300;
+	public static final int EMBLEM_HEIGHT = 200;
+	public static final String DEFAULT_PACK_FILE = "maze1.json";
+	public static final String DEFAULT_WORLD_FILE = "default.lua";
+
+
 	public enum FeedbackModel {
 		RATING_AND_COMMENTS, SCORES, SAVED_GAMES
 	}
 
-	private WorldList levels;
-	private int levelIndex = 0;
+
 	private String name;
 	private User currentPlayer;
-	private HashSet<Integer> playerVisible;
+	private final HashSet<Integer> playerVisible;
 	public UserScript transitionScript;
+	private ImageList mainEmblem;
+	private String description = null;
+
+	private WorldList levels;
+	private int levelIndex = 0;
+	private int levelCount = -1;
+	private ImageList levelEmblems;
+	private ArrayList<String> levelTitles;
+	private ArrayList<String> levelDescriptions;
 
 	private final User originalAuthor;
-	private ArrayList<User> authors;
-	private ArrayList<User> audienceUsers;
-	private ArrayList<Integer> audienceGroups; // TODO: implement a group class?
+	private final ArrayList<User> authors;
+	private final ArrayList<User> audienceUsers;
+	private final ArrayList<Integer> audienceGroups; // TODO: implement a group
+														// class?
 	private final LocalDateTime creationDate;
 	private LocalDateTime publishEnd;
 	private LocalDateTime publishStart;
 	private FeedbackModel feedbackModel;
+	private boolean isLocked;
+
 
 	/**
 	 * Creates a new Level Pack, having the given name and the first specified
@@ -52,17 +75,22 @@ public class LevelPack {
 				"--This script will be run to return an LuaInt specifying the next world to proceed to, given the current world state.",
 				SecurityLevel.AUTHOR);
 
+		if (worlds.length == 0)
+			worlds = new World[] { new World() };
 		this.levels = new WorldList();
-		//this.levels.add(new World(new File("default.lua")));
-		if(worlds.length == 0)
-			worlds = new World[] { new World(new File("default.lua")) };
-
 		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;
+		this.levelCount = worlds.length;
+		this.levelEmblems = new ImageList();
+		this.levelTitles = new ArrayList<String>();
+		this.levelDescriptions = new ArrayList<String>();
 
 		this.authors = new ArrayList<>();
 		this.originalAuthor = author;
-		addAuthor(author);
+		this.mainEmblem = new ImageList();
+		this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+		if (author != null)
+			addAuthor(author);
 		creationDate = LocalDateTime.now();
 		publishStart = LocalDateTime.now();
 		publishEnd = publishStart.plusYears(1);
@@ -75,15 +103,18 @@ public class LevelPack {
 		playerVisible.add(0);
 	}
 
+
 	/** Gets the Level Pack's name. */
 	public String getName() {
 		return this.name;
 	}
 
+
 	/** Sets the Level Pack's name. */
 	public void setName(String name) {
 		this.name = name;
 	}
+
 
 	/**
 	 * The transition script is the script by which one level leads to another.
@@ -91,6 +122,7 @@ public class LevelPack {
 	public UserScript getTransitionScript() {
 		return this.transitionScript;
 	}
+
 
 	/**
 	 * The transition script is the script by which one level leads to another.
@@ -100,9 +132,24 @@ public class LevelPack {
 		this.transitionScript = script;
 	}
 
+
 	// ============================================================
 	// ========= LevelPack PLAYER VIEW MANAGEMENT STUFF ===========
 	// ============================================================
+
+
+	public World getWorld(int i) {
+		return levels.get(i);
+	}
+
+
+	public void setWorlds(World[] newWorlds) {
+		levels.clear();
+		for (World w : newWorlds)
+			levels.add(w);
+		levelIndex = Math.max(0, Math.min(levelIndex, levels.size() - 1));
+	}
+
 
 	/** Returns the current world. */
 	public World getCurrentWorld() {
@@ -110,15 +157,18 @@ public class LevelPack {
 		return levels.get(levelIndex);
 	}
 
+
 	/** Returns the index of the current World. */
 	public int getCurrentWorldIndex() {
 		return levelIndex;
 	}
 
+
 	/** Returns an array of all Worlds in this LevelPack. */
 	public World[] getAllWorlds() {
 		return levels.toArray(new World[levels.size()]);
 	}
+
 
 	/**
 	 * Sets the current world to the index indicated. Throws an exception if the
@@ -129,10 +179,12 @@ public class LevelPack {
 		return levels.get(levelIndex = index);
 	}
 
+
 	/** Returns the current player, if one exists. If not, returns null. */
 	public User getCurrentPlayer() {
 		return currentPlayer;
 	}
+
 
 	/**
 	 * Sets the player of this Level Pack. Once assigned, another player cannot
@@ -152,6 +204,7 @@ public class LevelPack {
 		currentPlayer = newPlayer;
 	}
 
+
 	/** Returns highest index number of worlds completed by this player. */
 	public int getMaxCompleted() {
 		int max = -1;
@@ -159,6 +212,7 @@ public class LevelPack {
 			max = Math.max(max, i);
 		return max;
 	}
+
 
 	/**
 	 * Returns whether a player can see the given World index in the TODO: Level
@@ -168,12 +222,14 @@ public class LevelPack {
 		return playerVisible.contains(levelIndex);
 	}
 
+
 	/**
 	 * Adds the given World index for the player in the TODO: Level Pack Screen.
 	 */
 	public boolean addPlayerVisible(Integer levelIndex) {
 		return playerVisible.add(levelIndex);
 	}
+
 
 	/**
 	 * Removes the given World index from the player in the TODO: Level Pack
@@ -183,10 +239,12 @@ public class LevelPack {
 		return playerVisible.remove(levelIndex);
 	}
 
+
 	/** Gets the set of all level indices that are visible to the player. */
 	public Integer[] getAllPlayerVisible() {
 		return playerVisible.toArray(new Integer[playerVisible.size()]);
 	}
+
 
 	// ============================================================
 	// ========= LevelPack PUBLICATION STUFF ======================
@@ -200,13 +258,23 @@ public class LevelPack {
 		return authors.add(user);
 	}
 
+
 	/**
 	 * Returns whether the given user has author-level privileges for this level
-	 * pack.
+	 * pack.  If the indicated user is null, returns false.
 	 */
 	public boolean isAuthor(User user) {
-		return authors.contains(user);
+		if (user == null)
+			return false;
+		if (authors == null)
+			return false;
+		for (User u : authors) {
+			if (u.getUserName().equals(user.getUserName()))
+				return true;
+		}
+		return false;
 	}
+
 
 	/**
 	 * Returns an array of all the authors contained in this Level Pack. Note
@@ -217,17 +285,21 @@ public class LevelPack {
 		return authors.toArray(new User[authors.size()]);
 	}
 
+
 	public User getOriginalAuthor() {
 		return originalAuthor;
 	}
+
 
 	public User[] getAllAudienceUsers() {
 		return audienceUsers.toArray(new User[audienceUsers.size()]);
 	}
 
+
 	public boolean getIsAudience(User user) {
 		return audienceUsers.contains(user);
 	}
+
 
 	public boolean addUser(User user) {
 		if (audienceUsers.contains(user))
@@ -236,13 +308,16 @@ public class LevelPack {
 		return true;
 	}
 
+
 	public boolean removeUser(User user) {
 		return audienceUsers.remove(user);
 	}
 
+
 	public boolean getIsAudienceGroup(Integer id) {
 		return audienceGroups.contains(id);
 	}
+
 
 	public boolean addAudienceGroup(Integer id) {
 		if (audienceGroups.contains(id))
@@ -251,51 +326,269 @@ public class LevelPack {
 		return true;
 	}
 
+
 	public Integer[] getAllAudienceGroups() {
 		return audienceGroups.toArray(new Integer[audienceGroups.size()]);
 	}
+
 
 	public boolean removeAudienceGroup(Integer id) {
 		return audienceGroups.remove(id);
 	}
 
+
 	public LocalDateTime getCreationDate() {
 		return creationDate;
 	}
+
 
 	public LocalDateTime getPublishStart() {
 		return publishStart;
 	}
 
+
 	public void setPublicationStart(LocalDateTime start) {
 		publishStart = start;
 	}
 
-	public LocalDateTime getPublicateEnd() {
+
+	public LocalDateTime getPublishEnd() {
 		return publishEnd;
 	}
+
 
 	public void setPublicationEnd(LocalDateTime end) {
 		publishStart = end;
 	}
 
+
 	public FeedbackModel getFeedbackModel() {
 		return feedbackModel;
 	}
+
 
 	public void setFeedbackModel(FeedbackModel model) {
 		feedbackModel = model;
 	}
 
+
+	/**The main emblem is an image that represents this level pack.*/
+	public Image getEmblem() {
+		if (mainEmblem == null) {
+			this.mainEmblem = new ImageList();
+			this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+		}
+
+		return mainEmblem.get(0);
+	}
+
+
+	/**The main emblem is an image that represents this level pack.*/
+	public void setEmblem(BufferedImage image) {
+		if (this.mainEmblem == null) {
+			this.mainEmblem = new ImageList();
+			this.mainEmblem.add((BufferedImage) UIBuilder.getImage(DEFAULT_MAIN_EMBLEM_FILE));
+		} else
+			this.mainEmblem.set(0, image);
+	}
+
+
+	public String getDescription() {
+		return (description == null) ? "(No description)" : description;
+	}
+
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+
+	/**A LevelPack which is locked should only be modified by Users who are identified as 
+	 * authors.*/
+	public boolean getLocked() {
+		return isLocked;
+	}
+
+
+	/**Determines whether only an identified author User should be allowed to modify this 
+	 * LevelPack.*/
+	public void setLocked(boolean value) {
+		isLocked = value;
+	}
+
+
+	// ============================================================
+	// ========= LevelPack WORLD/LEVEL STUFF ======================
+	// ============================================================
+
+	/**Returns whether this pack is only a partial pack.  A pack may be partial if it was serialized for 
+	 * purposes of making a list, where deserializing the worlds themselves may be wasteful.*/
+	public boolean isPartial() {
+		return levelCount != levels.size();
+	}
+
+
+	public int getLevelIndex() {
+		return levelIndex;
+	}
+
+
+	public int getLevelCount() {
+		return levelCount;
+	}
+
+
+	public void setLevelIndex(int newIndex) {
+		levelIndex = newIndex;
+	}
+
+
+	/**The emblem is an image representing a world/level.*/
+	public Image getLevelEmblem(int index) {
+		while (index >= levelEmblems.size())
+			levelEmblems.add((BufferedImage) UIBuilder.getImage(LevelPack.DEFAULT_LEVEL_EMBLEM_FILE));
+		return levelEmblems.get(index);
+	}
+
+
+	/**Sets the emblem representing a world or level.*/
+	public void setLevelEmblem(int index, BufferedImage img) {
+		levelEmblems.set(index, img);
+	}
+
+
+	public void setLevelEmblems(BufferedImage[] emblems) {
+		if (levelEmblems == null)
+			levelEmblems = new ImageList();
+		levelEmblems.clear();
+		for (BufferedImage img : emblems)
+			levelEmblems.add(img);
+
+	}
+
+
+	public String getLevelTitle(int index) {
+
+		while (index >= levelTitles.size())
+			levelTitles.add("Unnamed level.");
+
+		return levelTitles.get(index);
+	}
+
+
+	public void setLevelTitle(int index, String title) {
+		levelTitles.set(index, title);
+	}
+
+
+	public void setLevelTitles(String[] titles) {
+		if (levelTitles == null)
+			levelTitles = new ArrayList<String>();
+		levelTitles.clear();
+		for (String title : titles)
+			levelTitles.add(title);
+	}
+
+
+	public String getLevelDescription(int index) {
+		while (index >= levelDescriptions.size())
+			levelDescriptions.add("No description yet.");
+		return levelDescriptions.get(index);
+	}
+
+
+	public void setLevelDescription(int index, String description) {
+		levelDescriptions.set(index, description);
+	}
+
+
+	public void setLevelDescriptions(String[] descriptions) {
+		if (levelDescriptions == null)
+			levelDescriptions = new ArrayList<String>();
+		levelDescriptions.clear();
+		for (String desc : descriptions)
+			levelDescriptions.add(desc);
+	}
+
+
 	// ============================================================
 	// ========= LevelPack SERIALIZATION STUFF ====================
 	// ============================================================
 
+
 	/** Constructs and returns a LevelPack from the indicated file. */
 	public static LevelPack fromFile(String filename) {
 		String json = Serializer.readStringFromFile(filename);
-		return fromJson(json);
+		LevelPack lp = fromJson(json);
+		standardize(lp);
+		return lp;
 	}
+
+
+	/** Constructs and returns a LevelPack from the indicated json String. */
+	public static LevelPack fromJson(String json) {
+		return Serializer.deserializeLevelPack(json);
+	}
+
+
+	/**Constructs a LevelPack object, but does not deserialize the bytes representing 
+	 * the Worlds.  Useful for constructing a list of LevelPack objects.*/
+	public static LevelPack fromFilePartial(String filename) {
+
+		// Read everything from the LevelPack, but don't bother deserializing
+		// the Worlds.
+		String json = Serializer.readStringFromFile(filename);
+		return fromJsonPartial(json);
+	}
+
+
+	/**Constructs a LevelPack object from the given JSON, but does not serialize the bytes 
+	 * representing the Worlds.  Useful for constructing a list of LevelPack objects.*/
+	public static LevelPack fromJsonPartial(String json) {
+		LevelPack partial = Serializer.deserializePartialLevelPack(json);
+		if (partial == null)
+			return partial;
+
+		standardize(partial);
+
+		// Return the partial LevelPack.
+		return partial;
+	}
+
+
+	/** Brings the data contained in the LevelPack up-to-date, in case stuff is missing.*/
+	private static void standardize(LevelPack pack) {
+		// TODO: kill this once we have the LevelPacks stored at a standardized
+		// state.
+
+		// If level header info was not stored originally, check to make sure
+		// there are not nulls after the deserialization.
+		if (pack.levels == null)
+			pack.levels = new WorldList();
+		if (pack.levelTitles == null)
+			pack.levelTitles = new ArrayList<String>();
+		if (pack.levelDescriptions == null)
+			pack.levelDescriptions = new ArrayList<String>();
+		if (pack.levelEmblems == null)
+			pack.levelEmblems = new ImageList();
+
+		// If the level header stuff wasn't originally stored, it may be
+		// necessary to populate header info with dummy data. There will always
+		// be at least one level title/description/emblem, even if the levels
+		// themselves don't exist.
+		pack.levelCount = Math.max(1, Math.max(pack.levels.size(),
+				Math.max(pack.levelTitles.size(), Math.max(pack.levelDescriptions.size(), pack.levelEmblems.size()))));
+		while (pack.levelTitles.size() < pack.levelCount)
+			pack.levelTitles.add("Unnamed level.");
+		while (pack.levelDescriptions.size() < pack.levelCount)
+			pack.levelDescriptions.add("No description.");
+		while (pack.levelEmblems.size() < pack.levelCount)
+			pack.levelEmblems.add((BufferedImage) UIBuilder.getImage("images/ice_cave.jpg"));
+
+		// The lock is something new added, but it defaults to false anyway.
+
+	}
+
 
 	/** Saves this LevelPack to the indicated file name. */
 	public void toFile(String filename) {
@@ -303,15 +596,12 @@ public class LevelPack {
 		Serializer.writeToFile(filename, serialized.getBytes());
 	}
 
-	/** Constructs and returns a LevelPack from the indicated json String. */
-	public static LevelPack fromJson(String json) {
-		return Serializer.deserializeLevelPack(json);
-	}
 
 	/** Returns a String which is the json serialization of this LevelPack. */
 	public String toJson() {
 		return Serializer.serializeLevelPack(this);
 	}
+
 
 	/**
 	 * Array of LuaScripts, with each LuaScript being the init/run sandbox of

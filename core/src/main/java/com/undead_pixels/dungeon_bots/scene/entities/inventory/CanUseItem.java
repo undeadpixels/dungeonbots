@@ -5,5 +5,4 @@ public interface CanUseItem {
 		return false;
 	}
 	default Boolean giveItem(ItemReference item) { return false; }
-	default Boolean takeItem(ItemReference item) { return false; }
 }

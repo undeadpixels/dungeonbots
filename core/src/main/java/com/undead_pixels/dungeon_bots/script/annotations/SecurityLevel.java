@@ -20,7 +20,7 @@ public enum SecurityLevel {
 	/**
 	 * Only authors can use these
 	 */
-	AUTHOR(100, () -> JsePlatform.standardGlobals()),
+	AUTHOR(100, () -> GameGlobals.authorGlobals()),
 
 	/**
 	 * Only authors or the proper entity can use these
@@ -42,7 +42,7 @@ public enum SecurityLevel {
 	 * 
 	 * TODO - should this have playerGlobals instead of standardGlobals?
 	 */
-	NONE(0, () -> JsePlatform.standardGlobals());
+	NONE(0, () -> GameGlobals.playerGlobals());
 	public final int level;
 	public final Supplier<Globals> globalsSupplier;
 

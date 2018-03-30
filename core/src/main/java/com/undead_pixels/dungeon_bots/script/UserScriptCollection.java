@@ -67,4 +67,25 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 		Arrays.sort(result);
 		return result;
 	}
+
+
+	/**
+	 * @param other
+	 */
+	public void setTo (UserScriptCollection other) {
+		storage.clear();
+		storage.putAll(other.storage);
+	}
+
+
+	@Override
+	public String toString () {
+		StringBuilder ret = new StringBuilder();
+		
+		for(String name: storage.keySet()) {
+			ret.append(storage.get(name).toString());
+		}
+		
+		return ret.toString();
+	}
 }

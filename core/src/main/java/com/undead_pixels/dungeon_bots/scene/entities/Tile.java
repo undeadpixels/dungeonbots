@@ -1,22 +1,24 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
+import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.BatchRenderable;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.UserScript;
-import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
-import com.undead_pixels.dungeon_bots.script.annotations.BooleanScript;
-import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+
+import java.awt.Image;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.Serializable;
+
 import org.luaj.vm2.LuaValue;
 
 /**
  * A tile in the terrain
- * 
- * NOTE - this might eventually have its hierarchy changed, as I'm not sure it
- * needs to extend Entity. If I get around to thinking about it more, I'll make
- * some kind of github issue
  */
-public class Tile extends SpriteEntity {
+public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializable {
 
 	/**
 	 * 
@@ -37,6 +39,16 @@ public class Tile extends SpriteEntity {
 	 * The entity that is currently occupying this Tile
 	 */
 	private Entity occupiedBy = null;
+	
+	/**
+	 * The current texture of this tile, based on its neighbors
+	 */
+	private transient TextureRegion currentTexture;
+	
+	/**
+	 * Position of this tile
+	 */
+	private int x, y;
 
 
 	/**
@@ -46,19 +58,18 @@ public class Tile extends SpriteEntity {
 	 * @param y			Location Y, in tiles
 	 */
 	public Tile(World world, TileType tileType, int x, int y) {
-		super(world, tileType == null ? "tile" : tileType.getName(), tileType == null ? null : tileType.getTexture(),
-				new UserScriptCollection(), x, y);
 		this.type = tileType;
+		if(tileType != null) {
+			this.currentTexture = tileType.getTexture();
+		} else {
+			this.currentTexture = null;
+		}
+		
+		this.x = x;
+		this.y = y;
 	}
 
 
-	@Override
-	public float getZ() {
-		return 0;
-	}
-
-
-	@Override
 	public boolean isSolid() {
 		return type != null && type.isSolid();
 	}
@@ -101,9 +112,9 @@ public class Tile extends SpriteEntity {
 	 */
 	public void updateTexture(Tile l, Tile r, Tile u, Tile d) {
 		if (type == null) {
-			this.sprite.setTexture(null);
+			currentTexture = null;
 		} else {
-			this.sprite.setTexture(type.getTexture(l, r, u, d));
+			currentTexture = type.getTexture(l, r, u, d);
 		}
 	}
 
@@ -130,4 +141,53 @@ public class Tile extends SpriteEntity {
 	public boolean isOccupied() {
 		return occupiedBy != null;
 	}
+
+
+	@Override
+	public void update (float dt) {
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.undead_pixels.dungeon_bots.scene.BatchRenderable#render(com.undead_pixels.dungeon_bots.nogdx.RenderingContext)
+	 */
+	@Override
+	public void render (RenderingContext batch) {
+		if(currentTexture != null) {
+			AffineTransform xform;
+			xform = AffineTransform.getTranslateInstance((.5f-.5f) + x, .5f + .5f+y);
+			xform.scale(1.0f / currentTexture.getW(), -1.0f / currentTexture.getH());
+			batch.draw(currentTexture, xform);
+		}
+	}
+
+
+	/**
+	 * @return	The position of this tile
+	 */
+	public Point2D.Float getPosition() {
+		return new Point2D.Float(x, y);
+	}
+	/**
+	 * @param i
+	 * @param j
+	 */
+	public void setPosition (int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
+
+	@Override
+	public float getZ () {
+		return 0;
+	}
+
+	@Override
+	/**Returns a new image associated with this SpriteEntity.*/
+	public Image getImage() {
+		return currentTexture.toImage();
+	}
+
+
 }

@@ -6,14 +6,20 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+import org.luaj.vm2.LuaValue;
 
 /**
  * @author kevin
  *
  */
 public class Goal extends SpriteEntity {
-	
+
+	private static final long serialVersionUID = 1L;
+
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Door0.png", 3, 5);
 
 	/**
@@ -24,6 +30,19 @@ public class Goal extends SpriteEntity {
 	 */
 	public Goal(World world, String name, float x, float y) {
 		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Goal Instance")
+	public static Goal create(
+			@Doc("The world the Goal belongs to") LuaValue world,
+			@Doc("The name of the goal") LuaValue string,
+			@Doc("The X position of the Goal") LuaValue x,
+			@Doc("The Y position of the Goal") LuaValue y) {
+		return new Goal(
+				(World)world.checktable().get("this").checkuserdata(World.class),
+				string.checkjstring(),
+				x.tofloat(),
+				y.tofloat());
 	}
 
 	/* (non-Javadoc)
