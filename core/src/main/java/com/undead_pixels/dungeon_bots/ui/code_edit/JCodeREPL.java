@@ -44,12 +44,9 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
+@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
@@ -60,7 +57,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	
+	/**For small, one-line commands, a 'return' can be prepended.*/
+	private boolean _PrependSilentReturn = true;
+
 	private LuaInvocation _RunningScript = null;
 
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
@@ -89,7 +88,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_MessagePane.setText("");
 		_EditorPane.setText("");
-		AbstractDocument doc = (AbstractDocument)_EditorPane.getDocument();
+		AbstractDocument doc = (AbstractDocument) _EditorPane.getDocument();
 		doc.setDocumentFilter(new JScriptEditor.LockFilter(doc));
 
 		addKeyBindings();
@@ -141,7 +140,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		splitPane.setDividerLocation(200);
 		splitPane.setDividerSize(20);
 		this.add(splitPane);
-		
+
 
 		_EditorPane.requestFocusInWindow();
 	}
@@ -157,11 +156,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
 		actionMap.put("EXECUTE", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -173,12 +167,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
 		actionMap.put("CLEAR", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				_EditorPane.setText("");
@@ -187,11 +175,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
 		actionMap.put("STOP", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
 
 			@Override
@@ -204,11 +187,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
 		actionMap.put("CLOSE", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
 
 			@Override
@@ -229,12 +207,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
 		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (--_CommandHistoryIndex >= 0)
@@ -248,12 +220,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
 		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -386,8 +352,16 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		};
 
 		String code = getCode();
+
+		
 		message(">>> " + code, _EchoMessageStyle);
-		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		if (this._PrependSilentReturn && code.indexOf("\n") < 0 && !code.toLowerCase().startsWith("return")) {
+			code = "return " + code;
+			message("a 'return' is prepended and is now \"" + code + "\"\nThis message for testing purposes, will be deleted.");
+			
+		}
+		_RunningScript = _Sandbox.enqueueCodeBlock(code, listener);
+		//_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
 		_EditorPane.setText("");
 
 		// Update the command history records.
@@ -398,9 +372,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return _RunningScript;
 	}
 
+
 	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
-		System.out.println("Result = "+result);
+		System.out.println("Result = " + result);
 
 		// Send a message indicating the results.
 		if (result == null)
@@ -606,7 +581,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		case "HELP":
 			// Pass on the event to every listener.
 			e = new ActionEvent(this, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
-			for (ActionListener l : _ActionListeners) l.actionPerformed(e);
+			for (ActionListener l : _ActionListeners)
+				l.actionPerformed(e);
 			break;
 		case "CANCEL":
 			stop();
