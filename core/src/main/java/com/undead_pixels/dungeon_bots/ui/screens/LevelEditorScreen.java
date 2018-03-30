@@ -53,6 +53,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
+import com.undead_pixels.dungeon_bots.scene.entities.*;
 import org.jdesktop.swingx.HorizontalLayout;
 import org.jdesktop.swingx.VerticalLayout;
 
@@ -62,13 +63,6 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Bot;
-import com.undead_pixels.dungeon_bots.scene.entities.DeletemeEntity;
-import com.undead_pixels.dungeon_bots.scene.entities.Door;
-import com.undead_pixels.dungeon_bots.scene.entities.Entity;
-import com.undead_pixels.dungeon_bots.scene.entities.Goal;
-import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
-import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
@@ -104,6 +98,11 @@ public final class LevelEditorScreen extends Screen {
 		super(levelPack);
 	}
 
+	public LevelEditorScreen() {
+		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
+				new World()));
+	}
+
 
 	@Override
 	protected ScreenController makeController() {
@@ -135,9 +134,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), x, y);
+			return ItemEntity.key(world, x, y);
 		}));
-		result.add(new EntityType("chest", ItemChest.DEFAULT_TEXTURE, (x, y) -> {
+		result.add(new EntityType("chest", ItemChest.LOCKED_TEXTURE, (x, y) -> {
 			return new ItemChest(world, "item chest (level editor)", x, y);
 		}));
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
@@ -147,13 +146,25 @@ public final class LevelEditorScreen extends Screen {
 			return new Goal(world, "goal", x, y);
 		}));
 		result.add(new EntityType("player", Player.DEFAULT_TEXTURE, (x, y) -> {
-			Player ret = world.getPlayer();
-			ret.setPosition(new Point2D.Float(x, y));
+			Player ret = new Player(world, "player", x, y);
 			return ret;
 		}));
 		result.add(new EntityType("bot", Bot.DEFAULT_TEXTURE, (x, y) -> {
 			return new Bot(world, "bot", x, y);
 		}));
+		result.add(new EntityType("block", Block.DEFAULT_TEXTURE, (x, y) -> {
+			return new Block(world, x, y);
+		}));
+		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
+			return ItemEntity.gold(world, x, y, 2);
+		}));
+		result.add(new EntityType("gem", ItemEntity.GEM_TEXTURE, (x, y) -> {
+			return ItemEntity.gem(world, x, y);
+		}));
+		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x,y) -> {
+			return ItemEntity.diamond(world, x, y);
+		}));
+
 		return result;
 	}
 
@@ -284,30 +295,6 @@ public final class LevelEditorScreen extends Screen {
 				} else {
 					System.out.println("Unsupported file type: " + openLevelPackFile.getName());
 				}
-				return;
-			case "Save to Stand-Alone":
-				File saveStandAloneFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveStandAloneFile == null)
-					return;
-				String lua = world.getMapScript();
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveStandAloneFile))) {
-					writer.write(lua);
-					System.out.println("Save to Stand-Alone complete.");
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
-				return;
-			case "Open Stand-Alone":
-				File openStandAloneFile = FileControl.openDialog(LevelEditorScreen.this);
-				if (openStandAloneFile == null) {
-					System.out.println("Open cancelled.");
-					return;
-				} else if (openStandAloneFile.getName().endsWith(".lua")) {
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(new LevelPack("New Level",
-							DungeonBotsMain.instance.getUser(), new World(openStandAloneFile))));
-					System.out.println("Open from Stand-Alone complete.");
-				} else
-					System.out.println("Unsupported Stand-Alone file type: " + openStandAloneFile.getName());
 				return;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
@@ -558,7 +545,8 @@ public final class LevelEditorScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
-		_View = new WorldView(world);
+		_View = new WorldView(world,
+				(w) -> {throw new RuntimeException("World cannot be won in level editor");} );
 		_ViewControl = new Tool.ViewControl(_View);
 		getController().registerSignalsFrom(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
@@ -659,8 +647,6 @@ public final class LevelEditorScreen extends Screen {
 				.text("Save As...").action("SaveAs to LevelPack", getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
 				.text("Open").action("Open LevelPack", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().text("Open Stand-Alone").action("Open Stand-Alone", getController())
-				.create());
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
 				.text("Exit to Main").action("Exit to Main", getController()).create());

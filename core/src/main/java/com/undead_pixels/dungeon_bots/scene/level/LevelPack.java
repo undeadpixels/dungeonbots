@@ -76,7 +76,7 @@ public class LevelPack {
 				SecurityLevel.AUTHOR);
 
 		if (worlds.length == 0)
-			worlds = new World[] { new World(new File("default.lua")) };
+			worlds = new World[] { new World() };
 		this.levels = new WorldList();
 		this.levels.addAll(Arrays.asList(worlds));
 		this.levelIndex = 0;

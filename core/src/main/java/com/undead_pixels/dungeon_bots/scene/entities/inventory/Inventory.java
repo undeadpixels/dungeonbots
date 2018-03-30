@@ -34,10 +34,13 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 */
 	private final int maxWeight = 100;
 
-	public Inventory(final Entity owner, int maxSize) {
+	final Entity owner;
+
+	public Inventory(Entity owner, int maxSize) {
 		this.maxSize = maxSize;
 		inventory = new ItemReference[maxSize];
-		IntStream.range(0, maxSize).forEach(i -> inventory[i] = new ItemReference(i));
+		this.owner = owner;
+		IntStream.range(0, inventory.length).forEach(i -> inventory[i] = new ItemReference(this, i));
 		owner.getDefaultWhitelist().addAutoLevelsForBindables(ItemReference.class);
 	}
 
@@ -47,10 +50,17 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param index The index in the inventory to return an item.
 	 * @return The Item
 	 */
-	@Bind(SecurityLevel.DEFAULT) public ItemReference peek(LuaValue index) {
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get the ItemReference at the specified index of the Inventory")
+	public ItemReference peek(@Doc("The Index into the Inventory") LuaValue index) {
 		final int i = index.checkint() - 1;
 		assert i < this.inventory.length;
 		return inventory[i];
+	}
+
+	public ItemReference peek(int index) {
+		assert index < this.inventory.length;
+		return inventory[index];
 	}
 
 	/**
@@ -67,21 +77,29 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
-	public Optional<Integer> findIndex(Item item) {
+	/**
+	 * Find the Index of an item in the Inventory if it exists
+	 * @param item The Item possibly contained in the inventory
+	 * @return An Optional of the Index of the Item into the Inventory.
+	 */
+	public Optional<Integer> findIndex(final Item item) {
 		return Stream.of(inventory).filter(itemReference -> itemReference.getItem() == item)
 				.findFirst()
 				.map(val -> val.index);
 	}
 
-	public Item getItem(int index) {
-		return this.inventory[index].getItem();
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Get the underlying Item contained by the ItemReference at the index in the Inventory")
+	public Item getItem(@Doc("The Index of the Item") LuaValue index) {
+		return this.inventory[index.checkint()].getItem();
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Query the total weight of items in the inventory")
 	public Integer weight() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + item.getWeight(), (a, b) -> a + b);
@@ -92,7 +110,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * items held within.
 	 * @return An integer representing the number of items currently held in the inventory
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Query the current capacity of the Inventory")
 	public Integer capacity() {
 		return Stream.of(inventory)
 				.reduce(0, (num, item) -> num + (item.getItem().isEmpty() ? 0 : 1), (a,b) -> a + b);
@@ -104,6 +123,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @return
 	 */
 	public boolean addItem(Item item) {
+		if(item.isEmpty())
+			return true;
 		synchronized (this.inventory) {
 			if(weight() + item.getWeight() > maxWeight)
 				return false;
@@ -117,6 +138,45 @@ public class Inventory implements GetLuaFacade, Serializable {
 		}
 	}
 
+	/**
+	 * Overload of method that only derefs item if an item can be 'added'
+	 * Otherwise, does not deref the item from the ItemReference
+	 * @param ir
+	 * @return
+	 */
+	public boolean tryTakeItem(ItemReference ir) {
+		if(ir.item.isEmpty())
+			return true;
+		synchronized (this.inventory) {
+			if(weight() + ir.item.getWeight() > maxWeight)
+				return false;
+			for(int i = 0; i < this.inventory.length; i++) {
+				if(inventory[i].getItem().isEmpty()) {
+					inventory[i].setItem(ir.derefItem());
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Adds the Item to the Inventory if possible")
+	public Boolean addItem(@Doc("The Item to add") LuaValue item) {
+		return addItem((Item)item.checktable()
+				.get("this")
+				.checkuserdata(Item.class));
+	}
+
+	public boolean addItems(Item... items) {
+		for(Item i : items) {
+			if(!addItem(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public boolean containsItem(Item i) {
 		return getItems().contains(i);
 	}
@@ -126,24 +186,32 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * @param luaItem An ItemReference to an item in an inventory.
 	 * @return If the item was added to the inventory
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Boolean putItem(LuaValue luaItem) {
-		return addItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class))
-				.derefItem());
+	@Bind(value = SecurityLevel.ENTITY,
+			doc = "Puts an ItemReferences Item into this inventory")
+	public Boolean putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
+		return tryTakeItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
 	}
 
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT) public Integer size() {
+	@Bind(value=SecurityLevel.DEFAULT,doc = "Get the Size of the Inventory")
+	public Integer size() {
 		return this.maxSize;
 	}
 
+	@Bind(value=SecurityLevel.DEFAULT,doc = "Get the Max Weight this Inventory can support")
+	public Integer maxWeight() {
+		return maxWeight;
+	}
+
 	/**
 	 *
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get an array of ItemReferences to the Inventory")
 	public LuaTable get() {
 		final LuaTable table = new LuaTable();
 		for(int i = 0; i < inventory.length; i++) {
@@ -160,7 +228,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	 * }</pre>
 	 * @return
 	 */
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Unpacks the Inventory contents to a Lua Varargs type")
 	public Varargs unpack() {
 		final LuaValue[] ans = new LuaValue[inventory.length];
 		IntStream.range(0, inventory.length)
@@ -171,6 +240,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 	/**
 	 *
 	 */
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Resets the inventory to Empty Item values")
 	public void reset() {
 		Stream.of(inventory).forEach(itemRef ->
 				itemRef.setItem(new Item.EmptyItem()));
@@ -184,5 +255,33 @@ public class Inventory implements GetLuaFacade, Serializable {
 		return Stream.of(inventory)
 				.map(ItemReference::getItem)
 				.collect(Collectors.toList());
+	}
+
+	@Bind(value = SecurityLevel.NONE,
+			doc = "Get a String representation of the Inventory")
+	public String tos() {
+		final StringBuilder ans = new StringBuilder();
+		ans.append("Index\tName\tDescription\tValue\tWeight\n");
+		for(final ItemReference ir : inventory) {
+			if(ir.hasItem()) {
+				ans.append(String.format(
+						"%d\t%s\t%s\t%s\t%s\n",
+						ir.index + 1,
+						ir.getName(),
+						ir.getDescription(),
+						ir.getValue(),
+						ir.getWeight()));
+			}
+		}
+		return ans.toString();
+	}
+
+	@BindTo("totalValue")
+	@Bind(value = SecurityLevel.NONE,
+			doc = "Calculates the total value of the contents of the Inventory")
+	public Integer getTotalValue() {
+		return Stream.of(inventory)
+				.map(i -> i.getValue())
+				.reduce(0, (a,b) -> a + b);
 	}
 }

@@ -6,4 +6,5 @@ import java.lang.annotation.*;
 @Target({ ElementType.METHOD, ElementType.FIELD })
 public @interface Bind {
 	SecurityLevel value() default SecurityLevel.AUTHOR;
+	String doc() default "";
 }

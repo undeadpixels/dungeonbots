@@ -45,8 +45,6 @@ public class GameGlobals {
 				new JseMathLib(),
 				new TableLib(),
 				new Bit32Lib(),
-				new JseIoLib(),
-				new JseOsLib(),
 				new DebugLib());
 	}
 

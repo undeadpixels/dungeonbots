@@ -32,9 +32,11 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
+import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JMessagePane;
@@ -55,14 +57,17 @@ public class GameplayScreen extends Screen {
 	private WorldView view;
 	private final boolean isSwitched;
 	private JMessagePane _MessagePane;
+	private final World originalWorld;
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
 	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
 	@Deprecated
 	public GameplayScreen(World world) {
-		super(world);
+		super(Serializer.deepCopy(world));
 		this.isSwitched = false;
+		this.originalWorld = world;
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -75,6 +80,9 @@ public class GameplayScreen extends Screen {
 	public GameplayScreen(LevelPack pack, boolean switched) {
 		super(pack);
 		this.isSwitched = switched;
+		this.originalWorld = world;
+		this.world = Serializer.deepCopy(originalWorld);
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -90,7 +98,13 @@ public class GameplayScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// At the world at the bottom layer.
-		view = new WorldView(world);
+		if(this.isSwitched) {
+			view = new WorldView(world,
+					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));});
+		} else {
+			view = new WorldView(world,
+					(w) -> {DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(w));});
+		}
 		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);
 		view.setOpaque(false);
@@ -207,9 +221,9 @@ public class GameplayScreen extends Screen {
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
 		message("This is a regular message from the world.\n", Color.white);
 		message("This is an error message from the world.\n", Color.red);
-		message(world.getPlayer(), "This is a regular message from an entity.\n", Color.WHITE);
-		message(world.getPlayer(), "This is an error message from an entity.\n", Color.RED);
-		message(world.getPlayer(), "This is a green message.  Just because.\n", Color.green);
+		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", Color.WHITE);
+		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", Color.RED);
+		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -309,17 +323,19 @@ public class GameplayScreen extends Screen {
 
 			case "REWIND":
 			case "Rewind":
-				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
-						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-					world.reset();
-				}
+				World oldWorld = world;
+				world = Serializer.deepCopy(originalWorld);
+				world.resetFrom(oldWorld);
+				view.setWorld(world);
+				world.onBecomingVisibleInGameplay();
+				((Controller) getController()).selector.setWorld(world);
 				break;
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 				return;
 			case "PLAY":
 			case "Play":
-				world.beginPlay();
+				view.setPlaying(true);
 				break;
 			case "Save":
 			case "Save As":

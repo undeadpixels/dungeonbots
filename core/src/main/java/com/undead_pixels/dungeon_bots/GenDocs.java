@@ -60,7 +60,7 @@ public final class GenDocs {
 	}
 
 	public static void main(String[] args) {
-		assert toJson(build(), "autodoc.json");
+		toJson(build(), "autodoc.json");
 	}
 
 	private static boolean toJson(final Object o, final String toFile) {
@@ -96,6 +96,23 @@ public final class GenDocs {
 								new DocClass(
 										clz.getSimpleName(),
 										clz.getDeclaredAnnotation(Doc.class).value())))
+				.matchClassesWithMethodAnnotation(Bind.class, (clz, fn) -> {
+					final DocClass docClass = ans.computeIfAbsent(
+							clz.getSimpleName(),
+							(v) -> new DocClass(clz.getSimpleName(), ""));
+					final Bind b = fn.getDeclaredAnnotation(Bind.class);
+					Optional.of(b.doc())
+							.filter(v -> !v.equals(""))
+							.ifPresent(v -> docClass.methods.add(
+									new DocMethod(GetLuaFacade.bindTo(fn),
+											b.doc(),
+											b.value().name(),
+											Stream.of(fn.getParameters())
+													.map(p -> new DocMethodParam(p.getType().getSimpleName(),
+															Optional.ofNullable(p.getDeclaredAnnotation(Doc.class))
+																	.map(Doc::value)
+																	.orElse("")))
+													.collect(Collectors.toList())))); })
 				.matchClassesWithMethodAnnotation(Doc.class, (clz, fn) -> {
 					final DocClass docClass = ans.computeIfAbsent(
 							clz.getSimpleName(),

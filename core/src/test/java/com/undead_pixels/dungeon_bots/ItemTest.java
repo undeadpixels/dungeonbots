@@ -24,7 +24,7 @@ public class ItemTest {
 	@Before
 	public void setup() {
 		world = new World();
-		player = new Player(world, "player");
+		player = new Player(world, "player", 1, 1);
 		note = new Note(world, DESC);
 		player.getInventory().reset();
 	}

@@ -279,7 +279,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private final ViewControl viewControl;
 		private final WorldView view;
 		private final Window owner;
-		private final World world;
+		private World world;
 		private Point cornerA = null;
 		private Point cornerB = null;
 		private final SecurityLevel securityLevel;
@@ -415,7 +415,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// entity.
 				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 					view.setSelectedEntities(new Entity[] { se.get(0) });
-					JEntityEditor.create(owner, se.get(0), securityLevel, "Entity Editor", new Undoable.Listener() {
+					JEntityEditor.create(owner, se.get(0), securityLevel, se.get(0).getName(), new Undoable.Listener() {
 
 						@Override
 						public void pushUndoable(Undoable<?> u) {
@@ -472,6 +472,14 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Rectangle rect = Cartesian.makeRectangle(cornerA, cornerB);
 			// System.out.println(rect.toString());
 			g.drawRect(rect.x, rect.y, rect.width, rect.height);
+		}
+
+
+		/**
+		 * @param world
+		 */
+		public void setWorld (World world) {
+			this.world = world;
 		}
 
 	}
@@ -681,7 +689,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
 			if (alreadyThere != null) {
 				view.setSelectedEntities(new Entity[] { alreadyThere });
-				JEntityEditor.create(owner, alreadyThere, securityLevel, "Entity Editor", new Undoable.Listener() {
+				JEntityEditor.create(owner, alreadyThere, securityLevel, alreadyThere.getName(), new Undoable.Listener() {
 
 					@Override
 					public void pushUndoable(Undoable<?> u) {
@@ -729,7 +737,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			pushUndo(world, placeUndoable);
 
 			view.setSelectedEntities(new Entity[] { ent });
-			JEntityEditor.create(owner, ent, securityLevel, "Entity Editor", new Undoable.Listener() {
+			JEntityEditor.create(owner, ent, securityLevel, ent.getName(), new Undoable.Listener() {
 
 				@Override
 				public void pushUndoable(Undoable<?> u) {

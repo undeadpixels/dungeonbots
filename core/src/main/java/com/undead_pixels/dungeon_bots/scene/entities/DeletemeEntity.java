@@ -13,6 +13,11 @@ import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 public class DeletemeEntity extends RpgActor {
 
 	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
 	 * @param world
 	 * @param name
 	 * @param tex
