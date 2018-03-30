@@ -151,6 +151,7 @@ public final class LuaDoc {
 						.map(c -> c.value())
 						.orElse(clz.getSuperclass().getSimpleName()),
 				LuaReflection.getAllMethods(clz)
+						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
 						.filter(m -> m.getDeclaredAnnotation(Bind.class) != null
 								|| m.getDeclaredAnnotation(Doc.class ) != null)
 						.map(m -> docMethodToString(m))
