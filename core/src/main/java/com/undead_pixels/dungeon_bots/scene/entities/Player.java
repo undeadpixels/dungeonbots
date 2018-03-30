@@ -118,6 +118,6 @@ public class Player extends RpgActor {
 
 	@Override
 	public String inspect() {
-		return "A beautiful Player";
+		return "Player";
 	}
 }

@@ -64,6 +64,6 @@ public class Goal extends SpriteEntity {
 
 	@Override
 	public String inspect() {
-		return "The GOAL! What are you waiting for?";
+		return this.getClass().getSimpleName();
 	}
 }

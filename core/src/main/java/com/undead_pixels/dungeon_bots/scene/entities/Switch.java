@@ -36,6 +36,6 @@ public class Switch extends SpriteEntity implements Useable {
 
 	@Override
 	public String inspect() {
-		return "A Switch that can probably be used to trigger something?";
+		return this.getClass().getSimpleName();
 	}
 }

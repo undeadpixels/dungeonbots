@@ -107,6 +107,6 @@ public class Bot extends RpgActor {
 
 	@Override
 	public String inspect() {
-		return "A smelly Bot";
+		return "A Bot";
 	}
 }
