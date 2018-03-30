@@ -328,9 +328,11 @@ public final class LuaSandbox implements Serializable {
 					luaValueStream(v)
 						.filter(lv -> lv.istable())
 						.map(lv -> lv.checktable())
-						.filter(tbl -> tbl.get("this").isuserdata())
-						.map(tbl -> tbl.get("this").checkuserdata())
-						.map(obj -> LuaDoc.docClassToString(obj.getClass()))
+						.filter(tbl -> tbl.get("this").isuserdata() || tbl.get("class").isuserdata())
+						.map(tbl -> tbl.get("this") == LuaValue.NIL ?
+								(Class)tbl.get("class").checkuserdata(Class.class) :
+								tbl.get("this").checkuserdata().getClass())
+						.map(obj -> LuaDoc.docClassToString(obj))
 						.reduce("", (a, b) -> a + b));
 		}
 	}
