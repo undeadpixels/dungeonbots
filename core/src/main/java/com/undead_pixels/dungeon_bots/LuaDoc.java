@@ -16,8 +16,6 @@ import java.util.stream.*;
 
 public final class LuaDoc {
 
-	public static final Collection<DocClass> DOCS = build();
-
 	/* Create Simple container classes
 	*  for game Documentation that
 	*  serializes to JSON
@@ -143,7 +141,7 @@ public final class LuaDoc {
 		return ans.values();
 	}
 
-	public static  String docClassToString(final Class<?> clz) {
+	public static String docClassToString(final Class<?> clz) {
 		return String.format(
 				"---- %s (%s) ----\n__ %s __\n\n%s",
 				clz.getSimpleName(),
