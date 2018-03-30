@@ -114,9 +114,9 @@ public final class LevelEditorScreen extends Screen {
 		super(levelPack);
 	}
 
+
 	public LevelEditorScreen() {
-		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
-				new World()));
+		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World()));
 	}
 
 
@@ -183,11 +183,14 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("gem", ItemEntity.GEM_TEXTURE, (x, y) -> {
 			return ItemEntity.gem(world, x, y);
 		}));
-		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x,y) -> {
+		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x, y) -> {
 			return ItemEntity.diamond(world, x, y);
 		}));
+		return result.toArray(new EntityType[result.size()]);
+	}
 
 
+	/**Updates the GUI state based on the current tile, tile, and entity selections.*/
 	private void updateGUIState() {
 		if (_ToolBar == null)
 			return;
@@ -434,6 +437,7 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseClicked(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseClicked(e);
 		}
 
 
@@ -445,33 +449,43 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseDragged(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseDragged(e);
 		}
 
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseMoved(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseMoved(e);
 		}
 
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseEntered(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseEntered(e);
 		}
 
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseExited(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseExited(e);
 		}
 
 
@@ -479,10 +493,13 @@ public final class LevelEditorScreen extends Screen {
 		public void mousePressed(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mousePressed(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mousePressed(e);
 
 		}
 
@@ -495,15 +512,19 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseReleased(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseReleased(e);
 		}
 
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseWheelMoved(e);
-			;
-			/* if (_ViewControl != null) _ViewControl.mouseWheelMoved(e); */
+			if (e.isConsumed())
+				return;
+			_ViewControl.mouseWheelMoved(e);
 		}
 
 	}
@@ -595,8 +616,9 @@ public final class LevelEditorScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
-		_View = new WorldView(world,
-				(w) -> {throw new RuntimeException("World cannot be won in level editor");} );
+		_View = new WorldView(world, (w) -> {
+			throw new RuntimeException("World cannot be won in level editor");
+		});
 		_ViewControl = new Tool.ViewControl(_View);
 		getController().registerSignalsFrom(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);

@@ -221,7 +221,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			e.consume();
+			// e.consume();
 		}
 
 
@@ -233,7 +233,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			gameCenterOrigin = null;
 			screenCurrent = null;
 			view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			e.consume();
+			// e.consume();
 		}
 
 
@@ -276,7 +276,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 	public static class Selector extends Tool {
 
-		private final ViewControl viewControl;
 		private final WorldView view;
 		private final Window owner;
 		private World world;
@@ -293,7 +292,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.owner = owner;
 			this.world = view.getWorld();
 			this.securityLevel = securityLevel;
-			this.viewControl = viewControl;
 		}
 
 
@@ -326,12 +324,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@Override
-		public void mouseWheelMoved(MouseWheelEvent e) {
-			this.viewControl.mouseWheelMoved(e);
-		}
-
-
-		@Override
 		public void keyTyped(KeyEvent e) {
 			if (view.getSelectedEntities() == null || view.getSelectedEntities().length == 0)
 				return;
@@ -358,25 +350,15 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// The view should start rendering the lasso.
 				view.setRenderingTool(this);
 				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
-				this.viewControl.mousePressed(e);
-				return;
 			}
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			// If drawing isn't happening, just return.
-			if (cornerA == null && this.viewControl != null) {
-				this.viewControl.mouseDragged(e);
+			if (cornerA == null)
 				return;
-			}
-
-			assert (view.getRenderingTool() == this); // Sanity check.
-
 			cornerB = new Point(e.getX(), e.getY());
-
 			e.consume();
 		}
 
@@ -384,83 +366,80 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		@Override
 		public void mouseReleased(MouseEvent e) {
 
-			if (e.getButton() == MouseEvent.BUTTON1) {
-				// If there is no cornerA, it means selection hasn't started
-				// yet.
-				if (cornerA == null)
-					return;
-
-				// What is the current lasso in game space?
-				Rectangle2D.Float rect = view.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
-				if (rect.width == 0.0f)
-					rect.width = 0.01f;
-				if (rect.height == 0.0f)
-					rect.height = 0.01f;
-
-				// Find the entities (first) or tiles (second) that are lassoed.
-				// If only one entity is lassoed and that entity is already
-				// selected, open its editor. Otherwise if any entities are
-				// lassoed, select them. But if no entities are lassoed, look to
-				// tiles. If selecting tiles that are already part of the
-				// selection, just update the tile selection. Otherwise, nothing
-				// is selected.
-				List<Entity> se = world.getEntitiesUnderLocation(rect);
-				List<Tile> st = world.getTilesUnderLocation(rect);
-
-				System.out.println(se);
-
-				// If only one tile is selected, and one entity is selected, and
-				// it is the entity that would be selected by this lasso, then
-				// this is a double-click. Bring up the editor for the selected
-				// entity.
-				if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
-					view.setSelectedEntities(new Entity[] { se.get(0) });
-					JEntityEditor.create(owner, se.get(0), securityLevel, se.get(0).getName(), new Undoable.Listener() {
-
-						@Override
-						public void pushUndoable(Undoable<?> u) {
-							pushUndo(world, u);
-						}
-					});
-					view.setSelectedTiles(null);
-				}
-				// If some number of entities are lassoed, select them (if
-				// allowed).
-				else if (se.size() > 0 && selectsEntities) {
-					view.setSelectedEntities(se.toArray(new Entity[se.size()]));
-					view.setSelectedTiles(null);
-				}
-				// If an unselected tile is lassoed, but a selection exists,
-				// this counts to clear the selections.
-				else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
-					view.setSelectedTiles(null);
-					view.setSelectedEntities(null);
-				}
-				// If one or more tiles is lassoed, and tile select is allowed,
-				// select them.
-				else if (st.size() > 0 && selectsTiles) {
-
-					view.setSelectedTiles(st.toArray(new Tile[st.size()]));
-					view.setSelectedEntities(null);
-				}
-				// In all other cases, neither tile nor entity may be selected.
-				// Clear the selections.
-				else {
-					view.setSelectedTiles(null);
-					view.setSelectedEntities(null);
-				}
-
-				// The view should no longer render the lasso.
-				view.setRenderingTool(null);
-
-				// Show that selection is complete, and re-selection hasn't
-				// started.
-				cornerB = cornerA = null;
-				e.consume();
-			} else if (e.getButton() == MouseEvent.BUTTON3 && this.viewControl != null) {
-				viewControl.mouseReleased(e);
+			if (e.getButton() != MouseEvent.BUTTON1)
 				return;
+			// If there is no cornerA, it means selection hasn't started
+			// yet.
+			if (cornerA == null)
+				return;
+
+			// What is the current lasso in game space?
+			Rectangle2D.Float rect = view.getScreenToGameRect(cornerA.x, cornerA.y, cornerB.x, cornerB.y);
+			if (rect.width == 0.0f)
+				rect.width = 0.01f;
+			if (rect.height == 0.0f)
+				rect.height = 0.01f;
+
+			// Find the entities (first) or tiles (second) that are lassoed.
+			// If only one entity is lassoed and that entity is already
+			// selected, open its editor. Otherwise if any entities are
+			// lassoed, select them. But if no entities are lassoed, look to
+			// tiles. If selecting tiles that are already part of the
+			// selection, just update the tile selection. Otherwise, nothing
+			// is selected.
+			List<Entity> se = world.getEntitiesUnderLocation(rect);
+			List<Tile> st = world.getTilesUnderLocation(rect);
+
+			System.out.println(se);
+
+			// If only one tile is selected, and one entity is selected, and
+			// it is the entity that would be selected by this lasso, then
+			// this is a double-click. Bring up the editor for the selected
+			// entity.
+			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
+				view.setSelectedEntities(new Entity[] { se.get(0) });
+				JEntityEditor.create(owner, se.get(0), securityLevel, se.get(0).getName(), new Undoable.Listener() {
+
+					@Override
+					public void pushUndoable(Undoable<?> u) {
+						pushUndo(world, u);
+					}
+				});
+				view.setSelectedTiles(null);
 			}
+			// If some number of entities are lassoed, select them (if
+			// allowed).
+			else if (se.size() > 0 && selectsEntities) {
+				view.setSelectedEntities(se.toArray(new Entity[se.size()]));
+				view.setSelectedTiles(null);
+			}
+			// If an unselected tile is lassoed, but a selection exists,
+			// this counts to clear the selections.
+			else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
+				view.setSelectedTiles(null);
+				view.setSelectedEntities(null);
+			}
+			// If one or more tiles is lassoed, and tile select is allowed,
+			// select them.
+			else if (st.size() > 0 && selectsTiles) {
+
+				view.setSelectedTiles(st.toArray(new Tile[st.size()]));
+				view.setSelectedEntities(null);
+			}
+			// In all other cases, neither tile nor entity may be selected.
+			// Clear the selections.
+			else {
+				view.setSelectedTiles(null);
+				view.setSelectedEntities(null);
+			}
+
+			// The view should no longer render the lasso.
+			view.setRenderingTool(null);
+
+			// Show that selection is complete, and re-selection hasn't
+			// started.
+			cornerB = cornerA = null;
+			e.consume();
 
 		}
 
@@ -470,7 +449,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			g.setStroke(new BasicStroke(2));
 			g.setColor(Color.red);
 			Rectangle rect = Cartesian.makeRectangle(cornerA, cornerB);
-			// System.out.println(rect.toString());
 			g.drawRect(rect.x, rect.y, rect.width, rect.height);
 		}
 
@@ -478,7 +456,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		/**
 		 * @param world
 		 */
-		public void setWorld (World world) {
+		public void setWorld(World world) {
 			this.world = world;
 		}
 
@@ -487,7 +465,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 	public static class TilePen extends Tool {
 
-		private final ViewControl viewControl;
 		private final WorldView view;
 		private final World world;
 		private HashMap<Point, TileType> oldTileTypes = null;
@@ -502,25 +479,18 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
-			this.viewControl = viewControl;
 		}
 
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes != null)
+			if (e.isConsumed() || oldTileTypes != null || selection.tileType == null)
 				return;
-			else if (e.getButton() == MouseEvent.BUTTON3)
-				viewControl.mousePressed(e);
-			else if (selection.tileType == null)
-				return;
-			else {
-				drawingTileType = selection.tileType;
-				oldTileTypes = new HashMap<Point, TileType>();
-				newTileTypes = new HashMap<Point, TileType>();
-				drawTile(e.getX(), e.getY(), drawingTileType);
-				e.consume();
-			}
+			drawingTileType = selection.tileType;
+			oldTileTypes = new HashMap<Point, TileType>();
+			newTileTypes = new HashMap<Point, TileType>();
+			drawTile(e.getX(), e.getY(), drawingTileType);
+			e.consume();
 		}
 
 
@@ -538,82 +508,54 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseReleased(MouseEvent e) {
 			if (e.isConsumed() || oldTileTypes == null)
 				return;
-			else if (e.getButton() == MouseEvent.BUTTON3)
-				viewControl.mouseReleased(e);
-			else {
-				Undoable<HashMap<Point, TileType>> u = new Undoable<HashMap<Point, TileType>>(oldTileTypes,
-						newTileTypes) {
+			Undoable<HashMap<Point, TileType>> u = new Undoable<HashMap<Point, TileType>>(oldTileTypes, newTileTypes) {
 
-					@Override
-					protected boolean okayToUndo() {
-						for (Point p : after.keySet()) {
-							Tile existingTile = world.getTile(p.x, p.y);
-							if (existingTile == null)
-								return false;
-							TileType existingTileType = existingTile.getType();
-							if (!after.get(p).equals(existingTileType))
-								return false;
-						}
-						return true;
+				@Override
+				protected void undoValidated() {
+					for (Point p : before.keySet()) {
+						Tile existingTile = world.getTile(p.x, p.y);
+						if (existingTile == null && after.get(p) != null)
+							error();
+						if (!existingTile.getType().equals(after.get(p)))
+							error();
+						TileType t = before.get(p);
+						world.setTile(p.x, p.y, t);
 					}
+				}
 
 
-					@Override
-					protected boolean okayToRedo() {
-						for (Point p : before.keySet()) {
-							Tile existingTile = world.getTile(p.x, p.y);
-							if (existingTile == null)
-								return false;
-							TileType existingTileType = existingTile.getType();
-							if (!before.get(p).equals(existingTileType))
-								return false;
-						}
-						return true;
+				@Override
+				protected void redoValidated() {
+					for (Point p : after.keySet()) {
+						Tile existingTile = world.getTile(p.x, p.y);
+						if (existingTile == null && before.get(p) != null)
+							error();
+						if (!existingTile.getType().equals(before.get(p)))
+							error();
+						TileType t = after.get(p);
+						world.setTile(p.x, p.y, t);
 					}
+				}
 
+			};
 
-					@Override
-					protected void undoValidated() {
-						for (Point p : before.keySet()) {
-							TileType t = before.get(p);
-							world.setTile(p.x, p.y, t);
-						}
-					}
+			pushUndo(world, u);
 
-
-					@Override
-					protected void redoValidated() {
-						for (Point p : after.keySet()) {
-							TileType t = after.get(p);
-							world.setTile(p.x, p.y, t);
-						}
-					}
-
-				};
-
-				pushUndo(world, u);
-
-				oldTileTypes = null;
-				newTileTypes = null;
-				drawingTileType = null;
-				e.consume();
-			}
-
+			oldTileTypes = null;
+			newTileTypes = null;
+			drawingTileType = null;
+			e.consume();
 
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null)
-				return;
-			else if (e.getButton() == MouseEvent.BUTTON3)
-				viewControl.mouseDragged(e);
-			else {
-				assert drawingTileType != null;
-				drawTile(e.getX(), e.getY(), drawingTileType);
-				e.consume();
-			}
+			if (e.isConsumed() || oldTileTypes == null || selection.tileType==null)
+				return;			
+			assert drawingTileType != null;
+			drawTile(e.getX(), e.getY(), drawingTileType);
+			e.consume();
 		}
 
 
@@ -664,7 +606,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private final SelectionModel selection;
 		private final Window owner;
 		private final SecurityLevel securityLevel;
-		private final ViewControl viewControl;
 
 
 		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel,
@@ -675,7 +616,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.selection = selection;
 			this.owner = owner;
 			this.securityLevel = securityLevel;
-			this.viewControl = viewControl;
 		}
 
 
@@ -689,13 +629,14 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
 			if (alreadyThere != null) {
 				view.setSelectedEntities(new Entity[] { alreadyThere });
-				JEntityEditor.create(owner, alreadyThere, securityLevel, alreadyThere.getName(), new Undoable.Listener() {
+				JEntityEditor.create(owner, alreadyThere, securityLevel, alreadyThere.getName(),
+						new Undoable.Listener() {
 
-					@Override
-					public void pushUndoable(Undoable<?> u) {
-						pushUndo(world, u);
-					}
-				});
+							@Override
+							public void pushUndoable(Undoable<?> u) {
+								pushUndo(world, u);
+							}
+						});
 				view.setSelectedTiles(null);
 				return;
 			}
@@ -709,19 +650,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, ent) {
 
 				@Override
-				protected boolean okayToUndo() {
-					return world.containsEntity(ent);
-				}
-
-
-				@Override
-				protected boolean okayToRedo() {
-					return !world.containsEntity(ent);
-				}
-
-
-				@Override
 				protected void undoValidated() {
+					if (world.containsEntity(ent)) error();
 					view.setSelectedEntities(null);
 					world.removeEntity(ent);
 
@@ -730,6 +660,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 				@Override
 				protected void redoValidated() {
+					if (!world.containsEntity(ent)) error();
 					view.setSelectedEntities(new Entity[] { ent });
 					world.addEntity(ent);
 				}
