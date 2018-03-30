@@ -145,15 +145,16 @@ public final class LuaDoc {
 
 	public static  String docClassToString(final Class<?> clz) {
 		return String.format(
-				"---- %s ----\n__ %s __\n\n%s",
+				"---- %s (%s) ----\n__ %s __\n\n%s",
 				clz.getSimpleName(),
+				clz.getSuperclass().getSimpleName(),
 				Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
 						.map(c -> c.value())
-						.orElse(clz.getSuperclass().getSimpleName()),
+						.orElse("?"),
 				LuaReflection.getAllMethods(clz)
-						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
 						.filter(m -> m.getDeclaredAnnotation(Bind.class) != null
 								|| m.getDeclaredAnnotation(Doc.class ) != null)
+						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
 						.map(m -> docMethodToString(m))
 						.reduce("", (a,b) -> a + b));
 	}
