@@ -72,7 +72,7 @@ public final class JEntityEditor extends JPanel {
 			Undoable.Listener undoableListener) {
 
 		if (_OpenEditors.containsKey(entity)) {
-			System.err.println("An editor is already open for this entity:  " + entity.toString());
+			//System.err.println("An editor is already open for this entity:  " + entity.toString());
 			JDialog dialog = _OpenEditors.get(entity);
 			dialog.requestFocus();
 			return null;
@@ -88,6 +88,18 @@ public final class JEntityEditor extends JPanel {
 
 			@Override
 			protected void event(WindowEvent e) {
+				// WINDOW_FIRST=200
+				// WINDOW_OPENED=200
+				// WINDOW_CLOSING=201
+				// WINDOW_CLOSED=202
+				// WINDOW_ICONIFIED=203
+				// WINDOW_DEICONIFIED=204
+				// WINDOW_ACTIVATED=205
+				// WINDOW_DEACTIVATED=206
+				// WINDOW_GAINED_FOCUS=207
+				// WINDOW_LOST_FOCUS=208
+				// WINDOW_STATE_CHANGED=209
+				// WINDOW_LAST=209				
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
 				_OpenEditors.remove(entity);

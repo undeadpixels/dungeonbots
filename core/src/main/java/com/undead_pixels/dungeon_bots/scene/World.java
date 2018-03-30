@@ -20,6 +20,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.FloatingText;
 import com.undead_pixels.dungeon_bots.scene.entities.Goal;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
@@ -952,22 +953,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * Gets all Actors intersecting the given rectangle.
+	 * Gets all Entity objects intersecting the given rectangle.
 	 *
 	 * @return The list of intersecting entities. An entity is "intersecting" if
 	 *         any part of it would be within the given rectangle.
 	 */
-	public List<Actor> getActorsUnderLocation(Rectangle2D.Float rect) {
+	public List<Entity> getEntitiesUnderLocation(Rectangle2D.Float rect) {
 		ArrayList<Entity> existingEntities = entities;
-		ArrayList<Actor> result = new ArrayList<Actor>();
+		ArrayList<Entity> result = new ArrayList<Entity>();
 
 		for (Entity e : existingEntities) {
-			if (!(e instanceof Actor))
+			if (e instanceof FloatingText)
 				continue;
 			Point2D.Float pt = e.getPosition();
 			Rectangle2D.Float rectEntity = new Rectangle2D.Float(pt.x, pt.y, 1f, 1f);
 			if (rectEntity.intersects(rect))
-				result.add((Actor) e);
+				result.add(e);
 		}
 
 		return result;

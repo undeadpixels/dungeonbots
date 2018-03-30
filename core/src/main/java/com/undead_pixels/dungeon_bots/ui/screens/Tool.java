@@ -404,7 +404,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				// tiles. If selecting tiles that are already part of the
 				// selection, just update the tile selection. Otherwise, nothing
 				// is selected.
-				List<Actor> se = world.getActorsUnderLocation(rect);
+				List<Entity> se = world.getEntitiesUnderLocation(rect);
 				List<Tile> st = world.getTilesUnderLocation(rect);
 
 				System.out.println(se);
