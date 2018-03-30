@@ -1,11 +1,17 @@
 package com.undead_pixels.dungeon_bots.script.interfaces;
+import com.undead_pixels.dungeon_bots.LuaDoc;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.luaj.vm2.LuaValue;
 
 import java.lang.reflect.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -21,6 +27,11 @@ public interface GetLuaFacade {
 	 */
 	default LuaValue getLuaValue() {
 		return LuaProxyFactory.getLuaValue(this);
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Return a String documenting the functionality of the invoked type")
+	default String help() {
+		return LuaDoc.docClassToString(this.getClass());
 	}
 
 	/**
@@ -97,5 +108,20 @@ public interface GetLuaFacade {
 		return Optional.ofNullable(m.getDeclaredAnnotation(BindTo.class))
 				.map(BindTo::value)
 				.orElse(m.getName());
+	}
+
+	static List<Class<? extends GetLuaFacade>> getItemClasses() {
+		return getClassesOf(Item.class);
+	}
+
+	static List<Class<? extends GetLuaFacade>> getEntityClasses() {
+		return getClassesOf(Entity.class);
+	}
+
+	static List<Class<? extends GetLuaFacade>> getClassesOf(Class<? extends GetLuaFacade> clz) {
+		final List<Class<? extends GetLuaFacade>> ans = new LinkedList<>();
+		final FastClasspathScanner scanner = new FastClasspathScanner();
+		scanner.matchSubclassesOf(clz, e -> ans.add(e)).scan();
+		return ans;
 	}
 }

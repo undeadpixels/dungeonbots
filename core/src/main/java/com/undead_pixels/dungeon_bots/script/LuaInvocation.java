@@ -338,7 +338,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	/**
-	 * @param trigger
+	 * @param time
 	 */
 	public synchronized void safeSleep (long time) {
 		if(scriptInterrupt.isKilled()) {

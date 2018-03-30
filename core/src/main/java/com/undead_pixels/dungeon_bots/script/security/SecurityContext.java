@@ -33,9 +33,7 @@ public class SecurityContext {
 	 * A player-level or author-level security context for a given entity.
 	 * 
 	 * The actual level is determined by the entity's team.
-	 * 
-	 * @param whitelist
-	 * @param securityLevel
+	 *
 	 * @param entity
 	 */
 	public SecurityContext(Entity entity) {
@@ -47,6 +45,8 @@ public class SecurityContext {
 			this.securityLevel = SecurityLevel.AUTHOR;
 			break;
 		case PLAYER:
+			this.securityLevel = SecurityLevel.TEAM;
+			break;
 		case NONE:
 		default:
 			this.securityLevel = SecurityLevel.NONE;
@@ -59,8 +59,6 @@ public class SecurityContext {
 
 	/**
 	 * An author-level security context for the world
-	 * @param whitelist
-	 * @param securityLevel
 	 * @param world
 	 */
 	public SecurityContext(World world) {

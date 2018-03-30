@@ -1,4 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
+import com.undead_pixels.dungeon_bots.LuaDoc;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
@@ -8,6 +11,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
@@ -16,6 +20,8 @@ import org.luaj.vm2.lib.VarArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -86,6 +92,7 @@ public final class LuaSandbox implements Serializable {
 		globals.set("printf", new PrintfFunction());
 		globals.set("sleep", new SleepFunction());
 		globals.set("require", new RequireFunction());
+		globals.set("help", new HelpFunction());
 	}
 
 
@@ -102,9 +109,10 @@ public final class LuaSandbox implements Serializable {
 
 	/**
 	 * Adds the bindings of the argument collection of Bindable objects to the source LuaSandbox
-	 * @param bindables A Collection of Objects that implement the GetLuaFacade interface
-	 * @param <T> A Type that implements the GetLuaFacade interface
-	 * @return The source LuaSandbox
+	 * @param bindName The Name to bind the bindable to in the Lua Script environment
+	 * @param bindable The Bindable to insert into the script environment
+	 * @param <T> The type of the Bindable
+	 * @return The invoked LuaSandbox
 	 */
 	public final <T extends GetLuaFacade> LuaSandbox  addBindable(String bindName, T bindable) {
 		securityContext.getWhitelist().addAutoLevelsForBindables(bindable);
@@ -117,12 +125,14 @@ public final class LuaSandbox implements Serializable {
 	 * @param clz The Class to add the static Bindings of
 	 * @return The source LuaSandbox
 	 */
-	@SafeVarargs
-	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade>... clz) {
-		for(Class<? extends GetLuaFacade> c : clz) {
-			securityContext.getWhitelist().addAutoLevelsForBindables(c);
-			add(LuaProxyFactory.getBindings(c));
-		}
+	public final LuaSandbox addBindableClass(final Class<? extends GetLuaFacade> clz) {
+		securityContext.getWhitelist().addAutoLevelsForBindables(clz);
+		add(LuaProxyFactory.getBindings(clz));
+		return this;
+	}
+
+	public final LuaSandbox addBindableClasses(final List<Class<? extends GetLuaFacade>> classes) {
+		classes.forEach(clz -> addBindableClass(clz));
 		return this;
 	}
 
@@ -311,9 +321,31 @@ public final class LuaSandbox implements Serializable {
 		}
 	}
 
-	public void update(float dt) {
-		scriptQueue.update(dt);
+	public class HelpFunction extends VarArgFunction {
+		@Override
+		public LuaValue invoke(Varargs v) {
+			return LuaValue.valueOf(
+					luaValueStream(v)
+						.filter(lv -> lv.istable())
+						.map(lv -> lv.checktable())
+						.filter(tbl -> tbl.get("this").isuserdata() || tbl.get("class").isuserdata())
+						.map(tbl -> tbl.get("this") == LuaValue.NIL ?
+								(Class)tbl.get("class").checkuserdata(Class.class) :
+								tbl.get("this").checkuserdata().getClass())
+						.map(obj -> LuaDoc.docClassToString(obj))
+						.reduce("", (a, b) -> a + b));
+		}
 	}
+
+	private static Stream<LuaValue> luaValueStream(final Varargs v) {
+		List<LuaValue> ans = new ArrayList<>();
+		for(int i = 1; i <= v.narg(); i++) {
+			ans.add(v.arg(i));
+		}
+		return ans.stream();
+	}
+
+	public void update(float dt) { scriptQueue.update(dt); }
 
 	public SecurityContext getSecurityContext() {
 		return securityContext;
@@ -378,7 +410,7 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
-	 * @param object
+	 * @param trigger
 	 */
 	public void safeWaitUntil (Supplier<Boolean> trigger) {
 		LuaInvocation currentInvoke = this.getQueue().getCurrent();

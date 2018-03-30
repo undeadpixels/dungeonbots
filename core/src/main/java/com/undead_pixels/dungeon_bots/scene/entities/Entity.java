@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import org.luaj.vm2.LuaValue;
 
 /**
  * @author Kevin Parker
@@ -93,6 +94,8 @@ public abstract class Entity
 			sandbox = new LuaSandbox(this);
 			this.sandbox.addBindable("this", this);
 			this.sandbox.addBindable("world", world);
+			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
+					.addBindableClasses(GetLuaFacade.getEntityClasses());
 		}
 		return sandbox;
 	}
@@ -214,5 +217,51 @@ public abstract class Entity
 			this.scripts.add(is);
 	}
 
+	protected Point2D.Float add(final Point2D.Float toAdd, float x, float y) {
+		return new Point2D.Float(toAdd.x + x, toAdd.y + y);
+	}
 
+	/**
+	 * Get the position left relative to the player
+	 * @return
+	 */
+	protected Point2D.Float left() {
+		return add(this.getPosition(), -1f, 0f);
+	}
+
+	/**
+	 * Get the position right relative to the player
+	 * @return
+	 */
+	protected Point2D.Float right() {
+		return add(this.getPosition(), 1f, 0f);
+	}
+
+	/**
+	 * Get the position up relative to the player
+	 * @return
+	 */
+	protected Point2D.Float up() {
+		return add(this.getPosition(), 0f, 1f);
+	}
+
+	/**
+	 * Get the position down relative to the player
+	 * @return
+	 */
+	protected Point2D.Float down() {
+		return add(this.getPosition(), 0f, -1f);
+	}
+
+	/**
+	 * Convenience function for extracting a Userdata class of the specified type from
+	 * a LuaValue argument.
+	 * @param clz The UserData type to return
+	 * @param lv The LuaValue that contains the user data type
+	 * @param <T>
+	 * @return
+	 */
+	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
+		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
+	}
 }

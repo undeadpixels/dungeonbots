@@ -19,7 +19,7 @@ public class EntityActionTest {
 
 
 	@Test
-	public void animatedMoveInSqureTest() {
+	public void animatedMoveInSquareTest() {
 		World world = new World();
 		world.setSize(16, 16);
 		Player p = new Player(world, "player", 1, 1);
