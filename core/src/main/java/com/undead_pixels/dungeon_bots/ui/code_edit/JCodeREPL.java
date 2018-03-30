@@ -53,7 +53,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
-	final private int _MessageMax = 3000;
+	final private int _MessageMax = 10000;
 	private JTextPane _MessagePane;
 	private JEditorPane _EditorPane;
 	private Object _LastResult = null;

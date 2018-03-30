@@ -3,12 +3,18 @@ package com.undead_pixels.dungeon_bots;
 import com.google.gson.GsonBuilder;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
+
 import java.io.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.*;
 
-public final class GenDocs {
+public final class LuaDoc {
 
 	/* Create Simple container classes
 	*  for game Documentation that
@@ -133,5 +139,46 @@ public final class GenDocs {
 				.scan();
 
 		return ans.values();
+	}
+
+	public static String docClassToString(final Class<?> clz) {
+		return String.format(
+				"---- %s (%s) ----\n__ %s __\n\n%s",
+				clz.getSimpleName(),
+				clz.getSuperclass().getSimpleName(),
+				Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
+						.map(c -> c.value())
+						.orElse("?"),
+				LuaReflection.getAllMethods(clz)
+						.filter(m -> m.getDeclaredAnnotation(Bind.class) != null
+								|| m.getDeclaredAnnotation(Doc.class ) != null)
+						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
+						.map(m -> docMethodToString(m))
+						.reduce("", (a,b) -> a + b));
+	}
+
+	private static String docMethodToString(final Method m) {
+		return String.format(
+				"%s\t%s\n-- %s\n%s\n",
+				GetLuaFacade.bindTo(m),
+				Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+						.map(a -> a.value().name())
+						.orElse("NONE"),
+				Optional.ofNullable(m.getDeclaredAnnotation(Doc.class))
+						.map(a -> a.value())
+						.orElse(Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
+								.map(a -> a.doc())
+								.orElse("")),
+				docParametersToString(m.getParameters()));
+	}
+
+	private static String docParametersToString(final Parameter[] parameters) {
+		return Stream.of(parameters)
+				.map(p -> String.format("\t%s: %s\n",
+						p.getName(),
+						Optional.ofNullable(p.getDeclaredAnnotation(Doc.class))
+								.map(a -> a.value())
+								.orElse("")))
+				.reduce("", (a,b) -> a + b);
 	}
 }
