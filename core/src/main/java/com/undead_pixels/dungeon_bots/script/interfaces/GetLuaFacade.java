@@ -1,4 +1,5 @@
 package com.undead_pixels.dungeon_bots.script.interfaces;
+import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -26,6 +27,11 @@ public interface GetLuaFacade {
 	 */
 	default LuaValue getLuaValue() {
 		return LuaProxyFactory.getLuaValue(this);
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Return a String documenting the functionality of the invoked type")
+	default String help() {
+		return LuaDoc.docClassToString(this.getClass());
 	}
 
 	/**
