@@ -996,7 +996,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public List<Actor> getActorsUnderLocation(Rectangle2D.Float rect) {
 		ArrayList<Entity> existingEntities = entities;
-		ArrayList<Actor> result = new ArrayList<Actor>();
+		ArrayList<Actor> result = new ArrayList<>();
 
 		for (Entity e : existingEntities) {
 			if (!(e instanceof Actor))
