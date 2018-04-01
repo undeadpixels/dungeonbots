@@ -17,6 +17,7 @@ import java.util.stream.*;
  * A type that encapsulates handling accessing and modifying
  * an inventory for an entity.
  */
+@Doc("An Inventory is a data type that has functionality supporting accessing and retrieving Item Types")
 public class Inventory implements GetLuaFacade, Serializable {
 	
 	/**
