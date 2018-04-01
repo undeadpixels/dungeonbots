@@ -24,17 +24,21 @@ import java.util.stream.Stream;
  */
 public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<String, SecurityLevel>> {
 
+	private final static String INFO_MISSING = "No info on this verb.";
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
 	private HashMap<String, SecurityLevel> whitelist;
+	private HashMap<String, String> infos;
 	private transient LuaValue luaValue;
 
 
 	public Whitelist() {
 		this.whitelist = new HashMap<>();
+		this.infos = new HashMap<>();
 	}
 
 
@@ -99,6 +103,35 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 	 */
 	public Whitelist setLevel(final String bindId, SecurityLevel securityLevel) {
 		whitelist.put(bindId, securityLevel);
+		infos.put(bindId, INFO_MISSING);
+		return this;
+	}
+
+
+	/**Writes all the given security levels mapped to this Whitelist.*/
+	public Whitelist setLevels(final HashMap<String, SecurityLevel> map) {
+		// Do other threads modify or read from this?
+		whitelist.clear();
+		infos.clear();
+		for (Entry<String, SecurityLevel> e : map.entrySet()) {
+			whitelist.put(e.getKey(), e.getValue());
+			infos.put(e.getKey(), INFO_MISSING);
+		}
+		return this;
+	}
+
+
+	public Whitelist setLevels(final HashMap<String, SecurityLevel> securityLevels,
+			final HashMap<String, String> infos) {
+		// Do other threads modify or read from this?
+		whitelist.clear();
+		infos.clear();
+		for (Entry<String, SecurityLevel> e : securityLevels.entrySet()) {
+			whitelist.put(e.getKey(), e.getValue());
+			String info = infos.get(e.getKey());
+			info = (info == null) ? INFO_MISSING : info;
+			infos.put(e.getKey(), info);
+		}
 		return this;
 	}
 
@@ -199,6 +232,7 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 		for (String methodID : w.whitelist.keySet()) {
 			SecurityLevel newLevel = w.whitelist.get(methodID);
 			whitelist.putIfAbsent(methodID, newLevel);
+			infos.put(methodID, w.infos.get(methodID));
 		}
 
 		return this;
@@ -208,5 +242,13 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 	public Iterator<Entry<String, SecurityLevel>> iterator() {
 		return whitelist.entrySet().iterator();
 	}
+
+
+	/**Returns the information pertaining to the given verb.*/
+	public String getInfo(String key) {
+		String result = infos.get(key);
+		return (result == null) ? INFO_MISSING : result;
+	}
+
 
 }

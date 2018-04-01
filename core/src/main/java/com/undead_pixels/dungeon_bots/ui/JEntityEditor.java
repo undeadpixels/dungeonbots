@@ -72,7 +72,8 @@ public final class JEntityEditor extends JPanel {
 			Undoable.Listener undoableListener) {
 
 		if (_OpenEditors.containsKey(entity)) {
-			//System.err.println("An editor is already open for this entity:  " + entity.toString());
+			// System.err.println("An editor is already open for this entity: "
+			// + entity.toString());
 			JDialog dialog = _OpenEditors.get(entity);
 			dialog.requestFocus();
 			return null;
@@ -99,7 +100,7 @@ public final class JEntityEditor extends JPanel {
 				// WINDOW_GAINED_FOCUS=207
 				// WINDOW_LOST_FOCUS=208
 				// WINDOW_STATE_CHANGED=209
-				// WINDOW_LAST=209				
+				// WINDOW_LAST=209
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
 				_OpenEditors.remove(entity);
@@ -137,15 +138,12 @@ public final class JEntityEditor extends JPanel {
 
 
 		JPanel bttnBottomPanel = new JPanel();
-		bttnBottomPanel.setLayout(new GridLayout(1, 3, 10, 10));
-		JButton bttnReset = UIBuilder.buildButton().text("Reset").toolTip("Reset the entity characteristics.")
-				.action("RESET", _Controller).create();
-		JButton bttnOK = UIBuilder.buildButton().text("Save").toolTip("Approve the changes.")
+		JButton bttnOK = UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve all changes.")
 				.action("SAVE", _Controller).create();
-		JButton bttnClose = UIBuilder.buildButton().text("Close").toolTip("Close the editor.")
-				.action("CLOSE", _Controller).create();
-		bttnBottomPanel.add(bttnReset);
+		JButton bttnClose = UIBuilder.buildButton().image("icons/delete.png")
+				.toolTip("Cancel all changes and close the dialog.").action("CLOSE", _Controller).create();
 		bttnBottomPanel.add(bttnOK);
+		bttnBottomPanel.add(bttnClose);
 		// TODO: Should there be a close button? Only if this script editor is
 		// in its
 		// own dialog. But, I won't know that until after construction time.

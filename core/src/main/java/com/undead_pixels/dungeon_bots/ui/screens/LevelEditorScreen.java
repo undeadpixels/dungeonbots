@@ -71,7 +71,7 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
-import com.undead_pixels.dungeon_bots.ui.JSemaphorePane;
+import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -382,19 +382,17 @@ public final class LevelEditorScreen extends Screen {
 				});
 				return;
 			case COMMAND_PERMISSIONS:
-				JDialog d = new JDialog();
+				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
+						new Undoable.Listener() {
 
-				JSemaphorePane<SecurityLevel> jsp = new JSemaphorePane<SecurityLevel>(SecurityLevel.values());
-				for (Entry<String, SecurityLevel> entry : world.getWhitelist()) {
-					jsp.addField(entry.getKey(), "no help for " + entry.getKey(), entry.getValue());
-				}
-				jsp.addField("Field 1", "Help for Field 1", SecurityLevel.AUTHOR);
-				jsp.addField("Field 2", "Help for Field 2", SecurityLevel.DEFAULT);
-				jsp.addField("Field 3", "Help for Field 3", SecurityLevel.DEBUG);
-				jsp.addField("Field 4", "Help for Field 4", SecurityLevel.NONE);
-				d.add(jsp);
-				d.pack();
-				d.setVisible(true);
+							@Override
+							public void pushUndoable(Undoable<?> u) {
+								Tool.pushUndo(world, u);
+							}
+						});
+				jpe.setItems(world.getWhitelist());
+				jpe.setVisible(true);
+
 				break;
 			case "delete":
 				Entity[] selectedEntities = _View.getSelectedEntities();
