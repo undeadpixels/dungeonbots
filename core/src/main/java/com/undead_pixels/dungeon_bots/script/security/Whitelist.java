@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 
@@ -32,13 +33,11 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 	private static final long serialVersionUID = 1L;
 
 	private HashMap<String, SecurityLevel> whitelist;
-	private HashMap<String, String> infos;
 	private transient LuaValue luaValue;
 
 
 	public Whitelist() {
 		this.whitelist = new HashMap<>();
-		this.infos = new HashMap<>();
 	}
 
 
@@ -103,37 +102,36 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 	 */
 	public Whitelist setLevel(final String bindId, SecurityLevel securityLevel) {
 		whitelist.put(bindId, securityLevel);
-		infos.put(bindId, INFO_MISSING);
 		return this;
 	}
 
 
 	/**Writes all the given security levels mapped to this Whitelist.*/
-	public Whitelist setLevels(final HashMap<String, SecurityLevel> map) {
-		// Do other threads modify or read from this?
-		whitelist.clear();
-		infos.clear();
-		for (Entry<String, SecurityLevel> e : map.entrySet()) {
-			whitelist.put(e.getKey(), e.getValue());
-			infos.put(e.getKey(), INFO_MISSING);
-		}
-		return this;
+	public Undoable<HashMap<String, SecurityLevel>> setAllLevels(final HashMap<String, SecurityLevel> newWhitelist) {
+		HashMap<String, SecurityLevel> oldWhitelist = whitelist;
+		whitelist = newWhitelist;
+		return new Undoable<HashMap<String, SecurityLevel>>(oldWhitelist, newWhitelist) {
+
+			@Override
+			protected void undoValidated() {
+				if (whitelist != after)
+					error();
+				whitelist = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				if (whitelist != before)
+					error();
+				whitelist = after;
+			}
+
+		};
+
 	}
 
 
-	public Whitelist setLevels(final HashMap<String, SecurityLevel> securityLevels,
-			final HashMap<String, String> infos) {
-		// Do other threads modify or read from this?
-		whitelist.clear();
-		infos.clear();
-		for (Entry<String, SecurityLevel> e : securityLevels.entrySet()) {
-			whitelist.put(e.getKey(), e.getValue());
-			String info = infos.get(e.getKey());
-			info = (info == null) ? INFO_MISSING : info;
-			infos.put(e.getKey(), info);
-		}
-		return this;
-	}
 
 
 	/**
@@ -232,7 +230,6 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 		for (String methodID : w.whitelist.keySet()) {
 			SecurityLevel newLevel = w.whitelist.get(methodID);
 			whitelist.putIfAbsent(methodID, newLevel);
-			infos.put(methodID, w.infos.get(methodID));
 		}
 
 		return this;
@@ -246,8 +243,7 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 
 	/**Returns the information pertaining to the given verb.*/
 	public String getInfo(String key) {
-		String result = infos.get(key);
-		return (result == null) ? INFO_MISSING : result;
+		return INFO_MISSING;		
 	}
 
 

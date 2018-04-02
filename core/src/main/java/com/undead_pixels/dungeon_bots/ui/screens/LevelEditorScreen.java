@@ -9,7 +9,6 @@ import java.awt.Component;
 import java.awt.Container;
 
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -17,7 +16,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -25,20 +23,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -61,7 +55,6 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import org.jdesktop.swingx.HorizontalLayout;
-import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
@@ -71,6 +64,7 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -209,6 +203,13 @@ public final class LevelEditorScreen extends Screen {
 		boolean tilesVisible = hasTool && selections.tool instanceof Tool.TilePen;
 		_TileScroller.setVisible(tilesVisible);
 		_ToolBar.revalidate();
+	}
+
+
+	private void saveWhitelist(HashMap<String, SecurityLevel> permissions) {
+		Whitelist whitelist = world.getWhitelist();
+		Undoable<?> u = whitelist.setAllLevels(permissions);
+		Tool.pushUndo(world, u);
 	}
 
 
@@ -383,16 +384,9 @@ public final class LevelEditorScreen extends Screen {
 				return;
 			case COMMAND_PERMISSIONS:
 				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
-						new Undoable.Listener() {
-
-							@Override
-							public void pushUndoable(Undoable<?> u) {
-								Tool.pushUndo(world, u);
-							}
-						});
+						(permissions, infos) -> saveWhitelist(permissions));
 				jpe.setItems(world.getWhitelist());
 				jpe.setVisible(true);
-
 				break;
 			case "delete":
 				Entity[] selectedEntities = _View.getSelectedEntities();
