@@ -1265,12 +1265,23 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param index The index into the inventory of the entity to take the item
 	 * @return True if taking the item succeeded, false otherwise.
 	 */
-	public Boolean tryTake(final HasInventory src, final Point2D.Float pos, final int index) {
+	public Boolean tryTake(final Actor src, final Point2D.Float pos, final int index) {
 		return typeAtPos(pos, HasInventory.class)
-				.findFirst()
-				.filter(e -> e.canTake())
-				.map(e -> src.getInventory().tryTakeItem(e.getInventory().peek(index)))
-				.orElse(false);
+				.filter(HasInventory::canTake)
+				.anyMatch(e -> {
+					final ItemReference ir = e.getInventory().peek(index);
+					final String itemName = ir.getName();
+					final boolean taken = src.getInventory().tryTakeItem(ir);
+					if(taken) {
+						message(src,
+								String.format("%s took %s from %s",
+										src.getName(),
+										itemName,
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return taken;
+				});
 	}
 
 	/**
@@ -1281,7 +1292,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
 		return entitiesAtPos(location)
-				.anyMatch(e -> e.useItem(itemReference));
+				.anyMatch(e -> {
+					final boolean used = e.useItem(itemReference);
+					final Actor owner = itemReference.inventory.getOwner();
+					final String name = itemReference.getName();
+					if(used) {
+						message(owner,
+								String.format("%s used %s on %s",
+										owner.getName(),
+										name,
+										e.getName()),
+								LoggingLevel.GENERAL);
+					}
+					return used;
+				});
 	}
 
 	/**
@@ -1290,15 +1314,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryUse(final Actor src, final Point2D.Float location) {
-		Optional<Actor> entity =
-				entityTypeAtPos(location, Actor.class)
-						.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
-						.filter(e -> Useable.class.cast(e).use())
-						.findFirst();
-		entity.ifPresent(e -> message(e,
-						src.getName() + " used " + e.getName(),
-						LoggingLevel.GENERAL));
-		return entity.isPresent();
+		return entityTypeAtPos(location, Actor.class)
+				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
+				.anyMatch(e -> {
+					final boolean used = Useable.class.cast(e).use();
+					if(used){
+						message(src,
+								String.format("%s used %s", src.getName(), e.getName()),
+								LoggingLevel.GENERAL);
+					}
+					return used;
+				});
 	}
 
 	/**
@@ -1308,10 +1334,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
-		final boolean give = typeAtPos(location, HasInventory.class)
+		return typeAtPos(location, HasInventory.class)
 				.filter(e -> e.canTake())
-				.anyMatch(e -> e.getInventory().tryTakeItem(itemReference));
-		return give;
+				.anyMatch(e -> {
+					final boolean gives = e.getInventory().tryTakeItem(itemReference);
+					if(gives) {
+						message(itemReference.inventory.getOwner(),
+								String.format("%s gives %s to %s",
+										itemReference.inventory.getOwner().getName(),
+										itemReference.getName(),
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return gives;
+				});
 	}
 
 	/**
@@ -1323,7 +1359,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return entityTypeAtPos(dst.getPosition(), ItemEntity.class)
 				.filter(e -> !e.equals(dst))
 				.findFirst()
-				.map(e -> e.pickUp(dst))
+				.map(e -> {
+					final boolean grabbed = e.pickUp(dst);
+					message(dst,
+							String.format("%s grabbed %s",
+									grabbed ? "Sucessfully" : "Unsucessfully",
+									e.getItem().getName()),
+							LoggingLevel.GENERAL);
+					return grabbed;
+				})
 				.orElse(false);
 	}
 
@@ -1333,9 +1377,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param pos
 	 * @param dir
 	 */
-	public void tryPush(final Entity src, final Point2D.Float pos, final Actor.Direction dir) {
+	public void tryPush(final Actor src, final Point2D.Float pos, final Actor.Direction dir) {
 		typeAtPos(pos, Pushable.class)
-				.forEach(e -> e.push(dir));
+				.forEach(e -> {
+					message(src, "pushes " + e.getClass().getSimpleName(), LoggingLevel.GENERAL);
+					e.push(dir);
+				});
 	}
 
 	/**
@@ -1399,6 +1446,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void message(HasImage src, String message, LoggingLevel level) {
 		if(messageListener != null) {
+			// Catch any and all exceptions that may be thrown when attempting to log information
 			try {
 				messageListener.message(src, message, level);
 			}

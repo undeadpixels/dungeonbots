@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
@@ -39,9 +40,9 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	 */
 	private final int maxWeight = 100;
 
-	final Entity owner;
+	final Actor owner;
 
-	public Inventory(Entity owner, int maxSize) {
+	public Inventory(Actor owner, int maxSize) {
 		this.maxSize = maxSize;
 		inventory = new ItemReference[maxSize];
 		this.owner = owner;
@@ -158,10 +159,6 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
-					this.owner.getWorld().message(
-							this,
-							String.format("Gives %s to %s", ir.getName(), owner.getName()),
-							LoggingLevel.GENERAL);
 					return true;
 				}
 			}
@@ -297,5 +294,9 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	@Override
 	public Image getImage() {
 		return ItemChest.LOCKED_TEXTURE.toImage();
+	}
+
+	public Actor getOwner() {
+		return owner;
 	}
 }

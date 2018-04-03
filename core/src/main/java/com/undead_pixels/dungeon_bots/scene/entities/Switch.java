@@ -7,7 +7,7 @@ import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
 @Doc("A Switch is an Entity that's contextual use function invokes a event")
-public class Switch extends SpriteEntity implements Useable {
+public class Switch extends Actor implements Useable {
 	
 	/**
 	 * 
