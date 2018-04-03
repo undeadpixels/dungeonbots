@@ -376,6 +376,7 @@ public final class LuaSandbox implements Serializable {
 	public LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
+		
 		return invocation;
 	}
 

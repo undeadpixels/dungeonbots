@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -56,8 +57,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
-	// private transient ReentrantLock updateLock = new ReentrantLock();
 
 	/**
 	 * The script that defines this world
@@ -113,10 +112,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private transient boolean didInit = false;
 
-	// =============================================
-	// ====== World CONSTRUCTOR AND STARTUP STUFF
-	// =============================================
-
 	/**
 	 * A background image for this world Not currently used.
 	 */
@@ -165,6 +160,78 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private ActionGrouping playstyle = new ActionGrouping.RTSGrouping();
 
+	// =============================================
+	// ====== Events and stuff
+	// =============================================
+
+	private static interface EventType { }
+	public static enum EntityEventType implements EventType {
+		ENTITY_ADDED,
+		ENTITY_REMOVED,
+		ENTITY_MOVED
+	}
+	public static enum WorldEventType implements EventType {
+		WIN
+	}
+	private transient WorldEvent<World> winEvent;
+	private transient WorldEvent<Entity> entityAddedEvent;
+	private transient WorldEvent<Entity> entityRemovedEvent;
+	private transient WorldEvent<Entity> entityMovedEvent;
+
+	private WorldEvent<Entity> getEntityEvent(EntityEventType t) {
+		switch(t) {
+			case ENTITY_ADDED:
+				if(entityAddedEvent == null) entityAddedEvent = new WorldEvent<>();
+				return entityAddedEvent;
+			case ENTITY_REMOVED:
+				if(entityRemovedEvent == null) entityRemovedEvent = new WorldEvent<>();
+				return entityRemovedEvent;
+			case ENTITY_MOVED:
+				if(entityMovedEvent == null) entityMovedEvent = new WorldEvent<>();
+				return entityMovedEvent;
+		}
+		return null;
+	}
+	private WorldEvent<World> getWorldEvent(WorldEventType t) {
+		switch(t) {
+			case WIN:
+				if(winEvent == null) winEvent = new WorldEvent<>();
+				return winEvent;
+		}
+		return null;
+	}
+
+	public void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
+		WorldEvent<Entity> ev = getEntityEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(EntityEventType t, Entity e) {
+		WorldEvent<Entity> ev = getEntityEvent(t);
+		ev.fire(e);
+	}
+	
+	public void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
+		WorldEvent<World> ev = getWorldEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(WorldEventType t, World w) {
+		WorldEvent<World> ev = getWorldEvent(t);
+		ev.fire(w);
+	}
+	
+	public void removeEventListenersByOwner(Object owner) {
+		for(EntityEventType t : EntityEventType.values()) {
+			getEntityEvent(t).removeListenerFamily(owner);
+		}
+		for(WorldEventType t : WorldEventType.values()) {
+			getWorldEvent(t).removeListenerFamily(owner);
+		}
+	}
+
+
+	// =============================================
+	// ====== World CONSTRUCTOR AND STARTUP STUFF
+	// =============================================
 
 	/**
 	 * Simple constructor
@@ -314,6 +381,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
 		isWon = true;
+		
+		fire(WorldEventType.WIN, this);
 	}
 
 	public boolean isWon() {
@@ -463,6 +532,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		entities.add(e);
 		e.onAddedToWorld(this);
+		fire(EntityEventType.ENTITY_ADDED, e);
 
 
 		if (e.isSolid()) {
@@ -494,6 +564,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			if (tile != null && tile.getOccupiedBy() == e)
 				tile.setOccupiedBy(null);
 		}
+		fire(EntityEventType.ENTITY_REMOVED, e);
 		return true;
 	}
 
@@ -701,6 +772,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final int y = ly.checkint() - 1;
 		final int w = tiles.length;
 		final int h = tiles[0].length;
+		
+		// TODO - an event?
+		
 		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
 	}
 
@@ -931,6 +1005,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void didLeaveTile(Entity e, int x, int y) {
 		Tile tile = getTile(x, y);
 		tile.setOccupiedBy(null);
+		
+
+		fire(EntityEventType.ENTITY_MOVED, e);
 	}
 
 
@@ -1061,6 +1138,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void resetFrom(World oldWorld) {
 		persistScriptsFrom(oldWorld);
 		this.timesReset = oldWorld.timesReset + 1;
+		
+		// TODO - should we pass the old world to the init script maybe?
 	}
 
 
