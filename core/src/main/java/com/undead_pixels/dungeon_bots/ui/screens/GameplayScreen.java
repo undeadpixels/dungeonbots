@@ -131,15 +131,15 @@ public class GameplayScreen extends Screen {
 				.action(COMMAND_TOGGLE_GRID, getController()).create());
 
 
-		
 		SwingUtilities.invokeLater(new Runnable() {
 
 			// Must be invoked later because the GamePlayScreen's isSwitched
 			// property hasn't been set when addComponents is called.
 			@Override
-			public void run() {				
+			public void run() {
 				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
-						.action("Switch to Editor", getController()).enabled(isSwitched).create();
+						.action("Switch to Editor", getController()).enabled(isSwitched)
+						.border(BorderFactory.createRaisedSoftBevelBorder()).create();
 				playToolBar.add(switchBttn);
 			}
 		});
@@ -311,52 +311,56 @@ public class GameplayScreen extends Screen {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			selector.mousePressed(e);
-			if (!e.isConsumed()) _ViewControl.mousePressed(e);
+			if (!e.isConsumed())
+				_ViewControl.mousePressed(e);
 		}
 
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			selector.mouseReleased(e);
-			if (!e.isConsumed()) _ViewControl.mouseReleased(e);
+			if (!e.isConsumed())
+				_ViewControl.mouseReleased(e);
 		}
 
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			selector.mouseDragged(e);
-			if (!e.isConsumed()) _ViewControl.mouseDragged(e);
+			if (!e.isConsumed())
+				_ViewControl.mouseDragged(e);
 		}
 
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			selector.mouseWheelMoved(e);
-			if (!e.isConsumed()) _ViewControl.mouseWheelMoved(e);
+			if (!e.isConsumed())
+				_ViewControl.mouseWheelMoved(e);
 		}
 
 
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
-			
+
 		}
 
 
 		@Override
 		public void mouseEntered(MouseEvent arg0) {
-			
+
 		}
 
 
 		@Override
 		public void mouseExited(MouseEvent arg0) {
-			
+
 		}
 
 
 		@Override
 		public void mouseMoved(MouseEvent arg0) {
-			
+
 		}
 
 

@@ -694,7 +694,8 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
 		_ToolBar.add(zoomSlider);
-		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
+		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController())
+				.border(BorderFactory.createRaisedSoftBevelBorder()).create());
 		_ToolBar.addSeparator();
 		_ToolBar.add(_ToolScroller);
 		_ToolBar.add(_TileScroller);

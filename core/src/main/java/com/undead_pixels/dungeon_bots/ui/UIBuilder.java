@@ -185,7 +185,7 @@ public class UIBuilder {
 		}
 
 
-		/**Specifies the foreground color.*/
+		/**Specifies the background color.*/
 		public final LabelBuilder background(Color color) {
 			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
 
@@ -558,6 +558,19 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the background color.*/
+		public final ButtonBuilder<T> background(Color color) {
+			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setBackground(color);
+				}
+			});
+			return this;
+		}
+
+
 		public final ButtonBuilder<T> border(Border border) {
 			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
 
@@ -592,6 +605,19 @@ public class UIBuilder {
 					bttn.setFocusable(value);
 				}
 
+			});
+			return this;
+		}
+
+
+		/**Specifies the foreground color.*/
+		public final ButtonBuilder<T> foreground(Color color) {
+			properties.put(FIELD_FOREGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setForeground(color);
+				}
 			});
 			return this;
 		}
