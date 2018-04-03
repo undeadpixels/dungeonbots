@@ -30,7 +30,9 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.World.MessageListener;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -57,6 +59,7 @@ public class GameplayScreen extends Screen {
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
+	
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
@@ -75,6 +78,12 @@ public class GameplayScreen extends Screen {
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
 		world.onBecomingVisibleInGameplay();
+		world.registerMessageListener(new MessageListener(){
+
+			@Override
+			public void message(HasImage src, String message, LoggingLevel level) {
+				this.message(src,  message, level);
+			}});
 	}
 
 

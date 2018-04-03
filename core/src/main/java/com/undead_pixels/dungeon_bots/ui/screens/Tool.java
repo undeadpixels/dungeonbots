@@ -27,6 +27,7 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
@@ -408,8 +409,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				view.setSelectedEntities(new Entity[] { se.get(0) });
 				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel);
-				if (jee == null)
-					world.message(null, "This entity cannot be edited.", LoggingLevel.GENERAL, null);
+				if (jee == null) {
+					world.message((se.get(0) instanceof HasImage) ? (HasImage) se.get(0) : null,
+							"This entity cannot be edited.", LoggingLevel.GENERAL);
+					return;
+				}
+
 				jee.setVisible(true);
 				view.setSelectedTiles(null);
 			}
@@ -636,8 +641,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				view.setSelectedEntities(new Entity[] { alreadyThere });
 				JEntityEditor jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(),
 						securityLevel);
-				if (jee == null)
-					world.message(null, "This entity cannot be edited.", LoggingLevel.GENERAL, null);
+				if (jee == null) {
+					world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
+							"This entity cannot be edited.", LoggingLevel.GENERAL);
+					return;
+				}
 				jee.setVisible(true);
 				view.setSelectedTiles(null);
 				return;
