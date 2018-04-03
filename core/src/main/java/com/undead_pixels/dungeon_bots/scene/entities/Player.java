@@ -116,4 +116,8 @@ public class Player extends RpgActor {
 		return ret;
 	}
 
+	@Override
+	public String inspect() {
+		return "Player";
+	}
 }

@@ -110,4 +110,9 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	public Boolean canTake() {
 		return !this.locked;
 	}
+
+	@Override
+	public String inspect() {
+		return locked ? "A locked Item Chest" : "An unlocked Item Chest";
+	}
 }

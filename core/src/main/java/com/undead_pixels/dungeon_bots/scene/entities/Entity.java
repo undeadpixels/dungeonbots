@@ -21,7 +21,7 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam , Inspectable {
 
 	/**
 	 * 
