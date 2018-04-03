@@ -8,18 +8,15 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -35,7 +32,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.TransferHandler;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -1640,7 +1636,6 @@ public class LevelPackScreen extends Screen {
 			case "EDIT_WORLD":
 				selWorld = (WorldInfo) getCurrentSelection();
 				int idx = selWorld.packInfo.worlds.indexOf(selWorld);
-				LevelPack partPack = selWorld.packInfo.getPack();
 				if (!selWorld.packInfo.hasAuthorPermission()) {
 					JOptionPane.showMessageDialog(LevelPackScreen.this,
 							"Sorry, you do not have permission to edit this world.");

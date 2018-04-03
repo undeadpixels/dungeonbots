@@ -374,13 +374,10 @@ public final class LevelEditorScreen extends Screen {
 				return;
 
 			case "WORLD_SCRIPTS":
-				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
-
-					@Override
-					public void pushUndoable(Undoable<?> u) {
-						Tool.pushUndo(world, u);
-					}
-				});
+				JWorldEditor jwe = JWorldEditor.createDialog(LevelEditorScreen.this, world, "Edit your world...",
+						SecurityLevel.AUTHOR);
+				if (jwe != null)
+					jwe.setVisible(true);
 				return;
 			case COMMAND_PERMISSIONS:
 				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
@@ -672,6 +669,8 @@ public final class LevelEditorScreen extends Screen {
 		cboxTile.addActionListener(getController());
 		_TileScroller = cboxTile;
 		_TileScroller.setBorder(BorderFactory.createTitledBorder("Tile Types"));
+		this.selections.tileType = (TileType) cboxTile.getSelectedItem();
+
 
 		// Create the entity palette GUI.
 		JComboBox<EntityType> cboxEntity = new JComboBox<EntityType>(entityTypes);
@@ -679,6 +678,7 @@ public final class LevelEditorScreen extends Screen {
 		cboxEntity.addActionListener(getController());
 		_EntityScroller = cboxEntity;
 		_EntityScroller.setBorder(BorderFactory.createTitledBorder("Entities"));
+		this.selections.entityType = (EntityType) cboxEntity.getSelectedItem();
 
 
 		// Create the zoom slider.
@@ -694,6 +694,7 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
 		_ToolBar.add(zoomSlider);
+		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 		_ToolBar.addSeparator();
 		_ToolBar.add(_ToolScroller);
 		_ToolBar.add(_TileScroller);
@@ -726,7 +727,7 @@ public final class LevelEditorScreen extends Screen {
 				.action(COMMAND_PERMISSIONS, getController()).create());
 
 		// Create the edit menu.
-		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(50).create();
+		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(60).create();
 		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK))
 				.text("Undo").action("UNDO", getController()).create());
 		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK))
@@ -752,9 +753,6 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(publishMenu);
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
-		// TODO: is sticking a button in a menu bar apt to cause compatibility
-		// issues?
-		menuBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 
 		// Put together the entire page
 		// pane.add(controlPanel, BorderLayout.LINE_START);

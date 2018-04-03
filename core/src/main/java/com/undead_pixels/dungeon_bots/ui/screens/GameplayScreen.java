@@ -4,10 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -18,13 +16,10 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -135,44 +130,17 @@ public class GameplayScreen extends Screen {
 		playToolBar.add(UIBuilder.buildToggleButton().image("images/grid.jpg").toolTip("Turn grid off/on")
 				.action(COMMAND_TOGGLE_GRID, getController()).create());
 
-		// Create the file menu.
-		JMenu fileMenu = new JMenu("File");
-		fileMenu.setPreferredSize(new Dimension(80, 30));
-		fileMenu.setMnemonic(KeyEvent.VK_F);
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
-				.text("Open").action("Open", getController()).create());
-		fileMenu.addSeparator();
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_X, ActionEvent.CTRL_MASK).mnemonic('x')
-				.text("Exit to main").action("Exit to Main", getController()).create());
-		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_Q, ActionEvent.CTRL_MASK).mnemonic('q')
-				.text("Quit").action("Quit", getController()).create());
 
-		// Create the feedback menu.
-		JMenu feedbackMenu = new JMenu("Feedback");
-		feedbackMenu.setMnemonic(KeyEvent.VK_B);
-		feedbackMenu.setPreferredSize(new Dimension(80, 30));
-		feedbackMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_R, ActionEvent.CTRL_MASK).mnemonic('r')
-				.text("Last Results").action("Last Results", getController()).create());
-		feedbackMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_T, ActionEvent.CTRL_MASK).mnemonic('t')
-				.text("Statistics").action("Statistics", getController()).create());
-		feedbackMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
-				.text("Upload").action("Upload", getController()).create());
-
-		// Create the menu at the top of the screen.
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(fileMenu);
-		menuBar.add(feedbackMenu);
+		
 		SwingUtilities.invokeLater(new Runnable() {
 
 			// Must be invoked later because the GamePlayScreen's isSwitched
 			// property hasn't been set when addComponents is called.
 			@Override
-			public void run() {
-				// TODO: adding a button cause compatibility issues for a
-				// JMenuBar?
+			public void run() {				
 				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
 						.action("Switch to Editor", getController()).enabled(isSwitched).create();
-				menuBar.add(switchBttn);
+				playToolBar.add(switchBttn);
 			}
 		});
 
@@ -202,7 +170,6 @@ public class GameplayScreen extends Screen {
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
 		pane.add(messagePanel, BorderLayout.LINE_END);
-		this.setJMenuBar(menuBar);
 
 
 	}

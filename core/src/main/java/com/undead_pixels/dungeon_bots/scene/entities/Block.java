@@ -12,6 +12,8 @@ import org.luaj.vm2.LuaValue;
 
 public class Block extends Actor implements Pushable {
 
+	private static final long serialVersionUID = 1L;
+
 	public static final TextureRegion DEFAULT_TEXTURE =
 			AssetManager.getTextureRegion("DawnLike/Objects/Tile.png", 3, 0);
 

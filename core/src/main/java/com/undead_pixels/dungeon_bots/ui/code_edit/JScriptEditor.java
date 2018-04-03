@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ListCellRenderer;
@@ -57,11 +58,11 @@ public final class JScriptEditor extends JPanel {
 
 	/** The script being edited. */
 	private UserScript _Script = null;
-	final JEditorPane editor;
-	private SecurityLevel _SecurityLevel;
-	private Controller _Controller;
-	private JComboBox<Font> _FontChooser;
-	private JComboBox<Integer> _FontSizeChooser;
+	private final JEditorPane editor;
+	private final SecurityLevel _SecurityLevel;
+	private final Controller _Controller;
+	private final JComboBox<Font> _FontChooser;
+	private final JComboBox<Integer> _FontSizeChooser;
 
 
 	/* ================================================================
@@ -75,6 +76,8 @@ public final class JScriptEditor extends JPanel {
 
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 		setLayout(new BorderLayout());
+		
+		
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
@@ -84,10 +87,7 @@ public final class JScriptEditor extends JPanel {
 				.action("COPY", _Controller).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
 				.action("PASTE", _Controller).create();
-		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
-				.toolTip("Get help with the command line.").action("HELP", _Controller).focusable(false)
-				.preferredSize(30, 30).create();
-
+		
 
 		editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(editor);
@@ -111,7 +111,6 @@ public final class JScriptEditor extends JPanel {
 		toolBar.add(bttnCut);
 		toolBar.add(bttnCopy);
 		toolBar.add(bttnPaste);
-		toolBar.add(bttnHelp);
 		toolBar.add(_FontChooser);
 		toolBar.add(_FontSizeChooser);
 		if (securityLevel.level >= SecurityLevel.AUTHOR.level) {
@@ -122,7 +121,7 @@ public final class JScriptEditor extends JPanel {
 			_Controller.setLockColor(Color.blue);
 		}
 
-		add(toolBar, BorderLayout.PAGE_START);
+		add(toolBar, BorderLayout.PAGE_START);	
 
 	}
 
@@ -169,8 +168,15 @@ public final class JScriptEditor extends JPanel {
 
 		_Script = script;
 		setLiveEditing(true);
-		editor.setText(script.code);
-		_Controller.resetLocks();
+		if (script == null) {
+			editor.setText("");
+			this.setEnabled(false);
+		} else {
+			editor.setText(script.code);
+			this.setEnabled(true);
+			_Controller.resetLocks();
+
+		}
 
 		// Restore filtering.
 		// _Controller.setFiltering(true);
@@ -196,15 +202,6 @@ public final class JScriptEditor extends JPanel {
 	public void setLiveEditing(boolean value) {
 		if (_Controller._LockFilter != null)
 			_Controller._LockFilter.setLocked(!value);
-	}
-
-
-	private final HashSet<ActionListener> _ActionListeners = new HashSet<ActionListener>();
-
-
-	// This class fires action events. Add a listener to receive those events.
-	public void addActionListener(ActionListener l) {
-		_ActionListeners.add(l);
 	}
 
 
@@ -342,12 +339,6 @@ public final class JScriptEditor extends JPanel {
 				break;
 			case "PASTE":
 				editor.paste();
-				break;
-			case "HELP":
-				// Pass on the event to every listener.
-				e = new ActionEvent(this, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
-				for (ActionListener l : _ActionListeners)
-					l.actionPerformed(e);
 				break;
 			default:
 				System.out.println("JScriptEditor has not implemented command: " + e.getActionCommand());

@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
@@ -137,6 +138,10 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
 				if(canMove) steps++; else bumps++;
+				world.message(getName(),
+								canMove ? "Moved" : "Bumped",
+								LoggingLevel.GENERAL,
+								sprite.getTexture());
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				return canMove;
 			}
@@ -215,6 +220,11 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * @return
 	 */
 	protected Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
+		this.world.message(
+				this.getName(),
+				String.format("Invokes Move %s", direction.name()),
+				LoggingLevel.GENERAL,
+				this.sprite.getTexture());
 		int SIZE = amt.narg();
 		int n;
 		if (SIZE < 2)
@@ -474,100 +484,100 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Push objects UP relative to the Actor")
 	public Actor pushUp() {
-		world.tryPush(up(), Direction.UP);
+		world.tryPush(this, up(), Direction.UP);
 		return this;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Push objects DOWN relative to the Actor")
 	public Actor pushDown() {
-		world.tryPush(down(), Direction.DOWN);
+		world.tryPush(this, down(), Direction.DOWN);
 		return this;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Push objects LEFT relative to the Actor")
 	public Actor pushLeft() {
-		world.tryPush(left(), Direction.LEFT);
+		world.tryPush(this, left(), Direction.LEFT);
 		return this;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Push objects RIGHT relative to the Actor")
 	public Actor pushRight() {
-		world.tryPush(right(), Direction.RIGHT);
+		world.tryPush(this, right(), Direction.RIGHT);
 		return this;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Peek at the inventory of any entity UP relative to the actor")
 	public LuaValue peekUp() {
-		return world.tryPeek(up());
+		return world.tryPeek(this, up());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Peek at the inventory of any entity DOWN relative to the actor")
 	public LuaValue peekDown() {
-		return world.tryPeek(down());
+		return world.tryPeek(this, down());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Peek at the inventory of any entity LEFT relative to the actor")
 	public LuaValue peekLeft() {
-		return world.tryPeek(left());
+		return world.tryPeek(this, left());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Peek at the inventory of any entity RIGHT relative to the actor")
 	public LuaValue peekRight() {
-		return world.tryPeek(right());
+		return world.tryPeek(this, right());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found UP relative to the Actor")
 	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(up(), index.checkint() - 1, this.inventory);
+		return world.tryTake(this,up(), index.checkint() - 1);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
 	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(down(), index.checkint() - 1, this.inventory);
+		return world.tryTake(this, down(), index.checkint() - 1);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
 	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(left(), index.checkint() - 1, this.inventory);
+		return world.tryTake(this, left(), index.checkint() - 1);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
 	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(right(), index.checkint() - 1, this.inventory);
+		return world.tryTake(this, right(), index.checkint() - 1);
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Contextually use an object or entity RIGHT relative to the actor")
 	private Boolean useRight() {
-		return world.tryUse(right());
+		return world.tryUse(this, right());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Contextually use an object or entity LEFT relative to the actor")
 	private Boolean useLeft() {
-		return world.tryUse(left());
+		return world.tryUse(this, left());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Contextually use an object or entity DOWN relative to the actor")
 	private Boolean useDown() {
-		return world.tryUse(down());
+		return world.tryUse(this, down());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Contextually use an object or entity UP relative to the actor")
 	private Boolean useUp() {
-		return world.tryUse(up());
+		return world.tryUse(this, up());
 	}
 }

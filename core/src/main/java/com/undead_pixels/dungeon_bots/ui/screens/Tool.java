@@ -22,6 +22,7 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Actor;
@@ -217,7 +218,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			newZoom /= 100f;
 			newZoom = Math.max(newZoom, 0.01f * min); // Limit on zoom out
 			newZoom = Math.min(newZoom, 0.3f * max); // Limit on zoom in
-			
+
 			setZoom(newZoom);
 		}
 
@@ -406,13 +407,10 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// entity.
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor.create(owner, se.get(0), securityLevel, se.get(0).getName(), new Undoable.Listener() {
-
-					@Override
-					public void pushUndoable(Undoable<?> u) {
-						pushUndo(world, u);
-					}
-				});
+				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel);
+				if (jee == null)
+					world.message(null, "This entity cannot be edited.", LoggingLevel.GENERAL, null);
+				jee.setVisible(true);
 				view.setSelectedTiles(null);
 			}
 			// If some number of entities are lassoed, select them (if
@@ -636,58 +634,46 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
 			if (alreadyThere != null) {
 				view.setSelectedEntities(new Entity[] { alreadyThere });
-				JEntityEditor.create(owner, alreadyThere, securityLevel, alreadyThere.getName(),
-						new Undoable.Listener() {
-
-							@Override
-							public void pushUndoable(Undoable<?> u) {
-								pushUndo(world, u);
-							}
-						});
+				JEntityEditor jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(),
+						securityLevel);
+				if (jee == null)
+					world.message(null, "This entity cannot be edited.", LoggingLevel.GENERAL, null);
+				jee.setVisible(true);
 				view.setSelectedTiles(null);
 				return;
+			} else {
+				EntityType type = selection.entityType;
+				if (type == null)
+					return;
+				Entity newEntity = type.get((int) gamePos.x, (int) gamePos.y);
+				world.addEntity(newEntity);
+
+				Undoable<Entity> placeUndoable = new Undoable<Entity>(null, newEntity) {
+
+					@Override
+					protected void undoValidated() {
+						if (!world.containsEntity(newEntity))
+							error();
+						view.setSelectedEntities(null);
+						world.removeEntity(newEntity);
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						if (world.containsEntity(newEntity))
+							error();
+						view.setSelectedEntities(new Entity[] { newEntity });
+						world.addEntity(newEntity);
+					}
+				};
+				pushUndo(world, placeUndoable);
+
+
+				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel);
+				jee.setVisible(true);
+				view.setSelectedEntities(new Entity[] { newEntity });
 			}
-
-			EntityType type = selection.entityType;
-			if (type == null)
-				return;
-			Entity ent = type.get((int) gamePos.x, (int) gamePos.y);
-			world.addEntity(ent);
-
-			Undoable<Entity> placeUndoable = new Undoable<Entity>(null, ent) {
-
-				@Override
-				protected void undoValidated() {
-					if (world.containsEntity(ent))
-						error();
-					view.setSelectedEntities(null);
-					world.removeEntity(ent);
-
-				}
-
-
-				@Override
-				protected void redoValidated() {
-					if (!world.containsEntity(ent))
-						error();
-					view.setSelectedEntities(new Entity[] { ent });
-					world.addEntity(ent);
-				}
-			};
-			pushUndo(world, placeUndoable);
-
-			view.setSelectedEntities(new Entity[] { ent });
-			JEntityEditor.create(owner, ent, securityLevel, ent.getName(), new Undoable.Listener() {
-
-				@Override
-				public void pushUndoable(Undoable<?> u) {
-					// Do nothing. Don't push the undoable item. This is
-					// because the actual undoable was the adding of the
-					// entity to the World, not the modification of the
-					// entity.
-				}
-			});
-
 		}
 	}
 }
