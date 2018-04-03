@@ -9,16 +9,50 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
 import org.luaj.vm2.LuaValue;
 
 @Doc("An Entity type that can be inspected ")
 public class Sign extends SpriteEntity implements Inspectable {
+
+	private static final long serialVersionUID = 1L;
+	
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Objects/Decor0.png", 1, 5);
 	private String message;
+	private FloatingText floatingText;
 
 	public Sign(World world, String message, float x, float y) {
 		super(world, "sign", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 		this.message = message;
+		floatingText = new FloatingText(this, name+"-text");
+		registerListener();
+	}
+
+	
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	@Override
+	public void onAddedToWorld(World world) {
+		world.addEntity(floatingText);
+	}
+	
+	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+		inputStream.defaultReadObject();
+		registerListener();
+	}
+	
+	private void registerListener() {
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distanceSq(this.getPosition()) < .1) {
+				//world.showAlert(this.inspect(), "Sign");
+				this.floatingText.addLine(this.inspect());
+			}
+		});
 	}
 
 	@BindTo("new")
@@ -33,15 +67,16 @@ public class Sign extends SpriteEntity implements Inspectable {
 
 	@Override
 	public boolean isSolid() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public float getZ() {
-		return 10f;
+		return 1f;
 	}
 
 	@Override
+	@Bind(SecurityLevel.NONE)
 	public String inspect() {
 		return message;
 	}
