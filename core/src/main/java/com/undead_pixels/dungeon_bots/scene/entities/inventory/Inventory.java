@@ -2,12 +2,14 @@ package com.undead_pixels.dungeon_bots.scene.entities.inventory;
 
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.ItemChest;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import org.luaj.vm2.*;
 
+import java.awt.*;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +20,7 @@ import java.util.stream.*;
  * an inventory for an entity.
  */
 @Doc("An Inventory is a data type that has functionality supporting accessing and retrieving Item Types")
-public class Inventory implements GetLuaFacade, Serializable {
+public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	
 	/**
 	 * 
@@ -157,10 +159,9 @@ public class Inventory implements GetLuaFacade, Serializable {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
 					this.owner.getWorld().message(
-							ir.inventory.owner.getName(),
+							this,
 							String.format("Gives %s to %s", ir.getName(), owner.getName()),
-							LoggingLevel.GENERAL,
-							ItemChest.LOCKED_TEXTURE);
+							LoggingLevel.GENERAL);
 					return true;
 				}
 			}
@@ -291,5 +292,10 @@ public class Inventory implements GetLuaFacade, Serializable {
 		return Stream.of(inventory)
 				.map(i -> i.getValue())
 				.reduce(0, (a,b) -> a + b);
+	}
+
+	@Override
+	public Image getImage() {
+		return ItemChest.LOCKED_TEXTURE.toImage();
 	}
 }
