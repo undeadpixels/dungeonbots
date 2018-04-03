@@ -16,7 +16,7 @@ import org.luaj.vm2.LuaValue;
  * @author kevin
  *
  */
-public class Sign extends SpriteEntity {
+public class OtherSign extends SpriteEntity {
 
 	private static final long serialVersionUID = 1L;
 
@@ -30,18 +30,18 @@ public class Sign extends SpriteEntity {
 	 * @param x
 	 * @param y
 	 */
-	public Sign(World world, String name, float x, float y, String text) {
+	public OtherSign(World world, String name, float x, float y, String text) {
 		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Sign Instance")
-	public static Sign create(
+	public static OtherSign create(
 			@Doc("The world the Goal belongs to") LuaValue world,
 			@Doc("The name of the sign") LuaValue string,
 			@Doc("The X position of the Sign") LuaValue x,
 			@Doc("The Y position of the Sign") LuaValue y,
 			@Doc("The text of the sign") LuaValue text) {
-		return new Sign(
+		return new OtherSign(
 				(World)world.checktable().get("this").checkuserdata(World.class),
 				string.checkjstring(),
 				x.tofloat(),
