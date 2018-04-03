@@ -1,7 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene;
 
-import java.awt.Color;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -10,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -40,6 +40,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 
 /**
@@ -50,7 +51,7 @@ import org.luaj.vm2.*;
  * some parts shouldn't. Need to figure out what parts.
  */
 @Doc("The current map can be interfaced with via the 'world'")
-public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
+public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable, HasImage  {
 
 	/**
 	 * 
@@ -174,9 +175,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		 * @param src The Entity or Object that is the source of the Message
 		 * @param message The message to log
 		 * @param level The LoggineLevel of the message
-		 * @param img An associated Image
 		 */
-		void message(String src, String message, LoggingLevel level,  TextureRegion img);
+		void message(HasImage src, String message, LoggingLevel level);
 	}
 
 	private MessageListener messageListener;
@@ -1221,15 +1221,37 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	/**
+	 * Specialized form of typeAtPos that statically requires that the argument type is derived from Entity
+	 * @param pos
+	 * @param type
+	 * @param <T>
+	 * @return
+	 */
+	private <T extends Entity> Stream<T> entityTypeAtPos(final Point2D.Float pos, final Class<T> type) {
+		return typeAtPos(pos, type);
+	}
+
+	/**
+	 * Returns a Stream of the specified type of entities that are assignable from the argument type
+	 * @param pos The Position to
+	 * @param type
+	 * @param <T>
+	 * @return
+	 */
+	private <T> Stream<T> typeAtPos(final Point2D.Float pos, final Class<T> type) {
+		return entitiesAtPos(pos)
+				.filter(e -> type.isAssignableFrom(e.getClass()))
+				.map(type::cast);
+	}
+
+	/**
 	 * Invokes the peekInventory method on any valid entities found at the specified position.
 	 * @param pos The position to try to peek at an inventory
 	 * @return A table/array of item names and descriptions of items in the inventory
 	 */
 	public LuaValue tryPeek(final Entity src, final Point2D.Float pos) {
-		return entitiesAtPos(pos)
-				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
+		return typeAtPos(pos, HasInventory.class)
 				.findFirst()
-				.map(e -> HasInventory.class.cast(e))
 				.filter(e -> e.canTake())
 				.map(e -> e.peekInventory())
 				.orElse(LuaValue.NIL);
@@ -1242,14 +1264,23 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param index The index into the inventory of the entity to take the item
 	 * @return True if taking the item succeeded, false otherwise.
 	 */
-	public Boolean tryTake(final HasInventory src, final Point2D.Float pos, final int index) {
-		return entitiesAtPos(pos)
-				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
-				.findFirst()
-				.map(e -> HasInventory.class.cast(e))
-				.filter(e -> e.canTake())
-				.map(e -> src.getInventory().tryTakeItem(e.getInventory().peek(index)))
-				.orElse(false);
+	public Boolean tryTake(final Actor src, final Point2D.Float pos, final int index) {
+		return typeAtPos(pos, HasInventory.class)
+				.filter(HasInventory::canTake)
+				.anyMatch(e -> {
+					final ItemReference ir = e.getInventory().peek(index);
+					final String itemName = ir.getName();
+					final boolean taken = src.getInventory().tryTakeItem(ir);
+					if(taken) {
+						message(src,
+								String.format("%s took %s from %s",
+										src.getName(),
+										itemName,
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return taken;
+				});
 	}
 
 	/**
@@ -1260,7 +1291,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
 		return entitiesAtPos(location)
-				.anyMatch(e -> e.useItem(itemReference));
+				.anyMatch(e -> {
+					final boolean used = e.useItem(itemReference);
+					final Actor owner = itemReference.inventory.getOwner();
+					final String name = itemReference.getName();
+					if(used) {
+						message(owner,
+								String.format("%s used %s on %s",
+										owner.getName(),
+										name,
+										e.getName()),
+								LoggingLevel.GENERAL);
+					}
+					return used;
+				});
 	}
 
 	/**
@@ -1268,18 +1312,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param location
 	 * @return
 	 */
-	public Boolean tryUse(final SpriteEntity src, final Point2D.Float location) {
-		Optional<Entity> entity =
-				entitiesAtPos(location)
-						.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
-						.filter(e -> Useable.class.cast(e).use())
-						.findFirst();
-		entity.ifPresent(e -> messageListener
-				.message(src.getName(),
-						src.getName() + " used " + e.getName(),
-						LoggingLevel.GENERAL,
-						src.getSprite().getTexture()));
-		return entity.isPresent();
+	public Boolean tryUse(final Actor src, final Point2D.Float location) {
+		return entityTypeAtPos(location, Actor.class)
+				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
+				.anyMatch(e -> {
+					final boolean used = Useable.class.cast(e).use();
+					if(used){
+						message(src,
+								String.format("%s used %s", src.getName(), e.getName()),
+								LoggingLevel.GENERAL);
+					}
+					return used;
+				});
 	}
 
 	/**
@@ -1289,12 +1333,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
-		final boolean give = entitiesAtPos(location)
-				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
-				.map(e -> HasInventory.class.cast(e))
+		return typeAtPos(location, HasInventory.class)
 				.filter(e -> e.canTake())
-				.anyMatch(e -> e.getInventory().tryTakeItem(itemReference));
-		return give;
+				.anyMatch(e -> {
+					final boolean gives = e.getInventory().tryTakeItem(itemReference);
+					if(gives) {
+						message(itemReference.inventory.getOwner(),
+								String.format("%s gives %s to %s",
+										itemReference.inventory.getOwner().getName(),
+										itemReference.getName(),
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return gives;
+				});
 	}
 
 	/**
@@ -1303,11 +1355,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return True if an Item was successfully grabed and placed into the dst entity's inventory
 	 */
 	public Boolean tryGrab(final Actor dst) {
-		return entitiesAtPos(dst.getPosition())
-				.filter(e -> !e.equals(dst) && ItemEntity.class.isAssignableFrom(e.getClass()))
-				.map(e -> ItemEntity.class.cast(e))
+		return entityTypeAtPos(dst.getPosition(), ItemEntity.class)
+				.filter(e -> !e.equals(dst))
 				.findFirst()
-				.map(e -> e.pickUp(dst))
+				.map(e -> {
+					final boolean grabbed = e.pickUp(dst);
+					message(dst,
+							String.format("%s grabbed %s",
+									grabbed ? "Sucessfully" : "Unsucessfully",
+									e.getItem().getName()),
+							LoggingLevel.GENERAL);
+					return grabbed;
+				})
 				.orElse(false);
 	}
 
@@ -1317,11 +1376,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param pos
 	 * @param dir
 	 */
-	public void tryPush(final Entity src, Point2D.Float pos, Actor.Direction dir) {
-		entitiesAtPos(pos)
-				.filter(e -> Pushable.class.isAssignableFrom(e.getClass()))
-				.map(e -> Pushable.class.cast(e))
-				.forEach(e -> e.push(dir));
+	public void tryPush(final Actor src, final Point2D.Float pos, final Actor.Direction dir) {
+		typeAtPos(pos, Pushable.class)
+				.forEach(e -> {
+					message(src, "pushes " + e.getClass().getSimpleName(), LoggingLevel.GENERAL);
+					e.push(dir);
+				});
 	}
 
 	/**
@@ -1383,18 +1443,27 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.messageListener = messageListener;
 	}
 
-	public void message(String src, String message, LoggingLevel level, TextureRegion texture) {
+	public void message(HasImage src, String message, LoggingLevel level) {
 		if(messageListener != null) {
+			// Catch any and all exceptions that may be thrown when attempting to log information
 			try {
-				messageListener.message(src, message, level, texture);
+				messageListener.message(src, message, level);
 			}
 			catch (Throwable ignored) { }
 		}
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Logs a message with a Quest logging level")
-	public void logQuest(LuaValue src, LuaValue message) {
-		message(src.checkjstring(), message.checkjstring(), LoggingLevel.QUEST, Bot.DEFAULT_TEXTURE);
+	public void logQuest(LuaValue message) {
+		message(this, message.checkjstring(), LoggingLevel.QUEST);
+	}
+
+	private static final Image WORLD_TEXTURE =
+			AssetManager.getTextureRegion("DawnLike/Items/Scroll.png", 1, 0).toImage();
+
+	@Override
+	public Image getImage() {
+		return WORLD_TEXTURE;
 	}
 	
 	
