@@ -241,7 +241,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		ev.addListener(owner, func);
 	}
 	public void fire(StringEventType t, String s) {
-		System.out.println("Firing: "+s);
 		WorldEvent<String> ev = getStringEvent(t);
 		ev.fire(s);
 	}
