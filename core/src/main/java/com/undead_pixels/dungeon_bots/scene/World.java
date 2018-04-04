@@ -341,11 +341,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public void runInitScripts() {
 		if(!didInit) {
+			System.out.println("Init'ing world");
 			LuaInvocation initScript = getSandbox().init().join(2000);
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
 
 			for (Entity e : entities) {
+				System.out.println("init: "+e);
 				e.sandboxInit();
 			}
 			this.didInit = true;

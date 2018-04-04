@@ -96,7 +96,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	public LuaInvocation(LuaSandbox env, Collection<LuaValue> functions, LuaValue[] args) {
-		this(env, functions.toArray(new LuaValue[0]), args);
+		this(env, functions == null ? new LuaValue[0] : functions.toArray(new LuaValue[0]), args);
 	}
 
 	public LuaInvocation(LuaSandbox env, UserScript script) {
@@ -269,7 +269,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 * 
 	 * @return An Optional containing results if they are present.
 	 */
-	public Optional<Varargs> getResults() {
+	public synchronized Optional<Varargs> getResults() {
 		return Optional.ofNullable(result);
 	}
 

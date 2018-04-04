@@ -56,6 +56,22 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 				x.tofloat(),
 				y.tofloat());
 	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("LOCK");
+		getSandbox().registerEventType("UNLOCK");
+		getSandbox().registerEventType("OPEN");
+		getSandbox().registerEventType("CLOSE");
+		getSandbox().registerEventType("ENTER");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distance(this.getPosition()) < .1) {
+				getSandbox().fireEvent("ENTER", e.getLuaValue());
+			}
+		}); 
+	
+		super.sandboxInit();
+	}
 
 	@Override
 	public boolean isSolid() {
@@ -96,6 +112,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to a locked state.")
 	public void lock() {
+		getSandbox().fireEvent("LOCK");
 		this.locked = true;
 		this.open = false;
 		this.sprite.setTexture(lockedTexture);
@@ -104,6 +121,7 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
+		getSandbox().fireEvent("UNLOCK");
 		this.locked = false;
 		this.sprite.setTexture(defaultTexture);
 	}
@@ -120,6 +138,13 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 			this.open = !this.open;
 			this.sprite.setTexture(this.open ? openTexture : defaultTexture);
 			this.world.updateEntity(this);
+			
+			if(this.open) {
+				getSandbox().fireEvent("OPEN");
+			} else {
+				getSandbox().fireEvent("CLOSE");
+			}
+			
 			return true;
 		}
 		return false;

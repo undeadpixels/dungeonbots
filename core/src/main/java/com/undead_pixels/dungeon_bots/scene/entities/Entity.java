@@ -103,6 +103,9 @@ public abstract class Entity
 	public void sandboxInit() {
 		if(this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
+			System.out.println("Running entity init for " + this);
+		} else {
+			System.out.println("Skipping entity init (script does not exist for "+this+")");
 		}
 	}
 	
