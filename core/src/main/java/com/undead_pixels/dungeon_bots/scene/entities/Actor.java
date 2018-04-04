@@ -62,7 +62,28 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
 	 */
 	public enum Direction {
-		UP, DOWN, LEFT, RIGHT
+		UP, DOWN, LEFT, RIGHT;
+
+		/**
+		 * @param dx
+		 * @param dy
+		 * @return
+		 */
+		public static Direction byDelta (float dx, float dy) {
+			if(Math.abs(dx) > Math.abs(dy)) {
+				if(dx > 0) {
+					return RIGHT;
+				} else {
+					return LEFT;
+				}
+			} else {
+				if(dy > 0) {
+					return UP;
+				} else {
+					return DOWN;
+				}
+			}
+		}
 	}
 
 	/**
@@ -223,6 +244,31 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
 			this.queueMoveSlowly(direction, blocking);
+		return this;
+	}
+	
+	/**
+	 * Moves the player a given direction and distance
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	@Doc("Moves the player a given direction")
+	final public Actor move(@Doc("The direction and number of spaces to move") Varargs dirAmt) {
+		Direction direction;
+		int n;
+		try {
+			direction = Direction.valueOf(dirAmt.checkjstring(2).toUpperCase());
+			n = dirAmt.optint(3, 1);
+		} catch(LuaError e) {
+			direction = Direction.valueOf(dirAmt.checkjstring(1).toUpperCase());
+			n = dirAmt.optint(2, 1);
+		}
+
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction, true);
+		
 		return this;
 	}
 

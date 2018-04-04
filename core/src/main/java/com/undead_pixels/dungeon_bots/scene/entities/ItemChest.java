@@ -49,6 +49,16 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 				x.tofloat(),
 				y.tofloat());
 	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("LOCK");
+		getSandbox().registerEventType("UNLOCK");
+		getSandbox().registerEventType("OPEN");
+		getSandbox().registerEventType("CLOSE");
+	
+		super.sandboxInit();
+	}
 
 	@Override
 	public boolean isSolid() {
@@ -75,6 +85,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to a isLocked state.")
 	public void lock() {
+		getSandbox().fireEvent("LOCK");
 		this.locked = true;
 		this.sprite.setTexture(LOCKED_TEXTURE);
 	}
@@ -82,6 +93,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to an unlocked state.")
 	public void unlock() {
+		getSandbox().fireEvent("UNLOCK");
 		this.locked = false;
 		this.sprite.setTexture(UNLOCKED_TEXTURE);
 	}

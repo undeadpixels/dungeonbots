@@ -1,7 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -19,6 +21,12 @@ public class Block extends Actor implements Pushable {
 
 	public Block(World world, float x, float y) {
 		super(world, "block", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+		if(isMoveable) {
+			this.getScripts().add(new UserScript("init",
+					"registerBumpedListener(function(e, dir)\n"
+					+ "  this:move(dir)\n"
+					+ "end)\n"));
+		}
 	}
 
 	/**
@@ -48,6 +56,14 @@ public class Block extends Actor implements Pushable {
 		this.isMoveable = movable.checkboolean();
 		return this;
 	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("PUSH");
+		getSandbox().registerEventType("BUMPED");
+	
+		super.sandboxInit();
+	}
 
 	@Override
 	public boolean isSolid() {
@@ -60,10 +76,21 @@ public class Block extends Actor implements Pushable {
 	}
 
 	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
+	}
+
+	@Override
 	public void push(final Actor.Direction direction) {
 		if(isMoveable) {
 			queueMoveSlowly(direction, true);
 		}
+		
+		getSandbox().fireEvent("PUSH", LuaValue.valueOf(direction.name()));
+	}
+	
+	public void bumpedInto(final Entity e, final Actor.Direction direction) {
+		getSandbox().fireEvent("BUMPED", e.getLuaValue(), LuaValue.valueOf(direction.name()));
 	}
 
 	@Override

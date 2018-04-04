@@ -4,6 +4,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -45,6 +46,18 @@ public class Goal extends SpriteEntity {
 				x.tofloat(),
 				y.tofloat());
 	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("ENTER");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distance(this.getPosition()) < .1) {
+				getSandbox().fireEvent("ENTER", e.getLuaValue());
+			}
+		}); 
+	
+		super.sandboxInit();
+	}
 
 	/* (non-Javadoc)
 	 * @see com.undead_pixels.dungeon_bots.scene.BatchRenderable#getZ()
@@ -60,6 +73,11 @@ public class Goal extends SpriteEntity {
 	@Override
 	public boolean isSolid () {
 		return false;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 
 	@Override

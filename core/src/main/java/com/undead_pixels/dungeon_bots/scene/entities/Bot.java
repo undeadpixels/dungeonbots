@@ -89,6 +89,7 @@ public class Bot extends RpgActor {
 		return steps;
 	}
 
+	@Override
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
 	}

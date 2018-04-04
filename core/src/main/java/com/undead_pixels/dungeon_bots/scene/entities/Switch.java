@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -26,6 +27,11 @@ public class Switch extends SpriteEntity implements Useable {
 	@Override
 	public float getZ() {
 		return 0;
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 
 	@Override

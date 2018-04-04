@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.Inspectable;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -51,8 +52,17 @@ public class Sign extends SpriteEntity implements Inspectable {
 			if(e.getPosition().distanceSq(this.getPosition()) < .1) {
 				//world.showAlert(this.inspect(), "Sign");
 				this.floatingText.addLine(this.inspect());
+				getSandbox().fireEvent("ENTERED", e.getLuaValue());
 			}
 		});
+	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("ENTERED");
+		getSandbox().registerEventType("READ");
+	
+		super.sandboxInit();
 	}
 
 	@BindTo("new")
@@ -63,6 +73,11 @@ public class Sign extends SpriteEntity implements Inspectable {
 			@Doc("The X position of the Sign") LuaValue x,
 			@Doc("The Y position of the Sign") LuaValue y) {
 		return new Sign(userDataOf(World.class, world), message.checkjstring(), x.tofloat(), y.tofloat());
+	}
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 
 	@Override
@@ -78,6 +93,7 @@ public class Sign extends SpriteEntity implements Inspectable {
 	@Override
 	@Bind(SecurityLevel.NONE)
 	public String inspect() {
+		getSandbox().fireEvent("READ");
 		return message;
 	}
 

@@ -1008,6 +1008,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return false;
 		}
 		if (tiles[x][y].isOccupied()) {
+			Entity o = tiles[x][y].getOccupiedBy();
+			if(o != null && o instanceof Pushable) {
+				((Pushable)o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
+			}
 			//System.out.println("Unable to move: tile occupied");
 			return false;
 		}
