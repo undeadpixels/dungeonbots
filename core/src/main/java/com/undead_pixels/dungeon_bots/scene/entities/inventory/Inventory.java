@@ -258,9 +258,10 @@ public class Inventory implements GetLuaFacade, Serializable {
 				.collect(Collectors.toList());
 	}
 
+	@Override
 	@Bind(value = SecurityLevel.NONE,
 			doc = "Get a String representation of the Inventory")
-	public String tos() {
+	public String toString() {
 		final StringBuilder ans = new StringBuilder();
 		ans.append("Index\tName\tDescription\tValue\tWeight\n");
 		for(final ItemReference ir : inventory) {

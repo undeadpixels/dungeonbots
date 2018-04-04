@@ -81,6 +81,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private transient LuaSandbox mapSandbox;
 
+	private transient List<Entity> toRemove = new ArrayList<>();
+
 	/**
 	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
 	 */
@@ -334,13 +336,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void update(float dt) {
 		// update tiles from tileTypes, if dirty
 		synchronized (this) {
-
 			// Remove all entities that have been asynchronously
 			// queued to be removed.
-			synchronized (toRemove) {
-				for(Entity e : toRemove)
+			synchronized (getToRemove()) {
+				for (Entity e : getToRemove())
 					entities.remove(e);
-				toRemove.clear();
+				getToRemove().clear();
 			}
 
 			refreshTiles();
@@ -1385,7 +1386,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return false;
 	}
 
-	private final List<Entity> toRemove = new ArrayList<>();
+	private List<Entity> getToRemove() {
+		if(toRemove == null) {
+			toRemove = new ArrayList<>();
+		}
+		return toRemove;
+	}
 
 	public void queueRemove(final Entity e) {
 		synchronized (toRemove) {
