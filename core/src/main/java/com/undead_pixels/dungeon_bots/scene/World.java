@@ -173,10 +173,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public static enum WorldEventType implements EventType {
 		WIN
 	}
+	public static enum StringEventType implements EventType {
+		KEY_PRESSED,
+		KEY_RELEASED
+	}
 	private transient WorldEvent<World> winEvent;
 	private transient WorldEvent<Entity> entityAddedEvent;
 	private transient WorldEvent<Entity> entityRemovedEvent;
 	private transient WorldEvent<Entity> entityMovedEvent;
+	private transient WorldEvent<String> keyPressedEvent;
+	private transient WorldEvent<String> keyReleasedEvent;
 
 	private WorldEvent<Entity> getEntityEvent(EntityEventType t) {
 		switch(t) {
@@ -200,6 +206,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		return null;
 	}
+	private WorldEvent<String> getStringEvent(StringEventType t) {
+		switch(t) {
+			case KEY_PRESSED:
+				if(keyPressedEvent == null) keyPressedEvent = new WorldEvent<>();
+				return keyPressedEvent;
+			case KEY_RELEASED:
+				if(keyReleasedEvent == null) keyReleasedEvent = new WorldEvent<>();
+				return keyReleasedEvent;
+		}
+		return null;
+	}
 
 	public void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
 		WorldEvent<Entity> ev = getEntityEvent(t);
@@ -209,7 +226,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		WorldEvent<Entity> ev = getEntityEvent(t);
 		ev.fire(e);
 	}
-	
+
 	public void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.addListener(owner, func);
@@ -217,6 +234,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void fire(WorldEventType t, World w) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.fire(w);
+	}
+
+	public void listenTo(StringEventType t, Object owner, Consumer<String> func) {
+		WorldEvent<String> ev = getStringEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(StringEventType t, String s) {
+		System.out.println("Firing: "+s);
+		WorldEvent<String> ev = getStringEvent(t);
+		ev.fire(s);
 	}
 	
 	public void removeEventListenersByOwner(Object owner) {

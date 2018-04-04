@@ -93,6 +93,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		this.functions = functions;
 		this.args = args;
 		this.scriptStatus = ScriptStatus.READY;
+		
+		//System.out.println("Invocation: "+Arrays.toString(functions)+", "+ Arrays.toString(args));
 	}
 
 	public LuaInvocation(LuaSandbox env, Collection<LuaValue> functions, LuaValue[] args) {
@@ -135,7 +137,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 				// When errors occur in LuaThread, they don't cause this thread to throw a LuaError exception.
 				// Instead the varargs returns with a false boolean as the first result.
-				Varargs ans = thread.resume(LuaValue.NIL);
+				Varargs ans = thread.resume(LuaValue.varargsOf(args));
 				result = ans.subargs(2);
 				if(ans.arg1().checkboolean()) {
 					//setStatus(ScriptStatus.COMPLETE);

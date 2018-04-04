@@ -53,7 +53,18 @@ public class Player extends RpgActor {
 	 */
 	private static UserScriptCollection makePlayerScript () {
 		UserScriptCollection ret = new UserScriptCollection();
-		ret.add(new UserScript("init", "--TODO")); // TODO
+		ret.add(new UserScript("init", "registerKeyPressedListener(function(k)\n"
+				+ "  if k==\"up\" then this:up() end\n"
+				+ "  if k==\"down\" then this:down() end\n"
+				+ "  if k==\"left\" then this:left() end\n"
+				+ "  if k==\"right\" then this:right() end\n"
+				+ "  \n"
+				+ "  if k==\"w\" then this:up() end\n"
+				+ "  if k==\"s\" then this:down() end\n"
+				+ "  if k==\"a\" then this:left() end\n"
+				+ "  if k==\"d\" then this:right() end\n"
+				+ "end)\n"
+				+ "print(\"registered\")")); // TODO
 		return ret;
 	}
 
@@ -79,6 +90,21 @@ public class Player extends RpgActor {
 		p.bumps = 0;
 		w.addEntity(p);
 		return p;
+	}
+	
+	@Override
+	public void sandboxInit() {
+		getSandbox().registerEventType("KEY_PRESSED");
+		getSandbox().registerEventType("KEY_RELEASED");
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			System.out.println("pressed: "+s);
+			getSandbox().fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
+		}); 
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			getSandbox().fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+		}); 
+	
+		super.sandboxInit();
 	}
 
 	@Bind(SecurityLevel.AUTHOR)
