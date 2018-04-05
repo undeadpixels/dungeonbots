@@ -345,6 +345,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 			if (e.getButton() == MouseEvent.BUTTON1) {
+				view.requestFocusInWindow();
+				
 				// If there is a cornerA, it means selection has started
 				// already.
 				if (cornerA != null)
