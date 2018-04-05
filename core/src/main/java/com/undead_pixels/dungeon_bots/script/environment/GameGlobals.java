@@ -69,9 +69,9 @@ public class GameGlobals {
 			"collectgarbage",
 			"error",
 			//"package",
-			"getmetatable",
-			"_G",
-			"bit32"
+			"getmetatable"
+			//"_G",
+			//"bit32"
 	};
 
 	public static Globals purify(final Globals g) {
