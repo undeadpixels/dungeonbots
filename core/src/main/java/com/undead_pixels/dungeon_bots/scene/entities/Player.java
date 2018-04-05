@@ -36,9 +36,6 @@ public class Player extends RpgActor {
 	
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1);
 
-	@Deprecated
-	protected String defaultCode;
-
 	/**
 	 * Constructor
 	 * @param world The world this player belongs to
@@ -105,15 +102,6 @@ public class Player extends RpgActor {
 		});
 	
 		return sandbox;
-	}
-
-	@Bind(SecurityLevel.AUTHOR)
-	public void setDefaultCode(LuaValue df) {
-		defaultCode = df.tojstring();
-	}
-
-	public String getDefaultCode() {
-		return defaultCode != null ? defaultCode : "";
 	}
 
 	public void setPosition(Point2D.Float v) {
