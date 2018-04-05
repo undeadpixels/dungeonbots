@@ -59,6 +59,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 		sandbox.registerEventType("UNLOCK");
 		sandbox.registerEventType("OPEN");
 		sandbox.registerEventType("CLOSE");
+		sandbox.registerEventType("ITEM_GIVEN");
 	
 		return sandbox;
 	}

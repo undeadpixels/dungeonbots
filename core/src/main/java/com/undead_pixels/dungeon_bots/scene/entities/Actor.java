@@ -8,6 +8,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Weapon;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.WeaponStats;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -111,6 +112,15 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Override
 	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
+	}
+
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("ITEM_GIVEN");
+	
+		return sandbox;
 	}
 
 	@Override
