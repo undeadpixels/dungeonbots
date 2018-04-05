@@ -46,7 +46,7 @@ public class JPermissionTree extends JTree {
 
 	private static final Dimension LABEL_DIMENSION = new Dimension(150, 20);
 	private static final Dimension DOT_DIMENSION = new Dimension(18, 18);
-	private JDotIcon[] icons;
+	private DotIcon[] icons;
 
 	private final ArrayList<Permission> permissions;
 	private Dialog dialog = null;
@@ -67,10 +67,10 @@ public class JPermissionTree extends JTree {
 
 
 	public void setColors(Color[] newColors) {
-		JDotIcon[] newIcons = new JDotIcon[newColors.length];
+		DotIcon[] newIcons = new DotIcon[newColors.length];
 		for (int i = 0; i < newColors.length; i++) {
 			Color c = newColors[i];
-			newIcons[i] = new JDotIcon(c, DOT_DIMENSION.width, DOT_DIMENSION.height, 3);
+			newIcons[i] = new DotIcon(c, DOT_DIMENSION.width, DOT_DIMENSION.height, 3);
 		}
 		icons = newIcons;
 		repaint();

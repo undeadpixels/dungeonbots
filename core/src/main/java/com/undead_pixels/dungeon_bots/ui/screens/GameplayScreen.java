@@ -51,6 +51,8 @@ public class GameplayScreen extends Screen {
 	private static final String COMMAND_SAVE = "SAVE";
 	private static final String COMMAND_TOGGLE_GRID = "TOGGLE_GRID";
 	private static final String COMMAND_REWIND = "REWIND";
+	private static final String COMMAND_MAIN_MENU = "MAIN_MENU";
+	private static final String COMMAND_QUIT = "QUIT";
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
@@ -59,16 +61,6 @@ public class GameplayScreen extends Screen {
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
-
-
-	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
-	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
-	/* @Deprecated public GameplayScreen(World world) {
-	 * super(Serializer.deepCopy(world)); this.isSwitched = false;
-	 * this.originalWorld = world; world.onBecomingVisibleInGameplay(); } */
-
-
-	/* @Deprecated public GameplayScreen(LevelPack pack) { this(pack, false); } */
 
 
 	public GameplayScreen(LevelPack pack, boolean switched) {
@@ -128,6 +120,9 @@ public class GameplayScreen extends Screen {
 
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
+		playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
+				.action(COMMAND_MAIN_MENU, getController()).create());
+		playToolBar.addSeparator();
 		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
 				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).create());
 		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
@@ -275,13 +270,13 @@ public class GameplayScreen extends Screen {
 				}
 
 				break;
-			case "Exit to Main":
+			case COMMAND_MAIN_MENU:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 
 				break;
-			case "Quit":
+			case COMMAND_QUIT:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					System.exit(0);

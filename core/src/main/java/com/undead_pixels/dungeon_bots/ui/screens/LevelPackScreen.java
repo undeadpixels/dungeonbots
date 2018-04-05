@@ -33,6 +33,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -200,15 +201,20 @@ public class LevelPackScreen extends Screen {
 
 
 		JPanel packInfoBttns = new JPanel();
-		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").toolTip("Load a Pack from disk.")
+		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").text("Download")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Load a Pack from disk.")
 				.action("OPEN_LEVELPACK", getController()).focusable(false).create());
-		packInfoBttns.add(UIBuilder.buildButton().image("icons/new.png").toolTip("Create a new Pack.")
+		packInfoBttns.add(UIBuilder.buildButton().image("icons/new.png").text("New pack")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Create a new Pack.")
 				.action("ADD_NEW_PACK", getController()).focusable(false).create());
-		packInfoBttns.add(_BttnSave = UIBuilder.buildButton().image("icons/save.png").toolTip("Save this LevelPack.")
+		packInfoBttns.add(_BttnSave = UIBuilder.buildButton().image("icons/save.png").text("Save pack")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Save this LevelPack.")
 				.action("SAVE_LEVELPACK", getController()).focusable(false).create());
-		packInfoBttns.add(_BttnUndo = UIBuilder.buildButton().image("icons/undo.png").toolTip("Undo last change.")
+		packInfoBttns.add(_BttnUndo = UIBuilder.buildButton().image("icons/undo.png").text("Undo")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Undo last change.")
 				.action("UNDO", getController()).focusable(false).enabled(false).create());
-		packInfoBttns.add(_BttnRedo = UIBuilder.buildButton().image("icons/redo.png").toolTip("Redo last change.")
+		packInfoBttns.add(_BttnRedo = UIBuilder.buildButton().image("icons/redo.png").text("Redo")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Redo last change.")
 				.action("REDO", getController()).focusable(false).enabled(false).create());
 		packInfoBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
 
@@ -233,7 +239,8 @@ public class LevelPackScreen extends Screen {
 
 
 		JPanel treeBttns = new JPanel();
-		treeBttns.add(_BttnLockPack = UIBuilder.buildButton().image("icons/lock.png").toolTip("Lock this LevelPack.")
+		treeBttns.add(_BttnLockPack = UIBuilder.buildButton().image("icons/lock.png").text("Lock")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Lock this LevelPack.")
 				.action("LOCK_LEVELPACK", getController()).focusable(false).create());
 		// treeBttns.add(_BttnEditScript =
 		// UIBuilder.buildButton().image("icons/text preview.png")
@@ -242,19 +249,24 @@ public class LevelPackScreen extends Screen {
 		// .focusable(false).create());
 		treeBttns.add(
 				_BttnEditLevel = UIBuilder.buildButton().image("icons/modify.png").action("EDIT_WORLD", getController())
-						.focusable(false).toolTip("Open this world in the editor.").create());
-		treeBttns.add(_BttnRemoveItem = UIBuilder.buildButton().image("icons/erase.png")
-				.action("REMOVE_ITEM", getController()).focusable(false).toolTip("Remove this world or pack.")
-				.create());
+						.text("Editor").textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).focusable(false)
+						.toolTip("Open this world in the editor.").create());
+		treeBttns.add(_BttnRemoveItem = UIBuilder.buildButton().image("icons/erase.png").text("Delete")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).action("REMOVE_ITEM", getController())
+				.focusable(false).toolTip("Remove this world or pack.").create());
 		treeBttns.add(
 				_BttnAddWorld = UIBuilder.buildButton().image("icons/add.png").action("ADD_NEW_WORLD", getController())
-						.focusable(false).toolTip("Add a new world to this pack.").create());
+						.text("Add world").textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).focusable(false)
+						.toolTip("Add a new world to this pack.").create());
 		treeBttns.add(_BttnWorldUp = UIBuilder.buildButton().image("icons/up.png").action("WORLD_UP", getController())
-				.focusable(false).toolTip("Move this world up one slot.").create());
+				.text("Move up").textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).focusable(false)
+				.toolTip("Move this world up one slot.").create());
 		treeBttns.add(
 				_BttnWorldDown = UIBuilder.buildButton().image("icons/down.png").action("WORLD_DOWN", getController())
-						.focusable(false).toolTip("Move this world down one slot.").create());
-		treeBttns.add(_BttnPlayLevel = UIBuilder.buildButton().image("icons/play.png").toolTip("Play this world.")
+						.text("Move down").textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).focusable(false)
+						.toolTip("Move this world down one slot.").create());
+		treeBttns.add(_BttnPlayLevel = UIBuilder.buildButton().image("icons/play.png").text("PLAY")
+				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Play this world.")
 				.action("PLAY_LEVEL", getController()).focusable(true).create());
 
 		treeBttns.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -345,10 +357,10 @@ public class LevelPackScreen extends Screen {
 			list.add(UIBuilder.buildLabel().text("Choose a Level Pack or Level to get started.").create());
 		} else if (selection instanceof WorldInfo) {
 			WorldInfo info = (WorldInfo) selection;
-			boolean asAuthor = info.packInfo.getPack().isAuthor(DungeonBotsMain.instance.getUser())
-					|| !info.packInfo.getPack().getLocked();
+			boolean asAuthor = info.packInfo.hasAuthorPermission();
 			if (asAuthor) {
-				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem())
+				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem()).text("Click to change emblem.")
+						.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM)
 						.toolTip("Click to change emblem for this level.")
 						.action("CHANGE_LEVEL_EMBLEM", getController())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
@@ -369,7 +381,8 @@ public class LevelPackScreen extends Screen {
 			PackInfo info = (PackInfo) selection;
 			boolean asAuthor = info.hasAuthorPermission();
 			if (asAuthor) {
-				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem())
+				JButton bttnEmblem = UIBuilder.buildButton().image(info.getEmblem()).text("Click to change emblem.")
+						.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM)
 						.toolTip("Click to change emblem for this Level Pack.")
 						.action("CHANGE_PACK_EMBLEM", getController())
 						.border(new CompoundBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
@@ -1707,7 +1720,7 @@ public class LevelPackScreen extends Screen {
 			pnl.add(UIBuilder.buildLabel().text(pInfo.description).border(new EmptyBorder(2, 2, 2, 2)).create());
 			String author = pInfo.originalAuthor == null ? LevelPack.UNKNOWN_AUTHOR_NAME
 					: pInfo.originalAuthor.getUserName();
-			pnl.add(UIBuilder.buildLabel().text("by " + author).border(new EmptyBorder(2, 2, 2, 2)).create());
+			//pnl.add(UIBuilder.buildLabel().text("by " + author).border(new EmptyBorder(2, 2, 2, 2)).create());
 			return pnl;
 
 		}

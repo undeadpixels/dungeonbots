@@ -6,7 +6,7 @@ import java.awt.Graphics;
 
 import javax.swing.Icon;
 
-public class JDotIcon implements Icon {
+public class DotIcon implements Icon {
 
 	private Color color = Color.black;
 	private int width = 10;
@@ -14,7 +14,7 @@ public class JDotIcon implements Icon {
 	private int arc = 3;
 
 
-	public JDotIcon(Color color, int width, int height, int arc) {
+	public DotIcon(Color color, int width, int height, int arc) {
 		this.color = color;
 		this.width = width;
 		this.height = height;

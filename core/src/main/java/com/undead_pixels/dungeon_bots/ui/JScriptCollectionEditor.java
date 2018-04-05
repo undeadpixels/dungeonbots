@@ -88,7 +88,7 @@ public class JScriptCollectionEditor extends JPanel {
 		JPanel bttnPanel = new JPanel(new FlowLayout());
 		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list.")
 				.action("ADD_SCRIPT", controller).create());
-		bttnPanel.add(UIBuilder.buildButton().image("icons/delete.png").toolTip("Remove a script from the list.")
+		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list.")
 				.action("REMOVE_SCRIPT", controller).create());
 		Box leftBox = new Box(BoxLayout.Y_AXIS);
 		leftBox.add(scriptScroller);

@@ -55,6 +55,7 @@ public class UIBuilder {
 	protected static final String FIELD_ENABLED = "enabled";
 	protected static final String FIELD_FOCUSABLE = "focusable";
 	protected static final String FIELD_FOREGROUND = "foreground";
+	protected static final String FIELD_HORIZONTAL_TEXT_POSITION = "horizontal_text_position";
 	protected static final String FIELD_HOTKEY = "hotkey";
 	protected static final String FIELD_IMAGE = "image";
 	protected static final String FIELD_INSETS = "insets";
@@ -64,6 +65,7 @@ public class UIBuilder {
 	protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
 	protected static final String FIELD_TEXT = "text";
 	protected static final String FIELD_TOOLTIP = "tooltip";
+	protected static final String FIELD_VERTICAL_TEXT_POSITION = "vertical_text_position";
 	protected static final int DEFAULT_PREFERRED_WIDTH = -1;
 	protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
 
@@ -674,6 +676,22 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the horizontal position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.LEFT.*/
+		public final ButtonBuilder<T> horizontalTextPosition(int swingConstant) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setHorizontalTextPosition(swingConstant);
+				}
+
+			});
+			return this;
+		}
+
+
 		/**
 		 * Specifies the hotkey for buttons created by this builder (note that
 		 * this may result in multiple buttons having the same hotkey).
@@ -961,6 +979,30 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the horizontal and vertical position of text in relation to set images.  
+		 * The values supplied should be one of the SwingConstants.  Default values are 
+		 * SwingConstants.LEFT and SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> textPosition(int horizontal, int vertical) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(horizontal) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer horizontal) {
+					bttn.setHorizontalTextPosition(horizontal);
+				}
+
+			});
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(vertical) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer vertical) {
+					bttn.setVerticalTextPosition(vertical);
+				}
+
+			});
+			return this;
+		}
+
+
 		/** Adds the given tooltip text to buttons created by this builder. */
 		public final ButtonBuilder<T> toolTip(String toolTipText) {
 			properties.put(FIELD_TOOLTIP, new PropertyBuilder<String>(toolTipText) {
@@ -968,6 +1010,22 @@ public class UIBuilder {
 				@Override
 				public void apply(AbstractButton bttn, String t) {
 					bttn.setToolTipText(t);
+				}
+
+			});
+			return this;
+		}
+
+
+		/**Specifies the vertical position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> verticalTextPosition(int swingConstant) {
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setVerticalTextPosition(swingConstant);
 				}
 
 			});

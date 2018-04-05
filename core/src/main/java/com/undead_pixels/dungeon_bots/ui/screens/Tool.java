@@ -224,12 +224,16 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+		private Cursor originalCursor = null;
+
+
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (screenOrigin != null)
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
+			originalCursor = view.getCursor();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			// e.consume();
 		}
@@ -242,7 +246,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
-			view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			view.setCursor(originalCursor != null ? originalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
+			originalCursor = null;
 			// e.consume();
 		}
 
@@ -590,13 +595,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
 			Tile existingTile = world.getTile(gamePos);
 
-			// Sanity checks.
-			assert existingTile != null;
-			assert (tileType != null);
-
 			// Find the existing location and tile type.
+			if (existingTile == null)
+				return;
 			TileType oldTileType = existingTile.getType();
-			if (oldTileType == tileType)
+			if (oldTileType == null || oldTileType == tileType)
 				return;
 			Point2D.Float existingPoint = existingTile.getPosition();
 			int x = (int) existingPoint.getX(), y = (int) existingPoint.getY();
@@ -650,10 +653,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				view.setSelectedTiles(null);
 				return;
 			} else {
+				int x = (int) gamePos.x, y = (int) gamePos.y;
+				if (world.getTile(x, y) == null)
+					return;
 				EntityType type = selection.entityType;
 				if (type == null)
 					return;
-				Entity newEntity = type.get((int) gamePos.x, (int) gamePos.y);
+				Entity newEntity = type.get(x, y);
 				world.addEntity(newEntity);
 
 				Undoable<Entity> placeUndoable = new Undoable<Entity>(null, newEntity) {
