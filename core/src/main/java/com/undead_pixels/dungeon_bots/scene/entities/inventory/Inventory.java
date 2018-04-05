@@ -154,6 +154,8 @@ public class Inventory implements GetLuaFacade, Serializable {
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
+					
+					owner.getSandbox().fireEvent("ITEM_GIVEN", inventory[i].getLuaValue());
 					return true;
 				}
 			}

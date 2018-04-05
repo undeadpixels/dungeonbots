@@ -7,9 +7,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -17,7 +15,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -154,6 +151,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("block", Block.DEFAULT_TEXTURE, (x, y) -> {
 			return new Block(world, x, y);
+		}));
+		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x,y) -> {
+			return new Sign(world, "Please Recycle", x, y);
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);

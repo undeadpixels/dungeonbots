@@ -4,7 +4,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
@@ -32,7 +34,8 @@ public class Goal extends SpriteEntity {
 		super(world, name, DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Goal Instance")
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Create a new Goal Instance")
 	public static Goal create(
 			@Doc("The world the Goal belongs to") LuaValue world,
 			@Doc("The name of the goal") LuaValue string,
@@ -43,6 +46,19 @@ public class Goal extends SpriteEntity {
 				string.checkjstring(),
 				x.tofloat(),
 				y.tofloat());
+	}
+
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("ENTER");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distance(this.getPosition()) < .1) {
+				getSandbox().fireEvent("ENTER", e.getLuaValue());
+			}
+		}); 
+	
+		return sandbox;
 	}
 
 	/* (non-Javadoc)
@@ -60,5 +76,14 @@ public class Goal extends SpriteEntity {
 	public boolean isSolid () {
 		return false;
 	}
-	
+
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
+	}
+
+	@Override
+	public String inspect() {
+		return this.getClass().getSimpleName();
+	}
 }

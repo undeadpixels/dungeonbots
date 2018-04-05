@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -51,6 +52,19 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	}
 
 	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("LOCK");
+		sandbox.registerEventType("UNLOCK");
+		sandbox.registerEventType("OPEN");
+		sandbox.registerEventType("CLOSE");
+		sandbox.registerEventType("ITEM_GIVEN");
+	
+		return sandbox;
+	}
+
+	@Override
 	public boolean isSolid() {
 		return true;
 	}
@@ -75,6 +89,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to a isLocked state.")
 	public void lock() {
+		getSandbox().fireEvent("LOCK");
 		this.locked = true;
 		this.sprite.setTexture(LOCKED_TEXTURE);
 	}
@@ -82,6 +97,7 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Set the ItemChest to an unlocked state.")
 	public void unlock() {
+		getSandbox().fireEvent("UNLOCK");
 		this.locked = false;
 		this.sprite.setTexture(UNLOCKED_TEXTURE);
 	}
@@ -109,5 +125,10 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	@Override
 	public Boolean canTake() {
 		return !this.locked;
+	}
+
+	@Override
+	public String inspect() {
+		return locked ? "A locked Item Chest" : "An unlocked Item Chest";
 	}
 }
