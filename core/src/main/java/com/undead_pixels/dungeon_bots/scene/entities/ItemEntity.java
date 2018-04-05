@@ -17,7 +17,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
 
-public class ItemEntity extends Actor implements HasInventory {
+public class ItemEntity extends SpriteEntity implements HasInventory {
 
 	private static final long serialVersionUID = 1L;
 	private final Inventory inventory = new Inventory(this, 1);

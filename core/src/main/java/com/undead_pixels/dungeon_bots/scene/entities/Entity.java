@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,7 +22,7 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage {
 
 	/**
 	 * 

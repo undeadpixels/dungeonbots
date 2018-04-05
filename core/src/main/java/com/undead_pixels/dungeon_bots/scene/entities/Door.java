@@ -14,7 +14,7 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
-public class Door extends Actor implements Lockable, Useable {
+public class Door extends SpriteEntity implements Lockable, Useable {
 	
 	/**
 	 * 

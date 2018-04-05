@@ -18,7 +18,7 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 @Doc("An ItemChest is an Entity that contains a large Inventory.\n" +
 		"The ItemChest can be isLocked or unlocked based off of events or by unlocking\n" +
 		"with a key.")
-public class ItemChest extends Actor implements HasInventory, Lockable {
+public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	
 	/**
 	 * 

@@ -1294,7 +1294,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return entitiesAtPos(location)
 				.anyMatch(e -> {
 					final boolean used = e.useItem(itemReference);
-					final Actor owner = itemReference.inventory.getOwner();
+					final Entity owner = itemReference.inventory.getOwner();
 					final String name = itemReference.getName();
 					if(used) {
 						message(owner,
@@ -1334,7 +1334,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
-		return typeAtPos(location, HasInventory.class)
+		return typeAtPos(location, Actor.class)
 				.filter(e -> e.canTake())
 				.anyMatch(e -> {
 					final boolean gives = e.getInventory().tryTakeItem(itemReference);
