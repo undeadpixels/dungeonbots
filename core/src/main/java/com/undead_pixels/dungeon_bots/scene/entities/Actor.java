@@ -8,6 +8,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Weapon;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.WeaponStats;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -62,7 +63,28 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
 	 */
 	public enum Direction {
-		UP, DOWN, LEFT, RIGHT
+		UP, DOWN, LEFT, RIGHT;
+
+		/**
+		 * @param dx
+		 * @param dy
+		 * @return
+		 */
+		public static Direction byDelta (float dx, float dy) {
+			if(Math.abs(dx) > Math.abs(dy)) {
+				if(dx > 0) {
+					return RIGHT;
+				} else {
+					return LEFT;
+				}
+			} else {
+				if(dy > 0) {
+					return UP;
+				} else {
+					return DOWN;
+				}
+			}
+		}
 	}
 
 	/**
@@ -90,6 +112,15 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Override
 	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
+	}
+
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("ITEM_GIVEN");
+	
+		return sandbox;
 	}
 
 	@Override
@@ -223,6 +254,31 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
 			this.queueMoveSlowly(direction, blocking);
+		return this;
+	}
+	
+	/**
+	 * Moves the player a given direction and distance
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	@Doc("Moves the player a given direction")
+	final public Actor move(@Doc("The direction and number of spaces to move") Varargs dirAmt) {
+		Direction direction;
+		int n;
+		try {
+			direction = Direction.valueOf(dirAmt.checkjstring(2).toUpperCase());
+			n = dirAmt.optint(3, 1);
+		} catch(LuaError e) {
+			direction = Direction.valueOf(dirAmt.checkjstring(1).toUpperCase());
+			n = dirAmt.optint(2, 1);
+		}
+
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction, true);
+		
 		return this;
 	}
 
@@ -469,6 +525,51 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			default:
 				return this;
 		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities in the specified direction")
+	public String look(
+			@Doc("A Varargs of either the Dir to look. Nil if Looking at the players position") LuaValue v) {
+		if(v.isstring()) {
+			switch (v.checkjstring().toLowerCase()) {
+				case "up":
+					return lookUp();
+				case "down":
+					return lookDown();
+				case "left":
+					return lookLeft();
+				case "right":
+					return lookRight();
+				default:
+					return "Nothing...";
+			}
+		}
+		else return world.tryLook(getPosition());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities UP relative to their position")
+	public String lookUp() {
+		return world.tryLook(up());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities DOWN relative to their position")
+	public String lookDown() {
+		return world.tryLook(down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities LEFT relative to their position")
+	public String lookLeft() {
+		return world.tryLook(left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities RIGHT relative to their position")
+	public String lookRight() {
+		return world.tryLook(right());
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
