@@ -157,8 +157,10 @@ public final class LuaDoc {
 
 	private static String docMethodToString(final Method m) {
 		return String.format(
-				"%s\t%s\n-- %s\n%s\n",
+				"%s(%s)\n-- Security Level: %s\n-- %s\n%s\n",
 				GetLuaFacade.bindTo(m),
+				Stream.of(m.getParameters()).map(p -> p.getName())
+						.reduce((a,b) -> a+", "+b).orElse(""),
 				Optional.ofNullable(m.getDeclaredAnnotation(Bind.class))
 						.map(a -> a.value().name())
 						.orElse("NONE"),
