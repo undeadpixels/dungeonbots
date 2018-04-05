@@ -12,6 +12,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -84,7 +86,7 @@ public class LevelPackScreen extends Screen {
 	private JButton _BttnPlayLevel;
 	private JButton _BttnEditLevel;
 	private JButton _BttnAddWorld;
-	private JButton _BttnRemoveWorld;
+	private JButton _BttnRemoveItem;
 	private JButton _BttnWorldUp;
 	private JButton _BttnWorldDown;
 	private JButton _BttnLockPack;
@@ -232,14 +234,16 @@ public class LevelPackScreen extends Screen {
 		JPanel treeBttns = new JPanel();
 		treeBttns.add(_BttnLockPack = UIBuilder.buildButton().image("icons/lock.png").toolTip("Lock this LevelPack.")
 				.action("LOCK_LEVELPACK", getController()).focusable(false).create());
-		treeBttns.add(_BttnEditScript = UIBuilder.buildButton().image("icons/text preview.png")
-				.toolTip("Edit the transition script.").action("EDIT_TRANSITION_SCRIPT", getController())
-				.focusable(false).create());
+		// treeBttns.add(_BttnEditScript =
+		// UIBuilder.buildButton().image("icons/text preview.png")
+		// .toolTip("Edit the transition
+		// script.").action("EDIT_TRANSITION_SCRIPT", getController())
+		// .focusable(false).create());
 		treeBttns.add(
 				_BttnEditLevel = UIBuilder.buildButton().image("icons/modify.png").action("EDIT_WORLD", getController())
 						.focusable(false).toolTip("Open this world in the editor.").create());
-		treeBttns.add(_BttnRemoveWorld = UIBuilder.buildButton().image("icons/erase.png")
-				.action("REMOVE_WORLD", getController()).focusable(false).toolTip("Remove this world from this pack.")
+		treeBttns.add(_BttnRemoveItem = UIBuilder.buildButton().image("icons/erase.png")
+				.action("REMOVE_ITEM", getController()).focusable(false).toolTip("Remove this world or pack.")
 				.create());
 		treeBttns.add(
 				_BttnAddWorld = UIBuilder.buildButton().image("icons/add.png").action("ADD_NEW_WORLD", getController())
@@ -262,6 +266,62 @@ public class LevelPackScreen extends Screen {
 		this.setLayout(new BorderLayout());
 		this.add(packPnl, BorderLayout.LINE_START);
 		this.add(worldPanel, BorderLayout.CENTER);
+		updateGUI();
+	}
+
+
+	private void updateUndoRedo() {
+		_BttnUndo.setEnabled(_UndoStack.peekUndo() != null);
+		_BttnRedo.setEnabled(_UndoStack.peekRedo() != null);
+
+	}
+
+
+	void updateGUI() {
+		refreshInfoDisplay(_InfoPnl);
+		Object selection = getCurrentSelection();
+		updateUndoRedo();
+		if (selection == null) {
+			_BttnPlayLevel.setEnabled(false);
+			_BttnEditLevel.setEnabled(false);
+			_BttnWorldUp.setEnabled(false);
+			_BttnWorldDown.setEnabled(false);
+			_BttnAddWorld.setEnabled(false);
+			_BttnRemoveItem.setEnabled(false);
+			_BttnLockPack.setEnabled(false);
+			//_BttnEditScript.setEnabled(false);
+		} else if (selection instanceof WorldInfo) {
+			WorldInfo wInfo = (WorldInfo) selection;
+			boolean hasAuthorPermission = wInfo.packInfo.hasAuthorPermission();
+			_BttnPlayLevel.setEnabled(true);
+			_BttnEditLevel.setEnabled(wInfo.packInfo.hasAuthorPermission());
+			_BttnWorldUp.setEnabled(wInfo.packInfo.worlds.indexOf(wInfo) > 0 && hasAuthorPermission);
+			_BttnWorldDown.setEnabled(
+					wInfo.packInfo.worlds.indexOf(wInfo) < wInfo.packInfo.worlds.size() - 1 && hasAuthorPermission);
+			_BttnAddWorld.setEnabled(hasAuthorPermission);
+			_BttnRemoveItem.setEnabled(hasAuthorPermission);
+			_BttnLockPack.setEnabled(false);
+			//_BttnEditScript.setEnabled(false);
+		} else if (selection instanceof PackInfo) {
+			PackInfo selPack = (PackInfo) selection;
+			_BttnPlayLevel.setEnabled(false);
+			_BttnEditLevel.setEnabled(false);
+			_BttnWorldUp.setEnabled(false);
+			_BttnWorldDown.setEnabled(false);
+			_BttnAddWorld.setEnabled(selPack.hasAuthorPermission());
+			_BttnRemoveItem.setEnabled(selPack.hasAuthorPermission());
+			//_BttnEditScript.setEnabled(selPack.hasAuthorPermission());
+			if (!selPack.hasAuthorPermission())
+				_BttnLockPack.setEnabled(false);
+			else {
+				_BttnLockPack.setEnabled(true);
+				if (selPack.getPack().getLocked())
+					_BttnLockPack.setIcon(new ImageIcon("icons/unlock.png"));
+				else
+					_BttnLockPack.setIcon(new ImageIcon("icons/lock.png"));
+			}
+		} else
+			assert (false); // sanity check
 	}
 
 
@@ -444,16 +504,11 @@ public class LevelPackScreen extends Screen {
 	}
 
 
-	private final void updateUndoRedo() {
-		_BttnUndo.setEnabled(_UndoStack.peekUndo() != null);
-		_BttnRedo.setEnabled(_UndoStack.peekRedo() != null);
-	}
-
 	// ===========================================================
 	// ========== LevelPackScreen SELECTION STUFF ================
 	// ===========================================================
 
-
+	/**Returns the node that contains this PackInfo.  If there is no such node, returns null.*/
 	private DefaultMutableTreeNode getContainingNode(PackInfo pInfo) {
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) _Tree.getModel().getRoot();
 		for (int i = 0; i < root.getChildCount(); i++) {
@@ -491,8 +546,12 @@ public class LevelPackScreen extends Screen {
 	/**Sets the current selection to the given LevelPack.  If the given LevelPack does not appear 
 	 * in the tree, sets selection to null.*/
 	public void setSelection(LevelPack pack) {
-		TreePath path = getPath(pack);
-		_Tree.setSelectionPath(path);
+		if (pack == null)
+			_Tree.clearSelection();
+		else {
+			TreePath path = getPath(pack);
+			_Tree.setSelectionPath(path);
+		}
 	}
 
 
@@ -616,32 +675,30 @@ public class LevelPackScreen extends Screen {
 	}
 
 
-	boolean saveAsPack(PackInfo pInfo) {
-		File saveLevelPackFile = FileControl.saveAsDialog(this, new File(pInfo.filename).getParent());
+	static boolean saveAsPack(PackInfo pInfo) {
+		if (pInfo.filename==null) pInfo.filename = "unnamed." + LevelPack.EXTENSION;
+		File saveLevelPackFile = FileControl.saveAsDialog(null, new File(pInfo.filename).getParent());
 		if (saveLevelPackFile == null) {
 			System.out.println("Save cancelled.");
 			return false;
 		} else {
-			save(pInfo, saveLevelPackFile);
-			return true;
+			return save(pInfo, saveLevelPackFile);
 		}
 	}
 
 
-	boolean savePack(PackInfo pInfo) {
+	static boolean savePack(PackInfo pInfo) {
 		if (pInfo.filename == null || pInfo.filename.equals(""))
 			return saveAsPack(pInfo);
 		File file = new File(pInfo.filename);
 		if (!file.exists()) {
-			saveAsPack(pInfo);
-			return false;
+			return saveAsPack(pInfo);
 		}
-		save(pInfo, file);
-		return true;
+		return save(pInfo, file);
 	}
 
 
-	boolean save(PackInfo pInfo, File file) {
+	static boolean save(PackInfo pInfo, File file) {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			LevelPack lp = pInfo.writeComplete();
 			String json = lp.toJson();
@@ -674,9 +731,8 @@ public class LevelPackScreen extends Screen {
 
 
 	private Undoable<DefaultMutableTreeNode> addNewPack() {
-		LevelPack newPack = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(),
-				new World());
-		PackInfo pInfo = PackInfo.withoutJSON(newPack);
+		LevelPack newPack = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(), new World());
+		PackInfo pInfo = PackInfo.withoutJSON(newPack);		
 		return addNewPack(pInfo);
 	}
 
@@ -875,7 +931,6 @@ public class LevelPackScreen extends Screen {
 			protected void undoValidated() {
 				PackInfo info = (PackInfo) context;
 				info.feedbackModel = before;
-				refreshInfoDisplay(_InfoPnl);
 			}
 
 
@@ -883,7 +938,6 @@ public class LevelPackScreen extends Screen {
 			protected void redoValidated() {
 				PackInfo info = (PackInfo) context;
 				info.feedbackModel = after;
-				refreshInfoDisplay(_InfoPnl);
 			}
 
 		};
@@ -1086,9 +1140,80 @@ public class LevelPackScreen extends Screen {
 	}
 
 
+	private Undoable<PackInfo> removePack(PackInfo pInfo) {
+		DefaultMutableTreeNode packNode = getContainingNode(pInfo);
+		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+		model.removeNodeFromParent(packNode);
+		File f = new File(pInfo.filename);
+		if (f.exists())
+			try {
+				Files.delete(f.toPath());
+			} catch (IOException e) {
+				System.err.println("Could not delete file " + pInfo.filename + " - " + e.getMessage());
+			}
+		this.setSelection(null);
+		return new Undoable<PackInfo>(null, pInfo, model) {
+
+			@Override
+			protected void undoValidated() {
+				if (getContainingNode(pInfo) != null)
+					error();
+				model.insertNodeInto(packNode, root, root.getChildCount());
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				if (getContainingNode(pInfo) == null)
+					error();
+				model.removeNodeFromParent(packNode);
+			}
+
+		};
+	}
+
+
+	private Undoable<WorldInfo> removeWorld(WorldInfo wInfo) {
+		PackInfo pInfo = wInfo.packInfo;
+		Integer idx = pInfo.worlds.indexOf(wInfo);
+		if (idx < 0)
+			return null;
+		DefaultMutableTreeNode packNode = getContainingNode(pInfo);
+		if (packNode == null)
+			return null;
+		DefaultMutableTreeNode worldNode = (DefaultMutableTreeNode) packNode.getChildAt(idx);
+		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
+		model.removeNodeFromParent(worldNode);
+		pInfo.worlds.remove(idx);
+		this.setSelection(null);
+		return new Undoable<WorldInfo>(null, wInfo) {
+
+			@Override
+			protected void undoValidated() {
+				if (pInfo.worlds.contains(wInfo))
+					error();
+				model.insertNodeInto(worldNode, packNode, idx);
+				pInfo.worlds.add(idx, wInfo);
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				if (!pInfo.worlds.contains(wInfo))
+					error();
+				model.removeNodeFromParent(packNode);
+				pInfo.worlds.remove(idx);
+			}
+
+		};
+
+	}
+
+
 	/**Toggles the lock status of the indicated LevelPack (if the current user has authority or is not barred from 
 	 * changing the lock status.  Returns the resulting lock status.*/
-	public Undoable<Boolean> toggleLock(PackInfo selPack) {
+	private Undoable<Boolean> toggleLock(PackInfo selPack) {
 		LevelPack pack = selPack.getPack();
 		if (!pack.isAuthor(DungeonBotsMain.instance.getUser()) && pack.getAllAuthors().length != 0) {
 			JOptionPane.showMessageDialog(LevelPackScreen.this,
@@ -1361,7 +1486,9 @@ public class LevelPackScreen extends Screen {
 				String[] descriptions = new String[this.worlds.size()];
 				for (int i = 0; i < this.worlds.size(); i++) {
 					WorldInfo wInfo = this.worlds.get(i);
-					completeWorlds[i] = new World(new File(LevelPack.DEFAULT_WORLD_FILE));
+					completeWorlds[i] = new World();
+					// completeWorlds[i] = new World(new
+					// File(LevelPack.DEFAULT_WORLD_FILE));
 					emblems[i] = createBufferedEmblem(wInfo.getEmblem());
 					titles[i] = wInfo.title;
 					descriptions[i] = wInfo.description;
@@ -1618,6 +1745,18 @@ public class LevelPackScreen extends Screen {
 				LevelPack.FeedbackModel model = LevelPack.FeedbackModel.valueOf(source.getName());
 				u = changeFeedbackModel(model);
 				break;
+			case "EDIT_WORLD":
+				selWorld = (WorldInfo) getCurrentSelection();
+				int idx = selWorld.packInfo.worlds.indexOf(selWorld);
+				if (!selWorld.packInfo.hasAuthorPermission()) {
+					JOptionPane.showMessageDialog(LevelPackScreen.this,
+							"Sorry, you do not have permission to edit this world.");
+					return;
+				}
+				LevelPack completePack = selWorld.packInfo.writeComplete();
+				completePack.setCurrentWorld(idx);
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(completePack));
+				return;
 			case "NEW_LEVELPACK":
 				u = addNewPack();
 				break;
@@ -1633,18 +1772,25 @@ public class LevelPackScreen extends Screen {
 				newPack.setCurrentWorld(index);
 				DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(newPack, false));
 				return;
-			case "EDIT_WORLD":
-				selWorld = (WorldInfo) getCurrentSelection();
-				int idx = selWorld.packInfo.worlds.indexOf(selWorld);
-				if (!selWorld.packInfo.hasAuthorPermission()) {
-					JOptionPane.showMessageDialog(LevelPackScreen.this,
-							"Sorry, you do not have permission to edit this world.");
+			case "REMOVE_ITEM":
+				sel = getCurrentSelection();
+				if (sel == null)
 					return;
-				}
-				LevelPack completePack = selWorld.packInfo.writeComplete();
-				completePack.setCurrentWorld(idx);
-				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(completePack));
-				return;
+				if (sel instanceof WorldInfo) {
+					int result = JOptionPane.showConfirmDialog(LevelPackScreen.this,
+							"Are you sure?  Removing this world means it will be unavailable in the future.");
+					if (result != JOptionPane.YES_OPTION)
+						return;
+					u = removeWorld((WorldInfo) sel);
+				} else if (sel instanceof PackInfo) {
+					int result = JOptionPane.showConfirmDialog(LevelPackScreen.this,
+							"Are you sure?  Removing this pack will delete its associated file.");
+					if (result != JOptionPane.YES_OPTION)
+						return;
+					u = removePack((PackInfo) sel);
+				} else
+					throw new RuntimeException("Sanity check.");
+				break;
 			case "SAVE_LEVELPACK":
 				sel = getCurrentSelection();
 				if (sel instanceof PackInfo) {
@@ -1672,15 +1818,13 @@ public class LevelPackScreen extends Screen {
 			case "UNDO":
 				if (_UndoStack.peekUndo() != null) {
 					_UndoStack.popUndo().undo();
-					updateUndoRedo();
-					refreshInfoDisplay(_InfoPnl);
+					updateGUI();
 				}
 				break;
 			case "REDO":
 				if (_UndoStack.peekRedo() != null) {
 					_UndoStack.popRedo().redo();
-					updateUndoRedo();
-					refreshInfoDisplay(_InfoPnl);
+					updateGUI();
 				}
 				break;
 			case JXDatePicker.COMMIT_KEY:
@@ -1713,50 +1857,8 @@ public class LevelPackScreen extends Screen {
 		/**Called when the tree's selection changes.*/
 		@Override
 		public void valueChanged(TreeSelectionEvent e) {
-			refreshInfoDisplay(_InfoPnl);
-			Object selection = getCurrentSelection();
+			updateGUI();
 
-			if (selection == null) {
-				_BttnPlayLevel.setEnabled(false);
-				_BttnEditLevel.setEnabled(false);
-				_BttnWorldUp.setEnabled(false);
-				_BttnWorldDown.setEnabled(false);
-				_BttnAddWorld.setEnabled(false);
-				_BttnRemoveWorld.setEnabled(false);
-				_BttnLockPack.setEnabled(false);
-				_BttnEditScript.setEnabled(false);
-			} else if (selection instanceof WorldInfo) {
-				WorldInfo wInfo = (WorldInfo) selection;
-				boolean hasAuthorPermission = wInfo.packInfo.hasAuthorPermission();
-				_BttnPlayLevel.setEnabled(true);
-				_BttnEditLevel.setEnabled(wInfo.packInfo.hasAuthorPermission());
-				_BttnWorldUp.setEnabled(wInfo.packInfo.worlds.indexOf(wInfo) > 0 && hasAuthorPermission);
-				_BttnWorldDown.setEnabled(
-						wInfo.packInfo.worlds.indexOf(wInfo) < wInfo.packInfo.worlds.size() - 1 && hasAuthorPermission);
-				_BttnAddWorld.setEnabled(hasAuthorPermission);
-				_BttnRemoveWorld.setEnabled(hasAuthorPermission);
-				_BttnLockPack.setEnabled(false);
-				_BttnEditScript.setEnabled(false);
-			} else if (selection instanceof PackInfo) {
-				PackInfo selPack = (PackInfo) selection;
-				_BttnPlayLevel.setEnabled(false);
-				_BttnEditLevel.setEnabled(false);
-				_BttnWorldUp.setEnabled(false);
-				_BttnWorldDown.setEnabled(false);
-				_BttnAddWorld.setEnabled(selPack.hasAuthorPermission());
-				_BttnRemoveWorld.setEnabled(selPack.hasAuthorPermission());
-				_BttnEditScript.setEnabled(selPack.hasAuthorPermission());
-				if (!selPack.hasAuthorPermission())
-					_BttnLockPack.setEnabled(false);
-				else {
-					_BttnLockPack.setEnabled(true);
-					if (selPack.getPack().getLocked())
-						_BttnLockPack.setIcon(new ImageIcon("icons/unlock.png"));
-					else
-						_BttnLockPack.setIcon(new ImageIcon("icons/lock.png"));
-				}
-			} else
-				assert (false); // sanity check
 		}
 
 

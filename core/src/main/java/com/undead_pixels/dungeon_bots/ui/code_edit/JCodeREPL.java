@@ -56,8 +56,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	/**For small, one-line commands, a 'return' can be prepended.*/
-	private boolean _PrependSilentReturn = true;
+	/**For small, one-line commands, a 'return' can be prepended.
+	 * TODO:  currently, prepending a 'return' on one-line commands isn't careful enough because it prepends even 
+	 * when it shouldn't.  For example, "x=1+2; return x;"  would get a 'return' prepended to "return x=1+2; return x;
+	 * Two results end up returned, one after the other, which causes REPL testing to fail.  Perhaps it's suppose to 
+	 * work like this, but it seems unclear, and if so, testing should be revised.*/
+	private boolean _PrependSilentReturn = false;
 
 	private LuaInvocation _RunningScript = null;
 

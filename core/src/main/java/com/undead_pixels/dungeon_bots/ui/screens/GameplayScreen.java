@@ -59,7 +59,6 @@ public class GameplayScreen extends Screen {
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
-	
 
 
 	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
@@ -78,12 +77,13 @@ public class GameplayScreen extends Screen {
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
 		world.onBecomingVisibleInGameplay();
-		world.registerMessageListener(new MessageListener(){
+		world.registerMessageListener(new MessageListener() {
 
 			@Override
 			public void message(HasImage src, String message, LoggingLevel level) {
-				this.message(src,  message, level);
-			}});
+				this.message(src, message, level);
+			}
+		});
 	}
 
 
