@@ -133,7 +133,12 @@ public class FloatingText extends ChildEntity {
 		}
 		this.fadeDuration = fadeDuration;
 	}
-	
+
+	@Override
+	public String inspect() {
+		return "What is this?";
+	}
+
 	/**
 	 * Internal info/rendering about text
 	 */
