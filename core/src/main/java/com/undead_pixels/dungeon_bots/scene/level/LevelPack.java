@@ -60,6 +60,7 @@ public class LevelPack {
 	private FeedbackModel feedbackModel;
 	private boolean isLocked;
 
+	
 
 	/**
 	 * Creates a new Level Pack, having the given name and the first specified

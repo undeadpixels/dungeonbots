@@ -70,10 +70,10 @@ import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
  */
 public class LevelPackScreen extends Screen {
 
-	private static final String FIELD_LEVEL_TITLE = "level title";
-	private static final String FIELD_LEVEL_DESCRIPTION = "level description";
-	private static final String FIELD_PACK_TITLE = "pack title";
-	private static final String FIELD_PACK_DESCRIPTION = "pack description";
+	private static final String FIELD_LEVEL_TITLE = "Level title";
+	private static final String FIELD_LEVEL_DESCRIPTION = "Level description";
+	private static final String FIELD_PACK_TITLE = "Pack title";
+	private static final String FIELD_PACK_DESCRIPTION = "Pack description";
 	private static final String FIELD_PUBLISH_START = "Publication start";
 	private static final String FIELD_PUBLISH_END = "Publication end";
 
@@ -93,6 +93,7 @@ public class LevelPackScreen extends Screen {
 	private JButton _BttnUndo;
 	private JButton _BttnRedo;
 	private JButton _BttnEditScript;
+	private JButton _BttnSave;
 
 	// TODO: implement undo/redo
 	private final UndoStack _UndoStack = new UndoStack();
@@ -202,8 +203,8 @@ public class LevelPackScreen extends Screen {
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").toolTip("Load a Pack from disk.")
 				.action("OPEN_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/new.png").toolTip("Create a new Pack.")
-				.action("NEW_LEVELPACK", getController()).focusable(false).create());
-		packInfoBttns.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save this LevelPack.")
+				.action("ADD_NEW_PACK", getController()).focusable(false).create());
+		packInfoBttns.add(_BttnSave = UIBuilder.buildButton().image("icons/save.png").toolTip("Save this LevelPack.")
 				.action("SAVE_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.add(_BttnUndo = UIBuilder.buildButton().image("icons/undo.png").toolTip("Undo last change.")
 				.action("UNDO", getController()).focusable(false).enabled(false).create());
@@ -289,7 +290,8 @@ public class LevelPackScreen extends Screen {
 			_BttnAddWorld.setEnabled(false);
 			_BttnRemoveItem.setEnabled(false);
 			_BttnLockPack.setEnabled(false);
-			//_BttnEditScript.setEnabled(false);
+			_BttnSave.setEnabled(false);
+			// _BttnEditScript.setEnabled(false);
 		} else if (selection instanceof WorldInfo) {
 			WorldInfo wInfo = (WorldInfo) selection;
 			boolean hasAuthorPermission = wInfo.packInfo.hasAuthorPermission();
@@ -301,7 +303,8 @@ public class LevelPackScreen extends Screen {
 			_BttnAddWorld.setEnabled(hasAuthorPermission);
 			_BttnRemoveItem.setEnabled(hasAuthorPermission);
 			_BttnLockPack.setEnabled(false);
-			//_BttnEditScript.setEnabled(false);
+			_BttnSave.setEnabled(hasAuthorPermission);
+			// _BttnEditScript.setEnabled(false);
 		} else if (selection instanceof PackInfo) {
 			PackInfo selPack = (PackInfo) selection;
 			_BttnPlayLevel.setEnabled(false);
@@ -310,7 +313,9 @@ public class LevelPackScreen extends Screen {
 			_BttnWorldDown.setEnabled(false);
 			_BttnAddWorld.setEnabled(selPack.hasAuthorPermission());
 			_BttnRemoveItem.setEnabled(selPack.hasAuthorPermission());
-			//_BttnEditScript.setEnabled(selPack.hasAuthorPermission());
+			_BttnSave.setEnabled(selPack.hasAuthorPermission());
+			// _BttnEditScript.setEnabled(selPack.hasAuthorPermission());
+
 			if (!selPack.hasAuthorPermission())
 				_BttnLockPack.setEnabled(false);
 			else {
@@ -676,7 +681,8 @@ public class LevelPackScreen extends Screen {
 
 
 	static boolean saveAsPack(PackInfo pInfo) {
-		if (pInfo.filename==null) pInfo.filename = "unnamed." + LevelPack.EXTENSION;
+		if (pInfo.filename == null)
+			pInfo.filename = "unnamed." + LevelPack.EXTENSION;
 		File saveLevelPackFile = FileControl.saveAsDialog(null, new File(pInfo.filename).getParent());
 		if (saveLevelPackFile == null) {
 			System.out.println("Save cancelled.");
@@ -732,7 +738,7 @@ public class LevelPackScreen extends Screen {
 
 	private Undoable<DefaultMutableTreeNode> addNewPack() {
 		LevelPack newPack = new LevelPack("New pack.", DungeonBotsMain.instance.getUser(), new World());
-		PackInfo pInfo = PackInfo.withoutJSON(newPack);		
+		PackInfo pInfo = PackInfo.withoutJSON(newPack);
 		return addNewPack(pInfo);
 	}
 
@@ -769,6 +775,7 @@ public class LevelPackScreen extends Screen {
 					error();
 				DefaultTreeModel model = (DefaultTreeModel) context;
 				model.insertNodeInto(after, before, before.getChildCount());
+				setSelection(((PackInfo) packNode.getUserObject()).getPack());
 			}
 
 		};
@@ -1478,8 +1485,7 @@ public class LevelPackScreen extends Screen {
 				pack.setLevelDescriptions(descriptions);
 
 			} else {
-				pack = new LevelPack(this.name, this.originalAuthor,
-						this.worlds.toArray(new World[this.worlds.size()]));
+
 				World[] completeWorlds = new World[this.worlds.size()];
 				BufferedImage[] emblems = new BufferedImage[this.worlds.size()];
 				String[] titles = new String[this.worlds.size()];
@@ -1493,7 +1499,8 @@ public class LevelPackScreen extends Screen {
 					titles[i] = wInfo.title;
 					descriptions[i] = wInfo.description;
 				}
-				pack.setWorlds(completeWorlds);
+				pack = new LevelPack(this.name, this.originalAuthor, completeWorlds);
+				// pack.setWorlds(completeWorlds);
 				pack.setLevelEmblems(emblems);
 				pack.setLevelTitles(titles);
 				pack.setLevelDescriptions(descriptions);
@@ -1624,7 +1631,7 @@ public class LevelPackScreen extends Screen {
 			Object context = getCurrentSelection();
 			Undoable<?> u = null;
 			if (context instanceof WorldInfo) {
-				switch (field.getName().toLowerCase()) {
+				switch (field.getName()) {
 				case FIELD_LEVEL_TITLE:
 					u = changeLevelTitle(field.getText());
 					break;
@@ -1633,7 +1640,7 @@ public class LevelPackScreen extends Screen {
 					break;
 				}
 			} else if (context instanceof PackInfo) {
-				switch (field.getName().toLowerCase()) {
+				switch (field.getName()) {
 				case FIELD_PACK_TITLE:
 					u = changePackName(field.getText());
 					break;
@@ -1648,8 +1655,8 @@ public class LevelPackScreen extends Screen {
 				return;
 			}
 
-			System.out.println("Have not implemented LevelPackScreen.Controller.handleFieldChange() for field "
-					+ field.getName() + " in context " + context.toString());
+			System.out.println("Have not implemented LevelPackScreen.Controller.handleFieldChange() for field '"
+					+ field.getName() + "' in context " + context.toString());
 
 		}
 
@@ -1731,6 +1738,9 @@ public class LevelPackScreen extends Screen {
 			PackInfo selPack;
 			Undoable<?> u = null;
 			switch (e.getActionCommand()) {
+			case "ADD_NEW_PACK":
+				u = addNewPack();
+				break;
 			case "ADD_NEW_WORLD":
 				u = addNewWorld();
 				break;
@@ -1757,9 +1767,7 @@ public class LevelPackScreen extends Screen {
 				completePack.setCurrentWorld(idx);
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(completePack));
 				return;
-			case "NEW_LEVELPACK":
-				u = addNewPack();
-				break;
+
 			case "PLAY_LEVEL":
 				selWorld = (WorldInfo) getCurrentSelection();
 				int index = selWorld.packInfo.worlds.indexOf(selWorld);

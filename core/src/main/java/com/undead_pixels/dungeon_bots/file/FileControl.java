@@ -41,7 +41,10 @@ public class FileControl {
 
 		int result = fc.showSaveDialog(parent);
 		if (result == JFileChooser.APPROVE_OPTION) {
-			File file = fc.getSelectedFile();
+			String filename = fc.getSelectedFile().getPath();
+			if (!filename.toLowerCase().endsWith("." + LevelPack.EXTENSION.toLowerCase()))
+				filename += ("." + LevelPack.EXTENSION);
+			File file = new File(filename);
 			System.out.println("Saving: " + file.getName());
 			return file;
 		}
@@ -80,13 +83,13 @@ public class FileControl {
 			// Called when a user attempts to open or save a file.
 			if (f.isDirectory())
 				return true;
-			return (f.getName().toLowerCase().endsWith(LevelPack.EXTENSION));
+			return (f.getName().toLowerCase().endsWith(LevelPack.EXTENSION.toLowerCase()));
 		}
 
 
 		@Override
 		public String getDescription() {
-			return "DungeonBots level pack";
+			return "." + LevelPack.EXTENSION + " - DungeonBots level pack";
 		}
 	}
 
