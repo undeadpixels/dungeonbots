@@ -642,8 +642,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	
-
 	/**
 	 * Update tile sprites, if they're stale
 	 */
@@ -723,9 +721,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The type of the tile
 	 */
 	public void setTile(int x, int y, TileType tileType) {
-		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[0].length) {
-			return; // out of bounds; TODO - should something else happen?
-		}
+		if (!isInBounds(x, y))
+			return;
 
 		tilesAreStale = true;
 
@@ -733,17 +730,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	/**
-	 * Returns the tile at the given tile location. If tiles reference is null,
-	 * or the (x,y) is outside the world boundaries, returns null.
-	 * 
-	 * @param x
-	 *            The x position, in game space.
-	 * @param y
-	 *            The y position, in game space.
-	 */
-	public Tile getTileUnderLocation(double x, double y) {
-		return getTileUnderLocation((int) x, (int) y);
+	/**Sets the tile as indicated.  If out-of-bounds, does nothing.  Can set to null.*/
+	public void setTile(int x, int y, Tile tile) {
+		if (!isInBounds(x, y))
+			return;
+		tilesAreStale = true;
+		tiles[x][y] = tile;
+	}
+
+
+	/**Returns whether the given x,y is within the world's bounds.*/
+	public boolean isInBounds(int x, int y) {
+		if (x < 0 || y < 0 || x >= tiles.length || y >= tiles[x].length) {
+			return false;
+		}
+		return true;
 	}
 
 
@@ -757,7 +758,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            The y position, in game space.
 	 */
 	@Deprecated
-	public Tile getTileUnderLocation(float x, float y) {
+	public Tile getTileUnderLocation(double x, double y) {
 		return getTileUnderLocation((int) x, (int) y);
 	}
 
@@ -775,9 +776,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		Tile[][] tiles = this.tiles;
 		if (tiles == null)
 			return null;
-		if (x < 0 || x >= tiles.length)
-			return null;
-		if (y < 0 || y >= tiles[x].length)
+		if (!isInBounds(x, y))
 			return null;
 		return tiles[x][y];
 	}

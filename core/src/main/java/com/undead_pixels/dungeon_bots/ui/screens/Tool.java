@@ -483,8 +483,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		private final WorldView view;
 		private final World world;
-		private HashMap<Point, TileType> oldTileTypes = null;
-		private HashMap<Point, TileType> newTileTypes = null;
+		private HashMap<Point, Tile> oldTiles = null;
+		private HashMap<Point, Tile> newTiles = null;
 
 		public final SelectionModel selection;
 		private TileType drawingTileType;
@@ -500,11 +500,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes != null || selection.tileType == null)
+			if (e.isConsumed() || oldTiles != null || selection.tileType == null)
 				return;
 			drawingTileType = selection.tileType;
-			oldTileTypes = new HashMap<Point, TileType>();
-			newTileTypes = new HashMap<Point, TileType>();
+			oldTiles = new HashMap<Point, Tile>();
+			newTiles = new HashMap<Point, Tile>();
 			drawTile(e.getX(), e.getY(), drawingTileType);
 			e.consume();
 		}
@@ -513,7 +513,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		@Override
 		public void mouseExited(MouseEvent e) {
 			// TODO: pushing 'ESC' should also cancel the draw.
-			if (e.getSource() == view && oldTileTypes != null) {
+			if (e.getSource() == view && oldTiles != null) {
 				cancelDraw();
 				e.consume();
 			}
@@ -522,19 +522,22 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null)
+			if (e.isConsumed() || oldTiles == null)
 				return;
-			Undoable<HashMap<Point, TileType>> u = new Undoable<HashMap<Point, TileType>>(oldTileTypes, newTileTypes) {
+			if (newTiles.size() == 0)
+				return;
+			Undoable<HashMap<Point, Tile>> u = new Undoable<HashMap<Point, Tile>>(oldTiles, newTiles) {
 
 				@Override
 				protected void undoValidated() {
 					for (Point p : before.keySet()) {
 						Tile existingTile = world.getTile(p.x, p.y);
-						if (existingTile == null && after.get(p) != null)
+						if (existingTile == null) {
+							if (after.get(p) != null)
+								error();
+						} else if (!existingTile.equals(after.get(p)))
 							error();
-						if (!existingTile.getType().equals(after.get(p)))
-							error();
-						TileType t = before.get(p);
+						Tile t = before.get(p);
 						world.setTile(p.x, p.y, t);
 					}
 				}
@@ -544,11 +547,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				protected void redoValidated() {
 					for (Point p : after.keySet()) {
 						Tile existingTile = world.getTile(p.x, p.y);
-						if (existingTile == null && before.get(p) != null)
+						if (existingTile == null) {
+							if (before.get(p) != null)
+								error();
+						} else if (!existingTile.equals(before.get(p)))
 							error();
-						if (!existingTile.getType().equals(before.get(p)))
-							error();
-						TileType t = after.get(p);
+						Tile t = after.get(p);
 						world.setTile(p.x, p.y, t);
 					}
 				}
@@ -557,8 +561,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			pushUndo(world, u);
 
-			oldTileTypes = null;
-			newTileTypes = null;
+			oldTiles = null;
+			newTiles = null;
 			drawingTileType = null;
 			e.consume();
 
@@ -567,7 +571,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null || selection.tileType == null)
+			if (e.isConsumed() || oldTiles == null || selection.tileType == null)
 				return;
 			assert drawingTileType != null;
 			drawTile(e.getX(), e.getY(), drawingTileType);
@@ -578,36 +582,38 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private void cancelDraw() {
 
 			// Restore all the old tile types.
-			for (Point p : oldTileTypes.keySet()) {
-				world.setTile(p.x, p.y, oldTileTypes.get(p));
+			for (Point p : oldTiles.keySet()) {
+				world.setTile(p.x, p.y, oldTiles.get(p));
 			}
 
 			// Null the tile type caches to signal that drawing is done.
-			oldTileTypes = null;
-			newTileTypes = null;
+			oldTiles = null;
+			newTiles = null;
 			drawingTileType = null;
 		}
 
 
-		private void drawTile(int screenX, int screenY, TileType tileType) {
+		/**Returns the new tile created.*/
+		private Tile drawTile(int screenX, int screenY, TileType tileType) {
 
-			// Find the position in game space.
+			// Find the position and existing tile in game space.
 			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
-			Tile existingTile = world.getTile(gamePos);
+			int x = (int) gamePos.x, y = (int) gamePos.y;
+			if (!world.isInBounds(x, y))
+				return null;
+			Tile existingTile = world.getTile(x, y);
 
-			// Find the existing location and tile type.
-			if (existingTile == null)
-				return;
-			TileType oldTileType = existingTile.getType();
-			if (oldTileType == null || oldTileType == tileType)
-				return;
-			Point2D.Float existingPoint = existingTile.getPosition();
-			int x = (int) existingPoint.getX(), y = (int) existingPoint.getY();
+			// If the tile type isn't changing, shouldn't change the change
+			// buffer.
+			if (existingTile.getType().equals(tileType) || existingTile.getType().getName().equals(tileType.getName()))
+				return null;
 
 			// Cache the old and new tile types, then draw to the world;
-			oldTileTypes.put(new Point(x, y), oldTileType);
-			newTileTypes.put(new Point(x, y), tileType);
-			world.setTile(x, y, tileType);
+			Tile newTile = new Tile(world, tileType, x, y);
+			oldTiles.put(new Point(x, y), existingTile);
+			world.setTile(x, y, newTile);
+			newTiles.put(new Point(x, y), newTile);
+			return newTile;
 		}
 
 	}
@@ -654,8 +660,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				return;
 			} else {
 				int x = (int) gamePos.x, y = (int) gamePos.y;
-				if (world.getTile(x, y) == null)
+				if (!world.isInBounds(x, y))
 					return;
+				Tile tile = world.getTile(x, y);
+				if (tile != null && (tile.isOccupied() || tile.isSolid()))
+					return;
+
 				EntityType type = selection.entityType;
 				if (type == null)
 					return;
