@@ -124,7 +124,7 @@ public class LuaReflection {
 				.findFirst();
 	}
 
-	private static Stream<Method> getAllMethods(final Class<?> clz) {
+	public static Stream<Method> getAllMethods(final Class<?> clz) {
 		return flattenClass(clz, Class::getDeclaredMethods);
 	}
 

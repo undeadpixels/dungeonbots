@@ -77,6 +77,7 @@ public class LuaProxyFactory {
 	 */
 	public static <T extends GetLuaFacade> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
+		t.set("class", LuaValue.userdataOf(src));
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetLuaFacade.getBindableStaticMethods(src)
