@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -56,21 +57,22 @@ public class Door extends SpriteEntity implements Lockable, Useable {
 				x.tofloat(),
 				y.tofloat());
 	}
-	
+
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("LOCK");
-		getSandbox().registerEventType("UNLOCK");
-		getSandbox().registerEventType("OPEN");
-		getSandbox().registerEventType("CLOSE");
-		getSandbox().registerEventType("ENTER");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("LOCK");
+		sandbox.registerEventType("UNLOCK");
+		sandbox.registerEventType("OPEN");
+		sandbox.registerEventType("CLOSE");
+		sandbox.registerEventType("ENTER");
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distance(this.getPosition()) < .1) {
 				getSandbox().fireEvent("ENTER", e.getLuaValue());
 			}
 		}); 
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	@Override

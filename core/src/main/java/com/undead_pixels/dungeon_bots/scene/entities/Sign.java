@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.Inspectable;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -56,13 +57,14 @@ public class Sign extends SpriteEntity implements Inspectable {
 			}
 		});
 	}
-	
+
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("ENTERED");
-		getSandbox().registerEventType("READ");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("ENTERED");
+		sandbox.registerEventType("READ");
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	@BindTo("new")

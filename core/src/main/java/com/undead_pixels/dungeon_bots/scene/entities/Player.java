@@ -91,19 +91,20 @@ public class Player extends RpgActor {
 		w.addEntity(p);
 		return p;
 	}
-	
+
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("KEY_PRESSED");
-		getSandbox().registerEventType("KEY_RELEASED");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("KEY_PRESSED");
+		sandbox.registerEventType("KEY_RELEASED");
 		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
-			getSandbox().fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
-		}); 
+			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
+		});
 		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
-			getSandbox().fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
-		}); 
+			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+		});
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	@Bind(SecurityLevel.AUTHOR)

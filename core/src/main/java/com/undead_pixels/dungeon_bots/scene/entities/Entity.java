@@ -84,18 +84,22 @@ public abstract class Entity
 		}
 	}
 
-
+	public LuaSandbox createSandbox() {
+		sandbox = new LuaSandbox(this);
+		sandbox.addBindable("this", this);
+		sandbox.addBindable("world", world);
+		sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
+				.addBindableClasses(GetLuaFacade.getEntityClasses());
+		return this.sandbox;
+	}
+	
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
 	 */
 	@Override
 	public LuaSandbox getSandbox() {
 		if (sandbox == null) {
-			sandbox = new LuaSandbox(this);
-			this.sandbox.addBindable("this", this);
-			this.sandbox.addBindable("world", world);
-			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-					.addBindableClasses(GetLuaFacade.getEntityClasses());
+			sandbox = createSandbox();
 		}
 		return sandbox;
 	}

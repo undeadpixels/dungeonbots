@@ -6,6 +6,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
@@ -46,17 +47,18 @@ public class Goal extends SpriteEntity {
 				x.tofloat(),
 				y.tofloat());
 	}
-	
+
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("ENTER");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("ENTER");
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distance(this.getPosition()) < .1) {
 				getSandbox().fireEvent("ENTER", e.getLuaValue());
 			}
 		}); 
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	/* (non-Javadoc)

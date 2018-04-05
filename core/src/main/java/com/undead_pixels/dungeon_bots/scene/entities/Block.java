@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
@@ -63,11 +64,12 @@ public class Block extends Actor implements Pushable {
 	}
 	
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("PUSH");
-		getSandbox().registerEventType("BUMPED");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("PUSH");
+		sandbox.registerEventType("BUMPED");
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	@Override

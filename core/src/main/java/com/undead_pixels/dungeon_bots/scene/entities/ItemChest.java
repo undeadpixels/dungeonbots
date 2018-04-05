@@ -7,6 +7,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -49,15 +50,17 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 				x.tofloat(),
 				y.tofloat());
 	}
-	
+
 	@Override
-	public void sandboxInit() {
-		getSandbox().registerEventType("LOCK");
-		getSandbox().registerEventType("UNLOCK");
-		getSandbox().registerEventType("OPEN");
-		getSandbox().registerEventType("CLOSE");
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("LOCK");
+		sandbox.registerEventType("UNLOCK");
+		sandbox.registerEventType("OPEN");
+		sandbox.registerEventType("CLOSE");
 	
-		super.sandboxInit();
+		return sandbox;
 	}
 
 	@Override
