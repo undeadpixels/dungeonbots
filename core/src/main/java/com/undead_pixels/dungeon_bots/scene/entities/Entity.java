@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,7 +21,7 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
 
 	/**
 	 * 
@@ -85,6 +84,14 @@ public abstract class Entity
 		}
 	}
 
+	public LuaSandbox createSandbox() {
+		sandbox = new LuaSandbox(this);
+		sandbox.addBindable("this", this);
+		sandbox.addBindable("world", world);
+		sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
+				.addBindableClasses(GetLuaFacade.getEntityClasses());
+		return this.sandbox;
+	}
 
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
@@ -92,11 +99,7 @@ public abstract class Entity
 	@Override
 	public LuaSandbox getSandbox() {
 		if (sandbox == null) {
-			sandbox = new LuaSandbox(this);
-			this.sandbox.addBindable("this", this);
-			this.sandbox.addBindable("world", world);
-			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-					.addBindableClasses(GetLuaFacade.getEntityClasses());
+			sandbox = createSandbox();
 		}
 		return sandbox;
 	}
@@ -104,6 +107,9 @@ public abstract class Entity
 	public void sandboxInit() {
 		if(this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
+			System.out.println("Running entity init for " + this);
+		} else {
+			System.out.println("Skipping entity init (script does not exist for "+this+")");
 		}
 	}
 	

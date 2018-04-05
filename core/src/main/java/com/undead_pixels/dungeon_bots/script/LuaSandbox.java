@@ -361,7 +361,7 @@ public final class LuaSandbox implements Serializable {
 	 * @param eventName		Something of the form FOO_BAR_BLAH,
 	 * 						which would create a function in the lua environment named registerFooBarBlahListener
 	 */
-	public void registerEventType(String eventName) {
+	public synchronized void registerEventType(String eventName) {
 		eventListeners.put(eventName, new HashSet<LuaValue>());
 		
 		
@@ -400,12 +400,13 @@ public final class LuaSandbox implements Serializable {
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
 
-	public LuaInvocation fireEvent(String eventName, LuaValue... args) {
+	public synchronized LuaInvocation fireEvent(String eventName, LuaValue... args) {
 		return fireEvent(eventName, null, args);
 	}
-	public LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
+	public synchronized LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
+		
 		return invocation;
 	}
 

@@ -1,7 +1,10 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -12,6 +15,9 @@ import org.luaj.vm2.LuaValue;
 
 public class Block extends Actor implements Pushable {
 
+	/**
+	 *
+	 */
 	private static final long serialVersionUID = 1L;
 
 	public static final TextureRegion DEFAULT_TEXTURE =
@@ -21,6 +27,12 @@ public class Block extends Actor implements Pushable {
 
 	public Block(World world, float x, float y) {
 		super(world, "block", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
+		if(isMoveable) {
+			this.getScripts().add(new UserScript("init",
+					"registerBumpedListener(function(e, dir)\n"
+					+ "  this:move(dir)\n"
+					+ "end)\n"));
+		}
 	}
 
 	/**
@@ -52,6 +64,15 @@ public class Block extends Actor implements Pushable {
 	}
 
 	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("PUSH");
+		sandbox.registerEventType("BUMPED");
+
+		return sandbox;
+	}
+
+	@Override
 	public boolean isSolid() {
 		return true;
 	}
@@ -62,9 +83,25 @@ public class Block extends Actor implements Pushable {
 	}
 
 	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
+	}
+
+	@Override
 	public void push(final Actor.Direction direction) {
 		if(isMoveable) {
 			queueMoveSlowly(direction, true);
 		}
+
+		getSandbox().fireEvent("PUSH", LuaValue.valueOf(direction.name()));
+	}
+
+	public void bumpedInto(final Entity e, final Actor.Direction direction) {
+		getSandbox().fireEvent("BUMPED", e.getLuaValue(), LuaValue.valueOf(direction.name()));
+	}
+
+	@Override
+	public String inspect() {
+		return "A Heavy Block of Ice. Perhaps you can push it?";
 	}
 }
