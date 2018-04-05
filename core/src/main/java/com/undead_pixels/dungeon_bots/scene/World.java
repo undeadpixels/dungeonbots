@@ -38,6 +38,7 @@ import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -1150,8 +1151,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
 			mapSandbox.addBindable("whitelist", this.getWhitelist());
 			mapSandbox.addBindableClass(Player.class);
-			mapSandbox.addBindableClasses(GetLuaFacade.getEntityClasses())
-					.addBindableClasses(GetLuaFacade.getItemClasses());
+			mapSandbox.addBindableClasses(LuaReflection.getEntityClasses())
+					.addBindableClasses(LuaReflection.getItemClasses());
 
 			return mapSandbox;
 		}
@@ -1427,7 +1428,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryUse(final Actor src, final Point2D.Float location) {
-		return entityTypeAtPos(location, Actor.class)
+		return entitiesAtPos(location)
 				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
 				.anyMatch(e -> {
 					final boolean used = Useable.class.cast(e).use();
@@ -1496,6 +1497,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 					message(src, "pushes " + e.getClass().getSimpleName(), LoggingLevel.GENERAL);
 					e.push(dir);
 				});
+	}
 
 	public String tryLook(final Point2D.Float dir) {
 		return entitiesAtPos(dir)

@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -88,8 +89,8 @@ public abstract class Entity
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-				.addBindableClasses(GetLuaFacade.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getItemClasses())
+				.addBindableClasses(LuaReflection.getEntityClasses());
 		return this.sandbox;
 	}
 

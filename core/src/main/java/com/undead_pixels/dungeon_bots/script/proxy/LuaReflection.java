@@ -1,9 +1,12 @@
 package com.undead_pixels.dungeon_bots.script.proxy;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -153,5 +156,27 @@ public class LuaReflection {
 				.map(fn)
 				.flatMap(Stream::of)
 				.sequential();
+	}
+
+	public static List<Class<? extends GetLuaFacade>> itemClasses = null;
+	public static List<Class<? extends GetLuaFacade>> entityClasses = null;
+
+	public static List<Class<? extends GetLuaFacade>> getItemClasses() {
+		if(itemClasses == null)
+		 	itemClasses = getClassesOf(Item.class);
+		return itemClasses;
+	}
+
+	public static List<Class<? extends GetLuaFacade>> getEntityClasses() {
+		if(entityClasses == null)
+			entityClasses = getClassesOf(Entity.class);
+		return entityClasses;
+	}
+
+	public static List<Class<? extends GetLuaFacade>> getClassesOf(Class<? extends GetLuaFacade> clz) {
+		final List<Class<? extends GetLuaFacade>> ans = new LinkedList<>();
+		final FastClasspathScanner scanner = new FastClasspathScanner();
+		scanner.matchSubclassesOf(clz, e -> ans.add(e)).scan();
+		return ans;
 	}
 }
