@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
+import java.awt.AWTEvent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Event;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -15,9 +17,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
@@ -201,18 +206,67 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	/** A view grabber allows user to right-click-and-drag to move a view around.*/
 	public static class ViewControl extends Tool {
 
-		public static float MAX_ZOOM = 4.0f;
+		private final ArrayList<ViewChangedListener> _ViewChangedListeners = new ArrayList<ViewChangedListener>();
+
+		/**The maximum zoom-in.  The minimum is defined by the size of the world.*/
+		public static float MAX_ZOOM = 4f;
+
+		/**A scalar defining the highest zoom-out.  The higher the number the further the view can 
+		 * zoom out.*/
+		public static float MIN_ZOOM_SCALAR = 4f;
+
+		/**How fast zooming occurs.*/
+		private static final float ZOOM_INCREMENT = 1f / 64f;
 
 		private final WorldView view;
 
+		// Temp state variables to allow grab-and-move
 		private Point2D.Float gameCenterOrigin = null;
 		private Point screenOrigin = null;
 		private Point screenCurrent = null;
+		private Cursor originalCursor = null;
 
 
 		public ViewControl(WorldView view) {
 			super("ViewGrabber", null);
 			this.view = view;
+		}
+
+
+		/**Returns the minimum zoom value for this control, based on the world's size.*/
+		public float getMinZoom() {
+			Point2D.Float size = view.getWorld().getSize();
+			float min = Math.min(size.x, size.y);
+			float max = Math.max(size.x, size.y);
+			float aspect = Math.min(min, max);
+			return MIN_ZOOM_SCALAR / aspect;
+		}
+
+/**Returns the maximum zoom value for this control, which is a constant value.*/
+		public float getMaxZoom() {
+			return MAX_ZOOM;
+		}
+
+
+		public void addViewChangedListener(ViewChangedListener l) {
+			_ViewChangedListeners.add(l);
+		}
+
+
+		public void removeViewChangedListener(ViewChangedListener l) {
+			_ViewChangedListeners.remove(l);
+		}
+
+
+		public void fireViewChanged(float priorZoom, Point2D.Float priorPosition, float newZoom,
+				Point2D.Float newPosition) {
+			if (_ViewChangedListeners.size() == 0)
+				return;
+			ViewChangedEvent e = new ViewChangedEvent(this, priorZoom, priorPosition, newZoom, newPosition);
+			if (e.getID() == 0)
+				return;
+			for (ViewChangedListener l : _ViewChangedListeners)
+				l.viewChanged(e);
 		}
 
 
@@ -222,35 +276,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		public void adjustZoom(int delta) {
-			float currentZoom = view.getCamera().getZoom();
-			double dz = Math.signum(delta) * Math.exp(currentZoom) / 100f;
-			Point2D.Float size = view.getWorld().getSize();
-			float min = Math.min(size.x, size.y);
-			float max = Math.max(size.x, size.y);
-			float aspect = Math.min(min, max);
-
-			float newZoom = (float)(currentZoom - dz);
-
-			// These scalars are arbitrary for now.
-			//newZoom /= 100f;
-			newZoom = Math.max(newZoom, 4f / aspect); // Limit on zoom out
-			newZoom = Math.min(newZoom, MAX_ZOOM); // Limit on zoom in
-
-			setZoom(newZoom);
-		}
-
-
-		private Cursor _OriginalCursor = null;
-
-
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (screenOrigin != null)
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
-			_OriginalCursor = view.getCursor();
+			originalCursor = view.getCursor();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			// e.consume();
 		}
@@ -263,8 +295,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
-			view.setCursor(_OriginalCursor != null ? _OriginalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
-			_OriginalCursor = null;
+			view.setCursor(originalCursor != null ? originalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
+			originalCursor = null;
 			// e.consume();
 		}
 
@@ -287,21 +319,81 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		/**Sets the zoom where 'f' is the distance between 0 and 1, 0 representing the min zoom and 1 representing the max zoom.*/
-		public void setZoomAsPercentage(float newZoom) {
-			view.getCamera().setZoomOnMinMaxRange(newZoom);
-		}
+		/**Adjust the zoom an increment.*/
+		public void adjustZoom(int delta) {
+			float priorZoom = view.getCamera().getZoom();
+			double dz = Math.signum(delta) * Math.exp(priorZoom) * ZOOM_INCREMENT;
 
+			float newZoom = (float) (priorZoom - dz);
 
-		/**Sets the zoom to the absolute value given.*/
-		public void setZoom(float newZoom) {
+			// The limit on zoom-out depends on the size of the world.
+			newZoom = Math.max(newZoom, getMinZoom());
+			newZoom = Math.min(newZoom, MAX_ZOOM); // Limit on zoom in
+
 			view.getCamera().setZoom(newZoom);
+			this.fireViewChanged(priorZoom, view.getCamera().getPosition(), newZoom, view.getCamera().getPosition());
 		}
 
 
+		/**Sets the zoom as an exponential function between 0 and 1, 0 representing the min zoom and 1 
+		 * representing the max zoom.*/
+		public void setZoomAsPercentage(float percentage) {
+			float priorZoom = view.getCamera().getZoom();
+			view.getCamera().setZoomInRange(getMinZoom(), percentage, MAX_ZOOM);
+			float newZoom = view.getCamera().getZoom();
+			this.fireViewChanged(priorZoom, view.getCamera().getPosition(), newZoom, view.getCamera().getPosition());
+		}
+
+
+		/**Sets the view center.*/
 		public void setCenter(Point2D.Float newCenter) {
+			Point2D.Float oldPosition = view.getCamera().getPosition();
 			view.getCamera().setPosition(newCenter.x, newCenter.y);
+			this.fireViewChanged(view.getCamera().getZoom(), oldPosition, view.getCamera().getZoom(), newCenter);
 		}
+
+
+		public abstract static class ViewChangedListener implements EventListener {
+
+			public abstract void viewChanged(ViewChangedEvent e);
+		}
+
+
+		@SuppressWarnings("serial")
+		public static class ViewChangedEvent extends AWTEvent {
+
+			public static final int POSITION_CHANGED = 1;
+			public static final int ZOOM_CHANGED = 2;
+			public static final int BOTH_CHANGED = 3;
+
+			public final float priorZoom;
+			public final float priorPositionX;
+			public final float priorPositionY;
+
+			public final float newZoom;
+			public final float newPositionX;
+			public final float newPositionY;
+
+
+			ViewChangedEvent(ViewControl src, float priorZoom, Point2D.Float priorPosition, float newZoom,
+					Point2D.Float newPosition) {
+				super(src, 0);
+
+				this.priorZoom = priorZoom;
+				this.newZoom = newZoom;
+				if (priorZoom != newZoom)
+					id |= ZOOM_CHANGED;
+
+				this.priorPositionX = priorPosition.x;
+				this.priorPositionY = priorPosition.y;
+				this.newPositionX = newPosition.x;
+				this.newPositionY = newPosition.y;
+
+				if (priorPositionX != newPositionX || priorPositionY != newPositionY)
+					id |= POSITION_CHANGED;
+			}
+		}
+
 
 	}
 

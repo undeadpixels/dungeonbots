@@ -251,7 +251,7 @@ public class GameplayScreen extends Screen {
 				if (sldr.getName().equals("zoomSlider")) {
 					OrthographicCamera cam = view.getCamera();
 					if (cam != null) {
-						cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
+						_ViewControl.setZoomAsPercentage((float)sldr.getValue() / sldr.getMaximum());
 					}
 				}
 			}
