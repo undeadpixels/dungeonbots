@@ -48,7 +48,6 @@ public class WorldView extends JComponent {
 	private final Timer timer;
 	private final Consumer<World> winAction;
 
-	
 
 	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
@@ -58,64 +57,68 @@ public class WorldView extends JComponent {
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
-		
+
 		timer = new Timer(16, new ActionListener() {
 
 			@Override
-			public void actionPerformed (ActionEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				if (WorldView.this.world != null) {
 					long nowTime = System.nanoTime();
 					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
-					
-					if(dt > 1_000_000_000.0f) {
+
+					if (dt > 1_000_000_000.0f) {
 						dt = 1_000_000_000; // cap dt at 1 second
 					}
-					
+
 					lastTime = nowTime;
 					WorldView.this.world.update(dt);
-					
-					if(WorldView.this.world.isWon()) {
+
+					if (WorldView.this.world.isWon()) {
 						timer.stop();
 						winAction.accept(world);
 					}
 				}
-				
+
 				repaint();
 			}
-			
+
 		});
-		
-		if(world.isPlayOnStart()) {
+
+		if (world.isPlayOnStart()) {
 			setPlaying(true);
 		}
 
 		timer.start();
-		
+
 		this.setFocusable(true);
 		this.requestFocusInWindow();
-		
+
 		this.addComponentListener(new ComponentListener() {
 
 			@Override
-			public void componentResized (ComponentEvent e) {
+			public void componentResized(ComponentEvent e) {
 			}
 
-			@Override
-			public void componentMoved (ComponentEvent e) {
-			}
 
 			@Override
-			public void componentShown (ComponentEvent e) {
+			public void componentMoved(ComponentEvent e) {
+			}
+
+
+			@Override
+			public void componentShown(ComponentEvent e) {
 				timer.start();
 			}
 
+
 			@Override
-			public void componentHidden (ComponentEvent e) {
+			public void componentHidden(ComponentEvent e) {
 				timer.stop();
 			}
-			
+
 		});
 	}
+
 
 	/**
 	 * Renders the world using the camera transform specific to this WorldView
@@ -174,20 +177,24 @@ public class WorldView extends JComponent {
 		}
 	}
 
+
 	/** Returns the camera being used to view the world. */
 	public OrthographicCamera getCamera() {
 		return cam;
 	}
+
 
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(double screenX, double screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
 	}
 
+
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
 	}
+
 
 	/**
 	 * Returns a rectangle defined by the given corner points, translated into
@@ -197,14 +204,16 @@ public class WorldView extends JComponent {
 		Point2D.Float pt1 = cam.unproject((float) x1, (float) y1);
 		Point2D.Float pt2 = cam.unproject((float) x2, (float) y2);
 
-		return Cartesian.makeRectangle(pt1,  pt2);
-		
+		return Cartesian.makeRectangle(pt1, pt2);
+
 	}
+
 
 	/** Returns the world currently being viewed. */
 	public World getWorld() {
 		return world;
 	}
+
 
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
@@ -235,10 +244,12 @@ public class WorldView extends JComponent {
 		return selectedTiles.clone();
 	}
 
+
 	/** Sets the selected tiles to an array copy of the indicated collection. */
 	public void setSelectedTiles(Tile[] newTiles) {
 		selectedTiles = newTiles;
 	}
+
 
 	private void renderSelectedTiles(Graphics2D g2d, RenderingContext batch) {
 		Tile[] st = this.selectedTiles;
@@ -257,10 +268,12 @@ public class WorldView extends JComponent {
 		}
 	}
 
+
 	/** Returns a copied array of the selected entities. */
 	public Entity[] getSelectedEntities() {
 		return selectedEntities.clone();
 	}
+
 
 	/**
 	 * Sets the selected entities to an array copy of the indicated collection.
@@ -268,6 +281,7 @@ public class WorldView extends JComponent {
 	public void setSelectedEntities(Entity[] newEntities) {
 		selectedEntities = newEntities;
 	}
+
 
 	private void renderSelectedEntities(Graphics2D g2d, RenderingContext batch) {
 		Entity[] se = this.selectedEntities;
@@ -286,15 +300,18 @@ public class WorldView extends JComponent {
 		}
 	}
 
+
 	/** Returns the scribbling render tool. */
-	public Tool getRenderingTool() {
+	public Tool getAdornmentTool() {
 		return renderingTool;
 	}
 
+
 	/** Sets the scribbling render tool. */
-	public void setRenderingTool(Tool tool) {
+	public void setAdornmentTool(Tool tool) {
 		this.renderingTool = tool;
 	}
+
 
 	/** Returns whether the given entity is selected. */
 	public boolean isSelectedEntity(Entity e) {
@@ -308,6 +325,7 @@ public class WorldView extends JComponent {
 		return false;
 	}
 
+
 	/** Returns whether the given tile is selected. */
 	public boolean isSelectedTile(Tile tile) {
 		Tile[] selected = selectedTiles;
@@ -318,8 +336,6 @@ public class WorldView extends JComponent {
 				return true;
 		return false;
 	}
-	
-
 
 
 	/**
@@ -342,18 +358,21 @@ public class WorldView extends JComponent {
 		return false;
 	}
 
+
 	/**
 	 * @param isPlaying
 	 */
-	public void setPlaying (boolean isPlaying) {
+	public void setPlaying(boolean isPlaying) {
 		this.isPlaying = isPlaying;
-		
-		if(isPlaying) {
+
+		if (isPlaying) {
 			world.runInitScripts();
 		}
 	}
+
+
 	/**Returns whether this WorldView is current playing.*/
-	public boolean getPlaying(){
+	public boolean getPlaying() {
 		return this.isPlaying;
 	}
 

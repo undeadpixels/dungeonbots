@@ -600,6 +600,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            the height, in tiles
 	 */
 	public void setSize(int w, int h) {
+		setSize(w,h,0,0);
+		/*
 		Tile[][] oldTiles = tiles;
 		tiles = new Tile[w][h];
 
@@ -616,21 +618,52 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 		}
 
+		ArrayList<Entity> displaced = new ArrayList<Entity>();
 		for (Entity e : entities) {
 			Tile t = this.getTile(e.getPosition());
 			if (e.isSolid()) {
 				if (t == null) {
-					// TODO - this is probably bad; should we kill the entity,
-					// move it, or do something else?
-					System.out.println("Solid entity is living in missing tile");
+					displaced.add(e);
 				} else {
 					t.setOccupiedBy(e);
 				}
 			}
 		}
+		entities.removeAll(displaced);
+		*/
 	}
 
 
+	
+	public void setSize(int w, int h, int offsetX, int offsetY) {
+
+		// Copy all tiles into a new array of tiles.
+		Tile[][] newTiles = new Tile[w][h];
+		Rectangle oldRect = new Rectangle(0, 0, tiles.length, tiles[0].length);
+		Rectangle newRect = new Rectangle(offsetX, offsetY, w, h);
+		Rectangle interRect = oldRect.intersection(newRect);
+		for (int x = 0; x < interRect.width; x++) {
+			int interX = x + interRect.x;
+			for (int y = 0; y < interRect.height; y++) {
+				int interY = y + interRect.y;
+				Tile t = tiles[interX][interY];
+				t.setPosition(x, y);
+				newTiles[x][y] = t;
+				Entity e = t.getOccupiedBy();
+				if (e == null)
+					continue;
+				Point2D.Float ePos = e.getPosition();
+				e.setPosition(ePos.x - interX, ePos.y - interY);
+			}
+		}
+		tiles = newTiles;
+		// Remove all entities that have now been displaced.
+		entities.removeIf((e) -> getTile(e.getPosition()) == null);
+
+
+	}
+	
+	
 	/**
 	 * @return The size of this world, in tiles
 	 */

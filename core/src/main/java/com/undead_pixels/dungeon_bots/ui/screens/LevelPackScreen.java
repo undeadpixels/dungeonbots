@@ -1718,9 +1718,11 @@ public class LevelPackScreen extends Screen {
 						.border(new EmptyBorder(5, 5, 5, 5)).create());
 			pnl.add(UIBuilder.buildLabel().text(pInfo.name + " - ").border(spacer).create());
 			pnl.add(UIBuilder.buildLabel().text(pInfo.description).border(new EmptyBorder(2, 2, 2, 2)).create());
-			String author = pInfo.originalAuthor == null ? LevelPack.UNKNOWN_AUTHOR_NAME
-					: pInfo.originalAuthor.getUserName();
-			//pnl.add(UIBuilder.buildLabel().text("by " + author).border(new EmptyBorder(2, 2, 2, 2)).create());
+			// String author = pInfo.originalAuthor == null ?
+			// LevelPack.UNKNOWN_AUTHOR_NAME :
+			// pInfo.originalAuthor.getUserName();
+			// pnl.add(UIBuilder.buildLabel().text("by " + author).border(new
+			// EmptyBorder(2, 2, 2, 2)).create());
 			return pnl;
 
 		}

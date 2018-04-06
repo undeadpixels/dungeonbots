@@ -136,6 +136,11 @@ public abstract class Entity
 	public abstract Point2D.Float getPosition();
 
 
+	public void setPosition(float x, float y) {
+		throw new RuntimeException("Cannot set position on Entity of type " + this.getClass().getName());
+	}
+
+
 	/**
 	 * Derived classes must implement.
 	 *

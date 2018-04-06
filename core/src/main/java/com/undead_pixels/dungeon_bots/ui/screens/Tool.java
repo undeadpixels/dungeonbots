@@ -68,11 +68,21 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	private static final HashMap<World, UndoStack> undoStacks = new HashMap<World, UndoStack>();
 
 
+	/**Pushes an undo associated with the given world onto the stack.*/
 	public static void pushUndo(World world, Undoable<?> u) {
 		if (!undoStacks.containsKey(world))
 			undoStacks.put(world, new UndoStack());
 		UndoStack stack = undoStacks.get(world);
 		stack.push(u);
+	}
+
+
+	/**Clears the undo stack associated with the given world.*/
+	public static void clearUndo(World world) {
+		UndoStack stack = undoStacks.get(world);
+		if (stack == null)
+			return;
+		stack.clear();
 	}
 
 
@@ -357,13 +367,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				if (cornerA != null)
 					return;
 
-				assert (view.getRenderingTool() == null); // sanity check.
+				assert (view.getAdornmentTool() == null); // sanity check.
 
 				// Set the selection corner in screen coordinates.
 				cornerB = cornerA = new Point(e.getX(), e.getY());
 
 				// The view should start rendering the lasso.
-				view.setRenderingTool(this);
+				view.setAdornmentTool(this);
 				e.consume();
 			}
 		}
@@ -450,7 +460,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			}
 
 			// The view should no longer render the lasso.
-			view.setRenderingTool(null);
+			view.setAdornmentTool(null);
 
 			// Show that selection is complete, and re-selection hasn't
 			// started.
@@ -605,7 +615,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			// If the tile type isn't changing, shouldn't change the change
 			// buffer.
-			if (existingTile.getType().equals(tileType) || existingTile.getType().getName().equals(tileType.getName()))
+			if (existingTile != null && (existingTile.getType().equals(tileType)
+					|| existingTile.getType().getName().equals(tileType.getName())))
 				return null;
 
 			// Cache the old and new tile types, then draw to the world;
@@ -700,4 +711,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			}
 		}
 	}
+
+
 }
