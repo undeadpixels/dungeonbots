@@ -61,8 +61,8 @@ public class Sign extends SpriteEntity implements Inspectable {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("ENTERED");
-		sandbox.registerEventType("READ");
+		sandbox.registerEventType("ENTERED", "Called when another entity moves to the same tile as this", "entity");
+		sandbox.registerEventType("READ", "Called when something accesses the messsage of this sign");
 	
 		return sandbox;
 	}
