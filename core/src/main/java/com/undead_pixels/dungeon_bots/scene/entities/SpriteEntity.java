@@ -94,7 +94,7 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	 * @param x
 	 * @param y
 	 */
-	@Bind(value=SecurityLevel.DEFAULT,doc="Set the position of the entity")
+	@Bind(value=SecurityLevel.AUTHOR,doc="Set the position of the entity")
 	public void setPosition(
 			@Doc("The X position of the entity") LuaValue x,
 			@Doc("The Y position of the entity") LuaValue y) {

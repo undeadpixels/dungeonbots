@@ -21,6 +21,7 @@ import java.util.List;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TileType;
@@ -188,7 +189,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	// ===============================================
 	// ========== Tool GRAPHICS ======================
 	// ===============================================
-	public void render(Graphics2D g) {
+	public void render(Graphics2D g, RenderingContext batch) {
 	}
 
 
@@ -199,6 +200,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 	/** A view grabber allows user to right-click-and-drag to move a view around.*/
 	public static class ViewControl extends Tool {
+
+		public static float MAX_ZOOM = 4.0f;
 
 		private final WorldView view;
 
@@ -220,21 +223,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public void adjustZoom(int delta) {
+			float currentZoom = view.getCamera().getZoom();
+			double dz = Math.signum(delta) * Math.exp(currentZoom) / 100f;
 			Point2D.Float size = view.getWorld().getSize();
 			float min = Math.min(size.x, size.y);
 			float max = Math.max(size.x, size.y);
-			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
+			float aspect = Math.min(min, max);
+
+			float newZoom = (float)(currentZoom - dz);
 
 			// These scalars are arbitrary for now.
-			newZoom /= 100f;
-			newZoom = Math.max(newZoom, 0.01f * min); // Limit on zoom out
-			newZoom = Math.min(newZoom, 0.3f * max); // Limit on zoom in
+			//newZoom /= 100f;
+			newZoom = Math.max(newZoom, 4f / aspect); // Limit on zoom out
+			newZoom = Math.min(newZoom, MAX_ZOOM); // Limit on zoom in
 
 			setZoom(newZoom);
 		}
 
 
-		private Cursor originalCursor = null;
+		private Cursor _OriginalCursor = null;
 
 
 		@Override
@@ -243,7 +250,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
-			originalCursor = view.getCursor();
+			_OriginalCursor = view.getCursor();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			// e.consume();
 		}
@@ -256,8 +263,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
-			view.setCursor(originalCursor != null ? originalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
-			originalCursor = null;
+			view.setCursor(_OriginalCursor != null ? _OriginalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
+			_OriginalCursor = null;
 			// e.consume();
 		}
 
@@ -362,6 +369,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 			if (e.getButton() == MouseEvent.BUTTON1) {
+				view.requestFocusInWindow();
+
 				// If there is a cornerA, it means selection has started
 				// already.
 				if (cornerA != null)
@@ -471,7 +480,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@Override
-		public void render(Graphics2D g) {
+		public void render(Graphics2D g, RenderingContext batch) {
+			// Don't use the batch, because it's in terms of actual screen
+			// coordinates
 			g.setStroke(new BasicStroke(2));
 			g.setColor(Color.red);
 			Rectangle rect = Cartesian.makeRectangle(cornerA, cornerB);
@@ -615,9 +626,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			// If the tile type isn't changing, shouldn't change the change
 			// buffer.
-			if (existingTile != null && (existingTile.getType().equals(tileType)
-					|| existingTile.getType().getName().equals(tileType.getName())))
-				return null;
+			if (existingTile != null && existingTile.getType() != null) {
+				if (existingTile.getType().equals(tileType))
+					return null;
+				if (existingTile.getType().getName().equals(tileType.getName()))
+					return null;
+			}
 
 			// Cache the old and new tile types, then draw to the world;
 			Tile newTile = new Tile(world, tileType, x, y);

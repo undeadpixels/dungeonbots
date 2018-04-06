@@ -28,6 +28,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	/**
 	 * All ItemReferences are associated with a corresponding index into an Inventory.
 	 */
+	@Bind(SecurityLevel.NONE)
 	public final int index;
 
 	public final Inventory inventory;

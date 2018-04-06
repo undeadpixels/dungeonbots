@@ -3,8 +3,11 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -14,7 +17,7 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
 
 @Doc("A Door is an entity that can be triggered to open by events or unlocked with Keys")
-public class Door extends Actor implements Lockable, Useable {
+public class Door extends SpriteEntity implements Lockable, Useable, HasInventory {
 	
 	/**
 	 * 
@@ -28,9 +31,7 @@ public class Door extends Actor implements Lockable, Useable {
 
 	private volatile boolean open = false;
 	private volatile boolean locked = false;
-
-	@Deprecated
-	private Key key;
+	private Inventory inventory;
 
 	public Door(World world, float x, float y) {
 		super(world, "door", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
@@ -58,6 +59,24 @@ public class Door extends Actor implements Lockable, Useable {
 	}
 
 	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("ITEM_GIVEN");
+		sandbox.registerEventType("LOCK");
+		sandbox.registerEventType("UNLOCK");
+		sandbox.registerEventType("OPEN");
+		sandbox.registerEventType("CLOSE");
+		sandbox.registerEventType("ENTER");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distance(this.getPosition()) < .1) {
+				getSandbox().fireEvent("ENTER", e.getLuaValue());
+			}
+		}); 
+	
+		return sandbox;
+	}
+
+	@Override
 	public boolean isSolid() {
 		return !this.open;
 	}
@@ -70,11 +89,11 @@ public class Door extends Actor implements Lockable, Useable {
 	@Deprecated
 	@Bind(SecurityLevel.AUTHOR)
 	public Key genKey() {
-		this.key = new Key(
+		Key key = new Key(
 				this.world,
 				getName() + "key",
 				String.format("A key that unlocks the door for %s", getName()));
-		return this.key;
+		return key;
 	}
 
 	@Override
@@ -96,6 +115,7 @@ public class Door extends Actor implements Lockable, Useable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to a locked state.")
 	public void lock() {
+		getSandbox().fireEvent("LOCK");
 		this.locked = true;
 		this.open = false;
 		this.sprite.setTexture(lockedTexture);
@@ -104,6 +124,7 @@ public class Door extends Actor implements Lockable, Useable {
 	@Override
 	@Bind(value=SecurityLevel.ENTITY, doc = "Sets the Door to an unlocked state.")
 	public void unlock() {
+		getSandbox().fireEvent("UNLOCK");
 		this.locked = false;
 		this.sprite.setTexture(defaultTexture);
 	}
@@ -120,6 +141,13 @@ public class Door extends Actor implements Lockable, Useable {
 			this.open = !this.open;
 			this.sprite.setTexture(this.open ? openTexture : defaultTexture);
 			this.world.updateEntity(this);
+			
+			if(this.open) {
+				getSandbox().fireEvent("OPEN");
+			} else {
+				getSandbox().fireEvent("CLOSE");
+			}
+			
 			return true;
 		}
 		return false;
@@ -128,5 +156,21 @@ public class Door extends Actor implements Lockable, Useable {
 	@Override
 	public TeamFlavor getTeam() {
 		return TeamFlavor.AUTHOR;
+	}
+
+	@Override
+	public String inspect() {
+		return String.format("A %s Door", locked ? "locked" : open ? "open" : "closed");
+	}
+
+	/* (non-Javadoc)
+	 * @see com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory#getInventory()
+	 */
+	@Override
+	public Inventory getInventory () {
+		if(inventory == null) {
+			inventory = new Inventory(this, 1);
+		}
+		return inventory;
 	}
 }

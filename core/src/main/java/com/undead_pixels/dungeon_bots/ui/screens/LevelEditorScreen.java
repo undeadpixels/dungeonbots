@@ -7,7 +7,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
@@ -16,6 +15,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -67,7 +67,9 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
+import com.undead_pixels.dungeon_bots.ui.JWorldSizer;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -85,6 +87,7 @@ public final class LevelEditorScreen extends Screen {
 	private static final String COMMAND_SAVE_TO_LEVELPACK = "SAVE_TO_LEVELPACK";
 	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
 	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
+	private static final String COMMAND_RESIZE = "RESIZE_WORLD";
 
 	// Defined by Swing, don't change this:
 	private static final String COMMAND_COMBOBOX_CHANGED = "comboBoxChanged";
@@ -106,6 +109,7 @@ public final class LevelEditorScreen extends Screen {
 	private JComponent _ToolScroller;
 	private JComponent _TileScroller;
 	private JComponent _EntityScroller;
+	private JList<Tool> _Tools;
 	private JToolBar _ToolBar;
 
 
@@ -175,6 +179,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("block", Block.DEFAULT_TEXTURE, (x, y) -> {
 			return new Block(world, x, y);
+		}));
+		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
+			return new Sign(world, "Please Recycle", x, y);
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);
@@ -310,6 +317,22 @@ public final class LevelEditorScreen extends Screen {
 			case "REDO":
 				Tool.redo(world);
 				return;
+			case COMMAND_RESIZE:
+				JWorldSizer jws = JWorldSizer.showDialog(LevelEditorScreen.this, world, _View);
+				jws.getDialog().addWindowListener(new WindowListenerAdapter() {
+
+					@Override
+					protected void event(WindowEvent e) {
+						if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+							return;
+						_Tools.setEnabled(true);
+
+					}
+				});
+				_Tools.clearSelection();
+				_Tools.setEnabled(false);
+
+				break;
 			case COMMAND_SAVE_TO_LEVELPACK:
 				File sfd = new File(filename);
 				if (!sfd.exists())
@@ -646,21 +669,22 @@ public final class LevelEditorScreen extends Screen {
 		});
 
 		// Create the tool palette GUI.
-		JList<Tool> toolList = ((Controller) getController()).toolPalette = new JList<Tool>();
-		toolList.setCellRenderer(_ToolRenderer);
-		toolList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		toolList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		toolList.setVisibleRowCount(-1);
-		_ToolScroller = new JScrollPane(toolList);
+		_Tools = new JList<Tool>();
+		((Controller) getController()).toolPalette = _Tools;
+		_Tools.setCellRenderer(_ToolRenderer);
+		_Tools.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		_Tools.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		_Tools.setVisibleRowCount(-1);
+		_ToolScroller = new JScrollPane(_Tools);
 		_ToolScroller.setBorder(BorderFactory.createTitledBorder("Tools"));
 		// Set up the members of the tool list
-		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		_Tools.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
 		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR).setSelectsEntities(true)
 				.setSelectsTiles(true));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
-		toolList.setModel(tm);
+		_Tools.setModel(tm);
 
 
 		// Create the tile palette GUI.
@@ -700,7 +724,7 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.add(_ToolScroller);
 		_ToolBar.add(_TileScroller);
 		_ToolBar.add(_EntityScroller);
-		toolList.setSelectedValue(selections.tool = _Selector, true);
+		_Tools.setSelectedValue(selections.tool = _Selector, true);
 
 
 		// Create the file menu
@@ -723,6 +747,8 @@ public final class LevelEditorScreen extends Screen {
 		worldMenu.add(
 				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
+				.create());
+		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('r').text("Resize").action(COMMAND_RESIZE, getController())
 				.create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('p').text("Permissions")
 				.action(COMMAND_PERMISSIONS, getController()).create());

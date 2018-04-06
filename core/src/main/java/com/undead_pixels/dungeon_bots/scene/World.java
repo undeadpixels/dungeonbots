@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -36,6 +37,7 @@ import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -57,8 +59,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
-	// private transient ReentrantLock updateLock = new ReentrantLock();
 
 	/**
 	 * The script that defines this world
@@ -113,10 +113,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * If the init scripts were already run
 	 */
 	private transient boolean didInit = false;
-
-	// =============================================
-	// ====== World CONSTRUCTOR AND STARTUP STUFF
-	// =============================================
 
 	/**
 	 * A background image for this world Not currently used.
@@ -183,6 +179,104 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	private MessageListener messageListener;
+	// =============================================
+	// ====== Events and stuff
+	// =============================================
+
+	private static interface EventType { }
+	public static enum EntityEventType implements EventType {
+		ENTITY_ADDED,
+		ENTITY_REMOVED,
+		ENTITY_MOVED
+	}
+	public static enum WorldEventType implements EventType {
+		WIN
+	}
+	public static enum StringEventType implements EventType {
+		KEY_PRESSED,
+		KEY_RELEASED
+	}
+	private transient WorldEvent<World> winEvent;
+	private transient WorldEvent<Entity> entityAddedEvent;
+	private transient WorldEvent<Entity> entityRemovedEvent;
+	private transient WorldEvent<Entity> entityMovedEvent;
+	private transient WorldEvent<String> keyPressedEvent;
+	private transient WorldEvent<String> keyReleasedEvent;
+
+	private WorldEvent<Entity> getEntityEvent(EntityEventType t) {
+		switch(t) {
+			case ENTITY_ADDED:
+				if(entityAddedEvent == null) entityAddedEvent = new WorldEvent<>();
+				return entityAddedEvent;
+			case ENTITY_REMOVED:
+				if(entityRemovedEvent == null) entityRemovedEvent = new WorldEvent<>();
+				return entityRemovedEvent;
+			case ENTITY_MOVED:
+				if(entityMovedEvent == null) entityMovedEvent = new WorldEvent<>();
+				return entityMovedEvent;
+		}
+		return null;
+	}
+	private WorldEvent<World> getWorldEvent(WorldEventType t) {
+		switch(t) {
+			case WIN:
+				if(winEvent == null) winEvent = new WorldEvent<>();
+				return winEvent;
+		}
+		return null;
+	}
+	private WorldEvent<String> getStringEvent(StringEventType t) {
+		switch(t) {
+			case KEY_PRESSED:
+				if(keyPressedEvent == null) keyPressedEvent = new WorldEvent<>();
+				return keyPressedEvent;
+			case KEY_RELEASED:
+				if(keyReleasedEvent == null) keyReleasedEvent = new WorldEvent<>();
+				return keyReleasedEvent;
+		}
+		return null;
+	}
+
+	public void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
+		WorldEvent<Entity> ev = getEntityEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(EntityEventType t, Entity e) {
+		WorldEvent<Entity> ev = getEntityEvent(t);
+		ev.fire(e);
+	}
+
+	public void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
+		WorldEvent<World> ev = getWorldEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(WorldEventType t, World w) {
+		WorldEvent<World> ev = getWorldEvent(t);
+		ev.fire(w);
+	}
+
+	public void listenTo(StringEventType t, Object owner, Consumer<String> func) {
+		WorldEvent<String> ev = getStringEvent(t);
+		ev.addListener(owner, func);
+	}
+	public void fire(StringEventType t, String s) {
+		WorldEvent<String> ev = getStringEvent(t);
+		ev.fire(s);
+	}
+
+	public void removeEventListenersByOwner(Object owner) {
+		for(EntityEventType t : EntityEventType.values()) {
+			getEntityEvent(t).removeListenerFamily(owner);
+		}
+		for(WorldEventType t : WorldEventType.values()) {
+			getWorldEvent(t).removeListenerFamily(owner);
+		}
+	}
+
+
+	// =============================================
+	// ====== World CONSTRUCTOR AND STARTUP STUFF
+	// =============================================
 
 
 	/**
@@ -275,12 +369,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Perform some initializations that need to be done upon deserialization
 	 */
 	public void runInitScripts() {
-		if (!didInit) {
+		if(!didInit) {
+			System.out.println("Init'ing world");
 			LuaInvocation initScript = getSandbox().init().join(2000);
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
 
 			for (Entity e : entities) {
+				System.out.println("init: "+e);
 				e.sandboxInit();
 			}
 			this.didInit = true;
@@ -317,6 +413,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.AUTHOR)
 	public void win() {
 		isWon = true;
+
+		fire(WorldEventType.WIN, this);
 	}
 
 
@@ -467,6 +565,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		entities.add(e);
 		e.onAddedToWorld(this);
+		fire(EntityEventType.ENTITY_ADDED, e);
 
 
 		if (e.isSolid()) {
@@ -500,6 +599,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			if (tile != null && tile.getOccupiedBy() == e)
 				tile.setOccupiedBy(null);
 		}
+		fire(EntityEventType.ENTITY_REMOVED, e);
 		return true;
 	}
 
@@ -634,12 +734,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	
 	public void setSize(int w, int h, int offsetX, int offsetY) {
 
 		// Copy all tiles into a new array of tiles.
 		Tile[][] newTiles = new Tile[w][h];
-		Rectangle oldRect = new Rectangle(0, 0, tiles.length, tiles[0].length);
+		Rectangle oldRect = (tiles != null && tiles.length > 0) ? new Rectangle(0, 0, tiles.length, tiles[0].length)
+				: new Rectangle(0, 0, 0, 0);
+		for (int x = 0; x < w; x++)
+			for (int y = 0; y < h; y++)
+				newTiles[x][y] = new Tile(this, null, x, y);
 		Rectangle newRect = new Rectangle(offsetX, offsetY, w, h);
 		Rectangle interRect = oldRect.intersection(newRect);
 		for (int x = 0; x < interRect.width; x++) {
@@ -739,6 +842,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final int y = ly.checkint() - 1;
 		final int w = tiles.length;
 		final int h = tiles[0].length;
+
+		// TODO - an event?
+
 		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
 	}
 
@@ -758,8 +864,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return;
 
 		tilesAreStale = true;
-
-		tiles[x][y].setType(tileType);
+		if (tiles[x][y] == null)
+			tiles[x][y] = new Tile(this, tileType, x, y);
+		else
+			tiles[x][y].setType(tileType);
 	}
 
 
@@ -947,12 +1055,18 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return false;
 		}
 		if (tiles[x][y].isOccupied()) {
-			// System.out.println("Unable to move: tile occupied");
+			Entity o = tiles[x][y].getOccupiedBy();
+			if(o != null && o instanceof Pushable) {
+				((Pushable)o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
+			}
+			//System.out.println("Unable to move: tile occupied");
 			return false;
 		}
 
-		// System.out.println("Ok to move");
-		tiles[x][y].setOccupiedBy(e);
+		//System.out.println("Ok to move");
+		if(e.isSolid()) {
+			tiles[x][y].setOccupiedBy(e);
+		}
 
 		return true;
 
@@ -972,6 +1086,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void didLeaveTile(Entity e, int x, int y) {
 		Tile tile = getTile(x, y);
 		tile.setOccupiedBy(null);
+
+
+		fire(EntityEventType.ENTITY_MOVED, e);
 	}
 
 
@@ -1064,8 +1181,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
 			mapSandbox.addBindable("whitelist", this.getWhitelist());
 			mapSandbox.addBindableClass(Player.class);
-			mapSandbox.addBindableClasses(GetLuaFacade.getEntityClasses())
-					.addBindableClasses(GetLuaFacade.getItemClasses());
+			mapSandbox.addBindableClasses(LuaReflection.getEntityClasses())
+					.addBindableClasses(LuaReflection.getItemClasses());
 
 			return mapSandbox;
 		}
@@ -1103,6 +1220,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void resetFrom(World oldWorld) {
 		persistScriptsFrom(oldWorld);
 		this.timesReset = oldWorld.timesReset + 1;
+
+		// TODO - should we pass the old world to the init script maybe?
 	}
 
 
@@ -1305,16 +1424,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return True If any entity/ies successfully used the Item
 	 */
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
-		return entitiesAtPos(location).anyMatch(e -> {
-			final boolean used = e.useItem(itemReference);
-			final Actor owner = itemReference.inventory.getOwner();
-			final String name = itemReference.getName();
-			if (used) {
-				message(owner, String.format("%s used %s on %s", owner.getName(), name, e.getName()),
-						LoggingLevel.GENERAL);
-			}
-			return used;
-		});
+		return entitiesAtPos(location)
+				.anyMatch(e -> {
+					final boolean used = e.useItem(itemReference);
+					final Entity owner = itemReference.inventory.getOwner();
+					final String name = itemReference.getName();
+					if(used) {
+						message(owner,
+								String.format("%s used %s on %s",
+										owner.getName(),
+										name,
+										e.getName()),
+								LoggingLevel.GENERAL);
+					}
+					return used;
+				});
 	}
 
 
@@ -1324,7 +1448,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryUse(final Actor src, final Point2D.Float location) {
-		return entityTypeAtPos(location, Actor.class).filter(e -> Useable.class.isAssignableFrom(e.getClass()))
+		return entitiesAtPos(location)
+				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
 				.anyMatch(e -> {
 					final boolean used = Useable.class.cast(e).use();
 					if (used) {
@@ -1342,16 +1467,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
-		return typeAtPos(location, HasInventory.class).filter(e -> e.canTake()).anyMatch(e -> {
-			final boolean gives = e.getInventory().tryTakeItem(itemReference);
-			if (gives) {
-				message(itemReference.inventory.getOwner(),
-						String.format("%s gives %s to %s", itemReference.inventory.getOwner().getName(),
-								itemReference.getName(), e.getClass().getSimpleName()),
-						LoggingLevel.GENERAL);
-			}
-			return gives;
-		});
+		return typeAtPos(location, Actor.class)
+				.filter(e -> e.canTake())
+				.anyMatch(e -> {
+					final boolean gives = e.getInventory().tryTakeItem(itemReference);
+					if(gives) {
+						message(itemReference.inventory.getOwner(),
+								String.format("%s gives %s to %s",
+										itemReference.inventory.getOwner().getName(),
+										itemReference.getName(),
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return gives;
+				});
 	}
 
 
@@ -1384,6 +1513,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		});
 	}
 
+	public String tryLook(final Point2D.Float dir) {
+		return entitiesAtPos(dir)
+				.filter(e -> Inspectable.class.isAssignableFrom(e.getClass()))
+				.filter(e -> !ChildEntity.class.isAssignableFrom(e.getClass()))
+				.map(e -> Inspectable.class.cast(e).inspect())
+				.reduce("", (a,b) -> a + "\n" + b);
+	}
 
 	/**
 	 * Deserialization helper

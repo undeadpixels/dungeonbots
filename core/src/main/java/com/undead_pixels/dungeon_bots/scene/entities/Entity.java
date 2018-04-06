@@ -15,6 +15,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -23,7 +24,7 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
 
 
 	/**
@@ -87,6 +88,14 @@ public abstract class Entity
 		}
 	}
 
+	public LuaSandbox createSandbox() {
+		sandbox = new LuaSandbox(this);
+		sandbox.addBindable("this", this);
+		sandbox.addBindable("world", world);
+		sandbox.addBindableClasses(LuaReflection.getItemClasses())
+				.addBindableClasses(LuaReflection.getEntityClasses());
+		return this.sandbox;
+	}
 
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
@@ -94,11 +103,7 @@ public abstract class Entity
 	@Override
 	public LuaSandbox getSandbox() {
 		if (sandbox == null) {
-			sandbox = new LuaSandbox(this);
-			this.sandbox.addBindable("this", this);
-			this.sandbox.addBindable("world", world);
-			this.sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-					.addBindableClasses(GetLuaFacade.getEntityClasses());
+			sandbox = createSandbox();
 		}
 		return sandbox;
 	}
@@ -107,6 +112,9 @@ public abstract class Entity
 	public void sandboxInit() {
 		if (this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
+			System.out.println("Running entity init for " + this);
+		} else {
+			System.out.println("Skipping entity init (script does not exist for "+this+")");
 		}
 	}
 

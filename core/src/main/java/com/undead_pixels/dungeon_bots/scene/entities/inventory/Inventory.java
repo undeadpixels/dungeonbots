@@ -40,9 +40,9 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	 */
 	private final int maxWeight = 100;
 
-	final Actor owner;
+	final Entity owner;
 
-	public Inventory(Actor owner, int maxSize) {
+	public Inventory(Entity owner, int maxSize) {
 		this.maxSize = maxSize;
 		inventory = new ItemReference[maxSize];
 		this.owner = owner;
@@ -159,6 +159,8 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
+					
+					owner.getSandbox().fireEvent("ITEM_GIVEN", inventory[i].getLuaValue());
 					return true;
 				}
 			}
@@ -296,7 +298,7 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 		return ItemChest.LOCKED_TEXTURE.toImage();
 	}
 
-	public Actor getOwner() {
+	public Entity getOwner() {
 		return owner;
 	}
 }

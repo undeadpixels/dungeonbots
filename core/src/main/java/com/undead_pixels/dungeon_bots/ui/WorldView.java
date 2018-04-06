@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.math.Cartesian;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.World.StringEventType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
@@ -17,12 +18,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 /**
  * The screen for the regular game
@@ -47,7 +54,6 @@ public class WorldView extends JComponent {
 	private boolean isPlaying = false;
 	private final Timer timer;
 	private final Consumer<World> winAction;
-
 
 	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
@@ -92,30 +98,83 @@ public class WorldView extends JComponent {
 
 		this.setFocusable(true);
 		this.requestFocusInWindow();
-
-		this.addComponentListener(new ComponentListener() {
-
-			@Override
-			public void componentResized(ComponentEvent e) {
+		
+		this.addHierarchyListener(new HierarchyListener() {
+			public void hierarchyChanged(HierarchyEvent e) {
+				if((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+					if(WorldView.this.isShowing()) {
+						WorldView.this.requestFocusInWindow();
+						timer.start();
+					} else {
+						timer.stop();
+					}
+				}
 			}
-
-
-			@Override
-			public void componentMoved(ComponentEvent e) {
-			}
-
+		});
+		this.addAncestorListener(new AncestorListener() {
 
 			@Override
-			public void componentShown(ComponentEvent e) {
+			public void ancestorAdded (AncestorEvent event) {
 				timer.start();
 			}
 
-
 			@Override
-			public void componentHidden(ComponentEvent e) {
+			public void ancestorRemoved (AncestorEvent event) {
 				timer.stop();
+				System.out.println(requestFocusInWindow());
 			}
 
+			@Override
+			public void ancestorMoved (AncestorEvent event) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+
+		this.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped (KeyEvent e) {
+			}
+			
+			String lookupKeycode(KeyEvent e) {
+
+				switch(e.getKeyCode()) {
+					case KeyEvent.VK_UP:
+						return "up";
+					case KeyEvent.VK_DOWN:
+						return "down";
+					case KeyEvent.VK_LEFT:
+						return "left";
+					case KeyEvent.VK_RIGHT:
+						return "right";
+					default:
+						char c = e.getKeyChar();
+						if(c == KeyEvent.CHAR_UNDEFINED) {
+							return null;
+						} else {
+							return ""+c;
+						}
+				}
+			}
+
+			@Override
+			public void keyPressed (KeyEvent e) {
+				String key = lookupKeycode(e);
+				if(key != null) {
+					world.fire(StringEventType.KEY_PRESSED, key);
+				}
+			}
+
+			@Override
+			public void keyReleased (KeyEvent e) {
+				String key = lookupKeycode(e);
+				if(key != null) {
+					world.fire(StringEventType.KEY_RELEASED, key);
+				}
+			}
+			
 		});
 	}
 
@@ -170,7 +229,7 @@ public class WorldView extends JComponent {
 			renderSelectedTiles(g2d, batch);
 			renderSelectedEntities(g2d, batch);
 			if (renderingTool != null)
-				renderingTool.render(g2d);
+				renderingTool.render(g2d, batch);
 
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();

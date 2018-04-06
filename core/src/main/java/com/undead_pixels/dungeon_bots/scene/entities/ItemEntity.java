@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
@@ -9,6 +10,8 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Diamond;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gem;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -26,11 +29,36 @@ public class ItemEntity extends Actor implements HasInventory {
 		super(world, name, tex, new UserScriptCollection());
 		this.inventory.addItem(item);
 		this.sprite.setPosition(x, y);
+		
+		this.getScripts().add(new UserScript("init", "\n"
+				+ "registerEnterListener(function(e)\n"
+				+ "  e.grab()\n"
+				+ "end)"));
+	}
+
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("ITEM_GIVEN");
+		sandbox.registerEventType("ENTER");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+			if(e.getPosition().distance(this.getPosition()) < .1) {
+				getSandbox().fireEvent("ENTER", e.getLuaValue());
+			}
+		}); 
+		
+		return sandbox;
 	}
 
 	@Override
 	public boolean isSolid() {
 		return false;
+	}
+	
+	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
 	}
 
 	public Item getItem() {
@@ -117,5 +145,13 @@ public class ItemEntity extends Actor implements HasInventory {
 	@Bind(value = SecurityLevel.ENTITY, doc = "Get the ItemEntity's inventory")
 	public Inventory getInventory() {
 		return inventory;
+	}
+
+	@Override
+	public String inspect() {
+		return String.format(
+				"%s %s",
+				getItem().getName(),
+				getItem().getDescription());
 	}
 }
