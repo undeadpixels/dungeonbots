@@ -183,19 +183,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	// ====== Events and stuff
 	// =============================================
 
-	private static interface EventType { }
-	public static enum EntityEventType implements EventType {
-		ENTITY_ADDED,
-		ENTITY_REMOVED,
-		ENTITY_MOVED
+
+	private static interface EventType {
 	}
+
+
+	public static enum EntityEventType implements EventType {
+		ENTITY_ADDED, ENTITY_REMOVED, ENTITY_MOVED
+	}
+
+
 	public static enum WorldEventType implements EventType {
 		WIN
 	}
+
+
 	public static enum StringEventType implements EventType {
-		KEY_PRESSED,
-		KEY_RELEASED
+		KEY_PRESSED, KEY_RELEASED
 	}
+
+
 	private transient WorldEvent<World> winEvent;
 	private transient WorldEvent<Entity> entityAddedEvent;
 	private transient WorldEvent<Entity> entityRemovedEvent;
@@ -203,72 +210,93 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private transient WorldEvent<String> keyPressedEvent;
 	private transient WorldEvent<String> keyReleasedEvent;
 
+
 	private WorldEvent<Entity> getEntityEvent(EntityEventType t) {
-		switch(t) {
-			case ENTITY_ADDED:
-				if(entityAddedEvent == null) entityAddedEvent = new WorldEvent<>();
-				return entityAddedEvent;
-			case ENTITY_REMOVED:
-				if(entityRemovedEvent == null) entityRemovedEvent = new WorldEvent<>();
-				return entityRemovedEvent;
-			case ENTITY_MOVED:
-				if(entityMovedEvent == null) entityMovedEvent = new WorldEvent<>();
-				return entityMovedEvent;
+		switch (t) {
+		case ENTITY_ADDED:
+			if (entityAddedEvent == null)
+				entityAddedEvent = new WorldEvent<>();
+			return entityAddedEvent;
+		case ENTITY_REMOVED:
+			if (entityRemovedEvent == null)
+				entityRemovedEvent = new WorldEvent<>();
+			return entityRemovedEvent;
+		case ENTITY_MOVED:
+			if (entityMovedEvent == null)
+				entityMovedEvent = new WorldEvent<>();
+			return entityMovedEvent;
 		}
 		return null;
 	}
+
+
 	private WorldEvent<World> getWorldEvent(WorldEventType t) {
-		switch(t) {
-			case WIN:
-				if(winEvent == null) winEvent = new WorldEvent<>();
-				return winEvent;
+		switch (t) {
+		case WIN:
+			if (winEvent == null)
+				winEvent = new WorldEvent<>();
+			return winEvent;
 		}
 		return null;
 	}
+
+
 	private WorldEvent<String> getStringEvent(StringEventType t) {
-		switch(t) {
-			case KEY_PRESSED:
-				if(keyPressedEvent == null) keyPressedEvent = new WorldEvent<>();
-				return keyPressedEvent;
-			case KEY_RELEASED:
-				if(keyReleasedEvent == null) keyReleasedEvent = new WorldEvent<>();
-				return keyReleasedEvent;
+		switch (t) {
+		case KEY_PRESSED:
+			if (keyPressedEvent == null)
+				keyPressedEvent = new WorldEvent<>();
+			return keyPressedEvent;
+		case KEY_RELEASED:
+			if (keyReleasedEvent == null)
+				keyReleasedEvent = new WorldEvent<>();
+			return keyReleasedEvent;
 		}
 		return null;
 	}
+
 
 	public void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
 		WorldEvent<Entity> ev = getEntityEvent(t);
 		ev.addListener(owner, func);
 	}
+
+
 	public void fire(EntityEventType t, Entity e) {
 		WorldEvent<Entity> ev = getEntityEvent(t);
 		ev.fire(e);
 	}
 
+
 	public void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.addListener(owner, func);
 	}
+
+
 	public void fire(WorldEventType t, World w) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.fire(w);
 	}
 
+
 	public void listenTo(StringEventType t, Object owner, Consumer<String> func) {
 		WorldEvent<String> ev = getStringEvent(t);
 		ev.addListener(owner, func);
 	}
+
+
 	public void fire(StringEventType t, String s) {
 		WorldEvent<String> ev = getStringEvent(t);
 		ev.fire(s);
 	}
 
+
 	public void removeEventListenersByOwner(Object owner) {
-		for(EntityEventType t : EntityEventType.values()) {
+		for (EntityEventType t : EntityEventType.values()) {
 			getEntityEvent(t).removeListenerFamily(owner);
 		}
-		for(WorldEventType t : WorldEventType.values()) {
+		for (WorldEventType t : WorldEventType.values()) {
 			getWorldEvent(t).removeListenerFamily(owner);
 		}
 	}
@@ -369,14 +397,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * Perform some initializations that need to be done upon deserialization
 	 */
 	public void runInitScripts() {
-		if(!didInit) {
+		if (!didInit) {
 			System.out.println("Init'ing world");
 			LuaInvocation initScript = getSandbox().init().join(2000);
 
 			assert initScript.getStatus() == ScriptStatus.COMPLETE;
 
 			for (Entity e : entities) {
-				System.out.println("init: "+e);
+				System.out.println("init: " + e);
 				e.sandboxInit();
 			}
 			this.didInit = true;
@@ -700,37 +728,20 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *            the height, in tiles
 	 */
 	public void setSize(int w, int h) {
-		setSize(w,h,0,0);
-		/*
-		Tile[][] oldTiles = tiles;
-		tiles = new Tile[w][h];
-
-		int copyW = Math.min(w, oldTiles.length);
-		int copyH = Math.min(h, oldTiles.length == 0 ? 0 : oldTiles[0].length);
-
-		for (int i = 0; i < h; i++) {
-			for (int j = 0; j < w; j++) {
-				if (j < copyW && i < copyH) {
-					tiles[j][i] = oldTiles[j][i];
-				} else {
-					tiles[j][i] = new Tile(this, null, j, i);
-				}
-			}
-		}
-
-		ArrayList<Entity> displaced = new ArrayList<Entity>();
-		for (Entity e : entities) {
-			Tile t = this.getTile(e.getPosition());
-			if (e.isSolid()) {
-				if (t == null) {
-					displaced.add(e);
-				} else {
-					t.setOccupiedBy(e);
-				}
-			}
-		}
-		entities.removeAll(displaced);
-		*/
+		setSize(w, h, 0, 0);
+		/* Tile[][] oldTiles = tiles; tiles = new Tile[w][h];
+		 * 
+		 * int copyW = Math.min(w, oldTiles.length); int copyH = Math.min(h,
+		 * oldTiles.length == 0 ? 0 : oldTiles[0].length);
+		 * 
+		 * for (int i = 0; i < h; i++) { for (int j = 0; j < w; j++) { if (j <
+		 * copyW && i < copyH) { tiles[j][i] = oldTiles[j][i]; } else {
+		 * tiles[j][i] = new Tile(this, null, j, i); } } }
+		 * 
+		 * ArrayList<Entity> displaced = new ArrayList<Entity>(); for (Entity e
+		 * : entities) { Tile t = this.getTile(e.getPosition()); if
+		 * (e.isSolid()) { if (t == null) { displaced.add(e); } else {
+		 * t.setOccupiedBy(e); } } } entities.removeAll(displaced); */
 	}
 
 
@@ -744,19 +755,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (int y = 0; y < h; y++)
 				newTiles[x][y] = new Tile(this, null, x, y);
 		Rectangle newRect = new Rectangle(offsetX, offsetY, w, h);
+
+		// Move tiles from the intersecting rectangle.
 		Rectangle interRect = oldRect.intersection(newRect);
 		for (int x = 0; x < interRect.width; x++) {
 			int interX = x + interRect.x;
 			for (int y = 0; y < interRect.height; y++) {
 				int interY = y + interRect.y;
 				Tile t = tiles[interX][interY];
-				t.setPosition(x, y);
-				newTiles[x][y] = t;
+				int newX = (offsetX < 0 ? x - offsetX : x), newY = (offsetY < 0 ? y - offsetY : y);				
+				t.setPosition(newX, newY);
+				newTiles[newX][newY] = t;
 				Entity e = t.getOccupiedBy();
 				if (e == null)
 					continue;
-				Point2D.Float ePos = e.getPosition();
-				e.setPosition(ePos.x - interX, ePos.y - interY);
+				//Point2D.Float ePos = e.getPosition();
+				e.setPosition(newX, newY);
 			}
 		}
 		tiles = newTiles;
@@ -765,8 +779,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	}
-	
-	
+
+
 	/**
 	 * @return The size of this world, in tiles
 	 */
@@ -1056,15 +1070,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		if (tiles[x][y].isOccupied()) {
 			Entity o = tiles[x][y].getOccupiedBy();
-			if(o != null && o instanceof Pushable) {
-				((Pushable)o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
+			if (o != null && o instanceof Pushable) {
+				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
 			}
-			//System.out.println("Unable to move: tile occupied");
+			// System.out.println("Unable to move: tile occupied");
 			return false;
 		}
 
-		//System.out.println("Ok to move");
-		if(e.isSolid()) {
+		// System.out.println("Ok to move");
+		if (e.isSolid()) {
 			tiles[x][y].setOccupiedBy(e);
 		}
 
@@ -1424,21 +1438,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return True If any entity/ies successfully used the Item
 	 */
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
-		return entitiesAtPos(location)
-				.anyMatch(e -> {
-					final boolean used = e.useItem(itemReference);
-					final Entity owner = itemReference.inventory.getOwner();
-					final String name = itemReference.getName();
-					if(used) {
-						message(owner,
-								String.format("%s used %s on %s",
-										owner.getName(),
-										name,
-										e.getName()),
-								LoggingLevel.GENERAL);
-					}
-					return used;
-				});
+		return entitiesAtPos(location).anyMatch(e -> {
+			final boolean used = e.useItem(itemReference);
+			final Entity owner = itemReference.inventory.getOwner();
+			final String name = itemReference.getName();
+			if (used) {
+				message(owner, String.format("%s used %s on %s", owner.getName(), name, e.getName()),
+						LoggingLevel.GENERAL);
+			}
+			return used;
+		});
 	}
 
 
@@ -1448,15 +1457,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryUse(final Actor src, final Point2D.Float location) {
-		return entitiesAtPos(location)
-				.filter(e -> Useable.class.isAssignableFrom(e.getClass()))
-				.anyMatch(e -> {
-					final boolean used = Useable.class.cast(e).use();
-					if (used) {
-						message(src, String.format("%s used %s", src.getName(), e.getName()), LoggingLevel.GENERAL);
-					}
-					return used;
-				});
+		return entitiesAtPos(location).filter(e -> Useable.class.isAssignableFrom(e.getClass())).anyMatch(e -> {
+			final boolean used = Useable.class.cast(e).use();
+			if (used) {
+				message(src, String.format("%s used %s", src.getName(), e.getName()), LoggingLevel.GENERAL);
+			}
+			return used;
+		});
 	}
 
 
@@ -1467,20 +1474,16 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @return
 	 */
 	public Boolean tryGive(final ItemReference itemReference, final Point2D.Float location) {
-		return typeAtPos(location, Actor.class)
-				.filter(e -> e.canTake())
-				.anyMatch(e -> {
-					final boolean gives = e.getInventory().tryTakeItem(itemReference);
-					if(gives) {
-						message(itemReference.inventory.getOwner(),
-								String.format("%s gives %s to %s",
-										itemReference.inventory.getOwner().getName(),
-										itemReference.getName(),
-										e.getClass().getSimpleName()),
-								LoggingLevel.GENERAL);
-					}
-					return gives;
-				});
+		return typeAtPos(location, Actor.class).filter(e -> e.canTake()).anyMatch(e -> {
+			final boolean gives = e.getInventory().tryTakeItem(itemReference);
+			if (gives) {
+				message(itemReference.inventory.getOwner(),
+						String.format("%s gives %s to %s", itemReference.inventory.getOwner().getName(),
+								itemReference.getName(), e.getClass().getSimpleName()),
+						LoggingLevel.GENERAL);
+			}
+			return gives;
+		});
 	}
 
 
@@ -1513,13 +1516,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		});
 	}
 
+
 	public String tryLook(final Point2D.Float dir) {
-		return entitiesAtPos(dir)
-				.filter(e -> Inspectable.class.isAssignableFrom(e.getClass()))
+		return entitiesAtPos(dir).filter(e -> Inspectable.class.isAssignableFrom(e.getClass()))
 				.filter(e -> !ChildEntity.class.isAssignableFrom(e.getClass()))
-				.map(e -> Inspectable.class.cast(e).inspect())
-				.reduce("", (a,b) -> a + "\n" + b);
+				.map(e -> Inspectable.class.cast(e).inspect()).reduce("", (a, b) -> a + "\n" + b);
 	}
+
 
 	/**
 	 * Deserialization helper

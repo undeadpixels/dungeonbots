@@ -219,6 +219,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private static final float ZOOM_INCREMENT = 1f / 64f;
 
 		private final WorldView view;
+		private ViewPreset[] presets = new ViewPreset[10];
 
 		// Temp state variables to allow grab-and-move
 		private Point2D.Float gameCenterOrigin = null;
@@ -242,22 +243,44 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			return MIN_ZOOM_SCALAR / aspect;
 		}
 
-/**Returns the maximum zoom value for this control, which is a constant value.*/
+
+		/**Returns the maximum zoom value for this control, which is a constant value.*/
 		public float getMaxZoom() {
 			return MAX_ZOOM;
 		}
 
 
+		/**Sets a preset as indicated.*/
+		public void setPreset(int index, float zoom, Point2D.Float center) {
+			if (presets[index] == null)
+				presets[index] = new ViewPreset(zoom, center);
+			else {
+				presets[index].zoom = zoom;
+				presets[index].center = center;
+			}
+		}
+
+
+		/**Applies the preset at the given index to the view.*/
+		public void applyPreset(int index) {
+			if (presets[index] != null)
+				presets[index].apply(this);
+		}
+
+
+		/**Adds a listener for changes in the view.*/
 		public void addViewChangedListener(ViewChangedListener l) {
 			_ViewChangedListeners.add(l);
 		}
 
 
+		/**Removes a listener for changes in the view.*/
 		public void removeViewChangedListener(ViewChangedListener l) {
 			_ViewChangedListeners.remove(l);
 		}
 
 
+		/**Fires the view changed event.*/
 		public void fireViewChanged(float priorZoom, Point2D.Float priorPosition, float newZoom,
 				Point2D.Float newPosition) {
 			if (_ViewChangedListeners.size() == 0)
@@ -305,7 +328,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseDragged(MouseEvent e) {
 			if (screenOrigin == null)
 				return;
-
+			if (screenCurrent != null && screenCurrent.x == e.getX() && screenCurrent.y == e.getY())
+				return;
 			screenCurrent = new Point(e.getX(), e.getY());
 			Point2D.Float gameWorldA = view.getScreenToGameCoords(screenOrigin.x, screenOrigin.y);
 			Point2D.Float gameWorldB = view.getScreenToGameCoords(screenCurrent.x, screenCurrent.y);
@@ -353,6 +377,34 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+		void setZoomAndCenter(float zoom, Point2D.Float center) {
+			float priorZoom = view.getCamera().getZoom();
+			Point2D.Float priorCenter = view.getCamera().getPosition();
+			view.getCamera().setZoom(zoom);
+			view.getCamera().setPosition(center.x, center.y);
+			this.fireViewChanged(priorZoom, priorCenter, zoom, center);
+		}
+
+
+		/**Embodies view state for a quick return to that view.*/
+		public static final class ViewPreset {
+
+			public float zoom;
+			public Point2D.Float center;
+
+
+			public ViewPreset(float zoom, Point2D.Float center) {
+				this.zoom = zoom;
+				this.center = center;
+			}
+
+
+			public void apply(ViewControl control) {
+				control.setZoomAndCenter(zoom, center);
+			}
+		}
+
+
 		public abstract static class ViewChangedListener implements EventListener {
 
 			public abstract void viewChanged(ViewChangedEvent e);
@@ -360,7 +412,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@SuppressWarnings("serial")
-		public static class ViewChangedEvent extends AWTEvent {
+		public static final class ViewChangedEvent extends AWTEvent {
 
 			public static final int POSITION_CHANGED = 1;
 			public static final int ZOOM_CHANGED = 2;

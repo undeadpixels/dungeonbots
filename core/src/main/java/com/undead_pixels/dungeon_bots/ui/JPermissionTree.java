@@ -426,7 +426,7 @@ public class JPermissionTree extends JTree {
 		@Override
 		public String toString() {
 			String str = (type == null || type.equals("")) ? "" : type + ":";
-			str += label + "   " + level.toString();
+			str += label + "   " + (level != null ?  level.toString() : "<null>");
 			str += (info == null || info.equals("") ? "<no info>" : info.substring(0, Math.min(10, info.length())));
 			return str;
 		}
