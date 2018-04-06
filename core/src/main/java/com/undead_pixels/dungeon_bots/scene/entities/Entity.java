@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -21,7 +22,7 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam , Inspectable {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
 
 	/**
 	 * 
@@ -88,11 +89,11 @@ public abstract class Entity
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-				.addBindableClasses(GetLuaFacade.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getItemClasses())
+				.addBindableClasses(LuaReflection.getEntityClasses());
 		return this.sandbox;
 	}
-	
+
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
 	 */

@@ -103,4 +103,8 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite.getTexture().toImage();
 	}
 
+	public Sprite getSprite() {
+		return sprite;
+	}
+
 }

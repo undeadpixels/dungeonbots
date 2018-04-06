@@ -169,8 +169,8 @@ public class Tile implements HasImage, BatchRenderable, GetLuaFacade, Serializab
 		return new Point2D.Float(x, y);
 	}
 	/**
-	 * @param i
-	 * @param j
+	 * @param x
+	 * @param y
 	 */
 	public void setPosition (int x, int y) {
 		this.x = x;
