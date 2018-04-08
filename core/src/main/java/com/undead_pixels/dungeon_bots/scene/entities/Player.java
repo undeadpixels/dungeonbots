@@ -36,9 +36,6 @@ public class Player extends RpgActor {
 	
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1);
 
-	@Deprecated
-	protected String defaultCode;
-
 	/**
 	 * Constructor
 	 * @param world The world this player belongs to
@@ -53,7 +50,18 @@ public class Player extends RpgActor {
 	 */
 	private static UserScriptCollection makePlayerScript () {
 		UserScriptCollection ret = new UserScriptCollection();
-		ret.add(new UserScript("init", "--TODO")); // TODO
+		ret.add(new UserScript("init", "registerKeyPressedListener(function(k)\n"
+				+ "  if k==\"up\" then this:up() end\n"
+				+ "  if k==\"down\" then this:down() end\n"
+				+ "  if k==\"left\" then this:left() end\n"
+				+ "  if k==\"right\" then this:right() end\n"
+				+ "  \n"
+				+ "  if k==\"w\" then this:up() end\n"
+				+ "  if k==\"s\" then this:down() end\n"
+				+ "  if k==\"a\" then this:left() end\n"
+				+ "  if k==\"d\" then this:right() end\n"
+				+ "end)\n"
+				+ "print(\"registered\")")); // TODO
 		return ret;
 	}
 
@@ -81,13 +89,19 @@ public class Player extends RpgActor {
 		return p;
 	}
 
-	@Bind(SecurityLevel.AUTHOR)
-	public void setDefaultCode(LuaValue df) {
-		defaultCode = df.tojstring();
-	}
-
-	public String getDefaultCode() {
-		return defaultCode != null ? defaultCode : "";
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("KEY_PRESSED");
+		sandbox.registerEventType("KEY_RELEASED");
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
+		});
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+		});
+	
+		return sandbox;
 	}
 
 	public void setPosition(Point2D.Float v) {
@@ -116,4 +130,8 @@ public class Player extends RpgActor {
 		return ret;
 	}
 
+	@Override
+	public String inspect() {
+		return "Player";
+	}
 }

@@ -25,4 +25,8 @@ public class HealthBar extends ChildEntity {
 		return 100;
 	}
 
+	@Override
+	public String inspect() {
+		return "Some kind of mystical health bar?";
+	}
 }
