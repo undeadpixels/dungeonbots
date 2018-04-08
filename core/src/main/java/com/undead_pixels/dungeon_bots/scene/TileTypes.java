@@ -174,4 +174,8 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	public Iterator<TileType> iterator() {
 		return typeMap.values().iterator();
 	}
+	
+	public TileType[] toArray(){
+		return typeMap.values().toArray(new TileType[typeMap.values().size()]);
+	}
 }

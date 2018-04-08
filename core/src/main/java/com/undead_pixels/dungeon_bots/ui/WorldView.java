@@ -55,6 +55,8 @@ public class WorldView extends JComponent {
 	private final Timer timer;
 	private final Consumer<World> winAction;
 
+
+
 	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
 		this.winAction = winAction;
@@ -127,9 +129,9 @@ public class WorldView extends JComponent {
 			@Override
 			public void ancestorMoved (AncestorEvent event) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 		});
 
 		this.addKeyListener(new KeyListener() {
@@ -137,7 +139,7 @@ public class WorldView extends JComponent {
 			@Override
 			public void keyTyped (KeyEvent e) {
 			}
-			
+
 			String lookupKeycode(KeyEvent e) {
 
 				switch(e.getKeyCode()) {
@@ -270,9 +272,22 @@ public class WorldView extends JComponent {
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
-		
+
 		setPlaying(world.isPlayOnStart());
 	}
+
+
+	/**Returns whether the grid is being displayed.*/
+	public boolean getShowGrid() {
+		return this.showGrid;
+	}
+
+
+	/**Sets whether to display the grid.*/
+	public void setShowGrid(boolean value) {
+		this.showGrid = value;
+	}
+
 
 	// ==================================================
 	// ======= WorldView SELECTION STUFF ================
@@ -399,6 +414,10 @@ public class WorldView extends JComponent {
 		if(isPlaying) {
 			world.runInitScripts();
 		}
+	}
+	/**Returns whether this WorldView is current playing.*/
+	public boolean getPlaying(){
+		return this.isPlaying;
 	}
 
 }

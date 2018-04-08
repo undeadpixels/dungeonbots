@@ -15,7 +15,7 @@ public class JCodeREPLTest {
 	public void testExecution() {
 		LuaSandbox luaSandbox = new LuaSandbox();
 		JCodeREPL editor = new JCodeREPL(luaSandbox);
-		editor.setCode("x = 2 + 1; return x;");
+		editor.setCode("x = 2 + 1;\nreturn x;");
 		assertFalse("Before execution, editor messages should not contain 3", editor.getMessages().contains("3"));
 
 		editor.execute().join(500);
@@ -27,7 +27,7 @@ public class JCodeREPLTest {
 		luaSandbox.getQueue().update(0.0f);
 		String message = editor.getMessages();
 		System.out.println("Message = "+message);
-		assertTrue("After execution, editor messages should contain 3", message.contains("3"));
+		assertTrue(String.format("Message %s does not contain 3", message), message.contains("3"));
 
 	}
 

@@ -22,15 +22,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -40,9 +40,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -52,7 +54,6 @@ import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import org.jdesktop.swingx.HorizontalLayout;
-import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
@@ -62,6 +63,8 @@ import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
@@ -76,6 +79,16 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
  */
 public final class LevelEditorScreen extends Screen {
 
+	private static final int ICON_WIDTH = 30;
+	private static final int ICON_HEIGHT = 30;
+	private static final String COMMAND_SAVE_TO_LEVELPACK = "SAVE_TO_LEVELPACK";
+	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
+	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
+
+	// Defined by Swing, don't change this:
+	private static final String COMMAND_COMBOBOX_CHANGED = "comboBoxChanged";
+
+
 	/**
 	 * 
 	 */
@@ -89,15 +102,19 @@ public final class LevelEditorScreen extends Screen {
 	private Tool.TilePen _TilePen;
 	private Tool.EntityPlacer _EntityPlacer;
 	private Tool.ViewControl _ViewControl;
+	private JComponent _ToolScroller;
+	private JComponent _TileScroller;
+	private JComponent _EntityScroller;
+	private JToolBar _ToolBar;
 
 
 	public LevelEditorScreen(LevelPack levelPack) {
 		super(levelPack);
 	}
 
+
 	public LevelEditorScreen() {
-		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(),
-				new World()));
+		super(new LevelPack("My Level Pack", DungeonBotsMain.instance.getUser(), new World()));
 	}
 
 
@@ -107,28 +124,34 @@ public final class LevelEditorScreen extends Screen {
 	}
 
 
+	private final EntityType[] entityTypes = createEntityTypes();
+
+
 	/** Creates all the entity types available in this Level Editor. */
-	public ArrayList<EntityType> createEntityTypes() {
+	public EntityType[] createEntityTypes() {
 		ArrayList<EntityType> result = new ArrayList<EntityType>();
 
 		// TODO - some of the names produced by lambdas might need to be changed
 		// later
 
-		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), (x, y) -> {
-			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x,
-					y);
-		}));
-		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), (x, y) -> {
-			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x,
-					y);
-		}));
-		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), (x, y) -> {
-			// TODO - create new actual entity class
-			return new DeletemeEntity(world, AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x,
-					y);
-		}));
+		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1),
+				(x, y) -> {
+					// TODO - create new actual entity class
+					return new DeletemeEntity(world,
+							AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
+				}));
+		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3),
+				(x, y) -> {
+					// TODO - create new actual entity class
+					return new DeletemeEntity(world,
+							AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x, y);
+				}));
+		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4),
+				(x, y) -> {
+					// TODO - create new actual entity class
+					return new DeletemeEntity(world,
+							AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
+				}));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
 			return ItemEntity.key(world, x, y);
@@ -161,11 +184,34 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("gem", ItemEntity.GEM_TEXTURE, (x, y) -> {
 			return ItemEntity.gem(world, x, y);
 		}));
-		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x,y) -> {
+		result.add(new EntityType("diamond", ItemEntity.DIAMOND_TEXTURE, (x, y) -> {
 			return ItemEntity.diamond(world, x, y);
 		}));
+		return result.toArray(new EntityType[result.size()]);
+	}
 
-		return result;
+
+	/**Updates the GUI state based on the current tile, tile, and entity selections.*/
+	private void updateGUIState() {
+		if (_ToolBar == null)
+			return;
+
+		_ToolScroller.setVisible(true);
+
+		boolean hasTool = selections != null && selections.tool != null;
+		boolean entitiesVisible = hasTool && selections.tool instanceof Tool.EntityPlacer;
+		_EntityScroller.setVisible(entitiesVisible);
+
+		boolean tilesVisible = hasTool && selections.tool instanceof Tool.TilePen;
+		_TileScroller.setVisible(tilesVisible);
+		_ToolBar.revalidate();
+	}
+
+
+	private void saveWhitelist(HashMap<String, SecurityLevel> permissions) {
+		Whitelist whitelist = world.getWhitelist();
+		Undoable<?> u = whitelist.setAllLevels(permissions);
+		Tool.pushUndo(world, u);
 	}
 
 
@@ -180,9 +226,9 @@ public final class LevelEditorScreen extends Screen {
 		/** The list managing the selection of a tool. */
 		public JList<Tool> toolPalette;
 		/** The list managing the selection of a tile type. */
-		public JList<TileType> tilePalette;
+		// public JList<TileType> tilePalette;
 		/** The list managing the selection of an entity type. */
-		public JList<EntityType> entityPalette;
+		// public JList<EntityType> entityPalette;
 
 		// ===========================================================
 		// ======== LevelEditorScreen.Controller TOOL STUFF
@@ -192,57 +238,41 @@ public final class LevelEditorScreen extends Screen {
 		 * This stupid boolean is there just to flag a list's clearSelection()
 		 * call from in turn clearing other lists.
 		 */
-		private boolean _PropogateChange = true;
+		private transient boolean _PropogateChange = true;
+
+
+		@SuppressWarnings("unchecked")
+		private void tileSelectionChanged() {
+			if (_PropogateChange) {
+				_PropogateChange = false;
+				toolPalette.setSelectedValue(_TilePen, true);
+				_PropogateChange = true;
+			}
+			selections.tileType = (TileType) ((JComboBox<TileType>) _TileScroller).getSelectedItem();
+			updateGUIState();
+		}
+
+
+		@SuppressWarnings("unchecked")
+		private void entitySelectionChanged() {
+			if (_PropogateChange) {
+				_PropogateChange = false;
+				toolPalette.setSelectedValue(_EntityPlacer, true);
+				_PropogateChange = true;
+			}
+			selections.entityType = (EntityType) ((JComboBox<EntityType>) _EntityScroller).getSelectedItem();
+			updateGUIState();
+		}
 
 
 		/** Handle the palette list changes. */
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
-
-			if (e.getSource() instanceof JList) {
-
-				// The different lists are greedy - choosing a tool, or a
-				// tile, or an entity, means the other selections are not
-				// chosen.
-
-				// Handle clicking on the tool palette.
-				if (e.getSource() == toolPalette) {
-					if (_PropogateChange) {
-						_PropogateChange = false;
-						if (entityPalette != null)
-							entityPalette.clearSelection();
-						if (tilePalette != null)
-							tilePalette.clearSelection();
-						_PropogateChange = true;
-					}
-					selections.tool = toolPalette.getSelectedValue();
-				}
-				// Handle clicking on the tile palette.
-				else if (e.getSource() == tilePalette) {
-					if (_PropogateChange) {
-						_PropogateChange = false;
-						toolPalette.clearSelection();
-						entityPalette.clearSelection();
-						_PropogateChange = true;
-					}
-					if (tilePalette.getSelectedValue() != null)
-						selections.tileType = tilePalette.getSelectedValue();
-					toolPalette.setSelectedValue(_TilePen, true);
-				}
-				// Handle clicking on the entity palette.
-				else if (e.getSource() == entityPalette) {
-					if (_PropogateChange) {
-						_PropogateChange = false;
-						toolPalette.clearSelection();
-						tilePalette.clearSelection();
-						_PropogateChange = true;
-					}
-					if (entityPalette.getSelectedValue() != null)
-						selections.entityType = entityPalette.getSelectedValue();
-					toolPalette.setSelectedValue(_EntityPlacer, true);
-				}
-
+			if (e.getSource() == toolPalette) {
+				selections.tool = toolPalette.getSelectedValue();
+				updateGUIState();
 			}
+
 
 		}
 
@@ -259,21 +289,36 @@ public final class LevelEditorScreen extends Screen {
 		}
 
 
+		private String filename = "";
+
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
+
+
 			switch (e.getActionCommand()) {
 
+			case COMMAND_COMBOBOX_CHANGED:
+				if (e.getSource() == _EntityScroller) {
+					entitySelectionChanged();
+				} else if (e.getSource() == _TileScroller) {
+					tileSelectionChanged();
+				} else
+					assert false;// Sanity check
+				return;
 			case "UNDO":
 				Tool.undo(world);
-				break;
+				return;
 			case "REDO":
 				Tool.redo(world);
-				break;
-			case "Save to LevelPack":
-				File saveLevelPackFile = FileControl.saveAsDialog(LevelEditorScreen.this);
-				if (saveLevelPackFile == null)
+				return;
+			case COMMAND_SAVE_TO_LEVELPACK:
+				File sfd = new File(filename);
+				if (!sfd.exists())
+					sfd = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (sfd == null)
 					System.out.println("Save cancelled.");
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(saveLevelPackFile))) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(sfd))) {
 					String json = levelPack.toJson();
 					writer.write(json);
 					System.out.println("Save LevelPack complete.");
@@ -281,8 +326,17 @@ public final class LevelEditorScreen extends Screen {
 					ioex.printStackTrace();
 				}
 				return;
-			case "SaveAs to LevelPack":
-				System.err.println("Not implemented SaveAs.");
+			case COMMAND_SAVEAS_TO_LEVELPACK:
+				File safd = FileControl.saveAsDialog(LevelEditorScreen.this);
+				if (safd == null)
+					System.out.println("Save cancelled.");
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(safd))) {
+					String json = levelPack.toJson();
+					writer.write(json);
+					System.out.println("Save LevelPack complete.");
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
 				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
@@ -322,14 +376,17 @@ public final class LevelEditorScreen extends Screen {
 				return;
 
 			case "WORLD_SCRIPTS":
-				JWorldEditor.create(LevelEditorScreen.this, world, "Edit your world...", new Undoable.Listener() {
-
-					@Override
-					public void pushUndoable(Undoable<?> u) {
-						Tool.pushUndo(world, u);
-					}
-				});
+				JWorldEditor jwe = JWorldEditor.createDialog(LevelEditorScreen.this, world, "Edit your world...",
+						SecurityLevel.AUTHOR);
+				if (jwe != null)
+					jwe.setVisible(true);
 				return;
+			case COMMAND_PERMISSIONS:
+				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
+						(permissions, infos) -> saveWhitelist(permissions));
+				jpe.setItems(world.getWhitelist());
+				jpe.setVisible(true);
+				break;
 			case "delete":
 				Entity[] selectedEntities = _View.getSelectedEntities();
 				if (selectedEntities == null || selectedEntities.length == 0)
@@ -390,6 +447,7 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseClicked(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseClicked(e);
 		}
 
 
@@ -401,33 +459,43 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseDragged(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseDragged(e);
 		}
 
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseMoved(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseMoved(e);
 		}
 
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseEntered(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseEntered(e);
 		}
 
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseExited(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseExited(e);
 		}
 
 
@@ -435,10 +503,13 @@ public final class LevelEditorScreen extends Screen {
 		public void mousePressed(MouseEvent e) {
 			if (e.getSource() != _View)
 				return;
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mousePressed(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mousePressed(e);
 
 		}
 
@@ -451,15 +522,19 @@ public final class LevelEditorScreen extends Screen {
 				selections.tool.mouseReleased(e);
 			if (e.isConsumed())
 				return;
+			_ViewControl.mouseReleased(e);
 		}
 
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (e.getSource() != _View)
+				return;
 			if (selections.tool != null)
 				selections.tool.mouseWheelMoved(e);
-			;
-			/* if (_ViewControl != null) _ViewControl.mouseWheelMoved(e); */
+			if (e.isConsumed())
+				return;
+			_ViewControl.mouseWheelMoved(e);
 		}
 
 	}
@@ -476,17 +551,21 @@ public final class LevelEditorScreen extends Screen {
 				boolean isSelected, boolean cellHasFocus) {
 			JPanel pnl = new JPanel(new HorizontalLayout());
 			pnl.setOpaque(false);
-			JLabel lbl1 = UIBuilder.buildLabel()
-					.image(tileType.getTexture().toImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)).create();
-			JLabel lbl2 = UIBuilder.buildLabel().text(tileType.getName()).create();
-			lbl2.setFont(font);
+			if (tileType != null) {
+				JLabel lbl1 = UIBuilder.buildLabel().image(
+						tileType.getTexture().toImage().getScaledInstance(ICON_WIDTH, ICON_HEIGHT, Image.SCALE_SMOOTH))
+						.create();
+				JLabel lbl2 = UIBuilder.buildLabel().text(tileType.getName()).create();
+				lbl2.setFont(font);
+				pnl.add(lbl1);
+				pnl.add(lbl2);
+			}
+
 			if (isSelected || cellHasFocus)
 				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
-			// lbl2.setForeground(Color.red);
-			pnl.add(lbl1);
-			pnl.add(lbl2);
+
 			return pnl;
 		}
 	};
@@ -501,17 +580,21 @@ public final class LevelEditorScreen extends Screen {
 				int index, boolean isSelected, boolean cellHasFocus) {
 			JPanel pnl = new JPanel(new HorizontalLayout());
 			pnl.setOpaque(false);
-			JLabel lbl1 = UIBuilder.buildLabel()
-					.image(entityType.previewTexture.toImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH)).create();
-			JLabel lbl2 = UIBuilder.buildLabel().text(entityType.name).create();
-			lbl2.setFont(font);
+			if (entityType != null) {
+				JLabel lbl1 = UIBuilder.buildLabel().image(entityType.previewTexture.toImage()
+						.getScaledInstance(ICON_WIDTH, ICON_HEIGHT, Image.SCALE_SMOOTH)).create();
+				JLabel lbl2 = UIBuilder.buildLabel().text(entityType.name).create();
+				lbl2.setFont(font);
+				pnl.add(lbl1);
+				pnl.add(lbl2);
+			}
+
 			if (isSelected || cellHasFocus)
 				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
 			// lbl2.setForeground(Color.red);
-			pnl.add(lbl1);
-			pnl.add(lbl2);
+
 			return pnl;
 		}
 	};
@@ -525,7 +608,6 @@ public final class LevelEditorScreen extends Screen {
 			if (tool.image != null)
 				icon = new ImageIcon(tool.image);
 			JLabel lbl = new JLabel(icon);
-
 			lbl.setText(tool.name);
 			if (isSelected || cellHasFocus)
 				lbl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
@@ -533,7 +615,6 @@ public final class LevelEditorScreen extends Screen {
 				lbl.setBorder(new EmptyBorder(3, 3, 3, 3));
 			return lbl;
 		}
-
 	};
 
 
@@ -545,8 +626,9 @@ public final class LevelEditorScreen extends Screen {
 		pane.setLayout(new BorderLayout());
 
 		// Add the world at the bottom layer.
-		_View = new WorldView(world,
-				(w) -> {throw new RuntimeException("World cannot be won in level editor");} );
+		_View = new WorldView(world, (w) -> {
+			throw new RuntimeException("World cannot be won in level editor");
+		});
 		_ViewControl = new Tool.ViewControl(_View);
 		getController().registerSignalsFrom(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
@@ -571,49 +653,34 @@ public final class LevelEditorScreen extends Screen {
 		toolList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		toolList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		toolList.setVisibleRowCount(-1);
-		// JPanel toolCollapser = UIBuilder.makeCollapser(new
-		// JScrollPane(toolList), "Tools", "Tools", "", false);
-		JScrollPane toolScroller = new JScrollPane(toolList);
-		toolScroller.setPreferredSize(new Dimension(150, 150));
+		_ToolScroller = new JScrollPane(toolList);
+		_ToolScroller.setBorder(BorderFactory.createTitledBorder("Tools"));
 		// Set up the members of the tool list
 		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
-		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR, _ViewControl)
-				.setSelectsEntities(true).setSelectsTiles(true));
-		tm.addElement(_TilePen = new Tool.TilePen(_View, selections, _ViewControl));
-		tm.addElement(
-				_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR, _ViewControl));
+		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR).setSelectsEntities(true)
+				.setSelectsTiles(true));
+		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
+		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
 		toolList.setModel(tm);
-		toolList.setSelectedValue(selections.tool = _Selector, true);
+
 
 		// Create the tile palette GUI.
-		JList<TileType> tileTypeList = ((Controller) getController()).tilePalette = new JList<TileType>();
-		tileTypeList.setCellRenderer(_TileTypeItemRenderer);
-		tileTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane tileTypeScroller = new JScrollPane(tileTypeList);
-		tileTypeScroller.setPreferredSize(new Dimension(150, 250));
-		// Set up the tile list.
-		tileTypeList.addListSelectionListener((LevelEditorScreen.Controller) getController());
-		DefaultListModel<TileType> im = new DefaultListModel<TileType>();
-		for (TileType i : world.getTileTypes())
-			im.addElement(i);
-		tileTypeList.setModel(im);
+		JComboBox<TileType> cboxTile = new JComboBox<TileType>(world.getTileTypes().toArray());
+		cboxTile.setRenderer(_TileTypeItemRenderer);
+		cboxTile.addActionListener(getController());
+		_TileScroller = cboxTile;
+		_TileScroller.setBorder(BorderFactory.createTitledBorder("Tile Types"));
+		this.selections.tileType = (TileType) cboxTile.getSelectedItem();
+
 
 		// Create the entity palette GUI.
-		JList<EntityType> entityList = ((Controller) getController()).entityPalette = new JList<EntityType>();
-		entityList.setCellRenderer(_EntityItemRenderer);
-		entityList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane entityScroller = new JScrollPane(entityList);
-		entityScroller.setPreferredSize(new Dimension(150, 230));
-		// JPanel entitiesCollapser = UIBuilder.makeCollapser(new
-		// JScrollPane(entityList), "Entities", "Entities", "",
-		// false);
-		// Set up the entity list.
-		entityList.addListSelectionListener((LevelEditorScreen.Controller) getController());
-		DefaultListModel<EntityType> em = new DefaultListModel<EntityType>();
-		for (EntityType e : createEntityTypes())
-			em.addElement(e);
-		entityList.setModel(em);
+		JComboBox<EntityType> cboxEntity = new JComboBox<EntityType>(entityTypes);
+		cboxEntity.setRenderer(_EntityItemRenderer);
+		cboxEntity.addActionListener(getController());
+		_EntityScroller = cboxEntity;
+		_EntityScroller.setBorder(BorderFactory.createTitledBorder("Entities"));
+		this.selections.entityType = (EntityType) cboxEntity.getSelectedItem();
 
 
 		// Create the zoom slider.
@@ -623,28 +690,28 @@ public final class LevelEditorScreen extends Screen {
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		// Build the control panel.
-		JPanel controlPanel = new JPanel();
-		controlPanel.setFocusable(false);
-		controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
-		controlPanel.add(zoomSlider);
-		controlPanel.add(Box.createVerticalStrut(10));
-		controlPanel.add(new JLabel("Tools"));
-		controlPanel.add(toolScroller);
-		controlPanel.add(Box.createVerticalStrut(10));
-		controlPanel.add(new JLabel("Tile types"));
-		controlPanel.add(tileTypeScroller);
-		controlPanel.add(Box.createVerticalStrut(10));
-		controlPanel.add(new JLabel("Entity types"));
-		controlPanel.add(entityScroller);
+		_ToolBar = new JToolBar();
+		// toolBar.setLayout(new VerticalLayout());
+		_ToolBar.setOrientation(SwingConstants.VERTICAL);
+		_ToolBar.setFocusable(false);
+		_ToolBar.setFloatable(true);
+		_ToolBar.add(zoomSlider);
+		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController())
+				.border(BorderFactory.createRaisedSoftBevelBorder()).create());
+		_ToolBar.addSeparator();
+		_ToolBar.add(_ToolScroller);
+		_ToolBar.add(_TileScroller);
+		_ToolBar.add(_EntityScroller);
+		toolList.setSelectedValue(selections.tool = _Selector, true);
 
 
 		// Create the file menu
 		JMenu fileMenu = UIBuilder.buildMenu().mnemonic('f').prefWidth(60).text("File").create();
 		fileMenu.addSeparator();
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('s')
-				.text("Save").action("Save to LevelPack", getController()).create());
+				.text("Save").action(COMMAND_SAVE_TO_LEVELPACK, getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_S, ActionEvent.CTRL_MASK).mnemonic('a')
-				.text("Save As...").action("SaveAs to LevelPack", getController()).create());
+				.text("Save As...").action(COMMAND_SAVEAS_TO_LEVELPACK, getController()).create());
 		fileMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_O, ActionEvent.CTRL_MASK).mnemonic('o')
 				.text("Open").action("Open LevelPack", getController()).create());
 		fileMenu.addSeparator();
@@ -659,9 +726,11 @@ public final class LevelEditorScreen extends Screen {
 				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
 				.create());
+		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('p').text("Permissions")
+				.action(COMMAND_PERMISSIONS, getController()).create());
 
 		// Create the edit menu.
-		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(50).create();
+		JMenu editMenu = UIBuilder.buildMenu().mnemonic('e').text("Edit").prefWidth(60).create();
 		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK))
 				.text("Undo").action("UNDO", getController()).create());
 		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK))
@@ -687,12 +756,10 @@ public final class LevelEditorScreen extends Screen {
 		menuBar.add(publishMenu);
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
-		// TODO: is sticking a button in a menu bar apt to cause compatibility
-		// issues?
-		menuBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController()).create());
 
 		// Put together the entire page
-		pane.add(controlPanel, BorderLayout.LINE_START);
+		// pane.add(controlPanel, BorderLayout.LINE_START);
+		pane.add(_ToolBar, BorderLayout.LINE_START);
 		pane.add(_View, BorderLayout.CENTER);
 		menuBar.setPreferredSize(new Dimension(-1, 30));
 		this.setJMenuBar(menuBar);

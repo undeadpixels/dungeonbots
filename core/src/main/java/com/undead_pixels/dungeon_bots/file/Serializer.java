@@ -222,6 +222,8 @@ public class Serializer {
 		try {
 			return Files.readAllBytes(Paths.get(filename));
 		} catch (Exception e) {
+			System.err.println("Could not read from file: \"" + filename + "\" in user directory: " + System.getProperty("user.dir"));
+			//System.err.print("");
 			return null;
 		}
 	}

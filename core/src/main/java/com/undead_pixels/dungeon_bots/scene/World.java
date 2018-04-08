@@ -18,6 +18,13 @@ import javax.swing.*;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
+import com.undead_pixels.dungeon_bots.scene.entities.ChildEntity;
+import com.undead_pixels.dungeon_bots.scene.entities.Actor;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.FloatingText;
+import com.undead_pixels.dungeon_bots.scene.entities.Goal;
+import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
@@ -1119,22 +1126,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * Gets all Actors intersecting the given rectangle.
+	 * Gets all Entity objects intersecting the given rectangle.
 	 *
 	 * @return The list of intersecting entities. An entity is "intersecting" if
 	 *         any part of it would be within the given rectangle.
 	 */
-	public List<Actor> getActorsUnderLocation(Rectangle2D.Float rect) {
+	public List<Entity> getEntitiesUnderLocation(Rectangle2D.Float rect) {
 		ArrayList<Entity> existingEntities = entities;
-		ArrayList<Actor> result = new ArrayList<>();
+		ArrayList<Entity> result = new ArrayList<Entity>();
 
 		for (Entity e : existingEntities) {
-			if (!(e instanceof Actor))
+			if (e instanceof FloatingText)
 				continue;
 			Point2D.Float pt = e.getPosition();
 			Rectangle2D.Float rectEntity = new Rectangle2D.Float(pt.x, pt.y, 1f, 1f);
 			if (rectEntity.intersects(rect))
-				result.add((Actor) e);
+				result.add(e);
 		}
 
 		return result;
@@ -1626,5 +1633,30 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		synchronized (toRemove) {
 			toRemove.add(e);
 		}
+	}
+
+
+
+	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
+
+
+	/**Returns the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	public SecurityLevel getPermission(String name) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		SecurityLevel s = permissions.get(name);
+		if (s == null)
+			return SecurityLevel.NONE;
+		return s;
+	}
+
+
+	/**Sets the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	public void setSecurityLevel(String name, SecurityLevel level) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		permissions.put(name, level);
 	}
 }
