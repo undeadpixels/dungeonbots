@@ -77,13 +77,26 @@ public class GameplayScreen extends Screen {
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
 		world.onBecomingVisibleInGameplay();
-		world.registerMessageListener(new MessageListener() {
+		world.registerMessageListener((img, text, loglevel) -> {
+			message(img, text + "\n" , logLevelToColor(loglevel));
 
-			@Override
-			public void message(HasImage src, String message, LoggingLevel level) {
-				this.message(src, message, level);
-			}
 		});
+	}
+
+	private Color logLevelToColor(LoggingLevel ll) {
+		switch (ll) {
+			case GENERAL:
+				return Color.LIGHT_GRAY;
+			case QUEST:
+				return Color.GREEN;
+			case ERROR:
+				return Color.RED;
+			case INFO:
+				return Color.YELLOW;
+			case STDOUT:
+			default:
+				return Color.cyan;
+		}
 	}
 
 
@@ -215,7 +228,7 @@ public class GameplayScreen extends Screen {
 
 	/**Posts the given message to the message pane, with the given sender's icon.*/
 	public void message(HasImage sender, String text, Color color) {
-		_MessagePane.message(sender, text, color);
+		_MessagePane.message(sender, text, color, JMessagePane.MessageType.Debug);
 	}
 
 

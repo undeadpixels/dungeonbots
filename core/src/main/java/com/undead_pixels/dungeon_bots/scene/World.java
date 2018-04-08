@@ -1591,7 +1591,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		this.messageListener = messageListener;
 	}
 
-	public void message(HasImage src, String message, LoggingLevel level) {
+	public synchronized void message(HasImage src, String message, LoggingLevel level) {
 		if(messageListener != null) {
 			// Catch any and all exceptions that may be thrown when attempting to log information
 			try {
@@ -1601,7 +1601,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Logs a message with a Quest logging level")
+	@Bind(value = SecurityLevel.NONE, doc = "Logs a message with a Quest logging level")
 	public void logQuest(LuaValue message) {
 		message(this, message.checkjstring(), LoggingLevel.QUEST);
 	}

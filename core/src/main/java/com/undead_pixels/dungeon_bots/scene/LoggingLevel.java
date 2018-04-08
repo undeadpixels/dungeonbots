@@ -5,4 +5,5 @@ public enum LoggingLevel {
 	GENERAL,
 	QUEST,
 	ERROR,
+	INFO,
 }

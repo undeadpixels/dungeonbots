@@ -85,7 +85,7 @@ public final class JMessagePane extends JComponent {
 		result.messagePane = new JTextPane();
 		result.messagePane.setFocusable(false);
 		result.messagePane.setText("");
-		result.messagePane.setPreferredSize(new Dimension(250, -1));
+		result.messagePane.setPreferredSize(new Dimension(350, -1));
 		result.add(new JScrollPane(result.messagePane));
 		return result;
 	}
@@ -125,8 +125,8 @@ public final class JMessagePane extends JComponent {
 		StyledDocument doc = messagePane.getStyledDocument();
 		Style style = doc.addStyle(null, null);
 		Image img = sender.getImage().getScaledInstance(40, 40, Image.SCALE_FAST);
-		JLabel lbl = new JLabel(new ImageIcon(img));
-		messagePane.insertComponent(lbl);
+		//JLabel lbl = new JLabel(new ImageIcon(img));
+		// messagePane.insertIcon(new ImageIcon(img));
 
 		// Second, insert the text with the appropriate color.
 		StyleConstants.setForeground(style, color);
@@ -135,6 +135,7 @@ public final class JMessagePane extends JComponent {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
+		this.messagePane.setCaretPosition(this.messagePane.getDocument().getLength());
 	}
 
 	/**Insert an image, scaled to the given width and height.*/
@@ -157,6 +158,7 @@ public final class JMessagePane extends JComponent {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
+		this.messagePane.setCaretPosition(this.messagePane.getDocument().getLength());
 	}
 
 
