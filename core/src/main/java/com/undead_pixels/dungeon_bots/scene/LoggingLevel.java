@@ -3,8 +3,8 @@ package com.undead_pixels.dungeon_bots.scene;
 import java.awt.Color;
 
 public enum LoggingLevel {
-	STDOUT(1, Color.white),
-	GENERAL(2, Color.lightGray),
+	STDOUT(1, Color.lightGray),
+	GENERAL(2, Color.white),
 	QUEST(4, Color.green),
 	ERROR(8, Color.red);
 	

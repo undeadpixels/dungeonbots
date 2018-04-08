@@ -102,6 +102,7 @@ public final class JMessagePane extends JComponent {
 		Style style = doc.addStyle(null, null);
 		Image img = sender.getImage().getScaledInstance(40, 40, Image.SCALE_FAST);
 		JLabel lbl = new JLabel(new ImageIcon(img));
+		messagePane.select(doc.getLength(), doc.getLength());
 		messagePane.insertComponent(lbl);
 
 		// Second, insert the text with the appropriate color.
