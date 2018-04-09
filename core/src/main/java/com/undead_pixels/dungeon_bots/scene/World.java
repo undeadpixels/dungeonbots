@@ -1499,6 +1499,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.reduce(0, (a,b) -> a + b);
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Finds the first entity found with the specified name")
+	public Entity findEntity(LuaValue name) {
+		return entities.stream()
+				.filter(e -> e.getName().equals(name.checkjstring()))
+				.findFirst()
+				.orElse(null);
+	}
+
 	public boolean fillIfPit(int x, int y) {
 		if(tiles[x][y].getType().getName().equals("pit")) {
 			setTile(x,y, tileTypesCollection.getTile("fillpit"));

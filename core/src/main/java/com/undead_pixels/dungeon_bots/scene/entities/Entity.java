@@ -9,6 +9,8 @@ import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
@@ -58,7 +60,7 @@ public abstract class Entity
 	/**
 	 * A name for this entity that can potentially be user-facing
 	 */
-	protected final String name;
+	protected String name;
 
 	/**The instructions associated with an entity.  These are what is shown in 
 	 * the Entity Editor in the instruction pane.  The value can be null or any 
@@ -188,10 +190,17 @@ public abstract class Entity
 
 
 	/** Returns the name of this entity. */
+	@Bind(value = SecurityLevel.NONE,
+			doc = "Get the Name of the Entity in it's world")
 	public final String getName() {
 		return this.name;
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Set the Name of the Entity")
+	public final void setName(LuaValue name) {
+		this.name = name.checkjstring();
+	}
 
 	public abstract float getScale();
 
