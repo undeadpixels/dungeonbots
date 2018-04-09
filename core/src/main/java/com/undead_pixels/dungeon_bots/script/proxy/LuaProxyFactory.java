@@ -43,6 +43,9 @@ public class LuaProxyFactory {
 	public static <T extends GetLuaFacade> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
+		t.set("type", LuaValue.valueOf(Optional.ofNullable(src.getClass().getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(src.getClass().getSimpleName())));
 		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
 		src.getBindableMethods()
@@ -77,7 +80,12 @@ public class LuaProxyFactory {
 	 */
 	public static <T extends GetLuaFacade> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
+		final String name = Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(src.getSimpleName());
+
 		t.set("class", LuaValue.userdataOf(src));
+		t.set("name", LuaValue.valueOf(name));
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetLuaFacade.getBindableStaticMethods(src)
@@ -94,10 +102,7 @@ public class LuaProxyFactory {
 					}
 					catch (Exception e) { }
 				});
-		return new LuaBinding(
-				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
-						.map(BindTo::value)
-						.orElse(src.getSimpleName()), t);
+		return new LuaBinding(name, t);
 	}
 
 	private static Stream<Class<?>> getAllInterfaces(final Class<?> c) {

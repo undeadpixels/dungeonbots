@@ -23,13 +23,13 @@ public class GameGlobals {
 	 * @return A new LuaJ globals chunk
 	 */
 	public static Globals playerGlobals() {
-		return load(
+		return purify(load(
 				new JseBaseLib(),
 				new PackageLib(),
 				new Bit32Lib(),
 				new TableLib(),
 				new StringLib(),
-				new JseMathLib());
+				new JseMathLib()));
 	}
 
 	/**
@@ -38,14 +38,14 @@ public class GameGlobals {
 	 * @return A new LuaJ globals chunk
 	 */
 	public static Globals authorGlobals() {
-		return load(
+		return purify(load(
 				new JseBaseLib(),
 				new PackageLib(),
 				new StringLib(),
 				new JseMathLib(),
 				new TableLib(),
 				new Bit32Lib(),
-				new DebugLib());
+				new DebugLib()));
 	}
 
 	private static Globals load(LuaValue... args) {
@@ -54,6 +54,30 @@ public class GameGlobals {
 			g.load(v);
 		LoadState.install(g);
 		LuaC.install(g);
+		return g;
+	}
+
+	private static final String[] UNSAFE = {
+			"load",
+			"rawget",
+			"dofile",
+			"loadfile",
+			"pcall",
+			"rawset",
+			"xpcall",
+			"setmetatable",
+			"collectgarbage",
+			"error",
+			//"package",
+			"getmetatable"
+			//"_G",
+			//"bit32"
+	};
+
+	public static Globals purify(final Globals g) {
+		Stream.of(UNSAFE).forEach(unsafe -> {
+			g.set(unsafe, LuaValue.NIL);
+		});
 		return g;
 	}
 }
