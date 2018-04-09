@@ -10,13 +10,17 @@ import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -31,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -60,6 +65,7 @@ public class JPackDownloadDialog extends JDialog {
 	private Page currentPage;
 	private JTextPane errorPane;
 	private JPanel contentPnl;
+	private JLabel lblPage;
 
 
 	public JPackDownloadDialog(Window owner) {
@@ -84,12 +90,13 @@ public class JPackDownloadDialog extends JDialog {
 
 				JPanel textPnl = new JPanel(new VerticalLayout());
 				textPnl.add(new JLabel(pack.title));
-				textPnl.add(new JLabel(WEBSITE + pack.picture_link));
+				textPnl.add(new JLabel(pack.desc));
 				pnl.add(textPnl);
 				if (isSelected)
 					pnl.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
 				else
 					pnl.setBorder(new EmptyBorder(2, 2, 2, 2));
+				pnl.setPreferredSize(new Dimension(250, 50));
 				return pnl;
 			}
 		});
@@ -102,6 +109,7 @@ public class JPackDownloadDialog extends JDialog {
 		errorPane.setEditable(false);
 
 		contentPnl = new JPanel(new CardLayout());
+		contentPnl.setBorder(new EmptyBorder(10, 10, 10, 10));
 		contentPnl.add(errorPane, CARD_ERROR);
 		contentPnl.add(scroller, CARD_LIST);
 
@@ -120,6 +128,8 @@ public class JPackDownloadDialog extends JDialog {
 		bttnPnl.add(bttnLastPage = UIBuilder.buildButton().image("icons/resultset_last.png")
 				.toolTip("Go forward to last page.").action("LAST_PAGE", controller).create());
 
+
+		this.add(lblPage = new JLabel("PAGE LABEL"), BorderLayout.PAGE_START);
 		this.add(contentPnl, BorderLayout.CENTER);
 		this.add(bttnPnl, BorderLayout.PAGE_END);
 		this.pack();
@@ -138,38 +148,102 @@ public class JPackDownloadDialog extends JDialog {
 	private static final Gson gson = new Gson();
 
 
-	private static final String downloadPage(int number) {
-		return Serializer.readStringFromFile("website_api.json");
-		// https://dungeonbots.herokuapp.com/api/v1/packs?page=2
-		/*
-		try (Socket socket = new Socket("https://dungeonbots.herokuapp.com/api/v1/packs?page=" + number, 80);
-				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
-			StringBuilder sb = new StringBuilder();
-			String line;
-			while ((line = in.readLine()) != null)
-				sb.append(line + "\n");
-			String ret = sb.toString();
-			return ret;
-		} catch (Exception ex) {
+	private static final LevelPack downloadPack(Page.Pack stub) {
+
+		String url = WEBSITE + stub.file_link;
+		String json = downloadResource(WEBSITE + stub.file_link);
+		try {
+			LevelPack p = LevelPack.fromJson(json);
+			return p;
+		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
-		*/
 	}
 
 
-	public void setPage(int pageNum) {
-		int oldNum = (currentPage == null) ? -1 : currentPage.page;
-		if (pageNum == oldNum)
+	private static final String downloadPage(int number) {
+		// https://dungeonbots.herokuapp.com/api/v1/packs?page=2
+		return downloadResource("https://dungeonbots.herokuapp.com/api/v1/packs?page=" + number);
+	}
+
+
+	private static final String downloadResource(String address) {
+		URL url;
+		BufferedReader reader = null;
+		try {
+			url = new URL(address);
+			reader = new BufferedReader(new InputStreamReader(url.openStream()));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line);
+			}
+			String ret = sb.toString();
+			return ret;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			try {
+				reader.close();
+			} catch (Exception e) {
+				// Do nothing.
+			}
+		}
+	}
+
+
+	public void setPage(Integer pageNum) {
+		if (fetching)
 			return;
+		else if (pageNum < 1)
+			return;
+		else if (currentPage != null && pageNum > currentPage.pages)
+			return;
+		else if (currentPage != null && pageNum == currentPage.page)
+			return;
+
+		currentPage = null;
+		errorPane.setText("Looking up available level packs...");
+		updateGUI();
+		fetching = true;
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				String str = downloadPage(pageNum);
+
+				// Get back to the EDT thread.
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						onDownloadDone(str, pageNum);
+					}
+				});
+
+			}
+		}).start();
+	}
+
+
+	private transient boolean fetching = false;
+
+
+	private void onDownloadDone(String str, Integer pageNum) {
+		fetching = false;
 		DefaultListModel<Page.Pack> model = (DefaultListModel<Page.Pack>) list.getModel();
+		currentPage = null;
+		list.clearSelection();
+
 
 		// Check that a string was actually returned.
-		String str = downloadPage(pageNum);
 		if (str == null) {
 			currentPage = null;
 			model.removeAllElements();
 			errorPane.setText(
-					"Could not download from the website.  \nThis may be a problem with internet connectivity.  Please try again later.");
+					"Could not download this page from the website.  This may be a problem with internet connectivity.  Please try again later.");
 			updateGUI();
 			return;
 		}
@@ -207,22 +281,17 @@ public class JPackDownloadDialog extends JDialog {
 				pack.image = UIBuilder.getImage(BAD_DOWNLOAD_IMAGE);
 		}
 
-		// Set the selection to an appropriate pack.
-		if (currentPage.packs.length > 0) {
-			if (oldNum < currentPage.page)
-				list.setSelectedIndex(0);
-			else
-				list.setSelectedIndex(currentPage.packs.length - 1);
-		}
-
 		updateGUI();
-
 	}
 
 
 	private void updateGUI() {
 
+		String startPage = (currentPage == null) ? "__" : ("" + currentPage.page);
+		String ofPage = (currentPage == null) ? "__" : ("" + currentPage.pages);
+		this.lblPage.setText("Page " + startPage + " of " + ofPage);
 		CardLayout cl = (CardLayout) contentPnl.getLayout();
+
 		if (currentPage == null)
 			cl.show(contentPnl, CARD_ERROR);
 		else
@@ -311,8 +380,10 @@ public class JPackDownloadDialog extends JDialog {
 					return;
 				if (idx >= currentPage.packs.length)
 					return;
-				String link = currentPage.packs[idx].file_link;
-				System.out.println("Preparing to download: " + link);
+				Page.Pack stub = currentPage.packs[idx];
+				result = downloadPack(stub);
+				JPackDownloadDialog.this.dispose();
+				return;
 			default:
 				System.err.println(this.getClass().getName() + " has not implemented command " + e.getActionCommand());
 			}
