@@ -155,7 +155,7 @@ public final class LuaDoc {
 						.reduce("", (a,b) -> a + b));
 	}
 
-	private static String docMethodToString(final Method m) {
+	public static String docMethodToString(final Method m) {
 		return String.format(
 				"%s(%s)\n-- Security Level: %s\n-- %s\n%s\n",
 				GetLuaFacade.bindTo(m),
