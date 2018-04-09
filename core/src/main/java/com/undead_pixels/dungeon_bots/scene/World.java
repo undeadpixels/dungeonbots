@@ -1451,13 +1451,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return typeAtPos(location, Actor.class)
 				.filter(e -> e.canTake())
 				.anyMatch(e -> {
+					final String name = itemReference.getName();
 					final boolean gives = e.getInventory().tryTakeItem(itemReference);
 					if(gives) {
 						message(itemReference.inventory.getOwner(),
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
-										itemReference.getName(),
-										e.getClass().getSimpleName()),
+										name,
+										e.getName()),
 								LoggingLevel.GENERAL);
 					}
 					return gives;
@@ -1474,11 +1475,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> !e.equals(dst))
 				.findFirst()
 				.map(e -> {
+					final String name = e.getItem().getName();
 					final boolean grabbed = e.pickUp(dst);
 					message(dst,
-							String.format("%s grabbed %s",
+							String.format("%s %s grabbed %s",
+									dst.getEntity().getName(),
 									grabbed ? "Sucessfully" : "Unsucessfully",
-									e.getItem().getName()),
+									name),
 							LoggingLevel.GENERAL);
 					return grabbed;
 				})
