@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
+import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
@@ -275,7 +276,7 @@ public final class LuaSandbox implements Serializable {
 		outputEventListeners.forEach(cn -> cn.accept(str));
 	}
 
-	public class PrintfFunction extends VarArgFunction {
+	public class PrintfFunction extends VarArgFunction implements NonReflectiveDoc {
 		@Override public LuaValue invoke(Varargs v) {
 			String tofmt = v.arg1().checkjstring();
 			List<Object> args = new ArrayList<>();
@@ -286,17 +287,33 @@ public final class LuaSandbox implements Serializable {
 			doPrint(fmt);
 			return LuaValue.NIL;
 		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return "A C-style printf(...) function.";
+		}
 	}
 
-	public class PrintFunction extends VarArgFunction {
+	public class PrintFunction extends VarArgFunction implements NonReflectiveDoc {
 		@Override public LuaValue invoke(Varargs v) {
 			String ans = v.tojstring();
 			doPrint(ans);
 			return LuaValue.NIL;
 		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return "Prints out the given arguments to the console";
+		}
 	}
 	
-	public class SleepFunction extends VarArgFunction {
+	public class SleepFunction extends VarArgFunction implements NonReflectiveDoc {
 		@Override public LuaValue invoke(Varargs v) {
 			double sleeptime = v.optdouble(1, 1.0);
 			
@@ -305,9 +322,17 @@ public final class LuaSandbox implements Serializable {
 			
 			return LuaValue.NIL;
 		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return "Waits for a given number of seconds.";
+		}
 	}
 
-	public class RequireFunction extends OneArgFunction {
+	public class RequireFunction extends OneArgFunction implements NonReflectiveDoc {
 
 		@Override
 		public LuaValue call(LuaValue required) {
@@ -320,9 +345,17 @@ public final class LuaSandbox implements Serializable {
 									.orElse(LuaValue.NIL))
 					.orElse(LuaValue.NIL);
 		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return "Imports/runs a given script";
+		}
 	}
 
-	public class HelpFunction extends VarArgFunction {
+	public class HelpFunction extends VarArgFunction implements NonReflectiveDoc {
 		
 		private String helpSingle(String comment, LuaValue lv) {
 
@@ -356,7 +389,11 @@ public final class LuaSandbox implements Serializable {
 					return comment+ret.stream().reduce("", (a,b) -> a+"\n"+b);
 				}
 			} else { // not a table
-				return comment+lv.tojstring();
+				if(lv instanceof NonReflectiveDoc) {
+					return comment+((NonReflectiveDoc) lv).doc();
+				} else {
+					return comment+lv.tojstring();
+				}
 			}
 		}
 		
@@ -371,6 +408,47 @@ public final class LuaSandbox implements Serializable {
 						.reduce("", (a, b) -> a + b));
 			}
 			return LuaValue.NIL;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return "Returns help for functions and variables";
+		}
+	}
+	private class RegisterListenerFunction extends OneArgFunction implements NonReflectiveDoc {
+		
+		private final String docs, eventName, funcName;
+		
+		public RegisterListenerFunction(String eventName, String funcName, String docs) {
+			super();
+			this.docs = docs;
+			this.eventName = eventName;
+			this.funcName = funcName;
+		}
+
+		@Override
+		public LuaValue call(LuaValue arg) {
+			if(!arg.isfunction()) {
+				throw new LuaError("Expected a function");
+			}
+			eventListeners.get(eventName).add(arg);
+			return LuaValue.NIL;
+		}
+		
+		@Override
+		public String tojstring() {
+			return "function: " + funcName;
+		}
+
+		/* (non-Javadoc)
+		 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+		 */
+		@Override
+		public String doc () {
+			return docs;
 		}
 	}
 
@@ -402,17 +480,6 @@ public final class LuaSandbox implements Serializable {
 		eventListeners.put(eventName, new HashSet<LuaValue>());
 		// TODO - store description and argNames somewhere
 		
-		OneArgFunction registerEventListenerFunction = new OneArgFunction() {
-			@Override
-			public LuaValue call(LuaValue arg) {
-				if(!arg.isfunction()) {
-					throw new LuaError("Expected a function");
-				}
-				eventListeners.get(eventName).add(arg);
-				return LuaValue.NIL;
-			}
-		};
-		
 		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
 		boolean shouldUpper = true;
 		String registerEventListenerFunctionName = "";
@@ -433,6 +500,14 @@ public final class LuaSandbox implements Serializable {
 		}
 		
 		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
+		
+		String docs = description+"\n\n"+
+				"Usage:\n"
+				+ registerEventListenerFunctionName+"(function("+Stream.of(argNames).reduce((a,b) -> (a+", "+b)).orElse("")+")\n"
+				+ "    -- Your code here\n"
+				+ "end)";
+		
+		RegisterListenerFunction registerEventListenerFunction = new RegisterListenerFunction(eventName, registerEventListenerFunctionName, docs);
 		
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
