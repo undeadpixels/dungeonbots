@@ -334,7 +334,9 @@ public final class LuaSandbox implements Serializable {
 							
 					return comment+LuaDoc.docClassToString(clazz);
 				} else { // table but not class
-					StringBuilder ret = new StringBuilder();
+					ArrayList<String> ret = new ArrayList<>();
+					
+					
 					
 					LuaValue k = LuaValue.NIL;
 					while(true) {
@@ -345,11 +347,13 @@ public final class LuaSandbox implements Serializable {
 						}
 						
 						k = kv.arg1();
-						ret.append(k.tojstring() + "\t=\t" + kv.arg(2).tojstring() + "\n");
+						ret.add(k.tojstring() + "\t=\t" + kv.arg(2).tojstring());
 						
 					}
 					
-					return comment+ret.toString();
+					ret.sort(String.CASE_INSENSITIVE_ORDER);
+					
+					return comment+ret.stream().reduce("", (a,b) -> a+"\n"+b);
 				}
 			} else { // not a table
 				return comment+lv.tojstring();
