@@ -5,7 +5,7 @@ import java.awt.Color;
 public enum LoggingLevel {
 	STDOUT(1, Color.lightGray),
 	GENERAL(2, Color.white),
-	QUEST(4, Color.green),
+	QUEST(4, Color.yellow),
 	ERROR(8, Color.red);
 	
 	public final Color color;

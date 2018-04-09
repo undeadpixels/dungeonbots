@@ -98,7 +98,7 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 	@Bind(SecurityLevel.NONE)
 	public String inspect() {
 		getSandbox().fireEvent("READ");
-		world.message(this, this.message, LoggingLevel.INFO);
+		world.message(this, this.message, LoggingLevel.QUEST);
 		return message;
 	}
 
