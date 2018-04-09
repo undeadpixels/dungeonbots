@@ -126,7 +126,6 @@ public class WorldView extends JComponent {
 
 			@Override
 			public void ancestorMoved (AncestorEvent event) {
-				// TODO Auto-generated method stub
 				
 			}
 			
