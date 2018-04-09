@@ -925,11 +925,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * All the entities are assigned to a layer during the render loop,
 	 * depending on their Z-value.
 	 *
-	 * TODO: since each Z-value can create an entire layer, wouldn't it just
-	 * make more sense to sort the Entities by Z-order? And for that matter,
-	 * wouldn't it be more efficient if the sorting occurred when the Entity is
-	 * added to the World, rather than at render time?
-	 *
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -1191,6 +1186,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final Map<String, Object> state = new HashMap<>();
 		state.put("Times Reset", timesReset);
 		// TODO - this should involve bots and stuff, too...
+		// also TODO - we should clean up stuff we ended up not using like health
 		Player player = getPlayer();
 		if(player != null) {
 			state.put("Steps", player.steps());
@@ -1210,7 +1206,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
-		// TODO - cleanup at some point
 		Point2D.Float searchPos = this.getSize();
 		searchPos.x /= 2;
 		searchPos.y /= 2;
