@@ -1502,7 +1502,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.anyMatch(e -> {
 					final boolean used = Useable.class.cast(e).use();
 					if(used){
-						message(src,
+						message(e,
 								String.format("%s used %s", src.getName(), e.getName()),
 								LoggingLevel.GENERAL);
 					}
@@ -1524,7 +1524,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 					final String name = itemReference.getName();
 					final boolean gives = e.getInventory().tryTakeItem(itemReference);
 					if(gives) {
-						message(itemReference.inventory.getOwner(),
+						message(e,
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
 										name,
@@ -1548,9 +1548,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.map(e -> {
 					final String name = e.getItem().getName();
 					final boolean grabbed = e.pickUp(dst);
-					message(dst,
+					message(e,
 							String.format("%s %s grabbed %s",
-									dst.getEntity().getName(),
+									dst.getEntity().getClass().getSimpleName(),
 									grabbed ? "Sucessfully" : "Unsucessfully",
 									name),
 							LoggingLevel.GENERAL);
