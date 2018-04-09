@@ -323,18 +323,49 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	public class HelpFunction extends VarArgFunction {
+		
+		private String helpSingle(String comment, LuaValue lv) {
+
+			if(lv.istable()) {
+				if(lv.get("this").isuserdata() || lv.get("class").isuserdata()) {
+					Class<?> clazz = lv.get("this") == LuaValue.NIL ?
+							(Class<?>)lv.get("class").checkuserdata(Class.class) :
+								lv.get("this").checkuserdata().getClass();
+							
+					return comment+LuaDoc.docClassToString(clazz);
+				} else { // table but not class
+					StringBuilder ret = new StringBuilder();
+					
+					LuaValue k = LuaValue.NIL;
+					while(true) {
+						Varargs kv = lv.checktable().next(k);
+						
+						if(kv == LuaValue.NIL) {
+							break;
+						}
+						
+						k = kv.arg1();
+						ret.append(k.tojstring() + "\t=\t" + kv.arg(2).tojstring() + "\n");
+						
+					}
+					
+					return comment+ret.toString();
+				}
+			} else { // not a table
+				return comment+lv.tojstring();
+			}
+		}
+		
 		@Override
 		public LuaValue invoke(Varargs v) {
-			doPrint(
-					luaValueStream(v)
-						.filter(lv -> lv.istable())
-						.map(lv -> lv.checktable())
-						.filter(tbl -> tbl.get("this").isuserdata() || tbl.get("class").isuserdata())
-						.map(tbl -> tbl.get("this") == LuaValue.NIL ?
-								(Class<?>)tbl.get("class").checkuserdata(Class.class) :
-								tbl.get("this").checkuserdata().getClass())
-						.map(obj -> LuaDoc.docClassToString(obj))
+			if(v.narg() == 0) {
+				doPrint(helpSingle("All global variables:\n\n", LuaSandbox.this.globals));
+			} else {
+				doPrint(
+						luaValueStream(v)
+						.map(lv -> helpSingle("", lv))
 						.reduce("", (a, b) -> a + b));
+			}
 			return LuaValue.NIL;
 		}
 	}
