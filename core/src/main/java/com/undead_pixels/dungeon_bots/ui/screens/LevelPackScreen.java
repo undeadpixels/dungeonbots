@@ -62,6 +62,7 @@ import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.ui.JPackDownloadDialog;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -203,7 +204,7 @@ public class LevelPackScreen extends Screen {
 		JPanel packInfoBttns = new JPanel();
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").text("Download")
 				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Load a Pack from disk.")
-				.action("OPEN_LEVELPACK", getController()).focusable(false).create());
+				.action("DOWNLOAD_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/new.png").text("New pack")
 				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Create a new Pack.")
 				.action("ADD_NEW_PACK", getController()).focusable(false).create());
@@ -1769,6 +1770,14 @@ public class LevelPackScreen extends Screen {
 				JRadioButton source = (JRadioButton) e.getSource();
 				LevelPack.FeedbackModel model = LevelPack.FeedbackModel.valueOf(source.getName());
 				u = changeFeedbackModel(model);
+				break;
+			case "DOWNLOAD_LEVELPACK":
+				JPackDownloadDialog jpdd = new JPackDownloadDialog(LevelPackScreen.this);
+				jpdd.setVisible(true);
+				LevelPack downloaded = jpdd.getResult();
+				if (downloaded==null) return;
+				PackInfo p = PackInfo.withoutJSON(downloaded);
+				u = LevelPackScreen.this.addNewPack(p);
 				break;
 			case "EDIT_WORLD":
 				selWorld = (WorldInfo) getCurrentSelection();
