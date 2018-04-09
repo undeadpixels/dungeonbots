@@ -1500,7 +1500,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Finds the first entity found with the specified name")
+			doc = "Finds and returns the first entity with the specified name")
 	public Entity findEntity(LuaValue name) {
 		return entities.stream()
 				.filter(e -> e.getName().equals(name.checkjstring()))
