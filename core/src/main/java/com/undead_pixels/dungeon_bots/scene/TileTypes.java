@@ -94,9 +94,11 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		registerTile("tiles_big", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 5, 2, null, false, false);
 		registerTile("tiles_small", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 6, 2, null, false, false);
 		registerTile("tiles_diamond", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 2, null, false, false);
-		
+		registerTile("fillpit", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 0, null, false, false);
+
 		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
 		registerTile("pit", AssetManager.getTexture("DawnLike/Objects/Trap1.png"), TILESIZE, 5, 2, null, false, true);
+
 	}
 
 	@Bind @BindTo("new")
