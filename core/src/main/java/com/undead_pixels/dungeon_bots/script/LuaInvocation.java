@@ -108,13 +108,11 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	/**
 	 * Executes this lua script in-line
 	 */
-	public void run() {
+	private void run() {
 		if(scriptStatus == ScriptStatus.LUA_ERROR) {
 			return;
 		}
 		
-		// TODO - maybe add the current thread to the sandbox map?
-		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?
 		try {
 			setStatus(ScriptStatus.RUNNING);
 
