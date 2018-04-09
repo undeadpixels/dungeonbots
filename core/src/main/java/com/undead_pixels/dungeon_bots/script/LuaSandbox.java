@@ -17,6 +17,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
+import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.*;
@@ -266,20 +267,23 @@ public final class LuaSandbox implements Serializable {
 		catch (IOException io) { }
 		return outputStream.toString();
 	}
+	
+	private void doPrint(String str) {
+		System.out.println("print: "+str);
+		try { bufferedOutputStream.write(str.getBytes()); }
+		catch (IOException io) { }
+		outputEventListeners.forEach(cn -> cn.accept(str));
+	}
 
 	public class PrintfFunction extends VarArgFunction {
 		@Override public LuaValue invoke(Varargs v) {
 			String tofmt = v.arg1().checkjstring();
 			List<Object> args = new ArrayList<>();
 			for(int i = 2; i <= v.narg(); i++) {
-				args.add(v.arg(i).tojstring());
+				args.add(CoerceLuaToJava.coerce(v.arg(i), Object.class));
 			}
 			String fmt = String.format(tofmt, args.toArray());
-			
-			System.out.println("printf: "+fmt);
-			try { bufferedOutputStream.write(fmt.getBytes()); }
-			catch (IOException io) { }
-			outputEventListeners.forEach(cn -> cn.accept(fmt));
+			doPrint(fmt);
 			return LuaValue.NIL;
 		}
 	}
@@ -287,10 +291,7 @@ public final class LuaSandbox implements Serializable {
 	public class PrintFunction extends VarArgFunction {
 		@Override public LuaValue invoke(Varargs v) {
 			String ans = v.tojstring();
-			System.out.println("print: "+ans);
-			try { bufferedOutputStream.write(ans.getBytes()); }
-			catch (IOException io) { }
-			outputEventListeners.forEach(cn -> cn.accept(ans));
+			doPrint(ans);
 			return LuaValue.NIL;
 		}
 	}
@@ -324,16 +325,17 @@ public final class LuaSandbox implements Serializable {
 	public class HelpFunction extends VarArgFunction {
 		@Override
 		public LuaValue invoke(Varargs v) {
-			return LuaValue.valueOf(
+			doPrint(
 					luaValueStream(v)
 						.filter(lv -> lv.istable())
 						.map(lv -> lv.checktable())
 						.filter(tbl -> tbl.get("this").isuserdata() || tbl.get("class").isuserdata())
 						.map(tbl -> tbl.get("this") == LuaValue.NIL ?
-								(Class)tbl.get("class").checkuserdata(Class.class) :
+								(Class<?>)tbl.get("class").checkuserdata(Class.class) :
 								tbl.get("this").checkuserdata().getClass())
 						.map(obj -> LuaDoc.docClassToString(obj))
 						.reduce("", (a, b) -> a + b));
+			return LuaValue.NIL;
 		}
 	}
 
