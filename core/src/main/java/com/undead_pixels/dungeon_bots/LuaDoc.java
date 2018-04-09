@@ -149,9 +149,7 @@ public final class LuaDoc {
 				Optional.ofNullable(clz.getDeclaredAnnotation(Doc.class))
 						.map(c -> c.value())
 						.orElse("?"),
-				LuaReflection.getAllMethods(clz)
-						.filter(m -> m.getDeclaredAnnotation(Bind.class) != null
-								|| m.getDeclaredAnnotation(Doc.class ) != null)
+				LuaReflection.getBindableInstanceMethods(clz)
 						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
 						.map(m -> docMethodToString(m))
 						.reduce("", (a,b) -> a + b));

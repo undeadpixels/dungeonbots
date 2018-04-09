@@ -82,6 +82,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private transient LuaSandbox mapSandbox;
 
+	private transient List<Entity> toRemove = new ArrayList<>();
+
 	/**
 	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
 	 */
@@ -464,6 +466,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void update(float dt) {
 		// update tiles from tileTypes, if dirty
 		synchronized (this) {
+			// Remove all entities that have been asynchronously
+			// queued to be removed.
+			synchronized (getToRemove()) {
+				for (Entity e : getToRemove())
+					entities.remove(e);
+				getToRemove().clear();
+			}
+
 			refreshTiles();
 
 			// update tiles
@@ -830,8 +840,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(SecurityLevel.AUTHOR)
 	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
-		TileType tileType = (TileType) tt.checktable().get("this").checkuserdata(TileType.class);
-		setTile(x.checkint() - 1, y.checkint() - 1, tileType);
+		setTile(x.checkint() - 1, y.checkint() - 1, tileTypesCollection.getTile(tt.checkjstring()));
 	}
 
 
@@ -891,6 +900,22 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return;
 		tilesAreStale = true;
 		tiles[x][y] = tile;
+	}
+
+	@Bind(value=SecurityLevel.AUTHOR,doc = "Set's a range of Tiles")
+	public void setTiles(LuaValue lx, LuaValue ly, LuaValue width, LuaValue height, LuaValue tileType) {
+		final int x = lx.toint() - 1;
+		final int y = ly.toint() - 1;
+		assert x >= 0 || x < tiles.length;
+		assert y >= 0 || y < tiles[0].length;
+		assert x + width.checkint() > 0 || (x + width.checkint()) < tiles.length;
+		assert y + width.checkint() > 0 || (y + width.checkint()) < tiles[0].length;
+
+		for(int i = x; i < width.checkint(); i++) {
+			for(int j = y; j < height.checkint(); j++) {
+				setTile(i,j,tileTypesCollection.getTile(tileType.checkjstring()));
+			}
+		}
 	}
 
 
@@ -1062,6 +1087,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (x >= tiles.length || y >= tiles[0].length) {
 			// System.out.println("Unable to move: x/y too big");
 			return false;
+		}
+
+		if(Block.class.isAssignableFrom(e.getClass()) && tiles[x][y].getType().getName().equals("pit")) {
+			return true;
 		}
 
 		if (tiles[x][y].isSolid()) {
@@ -1633,5 +1662,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
 		permissions.put(name, level);
+	}
+
+	public boolean fillIfPit(int x, int y) {
+		if(tiles[x][y].getType().getName().equals("pit")) {
+			setTile(x,y, tileTypesCollection.getTile("fillpit"));
+			return true;
+		}
+		return false;
+	}
+
+	private List<Entity> getToRemove() {
+		if(toRemove == null) {
+			toRemove = new ArrayList<>();
+		}
+		return toRemove;
+	}
+
+	public void queueRemove(final Entity e) {
+		synchronized (toRemove) {
+			toRemove.add(e);
+		}
 	}
 }
