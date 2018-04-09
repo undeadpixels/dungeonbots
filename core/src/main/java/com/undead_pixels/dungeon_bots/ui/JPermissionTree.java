@@ -7,6 +7,8 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EventObject;
@@ -28,6 +30,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -46,7 +49,7 @@ public class JPermissionTree extends JTree {
 
 	private static final Dimension LABEL_DIMENSION = new Dimension(150, 20);
 	private static final Dimension DOT_DIMENSION = new Dimension(18, 18);
-	private JDotIcon[] icons;
+	private DotIcon[] icons;
 
 	private final ArrayList<Permission> permissions;
 	private Dialog dialog = null;
@@ -67,13 +70,58 @@ public class JPermissionTree extends JTree {
 
 
 	public void setColors(Color[] newColors) {
-		JDotIcon[] newIcons = new JDotIcon[newColors.length];
+		if (newColors == null || newColors.length < availableLevels.length)
+			throw new RuntimeException("There must be a color for every security level.");
+		DotIcon[] newIcons = new DotIcon[newColors.length];
 		for (int i = 0; i < newColors.length; i++) {
 			Color c = newColors[i];
-			newIcons[i] = new JDotIcon(c, DOT_DIMENSION.width, DOT_DIMENSION.height, 3);
+			newIcons[i] = new DotIcon(c, DOT_DIMENSION.width, DOT_DIMENSION.height, 3);
 		}
 		icons = newIcons;
 		repaint();
+	}
+
+
+	/**Determines what security levels are available.*/
+	public void setSecurityLevels(SecurityLevel[] levels) {
+		if (levels == null)
+			throw new RuntimeException("Levels cannot be null.");
+		if (levels.length > icons.length)
+			throw new RuntimeException("There must be at least a color for every security level.");
+		this.availableLevels = levels;
+		updateGUI();
+	}
+
+
+	/**Sets the current contents of the white list.*/
+	public void setItems(Whitelist whitelist) {
+		permissions.clear();
+		for (Entry<String, SecurityLevel> entry : whitelist) {
+			String id = entry.getKey();
+			Permission p = new Permission(id, entry.getValue(), whitelist.getInfo(entry.getKey()));
+			permissions.add(p);
+		}
+		this.updateGUI();
+	}
+
+
+	/**Returns the current permission map.*/
+	public HashMap<String, SecurityLevel> getPermissionMap() {
+		HashMap<String, SecurityLevel> securityLevels = new HashMap<String, SecurityLevel>();
+		for (Permission p : permissions) {
+			securityLevels.put(p.id, p.level);
+		}
+		return securityLevels;
+	}
+
+
+	/**Returns the current info (help text) map.*/
+	public HashMap<String, String> getInfoMap() {
+		HashMap<String, String> result = new HashMap<>();
+		for (Permission p : permissions) {
+			result.put(p.id, p.info);
+		}
+		return result;
 	}
 
 
@@ -103,25 +151,6 @@ public class JPermissionTree extends JTree {
 			}
 		}
 		this.setModel(model);
-	}
-
-
-	/**Determines what security levels are available.*/
-	public void setSecurityLevels(SecurityLevel[] levels) {
-		this.availableLevels = levels;
-		updateGUI();
-	}
-
-
-	/**Sets the current contents of the white list.*/
-	public void setItems(Whitelist whitelist) {
-		permissions.clear();
-		for (Entry<String, SecurityLevel> entry : whitelist) {
-			String id = entry.getKey();
-			Permission p = new Permission(id, entry.getValue(), whitelist.getInfo(entry.getKey()));
-			permissions.add(p);
-		}
-		this.updateGUI();
 	}
 
 
@@ -227,34 +256,21 @@ public class JPermissionTree extends JTree {
 	};
 
 
-	/**Returns the current permission map.*/
-	public HashMap<String, SecurityLevel> getPermissionMap() {
-		HashMap<String, SecurityLevel> securityLevels = new HashMap<String, SecurityLevel>();
-		for (Permission p : permissions) {
-			securityLevels.put(p.id, p.level);
-		}
-		return securityLevels;
-	}
-
-
-	/**Returns the current info (help text) map.*/
-	public HashMap<String, String> getInfoMap() {
-		HashMap<String, String> result = new HashMap<>();
-		for (Permission p : permissions) {
-			result.put(p.id, p.info);
-		}
-		return result;
-	}
-
-
 	// ============================================
 	// ==== JPermissionTree DIALOG STUFF ==========
 	// ============================================
+	private static JPermissionTree oneDialogAllowed = null;
+
 
 	/**Returns a JPermissionEditor packed into a JDialog container.  If the user approves 
 	 * changes in the dialog, the given onCommit function is called.*/
 	public static JPermissionTree createDialog(java.awt.Window owner, String title,
 			BiConsumer<HashMap<String, SecurityLevel>, HashMap<String, String>> onCommit) {
+
+		if (oneDialogAllowed != null) {
+			oneDialogAllowed.requestFocus();
+			return oneDialogAllowed;
+		}
 
 		// Create the dialog.
 		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
@@ -262,6 +278,7 @@ public class JPermissionTree extends JTree {
 
 		// Create the editor.
 		JPermissionTree jpe = new JPermissionTree();
+		oneDialogAllowed = jpe;
 		jpe.dialog = dialog;
 		JScrollPane scroller = new JScrollPane(jpe);
 		scroller.setPreferredSize(new Dimension(400, 400));
@@ -302,7 +319,6 @@ public class JPermissionTree extends JTree {
 				switch (arg0.getActionCommand()) {
 				case "COMMIT":
 					dialog.dispose();
-					jpe.dialog = null;
 					onCommit.accept(jpe.getPermissionMap(), jpe.getInfoMap());
 					break;
 				case "CANCEL":
@@ -313,10 +329,9 @@ public class JPermissionTree extends JTree {
 							break;
 					}
 					jpe.permissions.clear();
-					jpe.dialog = null;
 					dialog.dispose();
-
 					break;
+				case "HELP":
 				default:
 					throw new RuntimeException("Not implemented command " + arg0.getActionCommand());
 				}
@@ -325,14 +340,25 @@ public class JPermissionTree extends JTree {
 			}
 
 		};
+		dialog.addWindowListener(new WindowListenerAdapter() {
+
+			@Override
+			protected void event(WindowEvent e) {
+				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+					return;
+				oneDialogAllowed = null;
+				jpe.dialog = null;
+			}
+		});
 
 		// Create the approval buttons.
-		
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel changes and close the dialog.")
 				.action("CANCEL", dialogController).create());
+		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Help on the world sizer.")
+				.action("HELP", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);
 
 		// Pack and display
@@ -400,7 +426,7 @@ public class JPermissionTree extends JTree {
 		@Override
 		public String toString() {
 			String str = (type == null || type.equals("")) ? "" : type + ":";
-			str += label + "   " + level.toString();
+			str += label + "   " + (level != null ?  level.toString() : "<null>");
 			str += (info == null || info.equals("") ? "<no info>" : info.substring(0, Math.min(10, info.length())));
 			return str;
 		}

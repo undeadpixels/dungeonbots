@@ -43,7 +43,9 @@ public class LuaProxyFactory {
 	public static <T extends GetLuaFacade> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
-		t.set("type", getBindings(src.getClass()).luaValue);
+		t.set("type", LuaValue.valueOf(Optional.ofNullable(src.getClass().getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(src.getClass().getSimpleName())));
 		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
 		src.getBindableMethods()

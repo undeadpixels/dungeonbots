@@ -51,6 +51,8 @@ public class GameplayScreen extends Screen {
 	private static final String COMMAND_SAVE = "SAVE";
 	private static final String COMMAND_TOGGLE_GRID = "TOGGLE_GRID";
 	private static final String COMMAND_REWIND = "REWIND";
+	private static final String COMMAND_MAIN_MENU = "MAIN_MENU";
+	private static final String COMMAND_QUIT = "QUIT";
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
@@ -61,42 +63,19 @@ public class GameplayScreen extends Screen {
 	private Tool.ViewControl _ViewControl;
 
 
-	/**WO:  should a world being played always be presumed to be part of a level pack?  For purposes
-	 * of level-to-level progression, I think so.  If so, this constructor shouldn't be called.*/
-	/* @Deprecated public GameplayScreen(World world) {
-	 * super(Serializer.deepCopy(world)); this.isSwitched = false;
-	 * this.originalWorld = world; world.onBecomingVisibleInGameplay(); } */
-
-
-	/* @Deprecated public GameplayScreen(LevelPack pack) { this(pack, false); } */
-
-
 	public GameplayScreen(LevelPack pack, boolean switched) {
 		super(pack);
 		this.isSwitched = switched;
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
 		world.onBecomingVisibleInGameplay();
-		world.registerMessageListener((img, text, loglevel) -> {
-			message(img, text + "\n" , logLevelToColor(loglevel));
+		world.registerMessageListener(new MessageListener() {
 
+			@Override
+			public void message(HasImage src, String message, LoggingLevel level) {
+				GameplayScreen.this.message(src, message, level);
+			}
 		});
-	}
-
-	private Color logLevelToColor(LoggingLevel ll) {
-		switch (ll) {
-			case GENERAL:
-				return Color.LIGHT_GRAY;
-			case QUEST:
-				return Color.GREEN;
-			case ERROR:
-				return Color.RED;
-			case INFO:
-				return Color.YELLOW;
-			case STDOUT:
-			default:
-				return Color.cyan;
-		}
 	}
 
 
@@ -141,6 +120,9 @@ public class GameplayScreen extends Screen {
 
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
+		playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
+				.action(COMMAND_MAIN_MENU, getController()).create());
+		playToolBar.addSeparator();
 		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
 				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).create());
 		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
@@ -182,11 +164,11 @@ public class GameplayScreen extends Screen {
 		messagePanel.setLayout(new BorderLayout());
 		messagePanel.add(emblem, BorderLayout.PAGE_START);
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
-		message("This is a regular message from the world.\n", Color.white);
-		message("This is an error message from the world.\n", Color.red);
-		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", Color.WHITE);
-		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", Color.RED);
-		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", Color.green);
+		message("This is a regular message from the world.\n", LoggingLevel.GENERAL);
+		message("This is an error message from the world.\n", LoggingLevel.ERROR);
+		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", LoggingLevel.GENERAL);
+		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", LoggingLevel.ERROR);
+		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL, Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -227,8 +209,20 @@ public class GameplayScreen extends Screen {
 
 
 	/**Posts the given message to the message pane, with the given sender's icon.*/
-	public void message(HasImage sender, String text, Color color) {
-		_MessagePane.message(sender, text, color, JMessagePane.MessageType.Debug);
+	public void message(String text, LoggingLevel level) {
+		_MessagePane.message(text, level.color, level);
+	}
+
+
+	/**Posts the given message to the message pane, with the given sender's icon.*/
+	public void message(HasImage sender, String text, LoggingLevel level) {
+		this.message(sender, text, level, level.color);
+	}
+
+
+	/**Posts the given message to the message pane, with the given sender's icon.*/
+	public void message(HasImage sender, String text, LoggingLevel level, Color color) {
+		_MessagePane.message(sender, text, color, level);
 	}
 
 
@@ -269,7 +263,7 @@ public class GameplayScreen extends Screen {
 				if (sldr.getName().equals("zoomSlider")) {
 					OrthographicCamera cam = view.getCamera();
 					if (cam != null) {
-						cam.setZoomOnMinMaxRange((float) (sldr.getValue()) / sldr.getMaximum());
+						_ViewControl.setZoomAsPercentage((float)sldr.getValue() / sldr.getMaximum());
 					}
 				}
 			}
@@ -288,13 +282,13 @@ public class GameplayScreen extends Screen {
 				}
 
 				break;
-			case "Exit to Main":
+			case COMMAND_MAIN_MENU:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 
 				break;
-			case "Quit":
+			case COMMAND_QUIT:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					System.exit(0);

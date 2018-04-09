@@ -10,11 +10,14 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -66,7 +69,9 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
+import com.undead_pixels.dungeon_bots.ui.JWorldSizer;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+import com.undead_pixels.dungeon_bots.ui.WindowListenerAdapter;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -84,6 +89,9 @@ public final class LevelEditorScreen extends Screen {
 	private static final String COMMAND_SAVE_TO_LEVELPACK = "SAVE_TO_LEVELPACK";
 	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
 	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
+	private static final String COMMAND_RESIZE = "RESIZE_WORLD";
+	private static final String COMMAND_RESET_VIEW = "RESET_VIEW";
+
 
 	// Defined by Swing, don't change this:
 	private static final String COMMAND_COMBOBOX_CHANGED = "comboBoxChanged";
@@ -105,7 +113,9 @@ public final class LevelEditorScreen extends Screen {
 	private JComponent _ToolScroller;
 	private JComponent _TileScroller;
 	private JComponent _EntityScroller;
+	private JList<Tool> _Tools;
 	private JToolBar _ToolBar;
+	// private boolean areToolsActive = true;
 
 
 	public LevelEditorScreen(LevelPack levelPack) {
@@ -175,7 +185,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("block", Block.DEFAULT_TEXTURE, (x, y) -> {
 			return new Block(world, x, y);
 		}));
-		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x,y) -> {
+		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
 			return new Sign(world, "Please Recycle", x, y);
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
@@ -312,6 +322,35 @@ public final class LevelEditorScreen extends Screen {
 			case "REDO":
 				Tool.redo(world);
 				return;
+			case COMMAND_PERMISSIONS:
+				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
+						(permissions, infos) -> saveWhitelist(permissions));
+				jpe.setItems(world.getWhitelist());
+				jpe.setVisible(true);
+				break;
+			case COMMAND_RESET_VIEW:
+				Point2D.Float worldSize = world.getSize();
+				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
+				_ViewControl.setCenter(center);
+				_ViewControl.setZoomAsPercentage(0.5f);
+				break;
+			case COMMAND_RESIZE:
+				JWorldSizer jws = JWorldSizer.showDialog(LevelEditorScreen.this, world, _View);
+				jws.getDialog().addWindowListener(new WindowListenerAdapter() {
+
+					@Override
+					protected void event(WindowEvent e) {
+						if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+							return;
+						_Tools.setEnabled(true);
+					}
+				});
+
+				// No other tools should be available while the resizer is
+				// working.
+				_Tools.clearSelection();
+				_Tools.setEnabled(false);
+				break;
 			case COMMAND_SAVE_TO_LEVELPACK:
 				File sfd = new File(filename);
 				if (!sfd.exists())
@@ -381,12 +420,7 @@ public final class LevelEditorScreen extends Screen {
 				if (jwe != null)
 					jwe.setVisible(true);
 				return;
-			case COMMAND_PERMISSIONS:
-				JPermissionTree jpe = JPermissionTree.createDialog(LevelEditorScreen.this, "Edit permissions",
-						(permissions, infos) -> saveWhitelist(permissions));
-				jpe.setItems(world.getWhitelist());
-				jpe.setVisible(true);
-				break;
+
 			case "delete":
 				Entity[] selectedEntities = _View.getSelectedEntities();
 				if (selectedEntities == null || selectedEntities.length == 0)
@@ -648,21 +682,22 @@ public final class LevelEditorScreen extends Screen {
 		});
 
 		// Create the tool palette GUI.
-		JList<Tool> toolList = ((Controller) getController()).toolPalette = new JList<Tool>();
-		toolList.setCellRenderer(_ToolRenderer);
-		toolList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		toolList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		toolList.setVisibleRowCount(-1);
-		_ToolScroller = new JScrollPane(toolList);
+		_Tools = new JList<Tool>();
+		((Controller) getController()).toolPalette = _Tools;
+		_Tools.setCellRenderer(_ToolRenderer);
+		_Tools.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		_Tools.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		_Tools.setVisibleRowCount(-1);
+		_ToolScroller = new JScrollPane(_Tools);
 		_ToolScroller.setBorder(BorderFactory.createTitledBorder("Tools"));
 		// Set up the members of the tool list
-		toolList.addListSelectionListener((LevelEditorScreen.Controller) getController());
+		_Tools.addListSelectionListener((LevelEditorScreen.Controller) getController());
 		DefaultListModel<Tool> tm = new DefaultListModel<Tool>();
 		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR).setSelectsEntities(true)
 				.setSelectsTiles(true));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
-		toolList.setModel(tm);
+		_Tools.setModel(tm);
 
 
 		// Create the tile palette GUI.
@@ -695,6 +730,8 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.setOrientation(SwingConstants.VERTICAL);
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
+		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").toolTip("Set view to center.")
+				.action(COMMAND_RESET_VIEW, getController()).create());
 		_ToolBar.add(zoomSlider);
 		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController())
 				.border(BorderFactory.createRaisedSoftBevelBorder()).create());
@@ -702,7 +739,7 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.add(_ToolScroller);
 		_ToolBar.add(_TileScroller);
 		_ToolBar.add(_EntityScroller);
-		toolList.setSelectedValue(selections.tool = _Selector, true);
+		_Tools.setSelectedValue(selections.tool = _Selector, true);
 
 
 		// Create the file menu
@@ -726,6 +763,8 @@ public final class LevelEditorScreen extends Screen {
 				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
 				.create());
+		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('r').text("Resize").action(COMMAND_RESIZE, getController())
+				.create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('p').text("Permissions")
 				.action(COMMAND_PERMISSIONS, getController()).create());
 
@@ -736,14 +775,17 @@ public final class LevelEditorScreen extends Screen {
 		editMenu.add(UIBuilder.buildMenuItem().accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.CTRL_MASK))
 				.text("Redo").action("REDO", getController()).create());
 
-		// Create the publish menu.
-		JMenu publishMenu = UIBuilder.buildMenu().mnemonic('p').text("Publish").prefWidth(60).create();
-		publishMenu.add(UIBuilder.buildMenuItem().mnemonic('c').text("Choose Stats")
-				.action("Choose Stats", getController()).create());
-		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_A, ActionEvent.CTRL_MASK).mnemonic('a')
-				.text("Audience").action("Audience", getController()).create());
-		publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U, ActionEvent.CTRL_MASK).mnemonic('u')
-				.text("Upload").action("Upload", getController()).create());
+		/* // Create the publish menu. JMenu publishMenu =
+		 * UIBuilder.buildMenu().mnemonic('p').text("Publish").prefWidth(60).
+		 * create(); publishMenu.add(UIBuilder.buildMenuItem().mnemonic('c').
+		 * text("Choose Stats") .action("Choose Stats",
+		 * getController()).create());
+		 * publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_A,
+		 * ActionEvent.CTRL_MASK).mnemonic('a')
+		 * .text("Audience").action("Audience", getController()).create());
+		 * publishMenu.add(UIBuilder.buildMenuItem().accelerator(KeyEvent.VK_U,
+		 * ActionEvent.CTRL_MASK).mnemonic('u') .text("Upload").action("Upload",
+		 * getController()).create()); */
 
 		// Create the help menu.
 		JMenu helpMenu = UIBuilder.buildMenu().mnemonic('h').text("Help").prefWidth(60).create();
@@ -753,7 +795,7 @@ public final class LevelEditorScreen extends Screen {
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(worldMenu);
-		menuBar.add(publishMenu);
+		// menuBar.add(publishMenu);
 		menuBar.add(editMenu);
 		menuBar.add(helpMenu);
 

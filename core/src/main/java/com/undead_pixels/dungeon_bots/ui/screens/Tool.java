@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.ui.screens;
 
+import java.awt.AWTEvent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Event;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -15,12 +17,16 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TileType;
@@ -68,11 +74,21 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	private static final HashMap<World, UndoStack> undoStacks = new HashMap<World, UndoStack>();
 
 
+	/**Pushes an undo associated with the given world onto the stack.*/
 	public static void pushUndo(World world, Undoable<?> u) {
 		if (!undoStacks.containsKey(world))
 			undoStacks.put(world, new UndoStack());
 		UndoStack stack = undoStacks.get(world);
 		stack.push(u);
+	}
+
+
+	/**Clears the undo stack associated with the given world.*/
+	public static void clearUndo(World world) {
+		UndoStack stack = undoStacks.get(world);
+		if (stack == null)
+			return;
+		stack.clear();
 	}
 
 
@@ -178,7 +194,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	// ===============================================
 	// ========== Tool GRAPHICS ======================
 	// ===============================================
-	public void render(Graphics2D g) {
+	public void render(Graphics2D g, RenderingContext batch) {
 	}
 
 
@@ -190,16 +206,90 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	/** A view grabber allows user to right-click-and-drag to move a view around.*/
 	public static class ViewControl extends Tool {
 
-		private final WorldView view;
+		private final ArrayList<ViewChangedListener> _ViewChangedListeners = new ArrayList<ViewChangedListener>();
 
+		/**The maximum zoom-in.  The minimum is defined by the size of the world.*/
+		public static float MAX_ZOOM = 4f;
+
+		/**A scalar defining the highest zoom-out.  The higher the number the further the view can 
+		 * zoom out.*/
+		public static float MIN_ZOOM_SCALAR = 4f;
+
+		/**How fast zooming occurs.*/
+		private static final float ZOOM_INCREMENT = 1f / 64f;
+
+		private final WorldView view;
+		private ViewPreset[] presets = new ViewPreset[10];
+
+		// Temp state variables to allow grab-and-move
 		private Point2D.Float gameCenterOrigin = null;
 		private Point screenOrigin = null;
 		private Point screenCurrent = null;
+		private Cursor originalCursor = null;
 
 
 		public ViewControl(WorldView view) {
 			super("ViewGrabber", null);
 			this.view = view;
+		}
+
+
+		/**Returns the minimum zoom value for this control, based on the world's size.*/
+		public float getMinZoom() {
+			Point2D.Float size = view.getWorld().getSize();
+			float min = Math.min(size.x, size.y);
+			float max = Math.max(size.x, size.y);
+			float aspect = Math.min(min, max);
+			return MIN_ZOOM_SCALAR / aspect;
+		}
+
+
+		/**Returns the maximum zoom value for this control, which is a constant value.*/
+		public float getMaxZoom() {
+			return MAX_ZOOM;
+		}
+
+
+		/**Sets a preset as indicated.*/
+		public void setPreset(int index, float zoom, Point2D.Float center) {
+			if (presets[index] == null)
+				presets[index] = new ViewPreset(zoom, center);
+			else {
+				presets[index].zoom = zoom;
+				presets[index].center = center;
+			}
+		}
+
+
+		/**Applies the preset at the given index to the view.*/
+		public void applyPreset(int index) {
+			if (presets[index] != null)
+				presets[index].apply(this);
+		}
+
+
+		/**Adds a listener for changes in the view.*/
+		public void addViewChangedListener(ViewChangedListener l) {
+			_ViewChangedListeners.add(l);
+		}
+
+
+		/**Removes a listener for changes in the view.*/
+		public void removeViewChangedListener(ViewChangedListener l) {
+			_ViewChangedListeners.remove(l);
+		}
+
+
+		/**Fires the view changed event.*/
+		public void fireViewChanged(float priorZoom, Point2D.Float priorPosition, float newZoom,
+				Point2D.Float newPosition) {
+			if (_ViewChangedListeners.size() == 0)
+				return;
+			ViewChangedEvent e = new ViewChangedEvent(this, priorZoom, priorPosition, newZoom, newPosition);
+			if (e.getID() == 0)
+				return;
+			for (ViewChangedListener l : _ViewChangedListeners)
+				l.viewChanged(e);
 		}
 
 
@@ -209,27 +299,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		public void adjustZoom(int delta) {
-			Point2D.Float size = view.getWorld().getSize();
-			float min = Math.min(size.x, size.y);
-			float max = Math.max(size.x, size.y);
-			float newZoom = (view.getCamera().getZoom() * 100f) - (3 * delta);
-
-			// These scalars are arbitrary for now.
-			newZoom /= 100f;
-			newZoom = Math.max(newZoom, 0.01f * min); // Limit on zoom out
-			newZoom = Math.min(newZoom, 0.3f * max); // Limit on zoom in
-
-			setZoom(newZoom);
-		}
-
-
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (screenOrigin != null)
 				return;
 			screenOrigin = new Point(e.getX(), e.getY());
 			gameCenterOrigin = view.getCamera().getPosition();
+			originalCursor = view.getCursor();
 			view.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			// e.consume();
 		}
@@ -242,7 +318,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			screenOrigin = null;
 			gameCenterOrigin = null;
 			screenCurrent = null;
-			view.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			view.setCursor(originalCursor != null ? originalCursor : new Cursor(Cursor.DEFAULT_CURSOR));
+			originalCursor = null;
 			// e.consume();
 		}
 
@@ -251,7 +328,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mouseDragged(MouseEvent e) {
 			if (screenOrigin == null)
 				return;
-
+			if (screenCurrent != null && screenCurrent.x == e.getX() && screenCurrent.y == e.getY())
+				return;
 			screenCurrent = new Point(e.getX(), e.getY());
 			Point2D.Float gameWorldA = view.getScreenToGameCoords(screenOrigin.x, screenOrigin.y);
 			Point2D.Float gameWorldB = view.getScreenToGameCoords(screenCurrent.x, screenCurrent.y);
@@ -265,21 +343,109 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		/**Sets the zoom where 'f' is the distance between 0 and 1, 0 representing the min zoom and 1 representing the max zoom.*/
-		public void setZoomAsPercentage(float newZoom) {
-			view.getCamera().setZoomOnMinMaxRange(newZoom);
-		}
+		/**Adjust the zoom an increment.*/
+		public void adjustZoom(int delta) {
+			float priorZoom = view.getCamera().getZoom();
+			double dz = Math.signum(delta) * Math.exp(priorZoom) * ZOOM_INCREMENT;
 
+			float newZoom = (float) (priorZoom - dz);
 
-		/**Sets the zoom to the absolute value given.*/
-		public void setZoom(float newZoom) {
+			// The limit on zoom-out depends on the size of the world.
+			newZoom = Math.max(newZoom, getMinZoom());
+			newZoom = Math.min(newZoom, MAX_ZOOM); // Limit on zoom in
+
 			view.getCamera().setZoom(newZoom);
+			this.fireViewChanged(priorZoom, view.getCamera().getPosition(), newZoom, view.getCamera().getPosition());
 		}
 
 
+		/**Sets the zoom as an exponential function between 0 and 1, 0 representing the min zoom and 1 
+		 * representing the max zoom.*/
+		public void setZoomAsPercentage(float percentage) {
+			float priorZoom = view.getCamera().getZoom();
+			view.getCamera().setZoomInRange(getMinZoom(), percentage, MAX_ZOOM);
+			float newZoom = view.getCamera().getZoom();
+			this.fireViewChanged(priorZoom, view.getCamera().getPosition(), newZoom, view.getCamera().getPosition());
+		}
+
+
+		/**Sets the view center.*/
 		public void setCenter(Point2D.Float newCenter) {
+			Point2D.Float oldPosition = view.getCamera().getPosition();
 			view.getCamera().setPosition(newCenter.x, newCenter.y);
+			this.fireViewChanged(view.getCamera().getZoom(), oldPosition, view.getCamera().getZoom(), newCenter);
 		}
+
+
+		void setZoomAndCenter(float zoom, Point2D.Float center) {
+			float priorZoom = view.getCamera().getZoom();
+			Point2D.Float priorCenter = view.getCamera().getPosition();
+			view.getCamera().setZoom(zoom);
+			view.getCamera().setPosition(center.x, center.y);
+			this.fireViewChanged(priorZoom, priorCenter, zoom, center);
+		}
+
+
+		/**Embodies view state for a quick return to that view.*/
+		public static final class ViewPreset {
+
+			public float zoom;
+			public Point2D.Float center;
+
+
+			public ViewPreset(float zoom, Point2D.Float center) {
+				this.zoom = zoom;
+				this.center = center;
+			}
+
+
+			public void apply(ViewControl control) {
+				control.setZoomAndCenter(zoom, center);
+			}
+		}
+
+
+		public abstract static class ViewChangedListener implements EventListener {
+
+			public abstract void viewChanged(ViewChangedEvent e);
+		}
+
+
+		@SuppressWarnings("serial")
+		public static final class ViewChangedEvent extends AWTEvent {
+
+			public static final int POSITION_CHANGED = 1;
+			public static final int ZOOM_CHANGED = 2;
+			public static final int BOTH_CHANGED = 3;
+
+			public final float priorZoom;
+			public final float priorPositionX;
+			public final float priorPositionY;
+
+			public final float newZoom;
+			public final float newPositionX;
+			public final float newPositionY;
+
+
+			ViewChangedEvent(ViewControl src, float priorZoom, Point2D.Float priorPosition, float newZoom,
+					Point2D.Float newPosition) {
+				super(src, 0);
+
+				this.priorZoom = priorZoom;
+				this.newZoom = newZoom;
+				if (priorZoom != newZoom)
+					id |= ZOOM_CHANGED;
+
+				this.priorPositionX = priorPosition.x;
+				this.priorPositionY = priorPosition.y;
+				this.newPositionX = newPosition.x;
+				this.newPositionY = newPosition.y;
+
+				if (priorPositionX != newPositionX || priorPositionY != newPositionY)
+					id |= POSITION_CHANGED;
+			}
+		}
+
 
 	}
 
@@ -348,19 +514,19 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			if (e.getButton() == MouseEvent.BUTTON1) {
 				view.requestFocusInWindow();
-				
+
 				// If there is a cornerA, it means selection has started
 				// already.
 				if (cornerA != null)
 					return;
 
-				assert (view.getRenderingTool() == null); // sanity check.
+				assert (view.getAdornmentTool() == null); // sanity check.
 
 				// Set the selection corner in screen coordinates.
 				cornerB = cornerA = new Point(e.getX(), e.getY());
 
 				// The view should start rendering the lasso.
-				view.setRenderingTool(this);
+				view.setAdornmentTool(this);
 				e.consume();
 			}
 		}
@@ -447,7 +613,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			}
 
 			// The view should no longer render the lasso.
-			view.setRenderingTool(null);
+			view.setAdornmentTool(null);
 
 			// Show that selection is complete, and re-selection hasn't
 			// started.
@@ -458,7 +624,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		@Override
-		public void render(Graphics2D g) {
+		public void render(Graphics2D g, RenderingContext batch) {
+			// Don't use the batch, because it's in terms of actual screen
+			// coordinates
 			g.setStroke(new BasicStroke(2));
 			g.setColor(Color.red);
 			Rectangle rect = Cartesian.makeRectangle(cornerA, cornerB);
@@ -480,8 +648,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		private final WorldView view;
 		private final World world;
-		private HashMap<Point, TileType> oldTileTypes = null;
-		private HashMap<Point, TileType> newTileTypes = null;
+		private HashMap<Point, Tile> oldTiles = null;
+		private HashMap<Point, Tile> newTiles = null;
 
 		public final SelectionModel selection;
 		private TileType drawingTileType;
@@ -497,11 +665,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes != null || selection.tileType == null)
+			if (e.isConsumed() || oldTiles != null || selection.tileType == null)
 				return;
 			drawingTileType = selection.tileType;
-			oldTileTypes = new HashMap<Point, TileType>();
-			newTileTypes = new HashMap<Point, TileType>();
+			oldTiles = new HashMap<Point, Tile>();
+			newTiles = new HashMap<Point, Tile>();
 			drawTile(e.getX(), e.getY(), drawingTileType);
 			e.consume();
 		}
@@ -510,7 +678,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		@Override
 		public void mouseExited(MouseEvent e) {
 			// TODO: pushing 'ESC' should also cancel the draw.
-			if (e.getSource() == view && oldTileTypes != null) {
+			if (e.getSource() == view && oldTiles != null) {
 				cancelDraw();
 				e.consume();
 			}
@@ -519,19 +687,22 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null)
+			if (e.isConsumed() || oldTiles == null)
 				return;
-			Undoable<HashMap<Point, TileType>> u = new Undoable<HashMap<Point, TileType>>(oldTileTypes, newTileTypes) {
+			if (newTiles.size() == 0)
+				return;
+			Undoable<HashMap<Point, Tile>> u = new Undoable<HashMap<Point, Tile>>(oldTiles, newTiles) {
 
 				@Override
 				protected void undoValidated() {
 					for (Point p : before.keySet()) {
 						Tile existingTile = world.getTile(p.x, p.y);
-						if (existingTile == null && after.get(p) != null)
+						if (existingTile == null) {
+							if (after.get(p) != null)
+								error();
+						} else if (!existingTile.equals(after.get(p)))
 							error();
-						if (!existingTile.getType().equals(after.get(p)))
-							error();
-						TileType t = before.get(p);
+						Tile t = before.get(p);
 						world.setTile(p.x, p.y, t);
 					}
 				}
@@ -541,11 +712,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				protected void redoValidated() {
 					for (Point p : after.keySet()) {
 						Tile existingTile = world.getTile(p.x, p.y);
-						if (existingTile == null && before.get(p) != null)
+						if (existingTile == null) {
+							if (before.get(p) != null)
+								error();
+						} else if (!existingTile.equals(before.get(p)))
 							error();
-						if (!existingTile.getType().equals(before.get(p)))
-							error();
-						TileType t = after.get(p);
+						Tile t = after.get(p);
 						world.setTile(p.x, p.y, t);
 					}
 				}
@@ -554,8 +726,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 			pushUndo(world, u);
 
-			oldTileTypes = null;
-			newTileTypes = null;
+			oldTiles = null;
+			newTiles = null;
 			drawingTileType = null;
 			e.consume();
 
@@ -564,7 +736,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.isConsumed() || oldTileTypes == null || selection.tileType == null)
+			if (e.isConsumed() || oldTiles == null || selection.tileType == null)
 				return;
 			assert drawingTileType != null;
 			drawTile(e.getX(), e.getY(), drawingTileType);
@@ -575,38 +747,42 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		private void cancelDraw() {
 
 			// Restore all the old tile types.
-			for (Point p : oldTileTypes.keySet()) {
-				world.setTile(p.x, p.y, oldTileTypes.get(p));
+			for (Point p : oldTiles.keySet()) {
+				world.setTile(p.x, p.y, oldTiles.get(p));
 			}
 
 			// Null the tile type caches to signal that drawing is done.
-			oldTileTypes = null;
-			newTileTypes = null;
+			oldTiles = null;
+			newTiles = null;
 			drawingTileType = null;
 		}
 
 
-		private void drawTile(int screenX, int screenY, TileType tileType) {
+		/**Returns the new tile created.*/
+		private Tile drawTile(int screenX, int screenY, TileType tileType) {
 
-			// Find the position in game space.
+			// Find the position and existing tile in game space.
 			Point2D.Float gamePos = view.getScreenToGameCoords(screenX, screenY);
-			Tile existingTile = world.getTile(gamePos);
+			int x = (int) gamePos.x, y = (int) gamePos.y;
+			if (!world.isInBounds(x, y))
+				return null;
+			Tile existingTile = world.getTile(x, y);
 
-			// Sanity checks.
-			assert existingTile != null;
-			assert (tileType != null);
-
-			// Find the existing location and tile type.
-			TileType oldTileType = existingTile.getType();
-			if (oldTileType == tileType)
-				return;
-			Point2D.Float existingPoint = existingTile.getPosition();
-			int x = (int) existingPoint.getX(), y = (int) existingPoint.getY();
+			// If the tile type isn't changing, shouldn't change the change
+			// buffer.
+			if (existingTile != null && existingTile.getType() != null) {
+				if (existingTile.getType().equals(tileType))
+					return null;
+				if (existingTile.getType().getName().equals(tileType.getName()))
+					return null;
+			}
 
 			// Cache the old and new tile types, then draw to the world;
-			oldTileTypes.put(new Point(x, y), oldTileType);
-			newTileTypes.put(new Point(x, y), tileType);
-			world.setTile(x, y, tileType);
+			Tile newTile = new Tile(world, tileType, x, y);
+			oldTiles.put(new Point(x, y), existingTile);
+			world.setTile(x, y, newTile);
+			newTiles.put(new Point(x, y), newTile);
+			return newTile;
 		}
 
 	}
@@ -652,10 +828,17 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				view.setSelectedTiles(null);
 				return;
 			} else {
+				int x = (int) gamePos.x, y = (int) gamePos.y;
+				if (!world.isInBounds(x, y))
+					return;
+				Tile tile = world.getTile(x, y);
+				if (tile != null && (tile.isOccupied() || tile.isSolid()))
+					return;
+
 				EntityType type = selection.entityType;
 				if (type == null)
 					return;
-				Entity newEntity = type.get((int) gamePos.x, (int) gamePos.y);
+				Entity newEntity = type.get(x, y);
 				world.addEntity(newEntity);
 
 				Undoable<Entity> placeUndoable = new Undoable<Entity>(null, newEntity) {
@@ -686,4 +869,6 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			}
 		}
 	}
+
+
 }
