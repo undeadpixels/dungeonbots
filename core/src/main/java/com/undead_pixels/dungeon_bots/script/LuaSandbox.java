@@ -337,12 +337,12 @@ public final class LuaSandbox implements Serializable {
 		@Override
 		public LuaValue call(LuaValue required) {
 			return Optional.ofNullable(scripts.get(required.checkjstring()))
-					.map(script ->
-							init(script.code)
-									.join()
-									.getResults()
-									.map(Varargs::arg1)
-									.orElse(LuaValue.NIL))
+					.map(script -> {
+						final LuaInvocation li = new LuaInvocation(LuaSandbox.this, script.code);
+						li.run();
+						return li.join().getResults()
+								.map(Varargs::arg1)
+								.orElse(LuaValue.NIL); })
 					.orElse(LuaValue.NIL);
 		}
 
