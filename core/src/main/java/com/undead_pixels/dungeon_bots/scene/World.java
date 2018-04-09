@@ -1475,9 +1475,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
 		return entitiesAtPos(location)
 				.anyMatch(e -> {
-					final boolean used = e.useItem(itemReference);
 					final Entity owner = itemReference.inventory.getOwner();
 					final String name = itemReference.getName();
+					final boolean used = e.useItem(itemReference);
 					if(used) {
 						message(owner,
 								String.format("%s used %s on %s",
