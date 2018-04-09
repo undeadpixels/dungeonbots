@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 
 import javax.swing.AbstractButton;
@@ -54,6 +55,7 @@ public class GameplayScreen extends Screen {
 	private static final String COMMAND_REWIND = "REWIND";
 	private static final String COMMAND_MAIN_MENU = "MAIN_MENU";
 	private static final String COMMAND_QUIT = "QUIT";
+	private static final String COMMAND_CENTER_VIEW = "CENTER_VIEW";
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
@@ -132,6 +134,8 @@ public class GameplayScreen extends Screen {
 		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
 				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10,10,10,10)).create());
 		playToolBar.add(zoomSlider);
+		playToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
+				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.add(
 				UIBuilder.buildToggleButton().image("images/grid.jpg").text("Grid lines").toolTip("Turn grid off/on.")
 						.border(new EmptyBorder(10, 10, 10, 10)).action(COMMAND_TOGGLE_GRID, getController()).create());
@@ -285,6 +289,12 @@ public class GameplayScreen extends Screen {
 					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
 				}
 
+				break;
+			case COMMAND_CENTER_VIEW:
+				Point2D.Float worldSize = world.getSize();
+				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
+				_ViewControl.setCenter(center);
+				_ViewControl.setZoomAsPercentage(0.5f);
 				break;
 			case COMMAND_MAIN_MENU:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),

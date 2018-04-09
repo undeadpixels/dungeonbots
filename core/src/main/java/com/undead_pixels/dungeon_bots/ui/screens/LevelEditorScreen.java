@@ -90,7 +90,7 @@ public final class LevelEditorScreen extends Screen {
 	private static final String COMMAND_SAVEAS_TO_LEVELPACK = "SAVEAS_TO_LEVELPACK";
 	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
 	private static final String COMMAND_RESIZE = "RESIZE_WORLD";
-	private static final String COMMAND_RESET_VIEW = "RESET_VIEW";
+	private static final String COMMAND_CENTER_VIEW = "CENTER_VIEW";
 
 
 	// Defined by Swing, don't change this:
@@ -328,11 +328,12 @@ public final class LevelEditorScreen extends Screen {
 				jpe.setItems(world.getWhitelist());
 				jpe.setVisible(true);
 				break;
-			case COMMAND_RESET_VIEW:
+			case COMMAND_CENTER_VIEW:
 				Point2D.Float worldSize = world.getSize();
 				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
 				_ViewControl.setCenter(center);
 				_ViewControl.setZoomAsPercentage(0.5f);
+				
 				break;
 			case COMMAND_RESIZE:
 				JWorldSizer jws = JWorldSizer.showDialog(LevelEditorScreen.this, world, _View);
@@ -735,7 +736,7 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
 		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
-				.action(COMMAND_RESET_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
+				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		_ToolBar.add(zoomSlider);
 		_ToolBar.add(UIBuilder.buildButton().image("icons/arrow_switch.png").text("Switch to Play")
 				.action("Switch to Play", getController()).border(new EmptyBorder(10, 10, 10, 10)).create());

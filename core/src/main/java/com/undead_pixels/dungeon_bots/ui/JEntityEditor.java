@@ -5,6 +5,7 @@ import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 
 import javax.swing.JDialog;
@@ -14,6 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -178,7 +180,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 	/**Returns null if security will not allow any editing of this entity.*/
 	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
-			SecurityLevel securityLevel) {
+			SecurityLevel securityLevel, WorldView view) {
 
 		// If there's already an open editor for this entity, don't allow
 		// another dialog.
@@ -223,13 +225,16 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
 		// own Undoable.
-		ActionListener dialogController = new DialogController(dialog, jee, entity);
+		ActionListener dialogController = new DialogController(dialog, jee, entity, view);
 
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel changes and close the dialog.")
 				.action("CANCEL", dialogController).create());
+		pnlButtons
+				.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
+						.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);
@@ -243,12 +248,14 @@ public final class JEntityEditor extends JTabbedPane {
 		private final JEntityEditor jee;
 		private final JDialog dialog;
 		private final Entity entity;
+		private final WorldView view;
 
 
-		public DialogController(JDialog dialog, JEntityEditor jee, Entity entity) {
+		public DialogController(JDialog dialog, JEntityEditor jee, Entity entity, WorldView view) {
 			this.dialog = dialog;
 			this.jee = jee;
 			this.entity = entity;
+			this.view = view;
 		}
 
 
@@ -286,6 +293,11 @@ public final class JEntityEditor extends JTabbedPane {
 				jee.dialog = null;
 				dialog.dispose();
 				break;
+			case "CENTER_VIEW":
+				Point2D.Float pt = entity.getPosition();
+				view.getCamera().setPosition(pt.x, pt.y);
+				break;
+
 			case "HELP":
 				jee.showHelp();
 				break;
@@ -294,6 +306,6 @@ public final class JEntityEditor extends JTabbedPane {
 			}
 		}
 	}
-	
+
 
 }

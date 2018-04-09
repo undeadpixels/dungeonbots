@@ -576,7 +576,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// entity.
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel);
+				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
 				if (jee == null) {
 					world.message((se.get(0) instanceof HasImage) ? (HasImage) se.get(0) : null,
 							"This entity cannot be edited.", LoggingLevel.GENERAL);
@@ -798,7 +798,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 		public EntityPlacer(WorldView view, SelectionModel selection, Window owner, SecurityLevel securityLevel) {
-			super("EntityPlacer", UIBuilder.getImage("icons/diamond_48x48.png"));
+			super("Entity Placer", UIBuilder.getImage("icons/diamond_48x48.png"));
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
@@ -818,7 +818,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			if (alreadyThere != null) {
 				view.setSelectedEntities(new Entity[] { alreadyThere });
 				JEntityEditor jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(),
-						securityLevel);
+						securityLevel, view);
 				if (jee == null) {
 					world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
 							"This entity cannot be edited.", LoggingLevel.GENERAL);
@@ -863,7 +863,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				pushUndo(world, placeUndoable);
 
 
-				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel);
+				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel, view);
 				jee.setVisible(true);
 				view.setSelectedEntities(new Entity[] { newEntity });
 			}
