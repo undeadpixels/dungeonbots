@@ -73,7 +73,7 @@ public class GameplayScreen extends Screen {
 
 			@Override
 			public void message(HasImage src, String message, LoggingLevel level) {
-				this.message(src, message, level);
+				GameplayScreen.this.message(src, message, level);
 			}
 		});
 	}
@@ -164,11 +164,11 @@ public class GameplayScreen extends Screen {
 		messagePanel.setLayout(new BorderLayout());
 		messagePanel.add(emblem, BorderLayout.PAGE_START);
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
-		message("This is a regular message from the world.\n", Color.white);
-		message("This is an error message from the world.\n", Color.red);
-		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", Color.WHITE);
-		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", Color.RED);
-		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", Color.green);
+		message("This is a regular message from the world.\n", LoggingLevel.GENERAL);
+		message("This is an error message from the world.\n", LoggingLevel.ERROR);
+		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", LoggingLevel.GENERAL);
+		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", LoggingLevel.ERROR);
+		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL, Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -209,8 +209,20 @@ public class GameplayScreen extends Screen {
 
 
 	/**Posts the given message to the message pane, with the given sender's icon.*/
-	public void message(HasImage sender, String text, Color color) {
-		_MessagePane.message(sender, text, color);
+	public void message(String text, LoggingLevel level) {
+		_MessagePane.message(text, level.color, level);
+	}
+
+
+	/**Posts the given message to the message pane, with the given sender's icon.*/
+	public void message(HasImage sender, String text, LoggingLevel level) {
+		this.message(sender, text, level, level.color);
+	}
+
+
+	/**Posts the given message to the message pane, with the given sender's icon.*/
+	public void message(HasImage sender, String text, LoggingLevel level, Color color) {
+		_MessagePane.message(sender, text, color, level);
 	}
 
 
