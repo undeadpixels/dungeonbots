@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -9,11 +10,17 @@ import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -22,7 +29,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.TreeModel;
@@ -44,12 +53,12 @@ public class JPackDownloadDialog extends JDialog {
 	private static final String BAD_DOWNLOAD_IMAGE = "images/sprite.jpg";
 	private static final Dimension ICON_SIZE = new Dimension(40, 40);
 	private JList<Page.Pack> list;
-	private JButton bttnDownload, bttnCancel, bttnPrevPage, bttnNextPage;
+	private JButton bttnDownload, bttnCancel, bttnPrevPage, bttnNextPage, bttnFirstPage, bttnLastPage;
 
 
 	private LevelPack result;
 	private Page currentPage;
-	private JLabel errorLbl;
+	private JTextPane errorPane;
 	private JPanel contentPnl;
 
 
@@ -77,22 +86,39 @@ public class JPackDownloadDialog extends JDialog {
 				textPnl.add(new JLabel(pack.title));
 				textPnl.add(new JLabel(WEBSITE + pack.picture_link));
 				pnl.add(textPnl);
+				if (isSelected)
+					pnl.setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.red));
+				else
+					pnl.setBorder(new EmptyBorder(2, 2, 2, 2));
 				return pnl;
 			}
 		});
 		JScrollPane scroller = new JScrollPane(list);
-		errorLbl = UIBuilder.buildLabel().text("ERROR PANE").alignmentX(0.5f).focusable(true).create();
+		errorPane = new JTextPane();
+		errorPane.setText("ERROR PANE");
+		errorPane.setFocusable(true);
+		errorPane.setOpaque(true);
+		errorPane.setForeground(Color.RED);
+		errorPane.setEditable(false);
 
 		contentPnl = new JPanel(new CardLayout());
-		contentPnl.add(errorLbl, CARD_ERROR);
+		contentPnl.add(errorPane, CARD_ERROR);
 		contentPnl.add(scroller, CARD_LIST);
 
 
 		JPanel bttnPnl = new JPanel();
-		bttnPnl.add(bttnPrevPage = UIBuilder.buildButton().text("Last page").action("PREV_PAGE", controller).create());
-		bttnPnl.add(bttnDownload = UIBuilder.buildButton().text("Download").action("DOWNLOAD", controller).create());
-		bttnPnl.add(bttnCancel = UIBuilder.buildButton().text("Cancel").action("CANCEL", controller).create());
-		bttnPnl.add(bttnNextPage = UIBuilder.buildButton().text("Next page").action("NEXT_PAGE", controller).create());
+		bttnPnl.add(bttnFirstPage = UIBuilder.buildButton().image("icons/resultset_first.png")
+				.toolTip("Go back to first page.").action("FIRST_PAGE", controller).create());
+		bttnPnl.add(bttnPrevPage = UIBuilder.buildButton().image("icons/resultset_previous.png")
+				.toolTip("Go back to previous page.").action("PREV_PAGE", controller).create());
+		bttnPnl.add(bttnDownload = UIBuilder.buildButton().image("icons/ok.png").toolTip("Download this level pack.")
+				.action("DOWNLOAD", controller).create());
+		bttnPnl.add(bttnCancel = UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel.")
+				.action("CANCEL", controller).create());
+		bttnPnl.add(bttnNextPage = UIBuilder.buildButton().image("icons/resultset_next.png")
+				.toolTip("Go forward to next page.").action("NEXT_PAGE", controller).create());
+		bttnPnl.add(bttnLastPage = UIBuilder.buildButton().image("icons/resultset_last.png")
+				.toolTip("Go forward to last page.").action("LAST_PAGE", controller).create());
 
 		this.add(contentPnl, BorderLayout.CENTER);
 		this.add(bttnPnl, BorderLayout.PAGE_END);
@@ -113,10 +139,21 @@ public class JPackDownloadDialog extends JDialog {
 
 
 	private static final String downloadPage(int number) {
-
-		String pageStr = Serializer.readStringFromFile("website_api.json");
-
-		return pageStr;
+		return Serializer.readStringFromFile("website_api.json");
+		// https://dungeonbots.herokuapp.com/api/v1/packs?page=2
+		/*
+		try (Socket socket = new Socket("https://dungeonbots.herokuapp.com/api/v1/packs?page=" + number, 80);
+				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = in.readLine()) != null)
+				sb.append(line + "\n");
+			String ret = sb.toString();
+			return ret;
+		} catch (Exception ex) {
+			return null;
+		}
+		*/
 	}
 
 
@@ -131,7 +168,7 @@ public class JPackDownloadDialog extends JDialog {
 		if (str == null) {
 			currentPage = null;
 			model.removeAllElements();
-			errorLbl.setText(
+			errorPane.setText(
 					"Could not download from the website.  \nThis may be a problem with internet connectivity.  Please try again later.");
 			updateGUI();
 			return;
@@ -143,7 +180,7 @@ public class JPackDownloadDialog extends JDialog {
 		} catch (Exception ex) {
 			currentPage = null;
 			model.removeAllElements();
-			errorLbl.setText("Could not interpret downloaded page. " + ex.getMessage());
+			errorPane.setText("Could not interpret downloaded page. " + ex.getMessage());
 			updateGUI();
 			return;
 		}
@@ -152,7 +189,7 @@ public class JPackDownloadDialog extends JDialog {
 		if (currentPage.page != pageNum) {
 			currentPage = null;
 			model.removeAllElements();
-			errorLbl.setText("Downloaded wrong page number.");
+			errorPane.setText("Downloaded wrong page number.");
 			updateGUI();
 			return;
 		}
@@ -184,12 +221,18 @@ public class JPackDownloadDialog extends JDialog {
 
 
 	private void updateGUI() {
-		bttnDownload.setEnabled(!list.isSelectionEmpty());
+
 		CardLayout cl = (CardLayout) contentPnl.getLayout();
 		if (currentPage == null)
 			cl.show(contentPnl, CARD_ERROR);
 		else
 			cl.show(contentPnl, CARD_LIST);
+
+		bttnDownload.setEnabled(!list.isSelectionEmpty());
+		this.bttnNextPage.setEnabled(currentPage != null && currentPage.page < currentPage.pages);
+		this.bttnPrevPage.setEnabled(currentPage != null && currentPage.page > 1);
+		this.bttnFirstPage.setEnabled(currentPage != null && currentPage.page > 1);
+		this.bttnLastPage.setEnabled(currentPage != null && currentPage.page < currentPage.pages);
 	}
 
 
@@ -228,10 +271,48 @@ public class JPackDownloadDialog extends JDialog {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
+			case "FIRST_PAGE":
+				if (currentPage == null)
+					return;
+				if (currentPage.page <= 1)
+					return;
+				setPage(1);
+				return;
 			case "PREV_PAGE":
-			case "DOWNLOAD":
+				if (currentPage == null)
+					return;
+				if (currentPage.page <= 1)
+					return;
+				setPage(currentPage.page - 1);
+				return;
 			case "CANCEL":
+				result = null;
+				JPackDownloadDialog.this.dispose();
+				return;
 			case "NEXT_PAGE":
+				if (currentPage == null)
+					return;
+				if (currentPage.page >= currentPage.pages)
+					return;
+				setPage(currentPage.page + 1);
+				return;
+			case "LAST_PAGE":
+				if (currentPage == null)
+					return;
+				if (currentPage.page >= currentPage.pages)
+					return;
+				setPage(currentPage.pages);
+				return;
+			case "DOWNLOAD":
+				if (currentPage == null)
+					return;
+				int idx = list.getSelectedIndex();
+				if (idx < 0)
+					return;
+				if (idx >= currentPage.packs.length)
+					return;
+				String link = currentPage.packs[idx].file_link;
+				System.out.println("Preparing to download: " + link);
 			default:
 				System.err.println(this.getClass().getName() + " has not implemented command " + e.getActionCommand());
 			}
