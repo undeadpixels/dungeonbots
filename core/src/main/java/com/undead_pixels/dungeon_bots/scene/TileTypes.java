@@ -46,7 +46,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		super();
 
 
-		// TODO - visually test these all at some point
 		Point2D.Float[] offsetsWalls = new Point2D.Float[] {
 				new Point2D.Float(0, 1), // 0 default
 				new Point2D.Float(1, 0), // 1 only left

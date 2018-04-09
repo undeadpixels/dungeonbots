@@ -54,8 +54,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
 	 * The text associated with this actor
-	 * 
-	 * TODO - this might want to be refactored eventually
 	 */
 	private FloatingText floatingText;
 

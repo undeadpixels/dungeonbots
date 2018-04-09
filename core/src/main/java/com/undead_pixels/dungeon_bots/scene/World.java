@@ -46,9 +46,6 @@ import org.luaj.vm2.*;
 /**
  * The World of the game. Controls pretty much everything in the entire level,
  * but could get reset/rebuilt if the level is restarted.
- * 
- * TODO - some parts of this should persist between the resets/rebuilds, but
- * some parts shouldn't. Need to figure out what parts.
  */
 @Doc("The current map can be interfaced with via the 'world'")
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable {
@@ -329,27 +326,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		} else {
-			// TODO - these comments aren't correct anymore
 			String defaultInitScript =
 					"--[[\n" +
-					"stuff that's passed in:\n" +
-					"\n" +
-					"world\n" +
-					" - tiles        custom class\n" +
-					"   - setSize      function(width, height)\n" +
-					"   - setTile      function(x, y, Tile)\n" +
-					"   - getTile      function(x, y, Tile)\n" +
-					" - bots         array of Actors\n" +
-					" - player       player reference\n" +
-					" - enemies      array of Actors\n" +
-					" - win          function(info)\n" +
-					" - listenFor    function(eventName, funcPtr)\n" +
-					"\n" +
-					"tileTypes\n" +
-					" - floor\n" +
-					" - wall\n" +
-					" - goal\n" +
-					" - ???\n" +
+					"    The world's init script.\n" +
+					"    In the command line, run help() for more info.\n" +
 					"]]\n" +
 					"\n" +
 					"registerUpdateListener(function(dt)\n" +
@@ -577,10 +557,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			if (tile != null) {
 				tile.setOccupiedBy(e);
 			}
-		}
-
-		if(e instanceof Goal) {
-			// TODO
 		}
 	}
 

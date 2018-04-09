@@ -295,10 +295,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		return luaError;
 	}
 
-	public Optional<SandboxedValue> getSandboxedValue() {
-		return getResults().map(val -> new SandboxedValue(val, environment));
-	}
-
 	@Override
 	public boolean act(float dt) {
 		run();

@@ -60,8 +60,7 @@ public class Player extends RpgActor {
 				+ "  if k==\"s\" then this:down() end\n"
 				+ "  if k==\"a\" then this:left() end\n"
 				+ "  if k==\"d\" then this:right() end\n"
-				+ "end)\n"
-				+ "print(\"registered\")")); // TODO
+				+ "end)\n"));
 		return ret;
 	}
 
