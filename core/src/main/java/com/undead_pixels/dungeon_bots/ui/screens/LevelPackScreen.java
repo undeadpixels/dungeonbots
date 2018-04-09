@@ -202,7 +202,7 @@ public class LevelPackScreen extends Screen {
 
 
 		JPanel packInfoBttns = new JPanel();
-		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").text("Download")
+		packInfoBttns.add(UIBuilder.buildButton().image("icons/load.png").text("Download").mnemonic('d')
 				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Load a Pack from disk.")
 				.action("DOWNLOAD_LEVELPACK", getController()).focusable(false).create());
 		packInfoBttns.add(UIBuilder.buildButton().image("icons/new.png").text("New pack")

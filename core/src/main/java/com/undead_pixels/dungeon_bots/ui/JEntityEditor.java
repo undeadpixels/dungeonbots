@@ -19,6 +19,7 @@ import javax.swing.text.Document;
 
 import org.jdesktop.swingx.HorizontalLayout;
 
+import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -227,7 +228,7 @@ public final class JEntityEditor extends JTabbedPane {
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
-		pnlButtons.add(UIBuilder.buildButton().image("icons/cancel.png").toolTip("Cancel changes and close the dialog.")
+		pnlButtons.add(UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel changes and close the dialog.")
 				.action("CANCEL", dialogController).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
@@ -293,6 +294,6 @@ public final class JEntityEditor extends JTabbedPane {
 			}
 		}
 	}
-
+	
 
 }

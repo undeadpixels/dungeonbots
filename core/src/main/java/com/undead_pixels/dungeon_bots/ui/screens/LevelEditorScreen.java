@@ -600,6 +600,7 @@ public final class LevelEditorScreen extends Screen {
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
 
+			pnl.setPreferredSize(new Dimension(170,30));
 			return pnl;
 		}
 	};
@@ -627,7 +628,8 @@ public final class LevelEditorScreen extends Screen {
 				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
-			// lbl2.setForeground(Color.red);
+			
+			pnl.setPreferredSize(new Dimension(170,30));
 
 			return pnl;
 		}
@@ -639,14 +641,16 @@ public final class LevelEditorScreen extends Screen {
 		public Component getListCellRendererComponent(JList<? extends Tool> list, Tool tool, int index,
 				boolean isSelected, boolean cellHasFocus) {
 			ImageIcon icon = null;
-			if (tool.image != null)
+			if (tool.image != null) {
 				icon = new ImageIcon(tool.image);
+			}
 			JLabel lbl = new JLabel(icon);
 			lbl.setText(tool.name);
 			if (isSelected || cellHasFocus)
 				lbl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
 			else
 				lbl.setBorder(new EmptyBorder(3, 3, 3, 3));
+			lbl.setOpaque(true);
 			return lbl;
 		}
 	};
@@ -719,22 +723,22 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the zoom slider.
-		JSlider zoomSlider = new JSlider();
+		JSlider zoomSlider = new JSlider();		
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
 
 		// Build the control panel.
-		_ToolBar = new JToolBar();
+		_ToolBar = new JToolBar("Editor tools");
 		// toolBar.setLayout(new VerticalLayout());
 		_ToolBar.setOrientation(SwingConstants.VERTICAL);
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
-		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").toolTip("Set view to center.")
-				.action(COMMAND_RESET_VIEW, getController()).create());
+		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
+				.action(COMMAND_RESET_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		_ToolBar.add(zoomSlider);
-		_ToolBar.add(UIBuilder.buildButton().text("Switch to Play").action("Switch to Play", getController())
-				.border(BorderFactory.createRaisedSoftBevelBorder()).create());
+		_ToolBar.add(UIBuilder.buildButton().image("icons/arrow_switch.png").text("Switch to Play")
+				.action("Switch to Play", getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		_ToolBar.addSeparator();
 		_ToolBar.add(_ToolScroller);
 		_ToolBar.add(_TileScroller);
