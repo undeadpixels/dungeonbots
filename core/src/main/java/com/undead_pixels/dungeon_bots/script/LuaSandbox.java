@@ -540,4 +540,10 @@ public final class LuaSandbox implements Serializable {
 			currentInvoke.safeSleep(5);
 		}
 	}
+
+	public boolean registerEventListener(final String eventName, final LuaValue fn) {
+		return Optional.ofNullable(eventListeners.get(eventName))
+				.map(fns -> fns.add(fn))
+				.orElse(false);
+	}
 }
