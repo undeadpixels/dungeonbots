@@ -123,4 +123,14 @@ public class SecurityContext {
 	public Entity getEntity () {
 		return entity;
 	}
+
+	/**
+	 * @return
+	 */
+	public String getOwnerName () {
+		if(entity != null) {
+			return entity.getName();
+		}
+		return "world";
+	}
 }
