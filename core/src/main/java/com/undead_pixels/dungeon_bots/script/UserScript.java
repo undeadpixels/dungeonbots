@@ -107,19 +107,6 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 		return name.compareTo(other.name);
 	}
 
-	@Deprecated
-	/**
-	 * Determines whether or not this user script will execute on this pass
-	 * through the game loop. Can be overridden in a derived class.
-	 * 
-	 * TODO: in a derived class that implements an event, should check if the
-	 * event's conditions have been triggered such that "canExecute" would be
-	 * true.
-	 */
-	public boolean canExecute(World world, long time) {
-		return true;
-	}
-
 	@Override
 	public final String toString() {
 		return "Script: " + name + "\n" + code.replaceAll("^", "    ");

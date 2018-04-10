@@ -132,7 +132,6 @@ public abstract class Entity
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		// TODO - sandbox.resume();
 		actionQueue.act(dt);
 		if (sandbox != null) {
 			sandbox.update(dt);
@@ -160,7 +159,9 @@ public abstract class Entity
 
 
 	/**
-	 * TODO - should this be private?
+	 * NOTE - this probably shouldn't be messed with,
+	 * but Java doesn't have "friend" classes,
+	 * and the World needs to access it.
 	 * 
 	 * @return This Entity's action queue
 	 */
@@ -171,8 +172,7 @@ public abstract class Entity
 
 	@Override
 	public TeamFlavor getTeam() {
-		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe
-								// (or just have overrides do this right)
+		return TeamFlavor.NONE;
 	}
 
 
