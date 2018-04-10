@@ -37,7 +37,8 @@ public class JEntityPropertyControl {
 	private final Entity entity;
 	private final SecurityLevel security;
 	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
-	private Box propertiesPanel;
+	
+	private JComponent lazyCreated;
 
 
 	public JEntityPropertyControl(Entity entity, SecurityLevel level) {
@@ -48,19 +49,18 @@ public class JEntityPropertyControl {
 	}
 	
 	private void updateBorderName() {
-		if(propertiesPanel != null) {
-			propertiesPanel.setBorder(BorderFactory.createTitledBorder(entity.getName()+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
+		if(lazyCreated != null) {
+			lazyCreated.setBorder(BorderFactory.createTitledBorder(entity.getName()+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
 		}
 	}
 
 
 	public JComponent create() {
-		updateBorderName();
-		
-		if(propertiesPanel != null) {
-			return propertiesPanel;
+		if(lazyCreated != null) {
+			return lazyCreated;
 		}
-		propertiesPanel = new Box(BoxLayout.Y_AXIS);
+		Box propertiesPanel = new Box(BoxLayout.Y_AXIS);
+		propertiesPanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
 		
 		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(128, 128, BufferedImage.SCALE_FAST)));
@@ -68,7 +68,10 @@ public class JEntityPropertyControl {
 		imgLabel.setHorizontalAlignment(JLabel.LEFT);
 		
 		propertiesPanel.add(imgLabel);
-		propertiesPanel.add(new JSeparator());
+		
+		JSeparator separator = new JSeparator();
+		separator.setMaximumSize(new Dimension(99999, 15));
+		propertiesPanel.add(separator);
 		
 		
 		checkboxes.add(new CheckboxController("Selection", "SELECTION",
@@ -91,6 +94,8 @@ public class JEntityPropertyControl {
 		
 		JScrollPane scroller = new JScrollPane(propertiesPanel);
 
+		lazyCreated = scroller;
+		updateBorderName();
 
 		return scroller;
 	}
@@ -109,16 +114,18 @@ public class JEntityPropertyControl {
 		public JComponent makeCheckbox() {
 			checkBox = new JCheckBox(title, entity.getPermission(flagName).level < SecurityLevel.AUTHOR.level);
 			checkBox.setToolTipText(description);
+			checkBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			
-			Box ret = new Box(BoxLayout.X_AXIS);
-			ret.add(checkBox);
-			ret.add(new JPanel());
+			//Box ret = new Box(BoxLayout.X_AXIS);
+			//ret.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+			//ret.add(checkBox);
+			//ret.add(new JPanel());
 			
-			ret.setBorder(BorderFactory.createEmptyBorder());
+			//ret.setBorder(BorderFactory.createEmptyBorder());
 			
-			ret.setPreferredSize(checkBox.getPreferredSize());
+			//ret.setPreferredSize(checkBox.getPreferredSize());
 			
-			return ret;
+			return checkBox;
 			
 		}
 
