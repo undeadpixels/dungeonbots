@@ -5,9 +5,13 @@
 package com.undead_pixels.dungeon_bots.script;
 
 import com.undead_pixels.dungeon_bots.queueing.Taskable;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.script.environment.InterruptedDebug;
 import com.undead_pixels.dungeon_bots.utils.exceptions.ScriptInterruptException;
 
+import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.ZeroArgFunction;
 
@@ -142,12 +146,19 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				if(ans.arg1().checkboolean()) {
 					//setStatus(ScriptStatus.COMPLETE);
 					luaError = null;
-				} else {
-					String errString = ans.arg(2).checkjstring();
-					setStatus(errString.contains("ScriptInterruptException") ?
-							ScriptStatus.STOPPED :
-							ScriptStatus.LUA_ERROR);
+				}
+				else {
+					final String errString = ans.arg(2).checkjstring();
+					final ScriptStatus scriptStatus = errString.contains("ScriptInterruptException")
+							? ScriptStatus.STOPPED :
+							ScriptStatus.LUA_ERROR;
+					setStatus(scriptStatus);
 					luaError = new LuaError(errString);
+					environment.getSecurityContext().getWorld()
+							.ifPresent(w -> w.message(
+									environment.getSecurityContext().getEntity(),
+									luaError.getMessage(),
+									LoggingLevel.ERROR));
 					break;
 				}
 			}
@@ -155,14 +166,35 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		catch (ScriptInterruptException si) {
 			if(getStatus() != ScriptStatus.TIMEOUT) {
 				setStatus(ScriptStatus.STOPPED);
+				environment.getSecurityContext()
+						.getWorld()
+						.ifPresent(w ->
+								w.message(
+										environment.getSecurityContext().getEntity(),
+										"Script Stopped",
+										LoggingLevel.GENERAL));
 			}
 		}
 		catch(LuaError le ) {
 			setStatus(ScriptStatus.LUA_ERROR);
+			environment.getSecurityContext()
+					.getWorld()
+					.ifPresent(w ->
+							w.message(
+									environment.getSecurityContext().getEntity(),
+									le.getMessage(),
+									LoggingLevel.ERROR));
 			luaError = le;
 		}
 		catch (Throwable t) {
 			setStatus(ScriptStatus.ERROR);
+			environment.getSecurityContext()
+					.getWorld()
+					.ifPresent(w ->
+							w.message(
+									environment.getSecurityContext().getEntity(),
+									t.getMessage(),
+									LoggingLevel.ERROR));
 		}
 		
 		if(getStatus() == ScriptStatus.RUNNING) {

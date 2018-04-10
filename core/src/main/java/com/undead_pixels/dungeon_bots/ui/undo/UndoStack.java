@@ -77,6 +77,18 @@ public class UndoStack {
 	}
 
 
+	/**Clears both the undo and the redo stacks.*/
+	public void clear() {
+		_Lock.lock();
+		try {
+			_Undoables.clear();
+			_Redoables.clear();
+		} finally {
+			_Lock.unlock();
+		}
+	}
+
+
 	/**Returns the next Undoable on the stack (which will be added to the internal redo stack for later redo() ).
 	 * Use this function to find the next action to undo.  If no such item for undo is present, returns null.*/
 	public Undoable<?> popUndo() {
@@ -134,4 +146,6 @@ public class UndoStack {
 		}
 
 	}
+
+
 }

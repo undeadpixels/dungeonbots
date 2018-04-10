@@ -6,12 +6,14 @@ import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
+import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import org.luaj.vm2.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,19 +23,23 @@ import java.util.stream.Stream;
  * Creates a Whitelist of allowed callable Methods that is unique to the caller
  * and the method.
  */
-public class Whitelist implements GetLuaFacade, Serializable {
-	
+public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<String, SecurityLevel>> {
+
+	private final static String INFO_MISSING = "No info on this verb.";
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	private HashMap<String, SecurityLevel> whitelist;
 	private transient LuaValue luaValue;
+
 
 	public Whitelist() {
 		this.whitelist = new HashMap<>();
 	}
+
 
 	/**
 	 * Adds the argument objects default Whitelist generated from the getWhitelist method<br>
@@ -44,20 +50,23 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	 */
 	@SafeVarargs
 	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final T... bindables) {
-		for(T t : bindables) {
+		for (T t : bindables) {
 			Whitelist w = t.getDefaultWhitelist();
 			this.addWhitelistNoReplace(w);
 		}
 		return this;
 	}
-	
+
+
 	@SafeVarargs
-	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(final Class<? extends GetLuaFacade>... bindables) {
-		for(Class<? extends GetLuaFacade> t : bindables) {
+	public final <T extends GetLuaFacade> Whitelist addAutoLevelsForBindables(
+			final Class<? extends GetLuaFacade>... bindables) {
+		for (Class<? extends GetLuaFacade> t : bindables) {
 			this.addWhitelistNoReplace(GetLuaFacade.getWhitelist(t));
 		}
 		return this;
 	}
+
 
 	/**
 	 * Removes the argument method to the Whitelist with an ID associated with the caller.<br>
@@ -69,7 +78,7 @@ public class Whitelist implements GetLuaFacade, Serializable {
 		return setLevel(method, SecurityLevel.AUTHOR);
 	}
 
-	
+
 	/**
 	 * Adds the argument method to the Whitelist with a given security level.<br>
 	 * Use this to Whitelist/blacklist a given method.<br>
@@ -81,6 +90,7 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	public Whitelist setLevel(final Method method, SecurityLevel securityLevel) {
 		return setLevel(LuaReflection.genId(method), securityLevel);
 	}
+
 
 	/**
 	 * Adds the argument method to the Whitelist with a given security level.<br>
@@ -95,6 +105,35 @@ public class Whitelist implements GetLuaFacade, Serializable {
 		return this;
 	}
 
+
+	/**Writes all the given security levels mapped to this Whitelist.*/
+	public Undoable<HashMap<String, SecurityLevel>> setAllLevels(final HashMap<String, SecurityLevel> newWhitelist) {
+		HashMap<String, SecurityLevel> oldWhitelist = whitelist;
+		whitelist = newWhitelist;
+		return new Undoable<HashMap<String, SecurityLevel>>(oldWhitelist, newWhitelist) {
+
+			@Override
+			protected void undoValidated() {
+				if (whitelist != after)
+					error();
+				whitelist = before;
+			}
+
+
+			@Override
+			protected void redoValidated() {
+				if (whitelist != before)
+					error();
+				whitelist = after;
+			}
+
+		};
+
+	}
+
+
+
+
 	/**
 	 * Query if the given method is on the source Whitelist associated with the specified caller
 	 * @param caller The caller that invokes the specified method. Can be null if a static method.
@@ -105,14 +144,14 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	public <T extends GetLuaFacade> SecurityLevel getLevel(final Method m) {
 		String bindID = LuaReflection.genId(m);
 		SecurityLevel level = whitelist.getOrDefault(bindID, null);
-		
-		if(level == null) {
+
+		if (level == null) {
 			Class<?> uncastedClass = m.getDeclaringClass();
 			try {
-				if(GetLuaFacade.class.isAssignableFrom(uncastedClass)) {
-					addAutoLevelsForBindables((Class<? extends GetLuaFacade>)uncastedClass);
+				if (GetLuaFacade.class.isAssignableFrom(uncastedClass)) {
+					addAutoLevelsForBindables((Class<? extends GetLuaFacade>) uncastedClass);
 				}
-			} catch(Exception ex) {
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 			return whitelist.getOrDefault(bindID, SecurityLevel.DEBUG);
@@ -120,16 +159,18 @@ public class Whitelist implements GetLuaFacade, Serializable {
 		return level;
 	}
 
+
 	/**
 	 * Creates or return an existing LuaValue facade of the Whitelist
 	 * @return
 	 */
 	@Override
 	public LuaValue getLuaValue() {
-		if(this.luaValue == null)
+		if (this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
 		return this.luaValue;
 	}
+
 
 	/**
 	 * Binding to Lua code that allows Authors to add things to the whitelist.<br>
@@ -154,10 +195,10 @@ public class Whitelist implements GetLuaFacade, Serializable {
 	public Whitelist setLevel(LuaValue obj, LuaValue methodName, LuaValue permissionLevel) {
 		GetLuaFacade o = (GetLuaFacade) obj.checktable().get("this").checkuserdata(GetLuaFacade.class);
 		Method method = LuaReflection.getMethodWithName(o, methodName.checkjstring()).get();
-		
+
 		SecurityLevel securityLevel = SecurityLevel.DEBUG;
-		
-		switch(permissionLevel.checkjstring().toLowerCase()) {
+
+		switch (permissionLevel.checkjstring().toLowerCase()) {
 		case "author":
 			securityLevel = SecurityLevel.AUTHOR;
 			break;
@@ -174,22 +215,36 @@ public class Whitelist implements GetLuaFacade, Serializable {
 		case "general":
 			securityLevel = SecurityLevel.NONE;
 			break;
-			
+
 		default:
 			// TODO - throw some exception?
 			return this;
 		}
-		
+
 		return this.setLevel(method, securityLevel);
 	}
 
+
 	private Whitelist addWhitelistNoReplace(Whitelist w) {
 
-		for(String methodID : w.whitelist.keySet()) {
+		for (String methodID : w.whitelist.keySet()) {
 			SecurityLevel newLevel = w.whitelist.get(methodID);
 			whitelist.putIfAbsent(methodID, newLevel);
 		}
 
 		return this;
 	}
+
+
+	public Iterator<Entry<String, SecurityLevel>> iterator() {
+		return whitelist.entrySet().iterator();
+	}
+
+
+	/**Returns the information pertaining to the given verb.*/
+	public String getInfo(String key) {
+		return INFO_MISSING;		
+	}
+
+
 }

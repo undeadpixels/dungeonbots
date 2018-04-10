@@ -91,8 +91,8 @@ public class Player extends RpgActor {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("KEY_PRESSED");
-		sandbox.registerEventType("KEY_RELEASED");
+		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key"); // TODO - make repeating/coalescing
+		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
 		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
 			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
 		});

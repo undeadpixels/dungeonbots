@@ -90,7 +90,7 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 		
 	}
 
-	/** Returns a copy of this UserScript. */
+	/** Returns a deep copy of this UserScript. */
 	public final UserScript copy() {
 		UserScript ret = new UserScript();
 		ret.name = new String(this.name);

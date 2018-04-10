@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -17,6 +18,8 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
+
+import java.awt.*;
 
 public class Block extends Actor implements Pushable {
 
@@ -71,8 +74,8 @@ public class Block extends Actor implements Pushable {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("PUSH");
-		sandbox.registerEventType("BUMPED");
+		sandbox.registerEventType("PUSH", "Called when this block is pushed", "direction");
+		sandbox.registerEventType("BUMPED", "Called when this block is bumped into", "direction");
 
 		return sandbox;
 	}
@@ -103,6 +106,12 @@ public class Block extends Actor implements Pushable {
 
 	public void bumpedInto(final Entity e, final Actor.Direction direction) {
 		getSandbox().fireEvent("BUMPED", e.getLuaValue(), LuaValue.valueOf(direction.name()));
+		world.message(this, String.format("Bumped %s", direction.name().toLowerCase()), LoggingLevel.GENERAL);
+	}
+
+	@Override
+	public Image getImage() {
+		return DEFAULT_TEXTURE.toImage();
 	}
 
 	@Override

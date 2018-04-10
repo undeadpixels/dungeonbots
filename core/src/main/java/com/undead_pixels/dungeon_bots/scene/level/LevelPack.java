@@ -21,16 +21,14 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
  */
 public class LevelPack {
 
-	public static final String EXTENSION = "json";
+	public static final String EXTENSION = "dbk";
 	public static final String DEFAULT_MAIN_EMBLEM_FILE = "images/shoes_hat.jpg";
 	public static final String DEFAULT_LEVEL_EMBLEM_FILE = "images/ice_cave.jpg";
 	public static final String UNKNOWN_AUTHOR_NAME = "Unknown author";
 
 	public static final int EMBLEM_WIDTH = 300;
 	public static final int EMBLEM_HEIGHT = 200;
-	public static final String DEFAULT_PACK_FILE = "maze1.json";
-	public static final String DEFAULT_WORLD_FILE = "default.lua";
-
+	
 
 	public enum FeedbackModel {
 		RATING_AND_COMMENTS, SCORES, SAVED_GAMES
@@ -62,6 +60,7 @@ public class LevelPack {
 	private FeedbackModel feedbackModel;
 	private boolean isLocked;
 
+	
 
 	/**
 	 * Creates a new Level Pack, having the given name and the first specified

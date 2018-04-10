@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -55,6 +56,7 @@ public class UIBuilder {
 	protected static final String FIELD_ENABLED = "enabled";
 	protected static final String FIELD_FOCUSABLE = "focusable";
 	protected static final String FIELD_FOREGROUND = "foreground";
+	protected static final String FIELD_HORIZONTAL_TEXT_POSITION = "horizontal_text_position";
 	protected static final String FIELD_HOTKEY = "hotkey";
 	protected static final String FIELD_IMAGE = "image";
 	protected static final String FIELD_INSETS = "insets";
@@ -64,6 +66,7 @@ public class UIBuilder {
 	protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
 	protected static final String FIELD_TEXT = "text";
 	protected static final String FIELD_TOOLTIP = "tooltip";
+	protected static final String FIELD_VERTICAL_TEXT_POSITION = "vertical_text_position";
 	protected static final int DEFAULT_PREFERRED_WIDTH = -1;
 	protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
 
@@ -185,7 +188,7 @@ public class UIBuilder {
 		}
 
 
-		/**Specifies the foreground color.*/
+		/**Specifies the background color.*/
 		public final LabelBuilder background(Color color) {
 			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
 
@@ -558,6 +561,19 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the background color.*/
+		public final ButtonBuilder<T> background(Color color) {
+			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setBackground(color);
+				}
+			});
+			return this;
+		}
+
+
 		public final ButtonBuilder<T> border(Border border) {
 			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
 
@@ -592,6 +608,19 @@ public class UIBuilder {
 					bttn.setFocusable(value);
 				}
 
+			});
+			return this;
+		}
+
+
+		/**Specifies the foreground color.*/
+		public final ButtonBuilder<T> foreground(Color color) {
+			properties.put(FIELD_FOREGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setForeground(color);
+				}
 			});
 			return this;
 		}
@@ -645,6 +674,22 @@ public class UIBuilder {
 		 */
 		public final ButtonBuilder<T> hotkey(int keyEvent, int modifiers) {
 			return hotkey(KeyStroke.getKeyStroke(keyEvent, modifiers));
+		}
+
+
+		/**Specifies the horizontal position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.LEFT.*/
+		public final ButtonBuilder<T> horizontalTextPosition(int swingConstant) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setHorizontalTextPosition(swingConstant);
+				}
+
+			});
+			return this;
 		}
 
 
@@ -935,6 +980,30 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the horizontal and vertical position of text in relation to set images.  
+		 * The values supplied should be one of the SwingConstants.  Default values are 
+		 * SwingConstants.LEFT and SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> textPosition(int horizontal, int vertical) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(horizontal) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer horizontal) {
+					bttn.setHorizontalTextPosition(horizontal);
+				}
+
+			});
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(vertical) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer vertical) {
+					bttn.setVerticalTextPosition(vertical);
+				}
+
+			});
+			return this;
+		}
+
+
 		/** Adds the given tooltip text to buttons created by this builder. */
 		public final ButtonBuilder<T> toolTip(String toolTipText) {
 			properties.put(FIELD_TOOLTIP, new PropertyBuilder<String>(toolTipText) {
@@ -942,6 +1011,22 @@ public class UIBuilder {
 				@Override
 				public void apply(AbstractButton bttn, String t) {
 					bttn.setToolTipText(t);
+				}
+
+			});
+			return this;
+		}
+
+
+		/**Specifies the vertical position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> verticalTextPosition(int swingConstant) {
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setVerticalTextPosition(swingConstant);
 				}
 
 			});
@@ -1201,11 +1286,32 @@ public class UIBuilder {
 			img = ImageIO.read(new File(path));
 		} catch (IOException ioex) {
 			if (verbose)
-				System.err.println("Image resource missing: " + filename);
+				System.err.println("Image resource missing: " + filename + "\t" + ioex.getMessage());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		_Images.put(filename, img);
+		if (img != null)
+			_Images.put(filename, img);
+		return img;
+	}
+
+
+	public static Image getImage(URL url) {
+		if (url == null)
+			return null;
+		if (_Images.containsKey(url.toString()))
+			return _Images.get(url);
+		BufferedImage img = null;
+		try {
+			img = ImageIO.read(url);
+		} catch (IOException ioex) {
+			if (verbose)
+				System.err.println("Image resource failed to download: " + url + "\t" + ioex.getMessage());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		if (img != null)
+			_Images.put(url.toString(), img);
 		return img;
 	}
 

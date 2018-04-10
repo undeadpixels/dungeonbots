@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.script.proxy;
 
+import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
@@ -177,7 +179,7 @@ public class LuaProxyFactory {
 		final Class<?> returnType = m.getReturnType();
 
 		// All Java to LuaBindings are created as VarArgFunction objects
-		class Vararg extends VarArgFunction {
+		class Vararg extends VarArgFunction implements NonReflectiveDoc {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
@@ -191,6 +193,14 @@ public class LuaProxyFactory {
 					ex.printStackTrace();
 					return LuaValue.error(ex.toString());
 				}
+			}
+
+			/* (non-Javadoc)
+			 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+			 */
+			@Override
+			public String doc () {
+				return LuaDoc.docMethodToString(m);
 			}
 		}
 		return CoerceJavaToLua.coerce(new Vararg());

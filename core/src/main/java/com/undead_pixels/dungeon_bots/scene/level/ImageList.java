@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 /**A distinct class to enforce correct serialization of an image.  The reason for this adapter is that 
  * BufferedImage objects have references to themselves, forcing serializers to endlessly recurse and 
- * serialize and object.  I haven't figured out how to stop this behavior with Gson, so I'm using this 
+ * serialize an object.  I haven't figured out how to stop this behavior with Gson, so I'm using this 
  * little hack.*/
 public class ImageList extends ArrayList<BufferedImage>{
 

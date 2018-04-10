@@ -65,6 +65,13 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 		return result;
 	}
 
+	public UserScriptCollection copy(){
+		
+		UserScriptCollection ret = new UserScriptCollection();
+		for (UserScript original : this.storage.values()) ret.add(original.copy());
+		return ret;
+	}
+
 
 	/**
 	 * @param other
@@ -78,11 +85,13 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	@Override
 	public synchronized String toString () {
 		StringBuilder ret = new StringBuilder();
-		
-		for(String name: storage.keySet()) {
+
+		for (String name : storage.keySet()) {
 			ret.append(storage.get(name).toString());
 		}
-		
+
 		return ret.toString();
 	}
+
+
 }
