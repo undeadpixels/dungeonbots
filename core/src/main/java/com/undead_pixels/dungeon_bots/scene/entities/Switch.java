@@ -15,7 +15,7 @@ import org.luaj.vm2.LuaValue;
 import java.awt.*;
 
 @Doc("A Switch is an Entity that's contextual use function invokes a event")
-public class Switch extends SpriteEntity implements Useable , HasImage {
+public class Switch extends Actor implements Useable , HasImage {
 
 	public final static TextureRegion DISABLED_TEXTURE =
 			AssetManager.getTextureRegion("tiny16/things.png", 4, 4);
@@ -31,7 +31,7 @@ public class Switch extends SpriteEntity implements Useable , HasImage {
 	private static final long serialVersionUID = 1L;
 
 	public Switch(World world, float x, float y) {
-		super(world, "switch", DISABLED_TEXTURE, new UserScriptCollection(), x, y);
+		super(world, "switch", DISABLED_TEXTURE, initScripts(), x, y);
 	}
 
 	@Override
@@ -69,6 +69,11 @@ public class Switch extends SpriteEntity implements Useable , HasImage {
 		return this;
 	}
 
+	@Bind(value = SecurityLevel.DEFAULT, doc = "Get the Switch's enabled flag")
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
 	private boolean toggleEnabled() {
 		setEnabled(!enabled);
 		return enabled;
@@ -81,7 +86,7 @@ public class Switch extends SpriteEntity implements Useable , HasImage {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("USE");
+		sandbox.registerEventType("USE", "Called when the Switch is invoked with use<dir> from an entity");
 		return sandbox;
 	}
 
@@ -92,5 +97,18 @@ public class Switch extends SpriteEntity implements Useable , HasImage {
 
 	public Image getImage() {
 		return getTexture().toImage();
+	}
+
+	private static UserScriptCollection initScripts() {
+		UserScriptCollection scripts = new UserScriptCollection();
+		scripts.add(new UserScript("init", "registerUseListener(function()\n" +
+				"    -- Have the door do something\n" +
+				"    -- Example:\n" +
+				"    -- local door = world:findEntity('door1')\n" +
+				"    -- if door then\n" +
+				"    --   door:unlock()\n" +
+				"    -- end\n" +
+				"end)"));
+		return scripts;
 	}
 }

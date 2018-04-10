@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -629,6 +630,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				tile.setOccupiedBy(null);
 		}
 		fire(EntityEventType.ENTITY_REMOVED, e);
+		message(this, String.format("%s was DESTROYED", e.getName()), LoggingLevel.GENERAL);
 		return true;
 	}
 
@@ -1156,7 +1158,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
-
 	public boolean containsEntity(Entity e) {
 		return entities.contains(e);
 	}
@@ -1183,7 +1184,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		return result;
 	}
-
 
 	/**
 	 * For people who don't know how to use floor()
@@ -1387,11 +1387,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
-
 	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
 		return entities.stream().filter(e -> e.getPosition().distance(pos) < 0.1);
 	}
-
 
 	/**
 	 * Specialized form of typeAtPos that statically requires that the argument type is derived from Entity
