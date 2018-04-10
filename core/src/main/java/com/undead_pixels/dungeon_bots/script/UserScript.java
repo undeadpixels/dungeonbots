@@ -90,7 +90,7 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 		
 	}
 
-	/** Returns a copy of this UserScript. */
+	/** Returns a deep copy of this UserScript. */
 	public final UserScript copy() {
 		UserScript ret = new UserScript();
 		ret.name = new String(this.name);
@@ -105,19 +105,6 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	@Override
 	public int compareTo(UserScript other){
 		return name.compareTo(other.name);
-	}
-
-	@Deprecated
-	/**
-	 * Determines whether or not this user script will execute on this pass
-	 * through the game loop. Can be overridden in a derived class.
-	 * 
-	 * TODO: in a derived class that implements an event, should check if the
-	 * event's conditions have been triggered such that "canExecute" would be
-	 * true.
-	 */
-	public boolean canExecute(World world, long time) {
-		return true;
 	}
 
 	@Override

@@ -22,6 +22,8 @@ public class TextureRegion implements Serializable {
 	 * Position and size of this region of this TextureRegion
 	 */
 	private final int x, y, w, h;
+	
+	private transient BufferedImage cachedImg;
 
 	/**
 	 * @return	The left X coordinate of this TextureRegion
@@ -77,7 +79,10 @@ public class TextureRegion implements Serializable {
 	 * 			(without any of the surrounding texture cropped out by the region)
 	 */
 	public BufferedImage toImage() {
-		return tex.getImg().getSubimage(x, y, w, h);
+		if(cachedImg != null) {
+			return cachedImg;
+		}
+		return cachedImg = tex.getImg().getSubimage(x, y, w, h);
 	}
 
 	/**

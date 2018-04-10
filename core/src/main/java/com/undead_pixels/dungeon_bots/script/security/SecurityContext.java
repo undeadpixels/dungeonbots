@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.security;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -75,7 +76,6 @@ public class SecurityContext {
 		
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
-		// TODO - just have an interface to get team and entity owners
 		if(o instanceof HasEntity) {
 			Entity e = ((HasEntity)o).getEntity();
 			if(e != null) {
@@ -122,5 +122,19 @@ public class SecurityContext {
 	 */
 	public Entity getEntity () {
 		return entity;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getOwnerName () {
+		if(entity != null) {
+			return entity.getName();
+		}
+		return "world";
+	}
+
+public Optional<World> getWorld() {
+		return Optional.ofNullable(world);
 	}
 }

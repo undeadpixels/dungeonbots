@@ -16,7 +16,6 @@ import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -26,6 +25,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
@@ -43,12 +43,9 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
+@SuppressWarnings("serial")
 public class JCodeREPL extends JPanel implements ActionListener {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 
 	private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
@@ -59,7 +56,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	private Object _LastResult = null;
 	private JButton _CancelBttn;
 	private JButton _ExecuteBttn;
-	
+	/**For small, one-line commands, a 'return' can be prepended.
+	 * TODO:  currently, prepending a 'return' on one-line commands isn't careful enough because it prepends even 
+	 * when it shouldn't.  For example, "x=1+2; return x;"  would get a 'return' prepended to "return x=1+2; return x;
+	 * Two results end up returned, one after the other, which causes REPL testing to fail.  Perhaps it's suppose to 
+	 * work like this, but it seems unclear, and if so, testing should be revised.*/
+	private boolean _PrependSilentReturn = false;
+
 	private LuaInvocation _RunningScript = null;
 
 	private ArrayList<String> _CommandHistory = new ArrayList<String>();
@@ -88,6 +91,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		_MessagePane.setText("");
 		_EditorPane.setText("");
+		AbstractDocument doc = (AbstractDocument) _EditorPane.getDocument();
+		doc.setDocumentFilter(new JScriptEditor.LockFilter(doc));
 
 		addKeyBindings();
 	}
@@ -110,8 +115,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		toolBar.setFocusable(false);
 
 		_MessagePane = new JTextPane();
-		_MessagePane.setFocusable(false);
+		_MessagePane.setFocusable(true);
 		_MessagePane.setText("");
+		_MessagePane.setEditable(false);
 		_MessageScroller = new JScrollPane(_MessagePane);
 
 		_EditorPane = new JEditorPane();
@@ -121,8 +127,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JPanel startStopPanel = new JPanel();
 		startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.PAGE_AXIS));
-		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").minSize(40, 40).toolTip("Click to execute.")
-				.action("EXECUTE", this).focusable(false).preferredSize(40, 40).create();
+		_ExecuteBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Click to execute.")
+				.action("EXECUTE", this).focusable(false).create();
 		_CancelBttn = UIBuilder.buildButton().image("icons/abort.png", true).toolTip("Click to cancel.")
 				.action("CANCEL", this).focusable(false).enabled(false).create();
 		startStopPanel.add(_ExecuteBttn);
@@ -138,7 +144,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		splitPane.setDividerLocation(200);
 		splitPane.setDividerSize(20);
 		this.add(splitPane);
-		
+
 
 		_EditorPane.requestFocusInWindow();
 	}
@@ -154,11 +160,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "EXECUTE");
 		actionMap.put("EXECUTE", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -170,12 +171,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CLEAR");
 		actionMap.put("CLEAR", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				_EditorPane.setText("");
@@ -184,11 +179,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK), "STOP");
 		actionMap.put("STOP", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
 
 			@Override
@@ -201,11 +191,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), "CLOSE");
 		actionMap.put("CLOSE", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
 
 
 			@Override
@@ -226,12 +211,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_MASK), "RECALL_COMMAND_UP");
 		actionMap.put("RECALL_COMMAND_UP", new AbstractAction() {
 
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (--_CommandHistoryIndex >= 0)
@@ -245,12 +224,6 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_MASK), "RECALL_COMMAND_DOWN");
 		actionMap.put("RECALL_COMMAND_DOWN", new AbstractAction() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -277,14 +250,13 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 		JToolBar result = new JToolBar();
 		JButton bttnCut = UIBuilder.buildButton().image("icons/cut.png").toolTip("Cut a selected section.")
-				.action("CUT", this).focusable(false).preferredSize(30, 30).create();
+				.action("CUT", this).focusable(false).create();
 		JButton bttnCopy = UIBuilder.buildButton().image("icons/copy.png").toolTip("Copy a selected section.")
-				.action("COPY", this).focusable(false).preferredSize(30, 30).create();
+				.action("COPY", this).focusable(false).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
-				.action("PASTE", this).focusable(false).preferredSize(30, 30).create();
+				.action("PASTE", this).focusable(false).create();
 		JButton bttnHelp = UIBuilder.buildButton().image("icons/question.png")
-				.toolTip("Get help with the command line.").action("HELP", this).focusable(false).preferredSize(30, 30)
-				.create();
+				.toolTip("Get help with the command line.").action("HELP", this).focusable(false).create();
 
 		result.add(bttnCut);
 		result.add(bttnCopy);
@@ -383,8 +355,17 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		};
 
 		String code = getCode();
+
+
 		message(">>> " + code, _EchoMessageStyle);
-		_RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
+		if (this._PrependSilentReturn && code.indexOf("\n") < 0 && !code.toLowerCase().startsWith("return")) {
+			code = "return " + code;
+			message("a 'return' is prepended and is now \"" + code
+					+ "\"\nThis message for testing purposes, will be deleted.");
+
+		}
+		_RunningScript = _Sandbox.enqueueCodeBlock(code, listener);
+		// _RunningScript = _Sandbox.enqueueCodeBlock(getCode(), listener);
 		_EditorPane.setText("");
 
 		// Update the command history records.
@@ -395,9 +376,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		return _RunningScript;
 	}
 
+
 	private void onExecutionComplete(LuaInvocation sender, Object result) {
 		_LastResult = result;
-		System.out.println("Result = "+result);
+		System.out.println("Result = " + result);
 
 		// Send a message indicating the results.
 		if (result == null)
@@ -497,12 +479,12 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		if (_MessagePane == null || attribs == null)
 			return;
 
-		StyledDocument doc = _MessagePane.getStyledDocument();
+
 		try {
+			AbstractDocument doc = (AbstractDocument) _MessagePane.getDocument();
 			doc.insertString(doc.getLength(), message + "\n\n", attribs);
 			doc.remove(0, Math.max(0, doc.getLength() - _MessageMax));
 			pageEnd(_MessageScroller);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -603,7 +585,8 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		case "HELP":
 			// Pass on the event to every listener.
 			e = new ActionEvent(this, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
-			for (ActionListener l : _ActionListeners) l.actionPerformed(e);
+			for (ActionListener l : _ActionListeners)
+				l.actionPerformed(e);
 			break;
 		case "CANCEL":
 			stop();

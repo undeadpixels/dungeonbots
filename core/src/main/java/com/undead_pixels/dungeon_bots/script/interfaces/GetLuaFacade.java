@@ -110,18 +110,4 @@ public interface GetLuaFacade {
 				.orElse(m.getName());
 	}
 
-	static List<Class<? extends GetLuaFacade>> getItemClasses() {
-		return getClassesOf(Item.class);
-	}
-
-	static List<Class<? extends GetLuaFacade>> getEntityClasses() {
-		return getClassesOf(Entity.class);
-	}
-
-	static List<Class<? extends GetLuaFacade>> getClassesOf(Class<? extends GetLuaFacade> clz) {
-		final List<Class<? extends GetLuaFacade>> ans = new LinkedList<>();
-		final FastClasspathScanner scanner = new FastClasspathScanner();
-		scanner.matchSubclassesOf(clz, e -> ans.add(e)).scan();
-		return ans;
-	}
 }
