@@ -47,7 +47,7 @@ public final class JEntityEditor extends JTabbedPane {
 	private JDialog dialog = null;
 	private boolean changed = false;
 
-	private JScriptCollectionEditor scriptEditor = null;
+	private JScriptCollectionControl scriptEditor = null;
 	private JEntityPropertyControl properties = null;
 
 
@@ -66,7 +66,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (entity.getPermission(Entity.PERMISSION_SCRIPT_EDITOR).level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state, security);
+			scriptEditor = new JScriptCollectionControl(state, security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 

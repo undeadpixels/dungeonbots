@@ -49,7 +49,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 @SuppressWarnings("serial")
 public class JPermissionTree extends JTree {
 
-	private static final Dimension LABEL_DIMENSION = new Dimension(150, 20);
+	private static final Dimension LABEL_DIMENSION = new Dimension(100, 20);
 	private static final Dimension DOT_DIMENSION = new Dimension(18, 18);
 	private DotIcon[] icons;
 
@@ -57,6 +57,7 @@ public class JPermissionTree extends JTree {
 	private Dialog dialog = null;
 	private SecurityLevel[] availableLevels = SecurityLevel.values();
 	private boolean changed = false;
+	JTextPane infoPanel = null;
 
 
 	JPermissionTree() {
@@ -68,7 +69,7 @@ public class JPermissionTree extends JTree {
 		this.setRootVisible(false);
 		this.availableLevels = new SecurityLevel[] { SecurityLevel.AUTHOR, SecurityLevel.ENTITY, SecurityLevel.TEAM,
 				SecurityLevel.NONE };
-		setColors(new Color[] { Color.red, Color.YELLOW, Color.GREEN, Color.BLUE, Color.magenta });
+		setColors(new Color[] { Color.red, Color.YELLOW, Color.BLUE, Color.GREEN, Color.magenta });
 		updateGUI();
 	}
 
@@ -222,8 +223,9 @@ public class JPermissionTree extends JTree {
 				lbl.setPreferredSize(LABEL_DIMENSION);
 				pnl.add(lbl);
 
-				String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() : "";
+				String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() + "   " : "";
 				JLabel lblSecurity = new JLabel(lvl);
+				lblSecurity.setPreferredSize(new Dimension(70,20));
 
 				ButtonGroup group = new ButtonGroup();
 				JRadioButton[] bttns = new JRadioButton[availableLevels.length];
@@ -253,9 +255,9 @@ public class JPermissionTree extends JTree {
 							parent.level = null;
 						}
 						JPermissionTree.this.repaint();
-						String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() : "";
+						String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() + "   " : "";
 						lblSecurity.setText(lvl);
-						
+
 					}
 
 				};
@@ -312,7 +314,7 @@ public class JPermissionTree extends JTree {
 		oneDialogAllowed = jpe;
 		jpe.dialog = dialog;
 		JScrollPane scroller = new JScrollPane(jpe);
-		scroller.setPreferredSize(new Dimension(400, 400));
+		scroller.setPreferredSize(new Dimension(300, 400));
 		scroller.setBorder(new EmptyBorder(5, 5, 5, 5));
 		dialog.add(scroller, BorderLayout.CENTER);
 
@@ -334,7 +336,7 @@ public class JPermissionTree extends JTree {
 				if (info == null || info.equals(""))
 					infoPanel.setVisible(false);
 				else {
-					infoPanel.setText(info);
+					infoPanel.setText(info + "\n\n" + SecurityLevel.interpret(selection.level));
 					infoPanel.setVisible(true);
 				}
 				dialog.pack();

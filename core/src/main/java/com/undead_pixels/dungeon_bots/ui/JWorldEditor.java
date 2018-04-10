@@ -34,7 +34,7 @@ public class JWorldEditor extends JTabbedPane {
 	private JDialog dialog = null;
 	private boolean changed = false;
 
-	private JScriptCollectionEditor scriptEditor = null;
+	private JScriptCollectionControl scriptEditor = null;
 
 
 	/**@param security The level at which the editor will be created.  For example, if the security level 
@@ -52,7 +52,7 @@ public class JWorldEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (world.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state, security);
+			scriptEditor = new JScriptCollectionControl(state, security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 

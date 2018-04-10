@@ -4,6 +4,8 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,8 +18,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
@@ -35,7 +40,8 @@ public class JEntityPropertyControl {
 
 	private boolean changed = false;
 	private final JEntityEditor.State state;
-	private JPermissionTree permissions;
+	private JPermissionTree permissions = null;
+	private JTextArea infoPanel = null;
 
 
 	public JEntityPropertyControl(JEntityEditor.State state) {
@@ -71,7 +77,7 @@ public class JEntityPropertyControl {
 		};
 
 		JLabel lblImage = UIBuilder.buildLabel().image(state.image.getScaledInstance(150, 150, Image.SCALE_SMOOTH))
-				.preferredSize(300, 200).border(BorderFactory.createTitledBorder("Image")).create();
+				.border(BorderFactory.createTitledBorder("Image")).create();
 		lblImage.setOpaque(false);
 		lblImage.setHorizontalAlignment(SwingConstants.CENTER);
 		lblImage.setVerticalAlignment(SwingConstants.CENTER);
@@ -79,15 +85,36 @@ public class JEntityPropertyControl {
 		// true).prefSize(new Dimension(300, 200)).action("CHANGE_IMAGE",
 		// controller).create();
 		JPanel pnlHeaderText = new JPanel(new VerticalLayout());
-		pnlHeaderText.add(new JLabel("Name: " + state.name));
+		JTextField fldName = new JTextField(20);
+		fldName.setText(state.name);
+		fldName.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				state.name = fldName.getText();
+			}
+
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				state.name = fldName.getText();
+			}
+
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				state.name = fldName.getText();
+			}
+		});
+		pnlHeaderText.add(fldName);
 		pnlHeaderText.add(new JLabel("Position: " + state.position.x + ", " + state.position.y));
 		pnlHeaderText.setBorder(BorderFactory.createTitledBorder("Info"));
 
 
-		JPanel pnlHeader = new JPanel(new HorizontalLayout());
+		JPanel pnlHeader = new JPanel(new BorderLayout());
 		// pnlHeader.add(bttnImage);
-		pnlHeader.add(lblImage);
-		pnlHeader.add(pnlHeaderText);
+		pnlHeader.add(lblImage, BorderLayout.CENTER);
+		pnlHeader.add(pnlHeaderText, BorderLayout.LINE_END);
 
 		permissions = new JPermissionTree();
 		permissions.addPermission(Entity.PERMISSION_SELECTION, state.permissions.get("Selection"),
@@ -108,16 +135,17 @@ public class JEntityPropertyControl {
 				"Access level for the property editor in the entity editing dialog (you're looking at the property editor right now).");
 		permissions.addPermission(Entity.PERMISSION_EDIT_HELP, state.permissions.get(Entity.PERMISSION_EDIT_HELP),
 				"Access level for editing the help info for an entity.");
+		permissions.setSecurityLevels(new SecurityLevel[] { SecurityLevel.AUTHOR, SecurityLevel.NONE });
+		permissions.setColors(new Color[] { Color.red, Color.green });
 
 
 		// Create the permission info panel.
-		JTextArea infoPanel = new JTextArea();
+		infoPanel = new JTextArea();
 		infoPanel.setLineWrap(true);
 		infoPanel.setWrapStyleWord(true);
 		infoPanel.setEditable(false);
 		infoPanel.setText("");
 		infoPanel.setEditable(false);
-		// infoPanel.setPreferredSize(new Dimension(175, 150));
 		infoPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		infoPanel.setOpaque(false);
 
@@ -128,14 +156,16 @@ public class JEntityPropertyControl {
 			@Override
 			public void valueChanged(TreeSelectionEvent e) {
 				JPermissionTree.Permission p = permissions.getSelection();
-				String info = (p == null) ? "" : p.info;
+				String info = (p == null) ? "" : p.info + "\n\n" + SecurityLevel.interpret(p.level);
 				infoPanel.setText(info);
 			}
 		});
 
-		JPanel pnlPermissions = new JPanel(new HorizontalLayout());
-		pnlPermissions.add(permissions);
-		pnlPermissions.add(infoPanel);
+		JPanel pnlPermissions = new JPanel(new BorderLayout());
+		pnlPermissions.add(permissions, BorderLayout.LINE_START);
+		pnlPermissions.add(infoPanel, BorderLayout.CENTER);
+
+
 		pnlPermissions.setBorder(BorderFactory.createTitledBorder("Permissions"));
 		propertiesPanel.add(pnlHeader, BorderLayout.PAGE_START);
 		propertiesPanel.add(pnlPermissions, BorderLayout.CENTER);

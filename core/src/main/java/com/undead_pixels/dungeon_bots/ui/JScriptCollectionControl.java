@@ -22,13 +22,14 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 
 @SuppressWarnings("serial")
-public class JScriptCollectionEditor extends JPanel {
+public class JScriptCollectionControl extends JPanel {
 
 
 	// private final JEntityEditor.State state;
@@ -38,18 +39,18 @@ public class JScriptCollectionEditor extends JPanel {
 	private final UserScriptCollection scripts;
 
 
-	JScriptCollectionEditor(JEntityEditor.State state, SecurityLevel security) {
-		this(state.scripts, security, !state.permissions.containsKey("ADD_REMOVE_SCRIPTS")
-				|| state.permissions.get("ADD_REMOVE_SCRIPTS").level <= security.level);
+	JScriptCollectionControl(JEntityEditor.State state, SecurityLevel security) {
+		this(state.scripts, security, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
+				|| state.permissions.get(Entity.PERMISSION_ADD_REMOVE_SCRIPTS).level <= security.level);
 	}
 
 
-	JScriptCollectionEditor(JWorldEditor.State state, SecurityLevel security) {
+	JScriptCollectionControl(JWorldEditor.State state, SecurityLevel security) {
 		this(state.scripts, security, true);
 	}
 
 
-	private JScriptCollectionEditor(UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
+	private JScriptCollectionControl(UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
 		editor = new JScriptEditor(security);
 		this.scripts = scripts;
 		this.security = security;
@@ -140,15 +141,15 @@ public class JScriptCollectionEditor extends JPanel {
 			DefaultListModel<UserScript> model = (DefaultListModel<UserScript>) scriptList.getModel();
 			switch (arg0.getActionCommand()) {
 			case "ADD_SCRIPT":
-				String scriptName = JOptionPane.showInputDialog(JScriptCollectionEditor.this, "Enter script name:", "",
+				String scriptName = JOptionPane.showInputDialog(JScriptCollectionControl.this, "Enter script name:", "",
 						JOptionPane.QUESTION_MESSAGE);
 				if (scriptName == null || scriptName.equals("")) {
-					JOptionPane.showMessageDialog(JScriptCollectionEditor.this, "Invalid script name.");
+					JOptionPane.showMessageDialog(JScriptCollectionControl.this, "Invalid script name.");
 					return;
 				}
 				for (int i = 0; i < model.getSize(); i++) {
 					if (model.getElementAt(i).name.equals(scriptName)) {
-						JOptionPane.showMessageDialog(JScriptCollectionEditor.this,
+						JOptionPane.showMessageDialog(JScriptCollectionControl.this,
 								"Duplicate script names not allowed.");
 						return;
 					}
