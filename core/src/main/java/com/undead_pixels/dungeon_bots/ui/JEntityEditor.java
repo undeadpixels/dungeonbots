@@ -232,9 +232,8 @@ public final class JEntityEditor extends JTabbedPane {
 				.action("COMMIT", dialogController).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel changes and close the dialog.")
 				.action("CANCEL", dialogController).create());
-		pnlButtons
-				.add(UIBuilder.buildButton().image("icons/zoom.png").toolTip("Set view to center.")
-						.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
+		pnlButtons.add(UIBuilder.buildButton().image("icons/zoom.png").toolTip("Set view to center.")
+				.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);

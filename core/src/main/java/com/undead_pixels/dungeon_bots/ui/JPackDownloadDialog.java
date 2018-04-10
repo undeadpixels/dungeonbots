@@ -123,6 +123,8 @@ public class JPackDownloadDialog extends JDialog {
 				.action("DOWNLOAD", controller).create());
 		bttnPnl.add(bttnCancel = UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel.")
 				.action("CANCEL", controller).create());
+		bttnPnl.add(UIBuilder.buildButton().image("icons/refresh.png").toolTip("Refresh this page.")
+				.action("REFRESH", controller).create());
 		bttnPnl.add(bttnNextPage = UIBuilder.buildButton().image("icons/resultset_next.png")
 				.toolTip("Go forward to next page.").action("NEXT_PAGE", controller).create());
 		bttnPnl.add(bttnLastPage = UIBuilder.buildButton().image("icons/resultset_last.png")
@@ -151,7 +153,7 @@ public class JPackDownloadDialog extends JDialog {
 	private static final LevelPack downloadPack(Page.Pack stub) {
 
 		String url = WEBSITE + stub.file_link;
-		String json = downloadResource(WEBSITE + stub.file_link);
+		String json = downloadResource(url);
 		try {
 			LevelPack p = LevelPack.fromJson(json);
 			return p;
@@ -371,6 +373,13 @@ public class JPackDownloadDialog extends JDialog {
 				if (currentPage.page >= currentPage.pages)
 					return;
 				setPage(currentPage.pages);
+				return;
+			case "REFRESH":
+				if (currentPage == null)
+					return;
+				int pg = currentPage.page;
+				currentPage = null;
+				setPage(pg);
 				return;
 			case "DOWNLOAD":
 				if (currentPage == null)
