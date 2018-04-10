@@ -56,6 +56,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Ghost;
 import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
@@ -159,8 +160,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4),
 				(x, y) -> {
 					// TODO - create new actual entity class
-					return new DeletemeEntity(world,
-							AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
+					return new Ghost(world, x, y);
 				}));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
