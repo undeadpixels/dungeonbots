@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -1626,6 +1627,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.map(e -> HasInventory.class.cast(e).getInventory().getTotalValue())
 				.reduce(0, (a,b) -> a + b);
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Finds and returns the first entity with the specified name")
+	public Entity findEntity(LuaValue nameOrId) {
+		return entities.stream()
+				.filter(nameOrId.isnumber() ?
+						(Entity e) -> e.getId() == nameOrId.checkint() :
+						(Entity e) -> e.getName().equals(nameOrId.checkjstring()))
+				.findFirst()
+				.orElse(null);
 	}
 
 	public void registerMessageListener(final MessageListener messageListener) {
