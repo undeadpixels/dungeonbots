@@ -46,9 +46,6 @@ import org.luaj.vm2.*;
 /**
  * The World of the game. Controls pretty much everything in the entire level,
  * but could get reset/rebuilt if the level is restarted.
- * 
- * TODO - some parts of this should persist between the resets/rebuilds, but
- * some parts shouldn't. Need to figure out what parts.
  */
 @Doc("The current map can be interfaced with via the 'world'")
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable, HasImage {
@@ -375,15 +372,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		} else {
-			// TODO - these comments aren't correct anymore
-			String defaultInitScript = "--[[\n" + "stuff that's passed in:\n" + "\n" + "world\n"
-					+ " - tiles        custom class\n" + "   - setSize      function(width, height)\n"
-					+ "   - setTile      function(x, y, Tile)\n" + "   - getTile      function(x, y, Tile)\n"
-					+ " - bots         array of Actors\n" + " - player       player reference\n"
-					+ " - enemies      array of Actors\n" + " - win          function(info)\n"
-					+ " - listenFor    function(eventName, funcPtr)\n" + "\n" + "tileTypes\n" + " - floor\n"
-					+ " - wall\n" + " - goal\n" + " - ???\n" + "]]\n" + "\n" + "registerUpdateListener(function(dt)\n"
-					+ "  -- put any code you want to run every frame in here\n" + "end)";
+			String defaultInitScript =
+					"--[[\n" +
+					"    The world's init script.\n" +
+					"    In the command line, run help() for more info.\n" +
+					"]]\n" +
+					"\n" +
+					"registerUpdateListener(function(dt)\n" +
+					"  -- put any code you want to run every frame in here\n" +
+					"end)";
 			this.levelScripts.add(new UserScript("init", defaultInitScript));
 		}
 
@@ -608,10 +605,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			if (tile != null) {
 				tile.setOccupiedBy(e);
 			}
-		}
-
-		if (e instanceof Goal) {
-			// TODO
 		}
 	}
 
@@ -1007,11 +1000,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * All the entities are assigned to a layer during the render loop,
 	 * depending on their Z-value.
 	 *
-	 * TODO: since each Z-value can create an entire layer, wouldn't it just
-	 * make more sense to sort the Entities by Z-order? And for that matter,
-	 * wouldn't it be more efficient if the sorting occurred when the Entity is
-	 * added to the World, rather than at render time?
-	 *
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -1275,6 +1263,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final Map<String, Object> state = new HashMap<>();
 		state.put("Times Reset", timesReset);
 		// TODO - this should involve bots and stuff, too...
+		// also TODO - we should clean up stuff we ended up not using like health
 		Player player = getPlayer();
 		if (player != null) {
 			state.put("Steps", player.steps());
@@ -1294,7 +1283,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
-		// TODO - cleanup at some point
 		Point2D.Float searchPos = this.getSize();
 		searchPos.x /= 2;
 		searchPos.y /= 2;

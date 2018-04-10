@@ -76,7 +76,6 @@ public class SecurityContext {
 		
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
-		// TODO - just have an interface to get team and entity owners
 		if(o instanceof HasEntity) {
 			Entity e = ((HasEntity)o).getEntity();
 			if(e != null) {
