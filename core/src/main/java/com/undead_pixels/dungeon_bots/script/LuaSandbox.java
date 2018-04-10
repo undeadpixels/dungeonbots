@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.LuaDoc;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
@@ -278,6 +279,10 @@ public final class LuaSandbox implements Serializable {
 		System.out.println("print: "+str);
 		try { bufferedOutputStream.write(str.getBytes()); }
 		catch (IOException io) { }
+		this.getSecurityContext()
+				.getEntity()
+				.getWorld()
+				.message(this.getSecurityContext().getEntity(),str, LoggingLevel.STDOUT);
 		outputEventListeners.forEach(cn -> cn.accept(str));
 	}
 
