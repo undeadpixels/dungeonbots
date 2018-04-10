@@ -118,7 +118,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
 		
-		sandbox.registerEventType("ITEM_GIVEN");
+		sandbox.registerEventType("ITEM_GIVEN", "Called when this entity is given an item", "item");
 	
 		return sandbox;
 	}

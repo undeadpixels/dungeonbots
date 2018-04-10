@@ -1158,7 +1158,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return this.mapSandbox;
 		} else {
 			mapSandbox = new LuaSandbox(this);
-			mapSandbox.registerEventType("UPDATE");
+			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
 			mapSandbox.addBindable("this", this);
 			mapSandbox.addBindable("world", this);
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
