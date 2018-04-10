@@ -106,9 +106,11 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	/**
-	 * Executes this lua script in-line
+	 * Executes this lua script in-line.
+	 * 
+	 * Unexpected results may occur if this is not run from a properly-registered thread.
 	 */
-	private void run() {
+	protected void run() {
 		if(scriptStatus == ScriptStatus.LUA_ERROR) {
 			return;
 		}
