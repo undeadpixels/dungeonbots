@@ -5,8 +5,14 @@ package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,6 +22,7 @@ import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JEntityEditor.State;
 
 /**
  *
@@ -25,6 +32,7 @@ public class JEntityPropertyControl {
 	private boolean changed = false;
 	private final Entity entity;
 	private final SecurityLevel security;
+	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
 
 
 	public JEntityPropertyControl(Entity entity, SecurityLevel level) {
@@ -42,38 +50,74 @@ public class JEntityPropertyControl {
 		// ENTITY_EDITOR
 		// SELECTION
 
-		JPanel propertiesPanel = new JPanel();
+		Box propertiesPanel = new Box(BoxLayout.Y_AXIS);
 
-		propertiesPanel.setLayout(new VerticalLayout());
-
-
-		JButton bttnImage = UIBuilder.buildButton().image(entity.getImage(), true).prefSize(new Dimension(300, 200))
-				.create();
-		JPanel pnlHeaderText = new JPanel(new VerticalLayout());
+		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(256, 256, BufferedImage.SCALE_FAST)));
+		
+		Box pnlHeaderText = new Box(BoxLayout.Y_AXIS);
 		pnlHeaderText.add(new JLabel(entity.getName()));
-		pnlHeaderText.add(new JLabel(entity.getPosition().toString()));
+		pnlHeaderText.add(new JLabel("("+entity.getPosition().x+", "+entity.getPosition().y+")"));
 
-		JPanel pnlHeader = new JPanel(new HorizontalLayout());
-		pnlHeader.add(bttnImage);
+		Box pnlHeader = new Box(BoxLayout.X_AXIS);
+		pnlHeader.add(imgLabel);
 		pnlHeader.add(pnlHeaderText);
-
-		JPermissionTree permTree = new JPermissionTree();
-		permTree.addPermission("Selection", entity.getPermission("SELECTION"),
-				"Access to whether the entity can be selected.");
-		permTree.addPermission("Entity editor", entity.getPermission("ENTITY_EDITOR"),
-				"Access to the entity editing dialog (the dialog you're looking at right now).");
-		permTree.addPermission("Command line", entity.getPermission("REPL"),
-				"Access level for the command line in the entity editing dialog.");
-		permTree.addPermission("Script editor", entity.getPermission("SCRIPT_EDITOR"),
-				"Access level for the script editor in the entity editing dialog.");
-		permTree.addPermission("Properties editor", entity.getPermission("PROPERTIES"),
-				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now).");
+		
+		
+		checkboxes.add(new CheckboxController("Selection", "SELECTION",
+				"Access to whether the entity can be selected."));
+		checkboxes.add(new CheckboxController("Entity editor", "ENTITY_EDITOR",
+				"Access to the entity editing dialog (the dialog you're looking at right now)."));
+		checkboxes.add(new CheckboxController("Command line", "REPL",
+				"Access level for the command line in the entity editing dialog."));
+		checkboxes.add(new CheckboxController("Script editor", "SCRIPT_EDITOR",
+				"Access level for the script editor in the entity editing dialog."));
+		checkboxes.add(new CheckboxController("Properties editor", "PROPERTIES",
+				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now)."));
 
 
 		propertiesPanel.add(pnlHeader);
-		propertiesPanel.add(permTree);
+		
+		for(CheckboxController c : checkboxes) {
+			propertiesPanel.add(c.makeCheckbox());
+		}
 
 
 		return propertiesPanel;
+	}
+	
+	private class CheckboxController {
+		private String title, flagName, description;
+		private JCheckBox checkBox;
+
+		public CheckboxController(String title, String flagName, String description) {
+			super();
+			this.title = title;
+			this.flagName = flagName;
+			this.description = description;
+		}
+		
+		public JCheckBox makeCheckbox() {
+			checkBox = new JCheckBox(title, entity.getPermission(flagName).level < SecurityLevel.AUTHOR.level);
+			checkBox.setToolTipText(description);
+			return checkBox;
+			
+		}
+
+		/**
+		 * @param state 
+		 */
+		public void save (State state) {
+			state.setPermission(flagName, checkBox.isSelected() ? SecurityLevel.NONE : SecurityLevel.AUTHOR);
+		}
+	}
+
+	/**
+	 * @param state 
+	 * 
+	 */
+	public void save (State state) {
+		for(CheckboxController c: checkboxes) {
+			c.save(state);
+		}
 	}
 }
