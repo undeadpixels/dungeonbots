@@ -184,6 +184,7 @@ public abstract class Entity
 	 * Returns an ID number associated with this entity. The ID number should
 	 * not be user-facing.
 	 */
+	@Bind(value=SecurityLevel.AUTHOR,doc = "The Unique ID of the Entity")
 	public final int getId() {
 		return this.id;
 	}

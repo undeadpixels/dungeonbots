@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -1501,9 +1502,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	@Bind(value = SecurityLevel.AUTHOR,
 			doc = "Finds and returns the first entity with the specified name")
-	public Entity findEntity(LuaValue name) {
+	public Entity findEntity(LuaValue nameOrId) {
 		return entities.stream()
-				.filter(e -> e.getName().equals(name.checkjstring()))
+				.filter(nameOrId.isnumber() ?
+						(Entity e) -> e.getId() == nameOrId.checkint() :
+						(Entity e) -> e.getName().equals(nameOrId.checkjstring()))
 				.findFirst()
 				.orElse(null);
 	}
