@@ -38,7 +38,7 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 		
 		this.getScripts().add(new UserScript("init",
 				"registerEnteredListener(function(e)\n" +
-				"  this:say(this.inspect())\n" +
+				"  e:say(this.inspect())\n" +
 				"end)"));
 	}
 

@@ -65,7 +65,9 @@ public class FloatingText extends ChildEntity {
 	 * @param line
 	 */
 	public void addLine(String line) {
-		lines.add(new TextInfo(line));
+		for(String actualLine : line.split("\n")) {
+			lines.add(new TextInfo(actualLine));
+		}
 	}
 	
 	@Override
