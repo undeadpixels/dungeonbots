@@ -51,7 +51,7 @@ public class Goal extends SpriteEntity {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("ENTER");
+		sandbox.registerEventType("ENTER", "Called when an entity enters this Goal", "entity");
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distance(this.getPosition()) < .1) {
 				getSandbox().fireEvent("ENTER", e.getLuaValue());
