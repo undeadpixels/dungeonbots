@@ -96,7 +96,7 @@ public class Player extends RpgActor {
 		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
 			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
 		});
-		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
 			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
 		});
 	
