@@ -123,6 +123,11 @@ public class Player extends RpgActor {
 	}
 
 	@Override
+	public Boolean useItem(ItemReference itemRef) {
+		return this.inventory.tryTakeItem(itemRef);
+	}
+
+	@Override
 	public LuaSandbox getSandbox() {
 		LuaSandbox ret = super.getSandbox();
 		ret.addBindable("player", this);

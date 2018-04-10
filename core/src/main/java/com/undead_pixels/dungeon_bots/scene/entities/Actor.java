@@ -502,6 +502,8 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Contextually use an object/entity in the specified direction relative to the actor")
 	public Boolean use(@Doc("The direction of the entity or object to Use") LuaValue dir) {
+		if(dir.istable() && dir.checktable().get("this").isuserdata() || dir.isnil())
+			return world.tryUse(this, getPosition());
 		switch (dir.checkjstring().toLowerCase()) {
 			case "up":
 				return useUp();
@@ -512,7 +514,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			case "right":
 				return useRight();
 			default:
-				return false;
+				return world.tryUse(this, getPosition());
 		}
 	}
 

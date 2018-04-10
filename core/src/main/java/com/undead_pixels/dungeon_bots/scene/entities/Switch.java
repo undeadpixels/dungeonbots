@@ -36,7 +36,7 @@ public class Switch extends Actor implements Useable , HasImage {
 
 	@Override
 	public boolean isSolid() {
-		return true;
+		return false;
 	}
 
 	@Override

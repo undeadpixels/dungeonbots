@@ -618,6 +618,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Removes the entity from the world")
+	public Boolean removeEntity(LuaValue entity) {
+		return removeEntity((Entity)entity.checktable().get("this").checkuserdata(Entity.class));
+	}
 
 	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if
 	 * it was never in the world to begin with.*/

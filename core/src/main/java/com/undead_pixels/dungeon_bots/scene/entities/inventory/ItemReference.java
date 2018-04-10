@@ -69,6 +69,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * Returns true if the ItemReference contains an item.
 	 * @return True if the ItemReference contains an item.
 	 */
+	@Bind(value=SecurityLevel.NONE, doc = "Test if the ItemReference contains an item")
 	public boolean hasItem() {
 		return !item.isEmpty();
 	}

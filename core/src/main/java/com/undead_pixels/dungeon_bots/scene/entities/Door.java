@@ -98,7 +98,7 @@ public class Door extends SpriteEntity implements Lockable, Useable, HasInventor
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		if(itemRef.getItem() instanceof Key) {
+		if(itemRef.getItem() instanceof Key && isLocked()) {
 			itemRef.derefItem();
 			this.unlock();
 			return true;
