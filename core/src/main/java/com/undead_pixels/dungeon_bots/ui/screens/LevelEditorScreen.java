@@ -188,7 +188,7 @@ public final class LevelEditorScreen extends Screen {
 			return new Block(world, x, y);
 		}));
 		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
-			return new Sign(world, "Please Recycle", x, y);
+			return new Sign(world, "", x, y);
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);
