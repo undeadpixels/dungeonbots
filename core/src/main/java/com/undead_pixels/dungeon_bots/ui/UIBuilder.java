@@ -1304,15 +1304,15 @@ public class UIBuilder {
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(url);
+			if (img != null)
+				_Images.put(url.toString(), img);
+			return img;
 		} catch (IOException ioex) {
-			if (verbose)
-				System.err.println("Image resource failed to download: " + url + "\t" + ioex.getMessage());
+			System.err.println("Image resource failed to download: " + url.toString() + "\t" + ioex.getMessage());				
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		if (img != null)
-			_Images.put(url.toString(), img);
-		return img;
+		return null;
 	}
 
 

@@ -385,6 +385,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.fireViewChanged(priorZoom, priorCenter, zoom, center);
 		}
 
+		public void setMapView(){
+			view.getCamera().zoomFor(view.getWorld().getSize());
+		}
 
 		/**Embodies view state for a quick return to that view.*/
 		public static final class ViewPreset {
