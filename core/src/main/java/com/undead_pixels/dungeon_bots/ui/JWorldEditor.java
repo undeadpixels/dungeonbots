@@ -52,7 +52,7 @@ public class JWorldEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (world.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
+			scriptEditor = new JScriptCollectionEditor(state, security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 
@@ -79,30 +79,23 @@ public class JWorldEditor extends JTabbedPane {
 
 	/**A handy data collection embodying the edited state of an editor.  To write the state 
 	 * to an entity, call writeToEntity(entity).*/
-	public static final class State {
+	static final class State {
 
-		private HashMap<String, Object> map = new HashMap<String, Object>();
+	
+ final UserScriptCollection scripts;
 
-
-		private State() {
+		private State(UserScriptCollection scripts) {
+			this.scripts = scripts;
 		}
 
 
 		public static State fromWorld(World world) {
-			State s = new State();
-			s.map.put("SCRIPTS", world.getScripts().copy());
+			State s = new State(world.getScripts().copy());			
 			return s;
 		}
 
-
-		public UserScriptCollection getScripts() {
-			return (UserScriptCollection) map.get("SCRIPTS");
-		}
-
-
 		/**Writes the given state to the world.*/
 		public void writeToWorld(World world) {
-			UserScriptCollection scripts = getScripts();
 			world.getScripts().setTo(scripts);
 		}
 	}

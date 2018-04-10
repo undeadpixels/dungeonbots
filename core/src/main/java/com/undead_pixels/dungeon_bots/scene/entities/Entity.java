@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
@@ -25,8 +26,8 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem,
+		HasEntity, HasTeam, HasImage, Inspectable {
 
 
 	/**
@@ -69,7 +70,7 @@ public abstract class Entity
 	/**The instructions associated with an entity.  These are what is shown in 
 	 * the Entity Editor in the instruction pane.  The value can be null or any 
 	 * string.*/
-	public String help = "This is some example text instructions associated with an entity.";
+	private String help = "This is some example text instructions associated with an entity.";
 
 
 	/**
@@ -90,14 +91,15 @@ public abstract class Entity
 		}
 	}
 
+
 	public LuaSandbox createSandbox() {
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(LuaReflection.getItemClasses())
-				.addBindableClasses(LuaReflection.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getItemClasses()).addBindableClasses(LuaReflection.getEntityClasses());
 		return this.sandbox;
 	}
+
 
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
@@ -116,7 +118,7 @@ public abstract class Entity
 			getSandbox().init();
 			System.out.println("Running entity init for " + this);
 		} else {
-			System.out.println("Skipping entity init (script does not exist for "+this+")");
+			System.out.println("Skipping entity init (script does not exist for " + this + ")");
 		}
 	}
 
@@ -200,17 +202,39 @@ public abstract class Entity
 
 
 	/** Returns the name of this entity. */
-	@Bind(value = SecurityLevel.NONE,
-			doc = "Get the Name of the Entity in it's world")
+	@Bind(value = SecurityLevel.NONE, doc = "Get the Name of the Entity in it's world")
 	public final String getName() {
 		return this.name;
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Set the Name of the Entity")
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Name of the Entity")
 	public final void setName(LuaValue name) {
 		this.name = name.checkjstring();
 	}
+
+
+	public final void setName(String name) {
+		this.name = name;
+	}
+
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Help associated with this entity.")
+	public final void setHelp(LuaValue help) {
+		this.help = help.checkjstring();
+	}
+
+
+	public final void setHelp(String help) {
+		this.help = help;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Gets the help associated with this Entity.")
+	public final String getHelp() {
+		return this.help;
+	}
+
 
 	public abstract float getScale();
 
@@ -298,6 +322,22 @@ public abstract class Entity
 	}
 
 
+	// =======================================================
+	// ====== Entity PERMISSION STUFF ========================
+	// =======================================================
+
+
+	// These permissions can be used to call, i.e.,
+	// getPermission(PERMISSION_SELECTION), to find out the level of security
+	// for the given function.
+	public static final transient String PERMISSION_SCRIPT_EDITOR = "Script editor";
+	public static final transient String PERMISSION_ENTITY_EDITOR = "Entity editor";
+	public static final transient String PERMISSION_COMMAND_LINE = "Command line";
+	public static final transient String PERMISSION_SELECTION = "Selection";
+	public static final transient String PERMISSION_PROPERTIES_EDITOR = "Properties editor";
+	public static final transient String PERMISSION_ADD_REMOVE_SCRIPTS = "Add/remove scripts";
+	public static final transient String PERMISSION_EDIT_HELP = "Edit help";
+
 	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
 
 
@@ -313,11 +353,42 @@ public abstract class Entity
 	}
 
 
+	/**Returns a COPY hash map containing all the permissions that have been set for this Entity.*/
+	public HashMap<String, SecurityLevel> getPermissions() {
+		HashMap<String, SecurityLevel> ret = new HashMap<String, SecurityLevel>();
+		if (permissions == null)
+			return ret;
+		for (Entry<String, SecurityLevel> entry : permissions.entrySet())
+			ret.put(entry.getKey(), entry.getValue());
+		return ret;
+	}
+
+
+	public void setPermission(String permission, SecurityLevel level) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		permissions.put(permission, level);
+	}
+
+
+	public void setPermissions(HashMap<String, SecurityLevel> newPermissions) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		else
+			permissions.clear();
+		for (Entry<String, SecurityLevel> entry : newPermissions.entrySet())
+			permissions.put(entry.getKey(), entry.getValue());
+
+	}
+
+
 	/**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
 	 * references things like:  can the REPL be accessed through this entity?  Etc*/
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
+		else
+			permissions.clear();
 		permissions.put(name, level);
 	}
 }

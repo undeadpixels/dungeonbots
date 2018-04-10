@@ -31,22 +31,35 @@ import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 public class JScriptCollectionEditor extends JPanel {
 
 
+	// private final JEntityEditor.State state;
 	private final JScriptEditor editor;
 	private JList<UserScript> scriptList;
 	private final SecurityLevel security;
 	private final UserScriptCollection scripts;
 
 
-	public JScriptCollectionEditor(UserScriptCollection scripts, SecurityLevel security) {
+	JScriptCollectionEditor(JEntityEditor.State state, SecurityLevel security) {
+		this(state.scripts, security, !state.permissions.containsKey("ADD_REMOVE_SCRIPTS")
+				|| state.permissions.get("ADD_REMOVE_SCRIPTS").level <= security.level);
+	}
+
+
+	JScriptCollectionEditor(JWorldEditor.State state, SecurityLevel security) {
+		this(state.scripts, security, true);
+	}
+
+
+	private JScriptCollectionEditor(UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
 		editor = new JScriptEditor(security);
+		this.scripts = scripts;
 		this.security = security;
+		
 		// Create the editor.
 		editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
 		editor.setEnabled(false);
 		editor.setEditable(true);
 
 		// Create the list.
-		this.scripts = scripts;
 		UserScript[] scriptsSorted = scripts.toArray();
 		scriptList = new JList<UserScript>();
 		DefaultListModel<UserScript> model = new DefaultListModel<UserScript>();
@@ -84,15 +97,19 @@ public class JScriptCollectionEditor extends JPanel {
 		JScrollPane scriptScroller = new JScrollPane(scriptList);
 		scriptScroller.setBorder(BorderFactory.createTitledBorder("Editable scripts."));
 
-		// Make buttons for add/remove of scripts.
-		JPanel bttnPanel = new JPanel(new FlowLayout());
-		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list.")
-				.action("ADD_SCRIPT", controller).create());
-		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list.")
-				.action("REMOVE_SCRIPT", controller).create());
 		Box leftBox = new Box(BoxLayout.Y_AXIS);
 		leftBox.add(scriptScroller);
-		leftBox.add(bttnPanel);
+
+		// Make buttons for add/remove of scripts?
+		if (addRemoveBttns) {
+			JPanel bttnPanel = new JPanel(new FlowLayout());
+			bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list.")
+					.action("ADD_SCRIPT", controller).create());
+			bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list.")
+					.action("REMOVE_SCRIPT", controller).create());
+			leftBox.add(bttnPanel);
+		}
+
 
 		this.setLayout(new BorderLayout());
 		this.add(leftBox, BorderLayout.LINE_START);

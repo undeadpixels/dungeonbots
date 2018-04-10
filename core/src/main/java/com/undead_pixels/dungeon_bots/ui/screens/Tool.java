@@ -385,9 +385,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.fireViewChanged(priorZoom, priorCenter, zoom, center);
 		}
 
-		public void setMapView(){
+
+		public void setMapView() {
 			view.getCamera().zoomFor(view.getWorld().getSize());
 		}
+
 
 		/**Embodies view state for a quick return to that view.*/
 		public static final class ViewPreset {
@@ -569,6 +571,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// selection, just update the tile selection. Otherwise, nothing
 			// is selected.
 			List<Entity> se = world.getEntitiesUnderLocation(rect);
+			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
 			List<Tile> st = world.getTilesUnderLocation(rect);
 
 			System.out.println(se);
@@ -579,15 +582,20 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// entity.
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
+				JEntityEditor jee = null;
+				if (se.get(0).getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
+					jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
+
+				}
 				if (jee == null) {
 					world.message((se.get(0) instanceof HasImage) ? (HasImage) se.get(0) : null,
 							"This entity cannot be edited.", LoggingLevel.GENERAL);
 					return;
+				} else {
+					jee.setVisible(true);
+					view.setSelectedTiles(null);
 				}
 
-				jee.setVisible(true);
-				view.setSelectedTiles(null);
 			}
 			// If some number of entities are lassoed, select them (if
 			// allowed).
@@ -819,16 +827,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// What if an entity already exists at this spot?
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
 			if (alreadyThere != null) {
-				view.setSelectedEntities(new Entity[] { alreadyThere });
-				JEntityEditor jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(),
-						securityLevel, view);
-				if (jee == null) {
-					world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
-							"This entity cannot be edited.", LoggingLevel.GENERAL);
-					return;
+				if (alreadyThere.getPermission(Entity.PERMISSION_SELECTION).level <= securityLevel.level) {
+					view.setSelectedEntities(new Entity[] { alreadyThere });
+
+					JEntityEditor jee = null;
+					if (alreadyThere.getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
+						jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(), securityLevel,
+								view);
+
+					}
+					if (jee == null) {
+						world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
+								"This entity cannot be edited.", LoggingLevel.GENERAL);
+						return;
+					} else {
+						jee.setVisible(true);
+						view.setSelectedTiles(null);
+					}
+
 				}
-				jee.setVisible(true);
-				view.setSelectedTiles(null);
 				return;
 			} else {
 				int x = (int) gamePos.x, y = (int) gamePos.y;
@@ -866,7 +883,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				pushUndo(world, placeUndoable);
 
 
-				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel, view);
+				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel,
+						view);
 				jee.setVisible(true);
 				view.setSelectedEntities(new Entity[] { newEntity });
 			}

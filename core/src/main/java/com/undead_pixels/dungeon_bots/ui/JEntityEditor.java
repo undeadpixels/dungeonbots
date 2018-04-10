@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -47,9 +48,9 @@ public final class JEntityEditor extends JTabbedPane {
 	private boolean changed = false;
 
 	private JScriptCollectionEditor scriptEditor = null;
+	private JEntityPropertyControl properties = null;
 
-	
-	
+
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
 	private JEntityEditor(Entity entity, SecurityLevel security) {
@@ -58,22 +59,22 @@ public final class JEntityEditor extends JTabbedPane {
 		state = State.fromEntity(entity);
 
 		// Set up the REPL.
-		if (entity.getPermission("REPL").level <= security.level) {
+		if (entity.getPermission(Entity.PERMISSION_COMMAND_LINE).level <= security.level) {
 			JCodeREPL repl = new JCodeREPL(entity);
 			addTab("Command Line", null, repl, "Instantaneous script runner.");
 		}
 
 		// Set up the script editor.
-		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
+		if (entity.getPermission(Entity.PERMISSION_SCRIPT_EDITOR).level <= security.level) {
+			scriptEditor = new JScriptCollectionEditor(state, security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
-		
-		if (entity.getPermission("PROPERTIES").level <= security.level){
-			JComponent properties = new JEntityPropertyControl(entity, security).create();
-			addTab("Properties", null, properties, "Properties of this entity.");
-		}
 
+		// Set up the properties tab.
+		if (entity.getPermission(Entity.PERMISSION_PROPERTIES_EDITOR).level <= security.level) {
+			properties = new JEntityPropertyControl(state);
+			addTab("Properties", null, properties.create(), "Properties of this entity.");
+		}
 	}
 
 
@@ -97,37 +98,60 @@ public final class JEntityEditor extends JTabbedPane {
 
 	/**A handy data collection embodying the edited state of an editor.  To write the state 
 	 * to an entity, call writeToEntity(entity).*/
-	public static final class State {
+	static final class State {
 
-		private HashMap<String, Object> map = new HashMap<String, Object>();
+		final Entity entity;
+		// private HashMap<String, Object> map = new HashMap<String, Object>();
+		 String name;
+		final UserScriptCollection scripts;
+		 String help;
+		final HashMap<String, SecurityLevel> permissions;
+		 Image image;
+		 Point2D.Float position;
 
 
-		private State() {
+		private State(Entity entity) {
+			this.entity = entity;
+			this.scripts = entity.getScripts().copy();
+			this.permissions = entity.getPermissions();
+			this.name = entity.getName();
+			this.help = entity.getHelp();
+			this.image = entity.getImage();
+			this.position = entity.getPosition();
+			
 		}
 
 
 		public static State fromEntity(Entity entity) {
-			State s = new State();
-			s.map.put("SCRIPTS", entity.getScripts().copy());
-			s.map.put("HELP", entity.help);
+			State s = new State(entity);
 			return s;
 		}
 
 
-		public UserScriptCollection getScripts() {
-			return ((UserScriptCollection) map.get("SCRIPTS"));
+
+		/**Writes the given state to the entity.  Returns true if the write is successful, otherwise 
+		 * returns false.*/
+		public boolean writeToEntity(Entity entity) {
+
+			entity.setName(name);
+
+			if (this.scripts != null)
+				entity.getScripts().setTo(scripts);
+
+			entity.setHelp( (this.help == null || this.help.equals("")) ? "" : this.help);
+
+			if (this.permissions != null)
+				entity.setPermissions(this.permissions);
+
+
+			// TODO: write image to Entity?
+
+			// TODO: write position to Entity?
+
+			return true;
 		}
 
 
-		/**Writes the given state to the entity.*/
-		public void writeToEntity(Entity entity) {
-			UserScriptCollection scripts = (UserScriptCollection) map.get("SCRIPTS");
-			entity.getScripts().setTo(scripts);
-
-			String help = (String) map.get("HELP");
-			if (help != null)
-				entity.help = help;
-		}
 	}
 
 
@@ -148,10 +172,8 @@ public final class JEntityEditor extends JTabbedPane {
 		_OpenHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
 		JEditorPane textPane = new JEditorPane();
 		textPane.setEditable(
-				JEntityEditor.this.security.level >= JEntityEditor.this.entity.getPermission("EDIT_HELP").level);
-		String help = (String) state.map.get("HELP");
-		if (help == null)
-			help = "No help for this entity.";
+				JEntityEditor.this.security.level >= JEntityEditor.this.entity.getPermission(Entity.PERMISSION_EDIT_HELP).level);
+		String help = (state.help == null || state.help.equals("")) ? "No help for this entity." : state.help;
 		_CurrentHelpDocument = textPane.getDocument();
 		JScrollPane scroller = new JScrollPane(textPane);
 		// scroller.setPreferredSize(new Dimension(400, this.getHeight()));
@@ -169,7 +191,7 @@ public final class JEntityEditor extends JTabbedPane {
 					return;
 				try {
 					if (security.level >= SecurityLevel.AUTHOR.level)
-						state.map.put("HELP", _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength()));
+						state.help = _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength());
 				} catch (BadLocationException e1) {
 					e1.printStackTrace();
 				}
@@ -269,7 +291,8 @@ public final class JEntityEditor extends JTabbedPane {
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "COMMIT":
-				jee.scriptEditor.save();
+				if (jee.scriptEditor != null) jee.scriptEditor.save();
+				if (jee.properties != null) jee.properties.save();
 				Undoable<State> u = new Undoable<State>(State.fromEntity(entity), jee.state) {
 
 					@Override

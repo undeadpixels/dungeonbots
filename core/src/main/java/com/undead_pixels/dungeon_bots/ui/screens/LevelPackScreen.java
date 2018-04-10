@@ -737,7 +737,7 @@ public class LevelPackScreen extends Screen {
 	// ===============================================================
 
 	private Undoable<DefaultMutableTreeNode> openLevelPack() {
-		File f = FileControl.openDialog(this);
+		File f = FileControl.openPackDialog(this);
 		if (f == null) {
 			System.out.println("LevelPack open cancelled.");
 			return null;
@@ -966,7 +966,7 @@ public class LevelPackScreen extends Screen {
 
 
 	private Undoable<Image> changePackImage() {
-		File file = FileControl.openDialog(LevelPackScreen.this);
+		File file = FileControl.openImageDialog(LevelPackScreen.this);
 		Image img = UIBuilder.getImage(file.getPath(), true);
 		if (img == null) {
 			JOptionPane.showMessageDialog(LevelPackScreen.this, "Cannot load the given image:" + file.getPath());
@@ -1063,7 +1063,7 @@ public class LevelPackScreen extends Screen {
 
 
 	private Undoable<Image> changeLevelImage() {
-		File file = FileControl.openDialog(LevelPackScreen.this);
+		File file = FileControl.openImageDialog(LevelPackScreen.this);
 		if (file == null)
 			return null;
 		Image newImg = UIBuilder.getImage(file.getPath(), true);

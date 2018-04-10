@@ -379,7 +379,7 @@ public final class LevelEditorScreen extends Screen {
 				}
 				return;
 			case "Open LevelPack":
-				File openLevelPackFile = FileControl.openDialog(LevelEditorScreen.this);
+				File openLevelPackFile = FileControl.openPackDialog(LevelEditorScreen.this);
 				if (openLevelPackFile == null)
 					System.out.println("Open cancelled.");
 				else if (openLevelPackFile.getName().endsWith(".json")) {

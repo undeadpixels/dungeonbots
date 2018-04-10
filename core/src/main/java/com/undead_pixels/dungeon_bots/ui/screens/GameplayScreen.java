@@ -287,7 +287,7 @@ public class GameplayScreen extends Screen {
 			switch (e.getActionCommand()) {
 
 			case "Open":
-				File openFile = FileControl.openDialog(GameplayScreen.this);
+				File openFile = FileControl.openPackDialog(GameplayScreen.this);
 				if (openFile != null) {
 					LevelPack levelPack = LevelPack.fromFile(openFile.getPath());
 					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
