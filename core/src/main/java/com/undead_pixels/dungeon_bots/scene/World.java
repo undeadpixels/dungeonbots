@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -1215,7 +1216,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return this.mapSandbox;
 		} else {
 			mapSandbox = new LuaSandbox(this);
-			mapSandbox.registerEventType("UPDATE");
+			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
 			mapSandbox.addBindable("this", this);
 			mapSandbox.addBindable("world", this);
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
@@ -1640,23 +1641,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.reduce(0, (a,b) -> a + b);
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Finds and returns the first entity with the specified name")
+	public Entity findEntity(LuaValue nameOrId) {
+		return entities.stream()
+				.filter(nameOrId.isnumber() ?
+						(Entity e) -> e.getId() == nameOrId.checkint() :
+						(Entity e) -> e.getName().equals(nameOrId.checkjstring()))
+				.findFirst()
+				.orElse(null);
+	}
 
 	public void registerMessageListener(final MessageListener messageListener) {
 		this.messageListener = messageListener;
 	}
 
-
 	public void message(HasImage src, String message, LoggingLevel level) {
-		if (messageListener != null) {
+		if(messageListener != null) {
 			// Catch any and all exceptions that may be thrown when attempting to log information
 			try {
 				messageListener.message(src, message, level);
-			} catch (Throwable ignored) { }
+			}
+			catch (Throwable ignored) { }
 		}
 	}
 
-
-	@Bind(value = SecurityLevel.NONE, doc = "Logs a message with a Quest logging level")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Logs a message with a Quest logging level")
 	public void logQuest(LuaValue message) {
 		message(this, message.checkjstring(), LoggingLevel.QUEST);
 	}
@@ -1667,15 +1677,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Override
 	public Image getImage() {
 		return WORLD_TEXTURE;
-	}
-
-	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Finds and returns the first entity with the specified name")
-	public Entity findEntity(LuaValue name) {
-		return entities.stream()
-				.filter(e -> e.getName().equals(name.checkjstring()))
-				.findFirst()
-				.orElse(null);
 	}
 
 	public boolean fillIfPit(int x, int y) {

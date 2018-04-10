@@ -125,7 +125,17 @@ public class SecurityContext {
 		return entity;
 	}
 
-	public Optional<World> getWorld() {
+	/**
+	 * @return
+	 */
+	public String getOwnerName () {
+		if(entity != null) {
+			return entity.getName();
+		}
+		return "world";
+	}
+
+public Optional<World> getWorld() {
 		return Optional.ofNullable(world);
 	}
 }

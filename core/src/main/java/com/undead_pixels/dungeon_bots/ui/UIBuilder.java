@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -1285,11 +1286,32 @@ public class UIBuilder {
 			img = ImageIO.read(new File(path));
 		} catch (IOException ioex) {
 			if (verbose)
-				System.err.println("Image resource missing: " + filename);
+				System.err.println("Image resource missing: " + filename + "\t" + ioex.getMessage());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		_Images.put(filename, img);
+		if (img != null)
+			_Images.put(filename, img);
+		return img;
+	}
+
+
+	public static Image getImage(URL url) {
+		if (url == null)
+			return null;
+		if (_Images.containsKey(url.toString()))
+			return _Images.get(url);
+		BufferedImage img = null;
+		try {
+			img = ImageIO.read(url);
+		} catch (IOException ioex) {
+			if (verbose)
+				System.err.println("Image resource failed to download: " + url + "\t" + ioex.getMessage());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		if (img != null)
+			_Images.put(url.toString(), img);
 		return img;
 	}
 

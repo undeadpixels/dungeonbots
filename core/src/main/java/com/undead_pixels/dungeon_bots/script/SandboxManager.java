@@ -7,13 +7,14 @@ public class SandboxManager {
 	private static HashMap<ThreadGroup, LuaSandbox> sandboxes = new HashMap<>();
 
 	public static void register(Thread runLoopThread, LuaSandbox sandbox) {
-		runLoopThread.setName(sandbox.getThreadGroup().activeCount()+"-main"); // TODO - maybe get name of sandbox?
+		String name = (sandbox.toString() + " Thread").replace(" ", "");
+		runLoopThread.setName(name);
 		
 		sandboxes.put(sandbox.getThreadGroup(), sandbox);
 	}
 
 	public static void delete(Thread runLoopThread) {
-		sandboxes.remove(runLoopThread.getName());
+		sandboxes.remove(runLoopThread.getThreadGroup());
 	}
 	
 	public static LuaSandbox getCurrentSandbox() {

@@ -42,8 +42,9 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 	public void update(float dt) {
 		//owner.enqueueFunctionCall("update", new LuaValue[] {LuaValue.valueOf(dt)}, UpdateCoalescer.instance);
 
-		if(runLoopThread == null) {
+		if(runLoopThread == null && !this.isEmpty()) {
 			runLoopThread = new Thread(owner.getThreadGroup(), this);
+			runLoopThread.setDaemon(true);
 			SandboxManager.register(runLoopThread, owner);
 			runLoopThread.start();
 		} else {
@@ -55,11 +56,22 @@ public class ScriptEventQueue extends AbstractTaskQueue<LuaSandbox, LuaInvocatio
 	
 	@Override
 	public void run() {
+		System.out.println("I am named: "+Thread.currentThread().getName());
+		long lastScript = System.currentTimeMillis();
 		while(isAlive) {
-			this.dequeueIfIdle();
+			if(this.dequeueIfIdle()) {
+				lastScript = System.currentTimeMillis();
+			}
 			this.act(0.0f);
 			
 			if(this.isEmpty()) {
+				if(System.currentTimeMillis() - lastScript > 10000) {
+					// kill this thread because it's been idle for > 10 sec
+					SandboxManager.delete(runLoopThread);
+					runLoopThread = null;
+					return;
+				}
+				
 				synchronized(this) {
 					try {
 						this.wait(100);

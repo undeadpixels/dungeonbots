@@ -55,11 +55,9 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
 		
-		sandbox.registerEventType("LOCK");
-		sandbox.registerEventType("UNLOCK");
-		sandbox.registerEventType("OPEN");
-		sandbox.registerEventType("CLOSE");
-		sandbox.registerEventType("ITEM_GIVEN");
+		sandbox.registerEventType("LOCK", "Called when this ItemChest is locked");
+		sandbox.registerEventType("UNLOCK", "Called when this ItemChest is unlocked");
+		sandbox.registerEventType("ITEM_GIVEN", "Called when this ItemChest is given an item", "item"); // TODO
 	
 		return sandbox;
 	}

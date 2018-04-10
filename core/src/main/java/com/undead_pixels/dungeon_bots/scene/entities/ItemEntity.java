@@ -40,8 +40,7 @@ public class ItemEntity extends Actor implements HasInventory {
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
 		
-		sandbox.registerEventType("ITEM_GIVEN");
-		sandbox.registerEventType("ENTER");
+		sandbox.registerEventType("ENTER", "Called when another entity moves to the same tile as this", "entity");
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distance(this.getPosition()) < .1) {
 				getSandbox().fireEvent("ENTER", e.getLuaValue());

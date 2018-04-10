@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 
 import javax.swing.AbstractButton;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
@@ -53,6 +55,7 @@ public class GameplayScreen extends Screen {
 	private static final String COMMAND_REWIND = "REWIND";
 	private static final String COMMAND_MAIN_MENU = "MAIN_MENU";
 	private static final String COMMAND_QUIT = "QUIT";
+	private static final String COMMAND_CENTER_VIEW = "CENTER_VIEW";
 
 	/** The JComponent that views the current world state. */
 	private WorldView view;
@@ -121,18 +124,21 @@ public class GameplayScreen extends Screen {
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
 		playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
-				.action(COMMAND_MAIN_MENU, getController()).create());
+				.action(COMMAND_MAIN_MENU, getController()).text("Exit").border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.addSeparator();
 		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
-				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).create());
+				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).border(new EmptyBorder(10,10,10,10)).create());
 		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
-				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).create());
+				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).border(new EmptyBorder(10,10,10,10)).create());
 		playToolBar.addSeparator();
 		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
-				.action(COMMAND_SAVE, getController()).create());
+				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10,10,10,10)).create());
 		playToolBar.add(zoomSlider);
-		playToolBar.add(UIBuilder.buildToggleButton().image("images/grid.jpg").toolTip("Turn grid off/on")
-				.action(COMMAND_TOGGLE_GRID, getController()).create());
+		playToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
+				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
+		playToolBar.add(
+				UIBuilder.buildToggleButton().image("images/grid.jpg").text("Grid lines").toolTip("Turn grid off/on.")
+						.border(new EmptyBorder(10, 10, 10, 10)).action(COMMAND_TOGGLE_GRID, getController()).create());
 
 
 		SwingUtilities.invokeLater(new Runnable() {
@@ -141,11 +147,12 @@ public class GameplayScreen extends Screen {
 			// property hasn't been set when addComponents is called.
 			@Override
 			public void run() {
-				JButton switchBttn = UIBuilder.buildButton().text("Switch to Editor")
+				JButton switchBttn = UIBuilder.buildButton().image("icons/arrow_switch.png").text("Switch to Editor")
 						.action("Switch to Editor", getController()).enabled(isSwitched)
-						.border(BorderFactory.createRaisedSoftBevelBorder()).create();
+						.border(new EmptyBorder(10, 10, 10, 10)).create();
 				playToolBar.add(switchBttn);
 			}
+
 		});
 
 		// Create the message pane
@@ -168,7 +175,8 @@ public class GameplayScreen extends Screen {
 		message("This is an error message from the world.\n", LoggingLevel.ERROR);
 		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", LoggingLevel.GENERAL);
 		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", LoggingLevel.ERROR);
-		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL, Color.green);
+		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL,
+				Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -263,7 +271,7 @@ public class GameplayScreen extends Screen {
 				if (sldr.getName().equals("zoomSlider")) {
 					OrthographicCamera cam = view.getCamera();
 					if (cam != null) {
-						_ViewControl.setZoomAsPercentage((float)sldr.getValue() / sldr.getMaximum());
+						_ViewControl.setZoomAsPercentage((float) sldr.getValue() / sldr.getMaximum());
 					}
 				}
 			}
@@ -281,6 +289,12 @@ public class GameplayScreen extends Screen {
 					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
 				}
 
+				break;
+			case COMMAND_CENTER_VIEW:
+				Point2D.Float worldSize = world.getSize();
+				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
+				_ViewControl.setCenter(center);
+				_ViewControl.setZoomAsPercentage(0.5f);
 				break;
 			case COMMAND_MAIN_MENU:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
