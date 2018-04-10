@@ -1166,13 +1166,16 @@ public class LevelPackScreen extends Screen {
 		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
 		model.removeNodeFromParent(packNode);
-		File f = new File(pInfo.filename);
-		if (f.exists())
-			try {
-				Files.delete(f.toPath());
-			} catch (IOException e) {
-				System.err.println("Could not delete file " + pInfo.filename + " - " + e.getMessage());
-			}
+		if (pInfo.filename != null) {
+			File f = new File(pInfo.filename);
+			if (f.exists())
+				try {
+					Files.delete(f.toPath());
+				} catch (IOException e) {
+					System.err.println("Could not delete file " + pInfo.filename + " - " + e.getMessage());
+				}
+		}
+
 		this.setSelection(null);
 		return new Undoable<PackInfo>(null, pInfo, model) {
 
@@ -1775,7 +1778,8 @@ public class LevelPackScreen extends Screen {
 				JPackDownloadDialog jpdd = new JPackDownloadDialog(LevelPackScreen.this);
 				jpdd.setVisible(true);
 				LevelPack downloaded = jpdd.getResult();
-				if (downloaded==null) return;
+				if (downloaded == null)
+					return;
 				PackInfo p = PackInfo.withoutJSON(downloaded);
 				u = LevelPackScreen.this.addNewPack(p);
 				break;

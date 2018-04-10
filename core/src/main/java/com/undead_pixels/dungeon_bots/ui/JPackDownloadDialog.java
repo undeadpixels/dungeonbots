@@ -85,8 +85,10 @@ public class JPackDownloadDialog extends JDialog {
 			public Component getListCellRendererComponent(JList<? extends Page.Pack> list, Page.Pack pack, int index,
 					boolean isSelected, boolean cellHasFocus) {
 				JPanel pnl = new JPanel(new HorizontalLayout());
-				pnl.add(new JLabel(new ImageIcon(
-						pack.image.getScaledInstance(ICON_SIZE.width, ICON_SIZE.height, Image.SCALE_FAST))));
+				Image img = pack.image;
+				if (img==null) img = UIBuilder.getImage(BAD_DOWNLOAD_IMAGE);
+				pnl.add(new JLabel(
+						new ImageIcon(img.getScaledInstance(ICON_SIZE.width, ICON_SIZE.height, Image.SCALE_FAST))));
 
 				JPanel textPnl = new JPanel(new VerticalLayout());
 				textPnl.add(new JLabel(pack.title));
@@ -158,7 +160,8 @@ public class JPackDownloadDialog extends JDialog {
 			LevelPack p = LevelPack.fromJson(json);
 			return p;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println("Could not parse JSON LevelPack.");
+			//e.printStackTrace();
 			return null;
 		}
 	}
@@ -171,7 +174,7 @@ public class JPackDownloadDialog extends JDialog {
 
 
 	private static final String downloadResource(String address) {
-		URL url;
+		URL url = null;
 		BufferedReader reader = null;
 		try {
 			url = new URL(address);
@@ -184,7 +187,8 @@ public class JPackDownloadDialog extends JDialog {
 			String ret = sb.toString();
 			return ret;
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (url != null) System.err.println("Error fetching resource: " + url.toString());
+			//e.printStackTrace();
 			return null;
 		} finally {
 			try {
