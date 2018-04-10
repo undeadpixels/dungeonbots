@@ -1475,9 +1475,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public Boolean tryUse(final ItemReference itemReference, final Point2D.Float location) {
 		return entitiesAtPos(location)
 				.anyMatch(e -> {
-					final boolean used = e.useItem(itemReference);
 					final Entity owner = itemReference.inventory.getOwner();
 					final String name = itemReference.getName();
+					final boolean used = e.useItem(itemReference);
 					if(used) {
 						message(owner,
 								String.format("%s used %s on %s",
@@ -1502,7 +1502,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.anyMatch(e -> {
 					final boolean used = Useable.class.cast(e).use();
 					if(used){
-						message(src,
+						message(e,
 								String.format("%s used %s", src.getName(), e.getName()),
 								LoggingLevel.GENERAL);
 					}
@@ -1524,7 +1524,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 					final String name = itemReference.getName();
 					final boolean gives = e.getInventory().tryTakeItem(itemReference);
 					if(gives) {
-						message(itemReference.inventory.getOwner(),
+						message(e,
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
 										name,
@@ -1548,9 +1548,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.map(e -> {
 					final String name = e.getItem().getName();
 					final boolean grabbed = e.pickUp(dst);
-					message(dst,
+					message(e,
 							String.format("%s %s grabbed %s",
-									dst.getEntity().getName(),
+									dst.getEntity().getClass().getSimpleName(),
 									grabbed ? "Sucessfully" : "Unsucessfully",
 									name),
 							LoggingLevel.GENERAL);
@@ -1640,23 +1640,21 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.reduce(0, (a,b) -> a + b);
 	}
 
-
 	public void registerMessageListener(final MessageListener messageListener) {
 		this.messageListener = messageListener;
 	}
 
-
 	public void message(HasImage src, String message, LoggingLevel level) {
-		if (messageListener != null) {
+		if(messageListener != null) {
 			// Catch any and all exceptions that may be thrown when attempting to log information
 			try {
 				messageListener.message(src, message, level);
-			} catch (Throwable ignored) { }
+			}
+			catch (Throwable ignored) { }
 		}
 	}
 
-
-	@Bind(value = SecurityLevel.NONE, doc = "Logs a message with a Quest logging level")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Logs a message with a Quest logging level")
 	public void logQuest(LuaValue message) {
 		message(this, message.checkjstring(), LoggingLevel.QUEST);
 	}
@@ -1667,15 +1665,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Override
 	public Image getImage() {
 		return WORLD_TEXTURE;
-	}
-
-	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Finds and returns the first entity with the specified name")
-	public Entity findEntity(LuaValue name) {
-		return entities.stream()
-				.filter(e -> e.getName().equals(name.checkjstring()))
-				.findFirst()
-				.orElse(null);
 	}
 
 	public boolean fillIfPit(int x, int y) {
