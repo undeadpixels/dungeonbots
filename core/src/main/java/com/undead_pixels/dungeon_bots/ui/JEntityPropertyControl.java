@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -16,10 +17,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 import org.jdesktop.swingx.HorizontalLayout;
 import org.jdesktop.swingx.VerticalLayout;
 
+import com.undead_pixels.dungeon_bots.scene.World.EntityEventType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor.State;
@@ -33,34 +37,38 @@ public class JEntityPropertyControl {
 	private final Entity entity;
 	private final SecurityLevel security;
 	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
+	private Box propertiesPanel;
 
 
 	public JEntityPropertyControl(Entity entity, SecurityLevel level) {
 		this.entity = entity;
 		this.security = level;
+		
+		entity.getWorld().listenTo(EntityEventType.ENTITY_MOVED, this, (e) -> updateBorderName());
+	}
+	
+	private void updateBorderName() {
+		if(propertiesPanel != null) {
+			propertiesPanel.setBorder(BorderFactory.createTitledBorder(entity.getName()+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
+		}
 	}
 
 
 	public JComponent create() {
-
-		// Valid Entity permissions:
-		// REPL
-		// SCRIPT_EDITOR
-		// PROPERTIES
-		// ENTITY_EDITOR
-		// SELECTION
-
-		Box propertiesPanel = new Box(BoxLayout.Y_AXIS);
-
-		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(256, 256, BufferedImage.SCALE_FAST)));
+		updateBorderName();
 		
-		Box pnlHeaderText = new Box(BoxLayout.Y_AXIS);
-		pnlHeaderText.add(new JLabel(entity.getName()));
-		pnlHeaderText.add(new JLabel("("+entity.getPosition().x+", "+entity.getPosition().y+")"));
+		if(propertiesPanel != null) {
+			return propertiesPanel;
+		}
+		propertiesPanel = new Box(BoxLayout.Y_AXIS);
 
-		Box pnlHeader = new Box(BoxLayout.X_AXIS);
-		pnlHeader.add(imgLabel);
-		pnlHeader.add(pnlHeaderText);
+		
+		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(128, 128, BufferedImage.SCALE_FAST)));
+		imgLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+		imgLabel.setHorizontalAlignment(JLabel.LEFT);
+		
+		propertiesPanel.add(imgLabel);
+		propertiesPanel.add(new JSeparator());
 		
 		
 		checkboxes.add(new CheckboxController("Selection", "SELECTION",
@@ -74,15 +82,17 @@ public class JEntityPropertyControl {
 		checkboxes.add(new CheckboxController("Properties editor", "PROPERTIES",
 				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now)."));
 
-
-		propertiesPanel.add(pnlHeader);
 		
 		for(CheckboxController c : checkboxes) {
 			propertiesPanel.add(c.makeCheckbox());
 		}
+		
+		propertiesPanel.add(new JPanel()); // spacing
+		
+		JScrollPane scroller = new JScrollPane(propertiesPanel);
 
 
-		return propertiesPanel;
+		return scroller;
 	}
 	
 	private class CheckboxController {
@@ -96,10 +106,19 @@ public class JEntityPropertyControl {
 			this.description = description;
 		}
 		
-		public JCheckBox makeCheckbox() {
+		public JComponent makeCheckbox() {
 			checkBox = new JCheckBox(title, entity.getPermission(flagName).level < SecurityLevel.AUTHOR.level);
 			checkBox.setToolTipText(description);
-			return checkBox;
+			
+			Box ret = new Box(BoxLayout.X_AXIS);
+			ret.add(checkBox);
+			ret.add(new JPanel());
+			
+			ret.setBorder(BorderFactory.createEmptyBorder());
+			
+			ret.setPreferredSize(checkBox.getPreferredSize());
+			
+			return ret;
 			
 		}
 
