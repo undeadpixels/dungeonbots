@@ -211,6 +211,10 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * @param text
 	 */
 	public void addText(String text) {
+		if(this.floatingText == null) {
+			this.floatingText = new FloatingText(this, getName()+"-text");
+			world.addEntity(floatingText);
+		}
 		this.floatingText.addLine(text);
 	}
 

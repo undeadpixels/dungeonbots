@@ -6,6 +6,7 @@ import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 @Doc("An Entity type that can be inspected ")
 public class Sign extends SpriteEntity implements Inspectable, HasImage {
@@ -33,6 +35,11 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 		this.message = message;
 		floatingText = new FloatingText(this, name+"-text");
 		registerListener();
+		
+		this.getScripts().add(new UserScript("init",
+				"registerEnteredListener(function(e)\n" +
+				"  this:say(this.inspect())\n" +
+				"end)"));
 	}
 
 	
@@ -54,7 +61,7 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distanceSq(this.getPosition()) < .1) {
 				//world.showAlert(this.inspect(), "Sign");
-				this.floatingText.addLine(this.inspect());
+				//this.floatingText.addLine(this.inspect());
 				getSandbox().fireEvent("ENTERED", e.getLuaValue());
 			}
 		});
@@ -107,8 +114,31 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 		this.message = message.checkjstring();
 	}
 
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
 	@Override
 	public Image getImage() {
 		return DEFAULT_TEXTURE.toImage();
+	}
+
+	/**
+	 * @param args
+	 */
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Prints the argument text above the player")
+	final public void say(@Doc("The text for the player to say") Varargs args) {
+		final StringBuilder text = new StringBuilder();
+		for(int i = 2; i <= args.narg(); i++) {
+			if(i > 2)
+				text.append(" ");
+			text.append(args.tojstring(i));
+		}
+
+		this.floatingText.addLine(text.toString());
 	}
 }
