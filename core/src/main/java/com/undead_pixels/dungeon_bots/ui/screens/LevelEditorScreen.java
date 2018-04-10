@@ -139,6 +139,8 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
 			return new Door(world, x, y);
 		}));
+		result.add(new EntityType("switch", Switch.DISABLED_TEXTURE, (x,y) ->
+				new Switch(world, x, y)));
 		result.add(new EntityType("goal", Goal.DEFAULT_TEXTURE, (x, y) -> {
 			return new Goal(world, "goal", x, y);
 		}));

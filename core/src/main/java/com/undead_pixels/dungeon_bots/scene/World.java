@@ -780,11 +780,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @param x
 	 * @param y
-	 * @param tt
+	 * @param tiletype
 	 */
-	@Bind(SecurityLevel.AUTHOR)
-	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
-		setTile(x.checkint() - 1, y.checkint() - 1, tileTypesCollection.getTile(tt.checkjstring()));
+	@Bind(value=SecurityLevel.AUTHOR,doc="Sets the Tile at the argument positions")
+	public void setTile(
+			@Doc("The X position of the tile") LuaValue x,
+			@Doc("The Y position of the tile") LuaValue y,
+			@Doc("The TileType of the tile ['floor', 'tile', etc...]") LuaValue tiletype) {
+		setTile(x.checkint() - 1, y.checkint() - 1, tileTypesCollection.getTile(tiletype.checkjstring()));
 	}
 
 
