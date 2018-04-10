@@ -331,11 +331,11 @@ public final class LevelEditorScreen extends Screen {
 				jpe.setVisible(true);
 				break;
 			case COMMAND_CENTER_VIEW:
-				Point2D.Float worldSize = world.getSize();
-				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
-				_ViewControl.setCenter(center);
-				_ViewControl.setZoomAsPercentage(0.5f);
-				
+				//Point2D.Float worldSize = world.getSize();
+				//Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
+				//_ViewControl.setCenter(center);				
+				//_ViewControl.setZoomAsPercentage(0.5f);
+				_ViewControl.setMapView();
 				break;
 			case COMMAND_RESIZE:
 				JWorldSizer jws = JWorldSizer.showDialog(LevelEditorScreen.this, world, _View);

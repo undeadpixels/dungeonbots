@@ -321,4 +321,8 @@ public abstract class Entity
 			permissions = new HashMap<String, SecurityLevel>();
 		permissions.put(name, level);
 	}
+	
+	public Iterable<String> listPermissionNames() {
+		return permissions.keySet();
+	}
 }

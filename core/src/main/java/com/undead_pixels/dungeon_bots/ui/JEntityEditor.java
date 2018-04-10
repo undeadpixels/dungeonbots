@@ -49,8 +49,10 @@ public final class JEntityEditor extends JTabbedPane {
 
 	private JScriptCollectionEditor scriptEditor = null;
 	private JSignEditor signEditor;
+	private JEntityPropertyControl propertyControl = null;
 
-
+	
+	
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
 	private JEntityEditor(Entity entity, SecurityLevel security) {
@@ -74,6 +76,12 @@ public final class JEntityEditor extends JTabbedPane {
 		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
 			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
+		}
+		
+		if (entity.getPermission("PROPERTIES").level <= security.level){
+			propertyControl = new JEntityPropertyControl(entity, security);
+			JComponent properties = propertyControl.create();
+			addTab("Properties", null, properties, "Properties of this entity.");
 		}
 
 	}
@@ -102,6 +110,7 @@ public final class JEntityEditor extends JTabbedPane {
 	public static final class State {
 
 		private HashMap<String, Object> map = new HashMap<String, Object>();
+		private HashMap<String, SecurityLevel> perms = new HashMap<>();
 
 
 		private State() {
@@ -115,6 +124,11 @@ public final class JEntityEditor extends JTabbedPane {
 			
 			if(entity instanceof Sign) {
 				s.map.put("SIGN_TEXT", ((Sign)entity).getMessage());
+			}
+
+			
+			for(String perm : entity.listPermissionNames()) {
+				entity.setSecurityLevel(perm, entity.getPermission(perm));
 			}
 			
 			return s;
@@ -140,6 +154,10 @@ public final class JEntityEditor extends JTabbedPane {
 				String text = map.get("SIGN_TEXT").toString();
 				((Sign)entity).setMessage(text);
 			}
+			
+			for(String perm : perms.keySet()) {
+				entity.setSecurityLevel(perm, perms.get(perm));
+			}
 		}
 
 
@@ -148,6 +166,15 @@ public final class JEntityEditor extends JTabbedPane {
 		 */
 		public void setSignText (String text) {
 			map.put("SIGN_TEXT", text);
+		}
+
+
+		/**
+		 * @param flagName
+		 * @param level
+		 */
+		public void setPermission (String flagName, SecurityLevel level) {
+			perms.put(flagName, level);
 		}
 	}
 
@@ -292,6 +319,7 @@ public final class JEntityEditor extends JTabbedPane {
 			case "COMMIT":
 				if(jee.scriptEditor!=null) jee.scriptEditor.save();
 				if(jee.signEditor!=null) jee.signEditor.save();
+				if(jee.propertyControl!=null) jee.propertyControl.save(jee.state);
 				Undoable<State> u = new Undoable<State>(State.fromEntity(entity), jee.state) {
 
 					@Override
