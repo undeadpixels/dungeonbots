@@ -71,8 +71,8 @@ public class Block extends Actor implements Pushable {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("PUSH");
-		sandbox.registerEventType("BUMPED");
+		sandbox.registerEventType("PUSH", "Called when this block is pushed", "direction");
+		sandbox.registerEventType("BUMPED", "Called when this block is bumped into", "direction");
 
 		return sandbox;
 	}
