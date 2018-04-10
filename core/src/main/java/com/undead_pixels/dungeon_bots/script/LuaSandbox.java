@@ -316,8 +316,7 @@ public final class LuaSandbox implements Serializable {
 						li.run();
 						return li.join().getResults()
 								.map(Varargs::arg1)
-								.orElse(LuaValue.NIL);
-					})
+								.orElse(LuaValue.NIL); })
 					.orElse(LuaValue.NIL);
 		}
 	}
