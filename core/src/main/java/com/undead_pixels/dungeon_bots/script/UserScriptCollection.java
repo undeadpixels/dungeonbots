@@ -61,31 +61,40 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	}
 
 
-	/**Returns an array of all contained UserScripts, sorted by name.*/
+	/**Returns an array (original) of all contained UserScripts, sorted by name.*/
 	public UserScript[] toArray() {
 		UserScript[] result = storage.values().toArray(new UserScript[storage.values().size()]);
 		Arrays.sort(result);
 		return result;
 	}
 
+	public UserScriptCollection copy(){
+		
+		UserScriptCollection ret = new UserScriptCollection();
+		for (UserScript original : this.storage.values()) ret.add(original.copy());
+		return ret;
+	}
+
 
 	/**
 	 * @param other
 	 */
-	public void setTo (UserScriptCollection other) {
+	public void setTo(UserScriptCollection other) {
 		storage.clear();
 		storage.putAll(other.storage);
 	}
 
 
 	@Override
-	public String toString () {
+	public String toString() {
 		StringBuilder ret = new StringBuilder();
-		
-		for(String name: storage.keySet()) {
+
+		for (String name : storage.keySet()) {
 			ret.append(storage.get(name).toString());
 		}
-		
+
 		return ret.toString();
 	}
+
+
 }

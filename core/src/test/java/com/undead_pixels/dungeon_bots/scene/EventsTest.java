@@ -141,8 +141,8 @@ public class EventsTest {
 		
 		b.getScripts().add(new UserScript("init",
 				"sleep(.001) " +
-				"bot:useRight() " +
 				"bot:inventory():peek(1):useRight() " +
+				"bot:useRight() " +
 				"bot:right():right() " +
 				"print(\"not done?\") " +
 				"bot:useLeft() " +

@@ -84,6 +84,11 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite.getScaleX();
 	}
 
+	public void setPosition(float x, float y){
+		this.sprite.setX(x);
+		this.sprite.setY(y);
+	}
+	
 	/**
 	 * TODO: Make this method accessible only to authors
 	 * @param x
@@ -101,6 +106,10 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	/**Returns a new image associated with this SpriteEntity.*/
 	public Image getImage() {
 		return sprite.getTexture().toImage();
+	}
+
+	public Sprite getSprite() {
+		return sprite;
 	}
 
 }

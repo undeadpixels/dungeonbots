@@ -90,10 +90,9 @@ public class Sprite implements Serializable {
 	 * @param x	This sprite's new X coordinate
 	 * @param y	This sprite's new Y coordinate
 	 */
-	public void setPosition(float x, float y) {
+	public void setPosition(float x, float y) {		
 		this.x = x;
-		this.y = y;
-		
+		this.y = y;		
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.security;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -132,5 +133,9 @@ public class SecurityContext {
 			return entity.getName();
 		}
 		return "world";
+	}
+
+public Optional<World> getWorld() {
+		return Optional.ofNullable(world);
 	}
 }
