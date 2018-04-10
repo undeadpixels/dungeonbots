@@ -50,7 +50,8 @@ public final class JEntityEditor extends JTabbedPane {
 	private JScriptCollectionEditor scriptEditor = null;
 	private JSignEditor signEditor;
 
-
+	
+	
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
 	private JEntityEditor(Entity entity, SecurityLevel security) {
@@ -74,6 +75,11 @@ public final class JEntityEditor extends JTabbedPane {
 		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
 			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
+		}
+		
+		if (entity.getPermission("PROPERTIES").level <= security.level){
+			JComponent properties = new JEntityPropertyControl(entity, security).create();
+			addTab("Properties", null, properties, "Properties of this entity.");
 		}
 
 	}

@@ -124,18 +124,22 @@ public class GameplayScreen extends Screen {
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
 		playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
-				.action(COMMAND_MAIN_MENU, getController()).text("Exit").border(new EmptyBorder(10, 10, 10, 10)).create());
+				.action(COMMAND_MAIN_MENU, getController()).text("Exit").border(new EmptyBorder(10, 10, 10, 10))
+				.create());
 		playToolBar.addSeparator();
 		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
-				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50).border(new EmptyBorder(10,10,10,10)).create());
+				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50)
+				.border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
-				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).border(new EmptyBorder(10,10,10,10)).create());
+				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).border(new EmptyBorder(10, 10, 10, 10))
+				.create());
 		playToolBar.addSeparator();
 		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
-				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10,10,10,10)).create());
+				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.add(zoomSlider);
-		playToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
-				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
+		playToolBar
+				.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
+						.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.add(
 				UIBuilder.buildToggleButton().image("images/grid.jpg").text("Grid lines").toolTip("Turn grid off/on.")
 						.border(new EmptyBorder(10, 10, 10, 10)).action(COMMAND_TOGGLE_GRID, getController()).create());
@@ -291,10 +295,12 @@ public class GameplayScreen extends Screen {
 
 				break;
 			case COMMAND_CENTER_VIEW:
-				Point2D.Float worldSize = world.getSize();
-				Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
-				_ViewControl.setCenter(center);
-				_ViewControl.setZoomAsPercentage(0.5f);
+				// Point2D.Float worldSize = world.getSize();
+				// Point2D.Float center = new Point2D.Float(worldSize.x / 2,
+				// worldSize.y / 2);
+				// _ViewControl.setCenter(center);
+				// _ViewControl.setZoomAsPercentage(0.5f);
+				_ViewControl.setMapView();
 				break;
 			case COMMAND_MAIN_MENU:
 				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
