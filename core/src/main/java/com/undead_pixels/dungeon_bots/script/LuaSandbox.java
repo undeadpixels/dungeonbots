@@ -279,10 +279,9 @@ public final class LuaSandbox implements Serializable {
 		System.out.println("print: "+str);
 		try { bufferedOutputStream.write(str.getBytes()); }
 		catch (IOException io) { }
-		this.getSecurityContext()
-				.getEntity()
-				.getWorld()
-				.message(this.getSecurityContext().getEntity(),str, LoggingLevel.STDOUT);
+		getSecurityContext().getWorld().ifPresent(w ->
+			Optional.ofNullable(getSecurityContext().getEntity()).ifPresent(e ->
+					w.message(e, str, LoggingLevel.STDOUT)));
 		outputEventListeners.forEach(cn -> cn.accept(str));
 	}
 
