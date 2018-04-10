@@ -259,6 +259,11 @@ public final class LuaSandbox implements Serializable {
 			return script;
 	}
 
+	@Override
+		public String toString () {
+			return securityContext.getOwnerName() + " Sandbox";
+		}
+
 	public void addOutputEventListener(Consumer<String> fn) {
 			outputEventListeners.add(fn);
 	}
