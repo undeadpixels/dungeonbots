@@ -4,17 +4,20 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasTeam;
+import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import org.luaj.vm2.LuaValue;
 
 /**
@@ -23,7 +26,8 @@ import org.luaj.vm2.LuaValue;
  *          Does not include UI elements.
  */
 public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam , Inspectable {
+		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
+
 
 	/**
 	 * 
@@ -79,7 +83,7 @@ public abstract class Entity
 		this.name = name;
 		this.scripts = scripts;
 
-		if(world != null) {
+		if (world != null) {
 			this.id = world.makeID();
 		} else {
 			this.id = -1;
@@ -90,11 +94,11 @@ public abstract class Entity
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(GetLuaFacade.getItemClasses())
-				.addBindableClasses(GetLuaFacade.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getItemClasses())
+				.addBindableClasses(LuaReflection.getEntityClasses());
 		return this.sandbox;
 	}
-	
+
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
 	 */
@@ -105,16 +109,17 @@ public abstract class Entity
 		}
 		return sandbox;
 	}
-	
+
+
 	public void sandboxInit() {
-		if(this.scripts != null && this.scripts.get("init") != null) {
+		if (this.scripts != null && this.scripts.get("init") != null) {
 			getSandbox().init();
 			System.out.println("Running entity init for " + this);
 		} else {
 			System.out.println("Skipping entity init (script does not exist for "+this+")");
 		}
 	}
-	
+
 
 	/**
 	 * Should only ever be called by the world, in its addEntity
@@ -139,6 +144,11 @@ public abstract class Entity
 	 * @return This Entity's position in tile space
 	 */
 	public abstract Point2D.Float getPosition();
+
+
+	public void setPosition(float x, float y) {
+		throw new RuntimeException("Cannot set position on Entity of type " + this.getClass().getName());
+	}
 
 
 	/**
@@ -220,7 +230,7 @@ public abstract class Entity
 
 
 	/**
-	 * @return	The collection of scripts that this entity can run.  Note that this returns a reference to the scripts themselves.
+	 * @return	The collection of scripts that this entity can run.  CAUTION: this returns a reference to the scripts themselves.
 	 */
 	public UserScriptCollection getScripts() {
 		return this.scripts;
@@ -234,9 +244,11 @@ public abstract class Entity
 			this.scripts.add(is);
 	}
 
+
 	protected Point2D.Float add(final Point2D.Float toAdd, float x, float y) {
 		return new Point2D.Float(toAdd.x + x, toAdd.y + y);
 	}
+
 
 	/**
 	 * Get the position left relative to the player
@@ -246,6 +258,7 @@ public abstract class Entity
 		return add(this.getPosition(), -1f, 0f);
 	}
 
+
 	/**
 	 * Get the position right relative to the player
 	 * @return
@@ -253,6 +266,7 @@ public abstract class Entity
 	protected Point2D.Float right() {
 		return add(this.getPosition(), 1f, 0f);
 	}
+
 
 	/**
 	 * Get the position up relative to the player
@@ -262,6 +276,7 @@ public abstract class Entity
 		return add(this.getPosition(), 0f, 1f);
 	}
 
+
 	/**
 	 * Get the position down relative to the player
 	 * @return
@@ -269,6 +284,7 @@ public abstract class Entity
 	protected Point2D.Float down() {
 		return add(this.getPosition(), 0f, -1f);
 	}
+
 
 	/**
 	 * Convenience function for extracting a Userdata class of the specified type from
@@ -280,5 +296,29 @@ public abstract class Entity
 	 */
 	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
 		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
+	}
+
+
+	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
+
+
+	/**Returns the permissions associated with this Entity.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	public SecurityLevel getPermission(String name) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		SecurityLevel s = permissions.get(name);
+		if (s == null)
+			return SecurityLevel.NONE;
+		return s;
+	}
+
+
+	/**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	public void setSecurityLevel(String name, SecurityLevel level) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		permissions.put(name, level);
 	}
 }

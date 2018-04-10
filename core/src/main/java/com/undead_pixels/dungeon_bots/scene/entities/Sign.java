@@ -2,6 +2,7 @@ package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.Inspectable;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -12,13 +13,14 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import org.luaj.vm2.LuaValue;
 
 @Doc("An Entity type that can be inspected ")
-public class Sign extends SpriteEntity implements Inspectable {
+public class Sign extends SpriteEntity implements Inspectable, HasImage {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -61,8 +63,8 @@ public class Sign extends SpriteEntity implements Inspectable {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("ENTERED");
-		sandbox.registerEventType("READ");
+		sandbox.registerEventType("ENTERED", "Called when another entity moves to the same tile as this", "entity");
+		sandbox.registerEventType("READ", "Called when something accesses the messsage of this sign");
 	
 		return sandbox;
 	}
@@ -96,11 +98,17 @@ public class Sign extends SpriteEntity implements Inspectable {
 	@Bind(SecurityLevel.NONE)
 	public String inspect() {
 		getSandbox().fireEvent("READ");
+		world.message(this, this.message, LoggingLevel.QUEST);
 		return message;
 	}
 
 	@Bind(value = SecurityLevel.ENTITY, doc = "Change the message that the sign displays")
 	public void setMessage(@Doc("The new message that should display") LuaValue message) {
 		this.message = message.checkjstring();
+	}
+
+	@Override
+	public Image getImage() {
+		return DEFAULT_TEXTURE.toImage();
 	}
 }

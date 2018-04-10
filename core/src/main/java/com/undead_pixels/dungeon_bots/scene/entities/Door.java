@@ -61,12 +61,12 @@ public class Door extends SpriteEntity implements Lockable, Useable, HasInventor
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("ITEM_GIVEN");
-		sandbox.registerEventType("LOCK");
-		sandbox.registerEventType("UNLOCK");
-		sandbox.registerEventType("OPEN");
-		sandbox.registerEventType("CLOSE");
-		sandbox.registerEventType("ENTER");
+		sandbox.registerEventType("ITEM_GIVEN", "Called when this Door is given an item", "item"); // TODO
+		sandbox.registerEventType("LOCK", "Called when this Door is locked");
+		sandbox.registerEventType("UNLOCK", "Called when this Door is unlocked");
+		sandbox.registerEventType("OPEN", "Called when this Door is opened");
+		sandbox.registerEventType("CLOSE", "Called when this Door is closed");
+		sandbox.registerEventType("ENTER", "Called when an entity enters this Door", "entity");
 		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
 			if(e.getPosition().distance(this.getPosition()) < .1) {
 				getSandbox().fireEvent("ENTER", e.getLuaValue());

@@ -121,11 +121,11 @@ public class OrthographicCamera implements Serializable {
 
 	/**
 	 * @param newZoom	A number between 0 and 1, indicating min to max zoom
-	 */
+	 *//*
 	@Deprecated
 	public void setZoomOnMinMaxRange(float newZoom) {
 		setZoomInRange(getMinZoom(), newZoom, getMaxZoom());
-	}
+	}*/
 	
 	/** Sets the zoom to a value that is a percentage between the given min and max.
 	 * @param newZoom	A number between 0 and 1, indicating min to max zoom
