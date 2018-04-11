@@ -118,7 +118,7 @@ public class JEntityPropertyControl {
 
 		permissions = new JPermissionTree();
 		permissions.addPermission(Entity.PERMISSION_SELECTION, state.permissions.get("Selection"),
-				"Access level for whether the entity can be selected.");
+				"Access level for whether the entity can be selected.  Note that if a user cannot select the entity, the entity editor cannot be opened either.");
 		permissions.addPermission(Entity.PERMISSION_ENTITY_EDITOR,
 				state.permissions.get(Entity.PERMISSION_ENTITY_EDITOR),
 				"Access level for the entity editing dialog (the dialog you're looking at right now).");
