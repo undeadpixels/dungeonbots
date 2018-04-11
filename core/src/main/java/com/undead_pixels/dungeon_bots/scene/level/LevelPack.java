@@ -420,12 +420,7 @@ public class LevelPack {
 	// ========= LevelPack WORLD/LEVEL STUFF ======================
 	// ============================================================
 
-	/**Returns whether this pack is only a partial pack.  A pack may be partial if it was serialized for 
-	 * purposes of making a list, where deserializing the worlds themselves may be wasteful.*/
-	public boolean isPartial() {
-		return levelCount != levels.size();
-	}
-
+	
 
 	public int getLevelIndex() {
 		return levelIndex;

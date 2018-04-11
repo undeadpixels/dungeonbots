@@ -138,7 +138,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue.act(dt);
 		if (sandbox != null) {
 			sandbox.update(dt);
-		}
+		}		
 	}
 
 

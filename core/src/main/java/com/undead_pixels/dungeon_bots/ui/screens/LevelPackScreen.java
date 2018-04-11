@@ -616,16 +616,13 @@ public class LevelPackScreen extends Screen {
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
 		for (int i = 0; i < packs.length; i++) {
 			PackInfo pInfo = packs[i];
-			pInfo.worlds.clear();
+			//pInfo.worlds.clear();
 			DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pInfo);
 			rootNode.add(packNode);
-			LevelPack pack = pInfo.getPack();
-			for (int j = 0; j < pack.getLevelCount(); j++) {
-				WorldInfo wInfo = WorldInfo.fromLevelIndex(pInfo, j);
-				pInfo.worlds.add(wInfo);
+			for (WorldInfo wInfo : pInfo.worlds){
 				DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wInfo);
 				packNode.add(worldNode);
-			}
+			}			
 		}
 
 		// Set the model and the first selection. Note, this will not work until
@@ -758,14 +755,18 @@ public class LevelPackScreen extends Screen {
 
 
 	private Undoable<DefaultMutableTreeNode> addNewPack(PackInfo pInfo) {
-		WorldInfo wInfo = WorldInfo.fromLevelIndex(pInfo, 0);
-		pInfo.worlds.add(wInfo);
-		DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) _Tree.getModel().getRoot();
-		DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pInfo);
-		DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wInfo);
+
 		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
-		model.insertNodeInto(packNode, rootNode, rootNode.getChildCount());
-		model.insertNodeInto(worldNode, packNode, packNode.getChildCount());
+		DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) model.getRoot();
+		DefaultMutableTreeNode packNode = new DefaultMutableTreeNode(pInfo);
+		for (int i = 0; i < pInfo.worlds.size(); i++) {
+			WorldInfo wInfo = pInfo.worlds.get(i);
+			DefaultMutableTreeNode worldNode = new DefaultMutableTreeNode(wInfo);
+			model.insertNodeInto(worldNode, packNode, packNode.getChildCount());
+		}
+
+		
+		model.insertNodeInto(packNode, rootNode, rootNode.getChildCount());		
 		this.setSelection(pInfo.getPack());
 		pInfo.hasChanged = true;
 		Undoable<DefaultMutableTreeNode> u = new Undoable<DefaultMutableTreeNode>(rootNode, packNode, model) {
@@ -1419,6 +1420,12 @@ public class LevelPackScreen extends Screen {
 			this.expireDate = pack.getPublishEnd();
 			this.levelCount = pack.getLevelCount();
 			this.feedbackModel = pack.getFeedbackModel();
+			
+			for (int i = 0; i < pack.getLevelCount(); i++){
+				WorldInfo wInfo = WorldInfo.fromLevelIndex(this, i);
+				worlds.add(wInfo);
+				
+			}			
 		}
 
 
@@ -1777,10 +1784,9 @@ public class LevelPackScreen extends Screen {
 			case "DOWNLOAD_LEVELPACK":
 				JPackDownloadDialog jpdd = new JPackDownloadDialog(LevelPackScreen.this);
 				jpdd.setVisible(true);
-				LevelPack downloaded = jpdd.getResult();
-				if (downloaded == null)
+				if (jpdd.getResultPack() == null || jpdd.getResultJson() == null)
 					return;
-				PackInfo p = PackInfo.withoutJSON(downloaded);
+				PackInfo p = PackInfo.withJSON(jpdd.getResultPack(), jpdd.getResultJson());
 				u = LevelPackScreen.this.addNewPack(p);
 				break;
 			case "EDIT_WORLD":

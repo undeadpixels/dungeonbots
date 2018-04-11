@@ -1300,17 +1300,15 @@ public class UIBuilder {
 		if (url == null)
 			return null;
 		if (_Images.containsKey(url.toString()))
-			return _Images.get(url);
+			return _Images.get(url.toString());
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(url);
 			if (img != null)
 				_Images.put(url.toString(), img);
 			return img;
-		} catch (IOException ioex) {
-			System.err.println("Image resource failed to download: " + url.toString() + "\t" + ioex.getMessage());				
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			System.err.println("Image resource failed to download: " + url.toString() + "\t" + ex.getMessage());				
 		}
 		return null;
 	}

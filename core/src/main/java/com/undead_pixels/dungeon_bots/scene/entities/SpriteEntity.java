@@ -61,6 +61,8 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 
 	@Override
 	public void update(float dt) {
+		if (sprite != null)
+			sprite.sinceRender += dt;
 		super.update(dt);
 	}
 

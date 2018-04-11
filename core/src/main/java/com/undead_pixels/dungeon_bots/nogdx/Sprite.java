@@ -34,6 +34,9 @@ public class Sprite implements Serializable {
 	 * This sprite's texture
 	 */
 	private TextureRegion tex;
+	
+	 public transient Animation animation = new AnimationTremble();
+	public transient float sinceRender = 0f;
 
 	/**
 	 * Constructor
@@ -109,26 +112,41 @@ public class Sprite implements Serializable {
 		this.tex = texture;
 	}
 
+	
 	/**
 	 * Draws this sprite into a given SpriteBatch
 	 * 
 	 * @param batch	A SpriteBatch object to draw into
 	 */
 	public void draw(RenderingContext batch) {
-		if(tex != null) {
+		
+		// Animation gets first crack at drawing the sprite.
+		if (animation != null) {
+			float dt = sinceRender;
+			if (animation.isActive()) {
+				animation.draw(batch, tex, x, y, rotation, scaleX, scaleY, dt);
+				return;
+			} else
+				animation = null;
+		}
+		
+		// Since there's no active animation, just draw the texture.
+		sinceRender = 0f;
+		if (tex != null) {
 			AffineTransform xform;
-			if(rotation == 0) {
-				xform = AffineTransform.getTranslateInstance((.5f-.5f*scaleX) + x, .5f + .5f*scaleY+y);
+			if (rotation == 0) {
+				xform = AffineTransform.getTranslateInstance((.5f - .5f * scaleX) + x, .5f + .5f * scaleY + y);
 				xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 			} else {
-				xform = AffineTransform.getTranslateInstance(.5 + x, .5*scaleY + y);
+				xform = AffineTransform.getTranslateInstance(.5 + x, .5 * scaleY + y);
 				xform.rotate(rotation);
 				xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 				xform.translate(-.5, .5);
 			}
-			batch.draw(tex, xform);			
+			batch.draw(tex, xform);
 		}
 	}
+
 
 	/**
 	 * Sets the scale of this sprite
