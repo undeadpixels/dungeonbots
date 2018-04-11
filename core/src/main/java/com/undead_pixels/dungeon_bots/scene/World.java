@@ -11,6 +11,8 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -45,9 +47,6 @@ import org.luaj.vm2.*;
 /**
  * The World of the game. Controls pretty much everything in the entire level,
  * but could get reset/rebuilt if the level is restarted.
- * 
- * TODO - some parts of this should persist between the resets/rebuilds, but
- * some parts shouldn't. Need to figure out what parts.
  */
 @Doc("The current map can be interfaced with via the 'world'")
 public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializable, HasImage {
@@ -374,15 +373,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		if (luaScriptFile != null) {
 			this.levelScripts.add(new UserScript("init", luaScriptFile));
 		} else {
-			// TODO - these comments aren't correct anymore
-			String defaultInitScript = "--[[\n" + "stuff that's passed in:\n" + "\n" + "world\n"
-					+ " - tiles        custom class\n" + "   - setSize      function(width, height)\n"
-					+ "   - setTile      function(x, y, Tile)\n" + "   - getTile      function(x, y, Tile)\n"
-					+ " - bots         array of Actors\n" + " - player       player reference\n"
-					+ " - enemies      array of Actors\n" + " - win          function(info)\n"
-					+ " - listenFor    function(eventName, funcPtr)\n" + "\n" + "tileTypes\n" + " - floor\n"
-					+ " - wall\n" + " - goal\n" + " - ???\n" + "]]\n" + "\n" + "registerUpdateListener(function(dt)\n"
-					+ "  -- put any code you want to run every frame in here\n" + "end)";
+			String defaultInitScript =
+					"--[[\n" +
+					"    The world's init script.\n" +
+					"    In the command line, run help() for more info.\n" +
+					"]]\n" +
+					"\n" +
+					"registerUpdateListener(function(dt)\n" +
+					"  -- put any code you want to run every frame in here\n" +
+					"end)";
 			this.levelScripts.add(new UserScript("init", defaultInitScript));
 		}
 
@@ -608,10 +607,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				tile.setOccupiedBy(e);
 			}
 		}
-
-		if (e instanceof Goal) {
-			// TODO
-		}
 	}
 
 
@@ -623,6 +618,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Removes the entity from the world")
+	public Boolean removeEntity(LuaValue entity) {
+		return removeEntity((Entity)entity.checktable().get("this").checkuserdata(Entity.class));
+	}
 
 	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if
 	 * it was never in the world to begin with.*/
@@ -635,6 +634,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				tile.setOccupiedBy(null);
 		}
 		fire(EntityEventType.ENTITY_REMOVED, e);
+		message(this, String.format("%s was DESTROYED", e.getName()), LoggingLevel.GENERAL);
 		return true;
 	}
 
@@ -833,11 +833,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 *
 	 * @param x
 	 * @param y
-	 * @param tt
+	 * @param tiletype
 	 */
-	@Bind(SecurityLevel.AUTHOR)
-	public void setTile(LuaValue x, LuaValue y, LuaValue tt) {
-		setTile(x.checkint() - 1, y.checkint() - 1, tileTypesCollection.getTile(tt.checkjstring()));
+	@Bind(value=SecurityLevel.AUTHOR,doc="Sets the Tile at the argument positions")
+	public void setTile(
+			@Doc("The X position of the tile") LuaValue x,
+			@Doc("The Y position of the tile") LuaValue y,
+			@Doc("The TileType of the tile ['floor', 'tile', etc...]") LuaValue tiletype) {
+		setTile(x.checkint() - 1, y.checkint() - 1, tileTypesCollection.getTile(tiletype.checkjstring()));
 	}
 
 
@@ -1006,11 +1009,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * All the entities are assigned to a layer during the render loop,
 	 * depending on their Z-value.
 	 *
-	 * TODO: since each Z-value can create an entire layer, wouldn't it just
-	 * make more sense to sort the Entities by Z-order? And for that matter,
-	 * wouldn't it be more efficient if the sorting occurred when the Entity is
-	 * added to the World, rather than at render time?
-	 *
 	 * @return A list of layers, representing all actors
 	 */
 	private ArrayList<Layer> toLayers() {
@@ -1164,7 +1162,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
-
 	public boolean containsEntity(Entity e) {
 		return entities.contains(e);
 	}
@@ -1191,7 +1188,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		return result;
 	}
-
 
 	/**
 	 * For people who don't know how to use floor()
@@ -1274,6 +1270,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		final Map<String, Object> state = new HashMap<>();
 		state.put("Times Reset", timesReset);
 		// TODO - this should involve bots and stuff, too...
+		// also TODO - we should clean up stuff we ended up not using like health
 		Player player = getPlayer();
 		if (player != null) {
 			state.put("Steps", player.steps());
@@ -1293,7 +1290,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Returns the location of the Goal in the world.")
 	public Varargs getGoal() {
-		// TODO - cleanup at some point
 		Point2D.Float searchPos = this.getSize();
 		searchPos.x /= 2;
 		searchPos.y /= 2;
@@ -1395,11 +1391,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
-
 	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
 		return entities.stream().filter(e -> e.getPosition().distance(pos) < 0.1);
 	}
-
 
 	/**
 	 * Specialized form of typeAtPos that statically requires that the argument type is derived from Entity
@@ -1528,7 +1522,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
 										name,
-										e.getName()),
+										e.getClass().getSimpleName()),
 								LoggingLevel.GENERAL);
 					}
 					return gives;
@@ -1638,6 +1632,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
 				.map(e -> HasInventory.class.cast(e).getInventory().getTotalValue())
 				.reduce(0, (a,b) -> a + b);
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Finds and returns the first entity with the specified name")
+	public Entity findEntity(LuaValue nameOrId) {
+		return entities.stream()
+				.filter(nameOrId.isnumber() ?
+						(Entity e) -> e.getId() == nameOrId.checkint() :
+						(Entity e) -> e.getName().equals(nameOrId.checkjstring()))
+				.findFirst()
+				.orElse(null);
 	}
 
 	public void registerMessageListener(final MessageListener messageListener) {

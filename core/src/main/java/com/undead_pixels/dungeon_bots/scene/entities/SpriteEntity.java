@@ -92,7 +92,6 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	}
 	
 	/**
-	 * TODO: Make this method accessible only to authors
 	 * @param x
 	 * @param y
 	 */

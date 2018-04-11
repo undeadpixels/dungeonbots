@@ -31,8 +31,6 @@ public abstract class AnimatedAction implements Action {
 	public final boolean act(float dt) {
 		currentTime += dt;
 		
-		// TODO - nonlinear splines of time
-		
 		float timeFraction = currentTime / duration;
 		
 		if(timeFraction > 1) {

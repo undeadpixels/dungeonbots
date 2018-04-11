@@ -134,7 +134,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		// TODO - sandbox.resume();
 		actionQueue.act(dt);
 		if (sandbox != null) {
 			sandbox.update(dt);
@@ -162,7 +161,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 
 	/**
-	 * TODO - should this be private?
+	 * NOTE - this probably shouldn't be messed with,
+	 * but Java doesn't have "friend" classes,
+	 * and the World needs to access it.
 	 * 
 	 * @return This Entity's action queue
 	 */
@@ -173,8 +174,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	@Override
 	public TeamFlavor getTeam() {
-		return TeamFlavor.NONE; // TODO - store info on the actual team, maybe
-								// (or just have overrides do this right)
+		return TeamFlavor.NONE;
 	}
 
 
@@ -196,6 +196,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 * Returns an ID number associated with this entity. The ID number should
 	 * not be user-facing.
 	 */
+	@Bind(value=SecurityLevel.AUTHOR,doc = "The Unique ID of the Entity")
 	public final int getId() {
 		return this.id;
 	}
@@ -390,5 +391,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		else
 			permissions.clear();
 		permissions.put(name, level);
+	}
+	
+	public Iterable<String> listPermissionNames() {
+		return permissions.keySet();
 	}
 }

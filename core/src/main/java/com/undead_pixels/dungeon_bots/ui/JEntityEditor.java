@@ -25,6 +25,7 @@ import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Sign;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -48,7 +49,8 @@ public final class JEntityEditor extends JTabbedPane {
 	private boolean changed = false;
 
 	private JScriptCollectionControl scriptEditor = null;
-	private JEntityPropertyControl properties = null;
+	private JSignEditor signEditor;
+	private JEntityPropertyControl propertyControl = null;
 
 
 	/**@param security The level at which the editor will be created.  For example, if the security level 
@@ -57,6 +59,12 @@ public final class JEntityEditor extends JTabbedPane {
 		this.entity = entity;
 		this.security = security;
 		state = State.fromEntity(entity);
+
+		// Set up the sign editor.
+		if (entity instanceof Sign) {
+			signEditor = new JSignEditor(state, (Sign) entity, security);
+			addTab("Sign Text", null, signEditor, "The text this sign will show.");
+		}
 
 		// Set up the REPL.
 		if (entity.getPermission(Entity.PERMISSION_COMMAND_LINE).level <= security.level) {
@@ -72,8 +80,8 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the properties tab.
 		if (entity.getPermission(Entity.PERMISSION_PROPERTIES_EDITOR).level <= security.level) {
-			properties = new JEntityPropertyControl(state);
-			addTab("Properties", null, properties.create(), "Properties of this entity.");
+			propertyControl = new JEntityPropertyControl(state);
+			addTab("Properties", null, propertyControl.create(), "Properties of this entity.");
 		}
 	}
 
@@ -102,12 +110,13 @@ public final class JEntityEditor extends JTabbedPane {
 
 		final Entity entity;
 		// private HashMap<String, Object> map = new HashMap<String, Object>();
-		 String name;
+		String name;
 		final UserScriptCollection scripts;
-		 String help;
+		String help;
 		final HashMap<String, SecurityLevel> permissions;
-		 Image image;
-		 Point2D.Float position;
+		Image image;
+		Point2D.Float position;
+		String signText;
 
 
 		private State(Entity entity) {
@@ -118,7 +127,7 @@ public final class JEntityEditor extends JTabbedPane {
 			this.help = entity.getHelp();
 			this.image = entity.getImage();
 			this.position = entity.getPosition();
-			
+
 		}
 
 
@@ -126,7 +135,6 @@ public final class JEntityEditor extends JTabbedPane {
 			State s = new State(entity);
 			return s;
 		}
-
 
 
 		/**Writes the given state to the entity.  Returns true if the write is successful, otherwise 
@@ -138,7 +146,7 @@ public final class JEntityEditor extends JTabbedPane {
 			if (this.scripts != null)
 				entity.getScripts().setTo(scripts);
 
-			entity.setHelp( (this.help == null || this.help.equals("")) ? "" : this.help);
+			entity.setHelp((this.help == null || this.help.equals("")) ? "" : this.help);
 
 			if (this.permissions != null)
 				entity.setPermissions(this.permissions);
@@ -171,8 +179,8 @@ public final class JEntityEditor extends JTabbedPane {
 		_OpenHelpFrame = new JFrame();
 		_OpenHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
 		JEditorPane textPane = new JEditorPane();
-		textPane.setEditable(
-				JEntityEditor.this.security.level >= JEntityEditor.this.entity.getPermission(Entity.PERMISSION_EDIT_HELP).level);
+		textPane.setEditable(JEntityEditor.this.security.level >= JEntityEditor.this.entity
+				.getPermission(Entity.PERMISSION_EDIT_HELP).level);
 		String help = (state.help == null || state.help.equals("")) ? "No help for this entity." : state.help;
 		_CurrentHelpDocument = textPane.getDocument();
 		JScrollPane scroller = new JScrollPane(textPane);
@@ -291,8 +299,12 @@ public final class JEntityEditor extends JTabbedPane {
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "COMMIT":
-				if (jee.scriptEditor != null) jee.scriptEditor.save();
-				if (jee.properties != null) jee.properties.save();
+				if (jee.scriptEditor != null)
+					jee.scriptEditor.save();
+				if (jee.signEditor != null)
+					jee.signEditor.save();
+				if (jee.propertyControl != null)
+					jee.propertyControl.save();
 				Undoable<State> u = new Undoable<State>(State.fromEntity(entity), jee.state) {
 
 					@Override

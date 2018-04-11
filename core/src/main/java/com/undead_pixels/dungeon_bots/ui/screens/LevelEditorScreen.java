@@ -56,6 +56,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.entities.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Ghost;
 import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
@@ -159,8 +160,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4),
 				(x, y) -> {
 					// TODO - create new actual entity class
-					return new DeletemeEntity(world,
-							AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4), x, y);
+					return new Ghost(world, x, y);
 				}));
 		result.add(new EntityType("key", AssetManager.getTextureRegion("DawnLike/Items/Key.png", 0, 0), (x, y) -> {
 			// TODO - create new actual entity class
@@ -172,6 +172,8 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
 			return new Door(world, x, y);
 		}));
+		result.add(new EntityType("switch", Switch.DISABLED_TEXTURE, (x,y) ->
+				new Switch(world, x, y)));
 		result.add(new EntityType("goal", Goal.DEFAULT_TEXTURE, (x, y) -> {
 			return new Goal(world, "goal", x, y);
 		}));
@@ -186,7 +188,7 @@ public final class LevelEditorScreen extends Screen {
 			return new Block(world, x, y);
 		}));
 		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
-			return new Sign(world, "Please Recycle", x, y);
+			return new Sign(world, "", x, y);
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);

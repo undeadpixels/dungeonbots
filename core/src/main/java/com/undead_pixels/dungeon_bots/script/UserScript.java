@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.text.BadLocationException;
 
@@ -107,19 +108,6 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 		return name.compareTo(other.name);
 	}
 
-	@Deprecated
-	/**
-	 * Determines whether or not this user script will execute on this pass
-	 * through the game loop. Can be overridden in a derived class.
-	 * 
-	 * TODO: in a derived class that implements an event, should check if the
-	 * event's conditions have been triggered such that "canExecute" would be
-	 * true.
-	 */
-	public boolean canExecute(World world, long time) {
-		return true;
-	}
-
 	@Override
 	public final String toString() {
 		return "Script: " + name + "\n" + code.replaceAll("^", "    ");
@@ -130,7 +118,7 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	 * 
 	 * @throws BadLocationException
 	 */
-	public void setLocks(Iterable<IntegerSet.Interval> highlightIntervals) throws BadLocationException {
+	public boolean setLocks(Iterable<IntegerSet.Interval> highlightIntervals) throws BadLocationException {
 		ArrayList<IntegerSet.Interval> list = new ArrayList<IntegerSet.Interval>();
 		for (IntegerSet.Interval i : highlightIntervals) {
 			if (i.start < 0 || i.start > i.end || i.end >= this.code.length())
@@ -140,7 +128,12 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 						this.code.length());
 			list.add(i.copy());
 		}
+		
+		IntegerSet.Interval[] oldLocks = this.locks;
+		
 		this.locks = list.toArray(new IntegerSet.Interval[list.size()]);
+		
+		return !Arrays.deepEquals(this.locks, oldLocks);
 	}
 	
 	@Override
@@ -156,6 +149,19 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	@Override
 	public int hashCode(){
 		return name.hashCode();
+	}
+
+	/**
+	 * @param text
+	 * @return		True if this script was changed; false otherwise
+	 */
+	public boolean setCode (String text) {
+		
+		if(! code.equals(text)) {
+			code = text;
+			return true;
+		}
+		return false;
 	}
 
 }

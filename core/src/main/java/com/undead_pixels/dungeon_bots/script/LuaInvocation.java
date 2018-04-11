@@ -110,15 +110,15 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	}
 
 	/**
-	 * Executes this lua script in-line
+	 * Executes this lua script in-line.
+	 * 
+	 * Unexpected results may occur if this is not run from a properly-registered thread.
 	 */
-	public void run() {
+	protected void run() {
 		if(scriptStatus == ScriptStatus.LUA_ERROR) {
 			return;
 		}
 		
-		// TODO - maybe add the current thread to the sandbox map?
-		SandboxManager.register(Thread.currentThread(), this.environment); // TODO - or should we delete this?
 		try {
 			setStatus(ScriptStatus.RUNNING);
 
@@ -325,10 +325,6 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 	 */
 	public LuaError getError() {
 		return luaError;
-	}
-
-	public Optional<SandboxedValue> getSandboxedValue() {
-		return getResults().map(val -> new SandboxedValue(val, environment));
 	}
 
 	@Override
