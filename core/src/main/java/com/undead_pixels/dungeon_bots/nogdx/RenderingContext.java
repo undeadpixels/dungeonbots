@@ -33,6 +33,7 @@ public class RenderingContext {
 	 */
 	private AffineTransform projection;
 
+
 	/**
 	 * Constructor
 	 * 
@@ -46,6 +47,7 @@ public class RenderingContext {
 		this.h = h;
 	}
 
+
 	/**
 	 * Sets the clear color
 	 * 
@@ -58,6 +60,7 @@ public class RenderingContext {
 		this.setClearColor(new Color(r, g, b, a));
 	}
 
+
 	/**
 	 * Sets the clear color
 	 * 
@@ -67,6 +70,7 @@ public class RenderingContext {
 		clearColor = color;
 	}
 
+
 	/**
 	 * Clears anything showing on the given context (sets it to the current
 	 * clear color)
@@ -75,6 +79,7 @@ public class RenderingContext {
 		g.setColor(clearColor);
 		g.fillRect(0, 0, (int) w, (int) h);
 	}
+
 
 	/**
 	 * Draws a TextureRegion
@@ -90,13 +95,14 @@ public class RenderingContext {
 		// TODO - this isn't actually good enough
 	}
 
+
 	/**
 	 * Draws a TextureRegion, given a transform
 	 * 
 	 * @param img		The texture
 	 * @param xform		The transform
 	 */
-	public void draw(TextureRegion img, AffineTransform xform) {
+	public Graphics2D draw(TextureRegion img, AffineTransform xform) {
 		AffineTransform totalTransform = new AffineTransform(xform);
 		totalTransform.preConcatenate(projection);
 
@@ -104,8 +110,9 @@ public class RenderingContext {
 
 		g.drawImage(img.getTex().getImg(), 0, 0, img.getW(), img.getH(), img.getX(), img.getY(), img.getX2(),
 				img.getY2(), null);
-
+		return g;
 	}
+
 
 	/**
 	 * Updates this RenderingContext's projection matrix from a camera
@@ -115,6 +122,7 @@ public class RenderingContext {
 	public void setProjectionMatrix(OrthographicCamera cam) {
 		this.projection = cam.getTransform();
 	}
+
 
 	/**
 	 * Draws a string in this RenderingContext
@@ -135,6 +143,26 @@ public class RenderingContext {
 		g.drawString(text, 0, 0);
 
 	}
+
+
+	public void drawRect(float x, float y, float width, float height, Color color, AffineTransform xform) {
+		AffineTransform totalTransform = new AffineTransform(xform);
+		totalTransform.preConcatenate(projection);
+		g.setTransform(totalTransform);
+		g.setColor(color);
+		g.drawRect((int) x, (int) y, (int) width, (int) height);
+	}
+
+	public void drawLine(float x1, float y1, float x2, float y2, Color color, AffineTransform xform) {
+		AffineTransform totalTransform = new AffineTransform(xform);
+		totalTransform.preConcatenate(projection);
+		g.setTransform(totalTransform);
+		g.setColor(color);
+
+		g.drawLine((int)x1, (int)y1, (int)x2, (int)y2);
+	}
+
+
 
 	/**
 	 * Draws a line
@@ -157,6 +185,7 @@ public class RenderingContext {
 
 		g.drawLine(x1t, y1t, x2t, y2t);
 	}
+
 
 	/**
 	 * Draws a rectangle 
@@ -181,6 +210,7 @@ public class RenderingContext {
 
 		g.drawRect(x_i, y_i, width_i, height_i);
 	}
+
 
 	/**
 	 * Fills a rectangle 
