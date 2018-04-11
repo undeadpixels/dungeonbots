@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationTremble;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -113,4 +114,8 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite;
 	}
 
+	@Bind(value=SecurityLevel.NONE,doc="Shake and shimmy")
+	public void tremble(){
+		sprite.animation = new AnimationTremble();
+	}
 }

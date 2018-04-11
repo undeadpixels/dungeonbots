@@ -35,7 +35,7 @@ public class Sprite implements Serializable {
 	 */
 	private TextureRegion tex;
 	
-	 public transient Animation animation = new AnimationTremble();
+	 public transient Animation animation = null;
 	public transient float sinceRender = 0f;
 
 	/**

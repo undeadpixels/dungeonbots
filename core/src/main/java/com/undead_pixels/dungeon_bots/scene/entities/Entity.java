@@ -382,16 +382,16 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	}
 
-
-	/**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+/*
+	*//**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc*//*
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
 		else
 			permissions.clear();
 		permissions.put(name, level);
-	}
+	}*/
 	
 	public Iterable<String> listPermissionNames() {
 		return permissions.keySet();
