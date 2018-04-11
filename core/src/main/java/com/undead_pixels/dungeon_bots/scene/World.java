@@ -1522,7 +1522,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
 										name,
-										e.getName()),
+										e.getClass().getSimpleName()),
 								LoggingLevel.GENERAL);
 					}
 					return gives;
