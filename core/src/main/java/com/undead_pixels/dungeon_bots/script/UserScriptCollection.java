@@ -30,6 +30,9 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 			add(u.copy());
 	}
 
+	public boolean contains(String scriptName){
+		return storage.containsKey(scriptName);
+	}
 
 	public synchronized void add(UserScript script) {
 		storage.put(script.name, script);

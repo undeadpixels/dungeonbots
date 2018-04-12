@@ -83,6 +83,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.world = world;
 		this.name = name;
 		this.scripts = scripts;
+		if (scripts != null)
+			scripts.add(new UserScript("onIdle",
+					"-- This script will execute only when the entity has \n-- been idle for a while (usually about 60 seconds).\n",
+					SecurityLevel.NONE));
 
 		if (world != null) {
 			this.id = world.makeID();
@@ -131,13 +135,32 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	}
 
 
+	/**Accumulated idle time.*/
+	private float idle = 0f;
+	private float idleThreshold = 5f;
+
+
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		actionQueue.act(dt);
+		boolean isIdle = actionQueue.act(dt);
+
+		// Enqueue an idle call, if enough time has elapsed.
+		if (!isIdle) {
+			idle = 0f;
+		} else {
+			idle += dt;
+			if (idle > idleThreshold) {
+				idle = 0;
+				System.out.println("Enqueuing onIdle...");
+				enqueueScript("onIdle");
+			}
+		}
+
+		// Update the sandbox
 		if (sandbox != null) {
 			sandbox.update(dt);
-		}		
+		}
 	}
 
 
@@ -250,6 +273,11 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		actionQueue = new ActionQueue(this);
+		if (!scripts.contains("onIdle")){
+			UserScript s = new UserScript("onIdle", "--This script will execute only when the entity has \n-- been idle for a while (usually about 60 seconds).", SecurityLevel.NONE);
+			this.scripts.add(s);
+		}
+		if (idleThreshold <=0f) idleThreshold = 60f;
 	}
 
 
@@ -263,9 +291,24 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	/**Sets the entity's collection of scripts as indicated.*/
 	public void setScripts(UserScript[] newScripts) {
-		this.scripts.clear();
-		for (UserScript is : newScripts)
-			this.scripts.add(is);
+		synchronized (this) {
+			this.scripts.clear();
+			for (UserScript is : newScripts)
+				this.scripts.add(is);
+		}
+	}
+
+
+	/**Fires a script into the action queue.  This does not guarantee execution.*/
+	public boolean enqueueScript(String scriptName) {
+		synchronized (this) {
+			UserScript s = scripts.get(scriptName);
+			if (s == null)
+				return false;
+			this.getSandbox().enqueueCodeBlock(s.code);
+		}
+		return true;
+
 	}
 
 
