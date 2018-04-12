@@ -620,22 +620,26 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
 	/**This is necessary because a game that is rewinded will have to copy all the entity's scripts 
 	 * into the newly deserialized versions of those entities.  If they are removed from the entities 
-	 * list, then that copy couldn't happen otherwise.*/
+	 * list, then that copy couldn't happen.*/
 	private transient ArrayList<Entity> removedEntities = new ArrayList<Entity>();
-	
-	
+
+
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Removes the entity from the world")
-	public Boolean removeEntity(LuaValue entity) { 
-		return removeEntity((Entity)entity.checktable().get("this").checkuserdata(Entity.class));
+	public Boolean removeEntity(LuaValue entity) {
+		Entity e = (Entity) entity.checktable().get("this").checkuserdata(Entity.class);
+		return removeEntity(e);
 	}
+
 
 	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if
 	 * it was never in the world to begin with.*/
 	public boolean removeEntity(Entity e) {
 		if (!entities.remove(e))
 			return false;
+		removedEntities.add(e);
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
 			if (tile != null && tile.getOccupiedBy() == e)
@@ -1271,6 +1275,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (Entity e : this.entities)
 				cleanEntities.put(e.getId(), e);
 
+			// Every dirty entity should copy its scripts into the matching clean entities.
 			for (Entity dirty_e : dirty.entities) {
 				Entity clean_e = cleanEntities.remove(dirty_e.getId());
 				// This can happen if an Entity was added during the game.
@@ -1295,8 +1300,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 					clean_e.getScripts().setTo(dirty_e.getScripts());
 			}
 
+			// This is a sanity check.  There should be no clean entities left (all were removed when scripts were copied into them.  That was the point of maintaining World.removedEntities.
 			for (Entity new_e : cleanEntities.values()) {
-				// This shouldn't happen.  This was the point of maintaining World.removedEntities.
 				this.message(new_e,
 						"An entity from after the rewind did not exist before the rewind.  Its scripts will be restarting.",
 						LoggingLevel.ERROR);
