@@ -387,15 +387,14 @@ public final class LevelEditorScreen extends Screen {
 				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openPackDialog(LevelEditorScreen.this);
-				if (openLevelPackFile == null)
-					System.out.println("Open cancelled.");
-				else if (openLevelPackFile.getName().endsWith(".json")) {
-					LevelPack levelPack = LevelPack.fromFile(openLevelPackFile.getPath());
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
-					System.out.println("Open LevelPack complete.");
-				} else {
-					System.out.println("Unsupported file type: " + openLevelPackFile.getName());
+				if (openLevelPackFile == null){
+					System.out.println("Open cancelled."); return;}
+				LevelPack p = LevelPack.fromFile(openLevelPackFile.getPath());
+				if (p==null){
+					System.out.println("Could not open file: " + openLevelPackFile.getName());
+					return;
 				}
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
 				return;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",
