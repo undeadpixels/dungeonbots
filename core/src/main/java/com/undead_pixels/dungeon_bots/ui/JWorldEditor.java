@@ -45,7 +45,7 @@ public class JWorldEditor extends JTabbedPane {
 
 		// Set up the REPL.
 		if (world.getPermission("REPL").level <= security.level) {
-			JCodeREPL repl = new JCodeREPL(world);
+			JCodeREPL repl = new JCodeREPL(world, security);
 			addTab("Command Line", null, repl, "Instantaneous script runner.");
 		}
 

@@ -74,10 +74,10 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * ================================================================ */
 
 	/** Creates a new REPL. All code will execute in the given sandbox. */
-	public JCodeREPL(LuaSandbox sandbox) {
+	public JCodeREPL(LuaSandbox sandbox, SecurityLevel security) {
 
 		if (sandbox == null)
-			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
+			sandbox = new LuaSandbox(security);
 
 		_Sandbox = sandbox;
 
@@ -98,11 +98,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	}
 
 
-	/**
-	 * @param entity
-	 */
-	public JCodeREPL(GetLuaSandbox sandboxable) {
-		this(sandboxable.getSandbox());
+	
+	public JCodeREPL(GetLuaSandbox sandboxable, SecurityLevel security) {
+		this(sandboxable.getSandbox(), security);
 	}
 
 

@@ -68,7 +68,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the REPL.
 		if (entity.getPermission(Entity.PERMISSION_COMMAND_LINE).level <= security.level) {
-			JCodeREPL repl = new JCodeREPL(entity);
+			JCodeREPL repl = new JCodeREPL(entity, security);
 			addTab("Command Line", null, repl, "Instantaneous script runner.");
 		}
 

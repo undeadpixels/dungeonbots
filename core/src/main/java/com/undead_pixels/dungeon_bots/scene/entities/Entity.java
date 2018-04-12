@@ -28,7 +28,7 @@ import org.luaj.vm2.LuaValue;
  */
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem,
 		HasEntity, HasTeam, HasImage, Inspectable {
-
+public static float MIN_IDLE_THRESHOLD = 5.0f;
 
 	/**
 	 * 
@@ -136,7 +136,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 
 	/**Accumulated idle time.*/
-	private float idle = 0f;
+	private transient float idle = 0f;
 	private float idleThreshold = 5f;
 
 
@@ -151,8 +151,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		} else {
 			idle += dt;
 			if (idle > idleThreshold) {
-				idle = 0;
-				System.out.println("Enqueuing onIdle...");
+				idle = 0;				
 				enqueueScript("onIdle");
 			}
 		}
@@ -243,7 +242,20 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	}
 
 
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Help associated with this entity.")
+	@Bind(value = SecurityLevel.NONE, doc = "Gets the threshold determining when an entity is deemed to be idle (in seconds).")
+	public final float getIdleThreshold() {
+		return this.idleThreshold;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Sets the threshold determining when an entity is deemed to be idle (in seconds).")
+	public final void setIdleThreshold(LuaValue threshold) {
+		float f = (float) threshold.checkdouble();
+		f = Math.max(MIN_IDLE_THRESHOLD, f);
+		this.idleThreshold = f;
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Set the Help associated with this entity.")
 	public final void setHelp(LuaValue help) {
 		this.help = help.checkjstring();
 	}
@@ -277,7 +289,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			UserScript s = new UserScript("onIdle", "--This script will execute only when the entity has \n-- been idle for a while (usually about 60 seconds).", SecurityLevel.NONE);
 			this.scripts.add(s);
 		}
-		if (idleThreshold <=0f) idleThreshold = 60f;
+		if (idleThreshold < MIN_IDLE_THRESHOLD) idleThreshold = 60f;
 	}
 
 
