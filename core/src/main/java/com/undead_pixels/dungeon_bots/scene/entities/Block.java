@@ -110,7 +110,6 @@ public class Block extends Actor implements Pushable {
 		if(isMoveable) {
 			queueMoveSlowly(direction, true);
 		}
-
 		getSandbox().fireEvent("PUSH", LuaValue.valueOf(direction.name()));
 	}
 
