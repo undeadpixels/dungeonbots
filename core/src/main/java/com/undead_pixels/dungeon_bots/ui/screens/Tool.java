@@ -130,6 +130,15 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	}
 
 
+	/**This method is called when the tool is first activated as the selected tool.*/
+	public void onActivated(){
+		
+	}
+	/**This method is called when the tool is no longer the activated, selected tool.*/
+	public void onDeactivated(){
+		
+	}
+	
 	// ===============================================
 	// ========== Tool UI HANDLING ===================
 	// ===============================================
@@ -452,6 +461,118 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+	}
+
+
+	public static class Eraser extends Tool {
+
+		private final World world;
+		private final WorldView view;
+
+
+		public Eraser(WorldView view, World world) {
+			super("Eraser", UIBuilder.getImage("icons/cross_48x48.png"));
+			this.view = view;
+			this.world = world;
+		}
+
+		public void onDeactivated(){
+			view.setSelectedEntities(null);
+			view.setSelectedTiles(null);
+		}
+
+		public Undoable<Entity> removeEntity(Entity e) {
+			if (world.removeEntity(e)) {
+				return new Undoable<Entity>(e, null) {
+
+					@Override
+					protected void undoValidated() {
+						if (world.containsEntity(e))
+							error();
+						world.addEntity(e);
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						if (!world.containsEntity(e))
+							error();
+						world.removeEntity(e);
+					}
+				};
+			} else
+				return null;
+		}
+
+
+		public Undoable<Tile> removeTile(Integer x, Integer y) {
+			Tile oldTile = world.getTile(x, y);
+			world.setTile(x, y, (Tile) null);
+			return new Undoable<Tile>(oldTile, null) {
+
+				@Override
+				protected void undoValidated() {
+					if (world.getTile(x, y) != null)
+						error();
+					world.setTile(x, y, oldTile);
+				}
+
+
+				@Override
+				protected void redoValidated() {
+					if (world.getTile(x, y) != oldTile)
+						error();
+					world.setTile(x, y, (Tile) null);
+				}
+
+			};
+		}
+
+
+		public void mouseMoved(MouseEvent e) {
+			if (e.getButton() != MouseEvent.NOBUTTON)
+				return;
+			Point2D.Float pt = view.getScreenToGameCoords(e.getX(), e.getY());
+			Entity en = world.getEntityUnderLocation(pt.x, pt.y);
+			if (en != null) {
+				view.setSelectedEntities(new Entity[] { en });
+				e.consume();
+				return;
+			}
+			Tile t = world.getTile((int) pt.x, (int) pt.y);
+			if (t != null) {
+				view.setSelectedTiles(new Tile[] { t });
+				e.consume();
+				return;
+			}
+		}
+
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				Point2D.Float pt = view.getScreenToGameCoords(e.getX(), e.getY());
+				Entity en = world.getEntityUnderLocation(pt.x, pt.y);
+				if (en != null) {
+					Undoable<?> u = removeEntity(en);
+					if (u != null)
+						pushUndo(world, u);
+					view.setSelectedEntities(null);
+					e.consume();
+					return;
+				}
+				Tile t = world.getTile(pt.x, pt.y);
+				if (t != null) {
+					Undoable<?> u = removeTile((int) pt.x, (int) pt.y);
+					if (u != null)
+						pushUndo(world, u);
+					view.setSelectedTiles(null);
+					e.consume();
+					return;
+				}
+
+			}
+		}
 	}
 
 

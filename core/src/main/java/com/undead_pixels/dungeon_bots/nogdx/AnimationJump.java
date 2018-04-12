@@ -9,6 +9,7 @@ public class AnimationJump extends Animation {
 	/**Relates a sprite size to the world size.*/
 	private static final float scalar = 0.25f;
 
+
 	public AnimationJump() {
 		this(1f);
 	}
@@ -16,9 +17,9 @@ public class AnimationJump extends Animation {
 
 	public AnimationJump(float howHigh) {
 		super((float) Math.sqrt(howHigh / -G) * 2);
-		//this.howHigh = howHigh;
+		// this.howHigh = howHigh;
 		this.v_0 = (timeToLive / 2) * -G;
-		
+
 	}
 
 
@@ -29,13 +30,14 @@ public class AnimationJump extends Animation {
 			return;
 
 
-		
 		float elevation = (G * time * time / 2) + (v_0 * time) + 0;
-		//System.out.println("G:" + G + "\t v_0:" + v_0 + "\t elevation: " + elevation);
+		// System.out.println("G:" + G + "\t v_0:" + v_0 + "\t elevation: " +
+		// elevation);
 
 		AffineTransform xform;
 		if (rotation == 0) {
-			xform = AffineTransform.getTranslateInstance((.5f - .5f * scaleX) + x, .5f + .5f * scaleY + y + (elevation*scaleY * tex.getH()*scalar));
+			xform = AffineTransform.getTranslateInstance((.5f - .5f * scaleX) + x,
+					.5f + .5f * scaleY + y + (elevation * scaleY * tex.getH() * scalar));
 			xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 		} else {
 			xform = AffineTransform.getTranslateInstance(.5 + x, .5 * scaleY + y);

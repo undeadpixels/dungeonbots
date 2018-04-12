@@ -475,6 +475,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update tiles
 			for (Tile[] ts : tiles) {
 				for (Tile t : ts) {
+					if (t==null) continue;
 					t.update(dt);
 				}
 			}
@@ -522,6 +523,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		// draw tiles
 		for (Tile[] ts : tiles) {
 			for (Tile t : ts) {
+				if (t==null) continue;
 				t.render(batch);
 			}
 		}
@@ -813,6 +815,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
 					Tile current = tiles[i][j];
+					if (current==null) continue;
 					current.setPosition(i, j);
 
 					Tile l = i >= 1 ? tiles[i - 1][j] : null;
@@ -1088,12 +1091,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return true;
 		}
 
-		if (tiles[x][y].isSolid()) {
+		Tile t = tiles[x][y];
+		if (t == null)
+			return false;
+		if (t.isSolid()) {
 			// System.out.println("Unable to move: tile solid");
 			return false;
 		}
-		if (tiles[x][y].isOccupied()) {
-			Entity o = tiles[x][y].getOccupiedBy();
+		if (t.isOccupied()) {
+			Entity o = t.getOccupiedBy();
 			if (o != null && o instanceof Pushable) {
 				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
 			}
@@ -1103,7 +1109,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		// System.out.println("Ok to move");
 		if (e.isSolid()) {
-			tiles[x][y].setOccupiedBy(e);
+			t.setOccupiedBy(e);
 		}
 
 		return true;

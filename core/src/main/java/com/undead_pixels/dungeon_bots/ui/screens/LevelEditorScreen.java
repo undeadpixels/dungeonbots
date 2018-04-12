@@ -111,6 +111,7 @@ public final class LevelEditorScreen extends Screen {
 	private Tool.TilePen _TilePen;
 	private Tool.EntityPlacer _EntityPlacer;
 	private Tool.ViewControl _ViewControl;
+	private Tool.Eraser _Eraser;
 	private JComponent _ToolScroller;
 	private JComponent _TileScroller;
 	private JComponent _EntityScroller;
@@ -172,8 +173,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("door", Door.DEFAULT_TEXTURE, (x, y) -> {
 			return new Door(world, x, y);
 		}));
-		result.add(new EntityType("switch", Switch.DISABLED_TEXTURE, (x,y) ->
-				new Switch(world, x, y)));
+		result.add(new EntityType("switch", Switch.DISABLED_TEXTURE, (x, y) -> new Switch(world, x, y)));
 		result.add(new EntityType("goal", Goal.DEFAULT_TEXTURE, (x, y) -> {
 			return new Goal(world, "goal", x, y);
 		}));
@@ -281,7 +281,11 @@ public final class LevelEditorScreen extends Screen {
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
 			if (e.getSource() == toolPalette) {
+				if (selections.tool != null)
+					selections.tool.onDeactivated();
 				selections.tool = toolPalette.getSelectedValue();
+				if (selections.tool != null)
+					selections.tool.onActivated();
 				updateGUIState();
 			}
 
@@ -331,10 +335,11 @@ public final class LevelEditorScreen extends Screen {
 				jpe.setVisible(true);
 				break;
 			case COMMAND_CENTER_VIEW:
-				//Point2D.Float worldSize = world.getSize();
-				//Point2D.Float center = new Point2D.Float(worldSize.x / 2, worldSize.y / 2);
-				//_ViewControl.setCenter(center);				
-				//_ViewControl.setZoomAsPercentage(0.5f);
+				// Point2D.Float worldSize = world.getSize();
+				// Point2D.Float center = new Point2D.Float(worldSize.x / 2,
+				// worldSize.y / 2);
+				// _ViewControl.setCenter(center);
+				// _ViewControl.setZoomAsPercentage(0.5f);
 				_ViewControl.setMapView();
 				break;
 			case COMMAND_RESIZE:
@@ -603,7 +608,7 @@ public final class LevelEditorScreen extends Screen {
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
 
-			pnl.setPreferredSize(new Dimension(170,30));
+			pnl.setPreferredSize(new Dimension(170, 30));
 			return pnl;
 		}
 	};
@@ -631,8 +636,8 @@ public final class LevelEditorScreen extends Screen {
 				pnl.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.RED));
 			else
 				pnl.setBorder(new EmptyBorder(3, 3, 3, 3));
-			
-			pnl.setPreferredSize(new Dimension(170,30));
+
+			pnl.setPreferredSize(new Dimension(170, 30));
 
 			return pnl;
 		}
@@ -703,6 +708,7 @@ public final class LevelEditorScreen extends Screen {
 		tm.addElement(_Selector = new Tool.Selector(_View, this, SecurityLevel.AUTHOR).setSelectsEntities(true)
 				.setSelectsTiles(true));
 		tm.addElement(_TilePen = new Tool.TilePen(_View, selections));
+		tm.addElement(_Eraser = new Tool.Eraser(_View, world));
 		tm.addElement(_EntityPlacer = new Tool.EntityPlacer(_View, selections, this, SecurityLevel.AUTHOR));
 		_Tools.setModel(tm);
 
@@ -726,7 +732,7 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the zoom slider.
-		JSlider zoomSlider = new JSlider();		
+		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
