@@ -16,7 +16,6 @@ import java.awt.event.WindowEvent;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -33,6 +32,7 @@ import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
 
+@SuppressWarnings("serial")
 public final class JWorldSizer extends JPanel {
 
 	public static final int MAX_WIDTH = 200;

@@ -4,7 +4,6 @@ import java.awt.AWTEvent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Event;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -22,7 +21,6 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
@@ -31,7 +29,6 @@ import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;

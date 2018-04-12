@@ -2,6 +2,8 @@ package com.undead_pixels.dungeon_bots.nogdx;
 
 import java.awt.geom.AffineTransform;
 
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+
 public class AnimationJump extends Animation {
 
 	private final static float G = -9.8f;
@@ -19,7 +21,7 @@ public class AnimationJump extends Animation {
 		super((float) Math.sqrt(howHigh / -G) * 2);
 		// this.howHigh = howHigh;
 		this.v_0 = (timeToLive / 2) * -G;
-
+		UIBuilder.playSound("sounds/jalastram_jump.wav");
 	}
 
 

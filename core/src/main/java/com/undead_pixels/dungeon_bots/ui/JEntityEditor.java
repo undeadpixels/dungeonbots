@@ -96,6 +96,8 @@ public final class JEntityEditor extends JTabbedPane {
 
 		else
 			super.setVisible(value);
+		if (value)
+			UIBuilder.playSound("sounds/fordps3_boop.wav");
 	}
 
 
@@ -320,6 +322,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 				};
 				jee.state.writeToEntity(jee.entity);
+				UIBuilder.playSound("sounds/dland_approve.wav");
 				Tool.pushUndo(entity.getWorld(), u);
 				dialog.dispose();
 				jee.dialog = null;
@@ -332,6 +335,7 @@ public final class JEntityEditor extends JTabbedPane {
 						break;
 				}
 				jee.dialog = null;
+				UIBuilder.playSound("sounds/deathscyp_error.wav");
 				dialog.dispose();
 				break;
 			case "CENTER_VIEW":

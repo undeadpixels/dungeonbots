@@ -5,6 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
+
 public class AnimationSparkle extends Animation {
 
 	private final Point2D.Float[] points;
@@ -23,6 +25,7 @@ public class AnimationSparkle extends Animation {
 			Point2D.Float pt = new Point2D.Float((float) Math.random() * width + x, (float) Math.random() * height + y);
 			points[i] = pt;
 		}
+		UIBuilder.playSound("sounds/newagesoup_sparkle.wav");
 	}
 
 

@@ -15,7 +15,6 @@ import javax.swing.JTabbedPane;
 import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JCodeREPL;

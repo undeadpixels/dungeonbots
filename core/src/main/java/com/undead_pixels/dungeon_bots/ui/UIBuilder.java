@@ -23,6 +23,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +31,13 @@ import java.net.URL;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -43,6 +51,7 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
+
 
 public class UIBuilder {
 
@@ -1251,7 +1260,7 @@ public class UIBuilder {
 
 
 	/** The cached GUI images. */
-	private static final HashMap<String, Image> _Images = new HashMap<String, Image>();
+	private static final HashMap<String, Image> _CachedImages = new HashMap<String, Image>();
 
 
 	/**
@@ -1278,8 +1287,8 @@ public class UIBuilder {
 		filename = filename.toLowerCase();
 		if (filename == null || filename.equals(""))
 			return null;
-		if (_Images.containsKey(filename))
-			return _Images.get(filename);
+		if (_CachedImages.containsKey(filename))
+			return _CachedImages.get(filename);
 		String path = absolute ? filename : System.getProperty("user.dir") + "/" + filename;
 		BufferedImage img = null;
 		try {
@@ -1291,7 +1300,7 @@ public class UIBuilder {
 			ex.printStackTrace();
 		}
 		if (img != null)
-			_Images.put(filename, img);
+			_CachedImages.put(filename, img);
 		return img;
 	}
 
@@ -1299,16 +1308,16 @@ public class UIBuilder {
 	public static Image getImage(URL url) {
 		if (url == null)
 			return null;
-		if (_Images.containsKey(url.toString()))
-			return _Images.get(url.toString());
+		if (_CachedImages.containsKey(url.toString()))
+			return _CachedImages.get(url.toString());
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(url);
 			if (img != null)
-				_Images.put(url.toString(), img);
+				_CachedImages.put(url.toString(), img);
 			return img;
 		} catch (Exception ex) {
-			System.err.println("Image resource failed to download: " + url.toString() + "\t" + ex.getMessage());				
+			System.err.println("Image resource failed to download: " + url.toString() + "\t" + ex.getMessage());
 		}
 		return null;
 	}
@@ -1408,4 +1417,192 @@ public class UIBuilder {
 		return JXLoginPane.showLoginFrame(pane);
 	}
 
+
+	// =======================================================
+	// ========= UI Audio stuff ==============================
+	// =======================================================
+
+	public static Mix mix = new Mix();
+
+
+	public static class Mix {
+
+		public static float DEFAULT_GAIN = 0.0f;
+		private float soundGain = DEFAULT_GAIN;
+		private float musicGain = DEFAULT_GAIN;
+
+
+		/**Returns the current music gain.*/
+		public float getSoundGain() {
+			return soundGain;
+		}
+
+
+		/**Sets the current music gain.*/
+		public void setSoundGain(float gain) {
+			soundGain = gain;
+			for (Channel c : _PlayingSounds.values()) {
+				soundGain = applyTo(c.clip, gain);
+			}
+		}
+
+
+		/**Gets the current music gain.*/
+		public float getMusicGain() {
+			return musicGain;
+		}
+
+
+		/**Sets the current music gain.*/
+		public void setMusicGain(float gain) {
+			musicGain = gain;
+			Channel c = _CurrentMusic;
+			if (c != null)
+				musicGain = applyTo(c.clip, gain);
+		}
+
+
+		/**Applies the gain setting to the indicated clip, returning the new gain level.*/
+		static float applyTo(Clip clip, float gain) {
+			FloatControl gainCtrl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			float v = Math.min(gainCtrl.getMaximum(), Math.max(gainCtrl.getMinimum(), gain));
+			gainCtrl.setValue(v);
+			return v;
+		}
+	}
+
+
+	private static final HashMap<String, byte[]> _CachedSounds = new HashMap<String, byte[]>();
+	private static Channel _CurrentMusic = null;
+	private static final HashMap<Clip, Channel> _PlayingSounds = new HashMap<Clip, Channel>();
+
+
+	/**Music files, being large, are not cached, and only one can play at a time.*/
+	public static Clip playMusic(String filename) {
+		if (_CurrentMusic != null) {
+			_CurrentMusic.clip.stop();
+			_CurrentMusic.clip.close();
+			try {
+				_CurrentMusic.stream.close();
+			} catch (IOException e) {
+				// Do nothing.
+			}
+		}
+
+		String path = System.getProperty("user.dir" + "/" + filename);
+		File file = new File(path);
+		if (!file.exists())
+			return null;
+		try {
+			AudioInputStream stream = AudioSystem.getAudioInputStream(file);
+			DataLine.Info info = new DataLine.Info(Clip.class, stream.getFormat());
+			Clip clip = (Clip) AudioSystem.getLine(info);
+			clip.addLineListener(soundController);
+			clip.open(stream);
+			Mix.applyTo(clip, mix.getMusicGain());
+			clip.start();
+			return clip;
+		} catch (Exception e) {
+			System.err.println("Could not play music: " + filename + " - " + e.getMessage());
+			return null;
+		}
+
+
+	}
+
+
+	/**Plays the sound in the given file.  If this is the first time the sound is played, caches it 
+	 * for later re-use.*/
+	public static Clip playSound(String filename) {
+		byte[] bytes = getSound(filename);
+		try {
+			AudioInputStream stream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(bytes));
+			DataLine.Info info = new DataLine.Info(Clip.class, stream.getFormat());
+			Clip clip = (Clip) AudioSystem.getLine(info);
+			clip.addLineListener(soundController);
+			clip.open(stream);
+			Mix.applyTo(clip, mix.getSoundGain());
+			clip.start();
+			_PlayingSounds.put(clip, new Channel(clip, stream));
+			return clip;
+		} catch (Exception e) {
+			System.err.println("Could not play sound: " + filename + " - " + e.getMessage());
+			return null;
+		}
+	}
+
+
+	/**The job of this listener is simply to release resources when a sound is stopped.*/
+	private static final LineListener soundController = new LineListener() {
+
+		@Override
+		public void update(LineEvent e) {
+			LineEvent.Type type = (LineEvent.Type) e.getType();
+			if (type == LineEvent.Type.STOP) {
+				Clip clip = (Clip) e.getLine();
+				clip.close();
+
+				if (_CurrentMusic != null && _CurrentMusic.clip.equals(clip)) {
+					try {
+						_CurrentMusic.stream.close();
+					} catch (IOException e1) {
+						// Do nothing
+					}
+					_CurrentMusic = null;
+				} else {
+					Channel channel = _PlayingSounds.get(clip);
+					try {
+						channel.stream.close();
+					} catch (IOException ex) {
+						// Do nothing.
+					}
+					_PlayingSounds.remove(clip);
+				}
+
+			}
+
+		}
+	};
+
+
+	/**A simple class associating a Clip with its audio stream, so both can be closed at the 
+	 * same time when the clip is stopped.*/
+	private static class Channel {
+
+		public final Clip clip;
+		public final AudioInputStream stream;
+
+
+		public Channel(Clip clip, AudioInputStream stream) {
+			this.clip = clip;
+			this.stream = stream;
+		}
+	}
+
+
+	/**Returns a sound in the form of raw bytes.*/
+	public static byte[] getSound(String filename) {
+
+		// If the memory is stored, just load it.
+		byte[] bytes = _CachedSounds.get(filename);
+		if (bytes != null)
+			return bytes;
+
+		// No such sound in memory. Load it from file.
+		String path = System.getProperty("user.dir") + "/" + filename;
+		File file = new File(path);
+		if (!file.exists())
+			return null;
+		try (FileInputStream fis = new FileInputStream(file)) {
+			bytes = new byte[(int) file.length()];
+			fis.read(bytes);
+		} catch (IOException e) {
+			System.err.println("Could not read sound file: " + path);
+			return null;
+		}
+		_CachedSounds.put(filename, bytes);
+		return bytes;
+	}
+	
+	
 }
