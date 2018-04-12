@@ -1210,7 +1210,7 @@ public class LevelPackScreen extends Screen {
 		DefaultMutableTreeNode worldNode = (DefaultMutableTreeNode) packNode.getChildAt(idx);
 		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 		model.removeNodeFromParent(worldNode);
-		pInfo.worlds.remove(idx);
+		pInfo.worlds.remove((int)idx);
 		this.setSelection(null);
 		return new Undoable<WorldInfo>(null, wInfo) {
 
@@ -1228,7 +1228,7 @@ public class LevelPackScreen extends Screen {
 				if (!pInfo.worlds.contains(wInfo))
 					error();
 				model.removeNodeFromParent(packNode);
-				pInfo.worlds.remove(idx);
+				pInfo.worlds.remove((int)idx);
 			}
 
 		};
@@ -1289,7 +1289,7 @@ public class LevelPackScreen extends Screen {
 		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 		model.removeNodeFromParent(worldNode);
 		model.insertNodeInto(worldNode, packNode, newIndex);
-		pInfo.worlds.remove(oldIndex);
+		pInfo.worlds.remove((int)oldIndex);
 		pInfo.worlds.add(newIndex, wInfo);
 		pInfo.hasChanged = true;
 		this.setSelection(pInfo.getPack(), newIndex);
@@ -1310,7 +1310,7 @@ public class LevelPackScreen extends Screen {
 		DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 		model.removeNodeFromParent(worldNode);
 		model.insertNodeInto(worldNode, packNode, newIndex);
-		pInfo.worlds.remove(oldIndex);
+		pInfo.worlds.remove((int)oldIndex);
 		pInfo.worlds.add(newIndex, wInfo);
 		pInfo.hasChanged = true;
 		this.setSelection(pInfo.getPack(), newIndex);
@@ -1342,7 +1342,7 @@ public class LevelPackScreen extends Screen {
 				error();
 			if (!packNode.getChildAt(after).equals(worldNode))
 				error();
-			pInfo.worlds.remove(after);
+			pInfo.worlds.remove((int)after);
 			pInfo.worlds.add(before, wInfo);
 			DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 			model.removeNodeFromParent(worldNode);
@@ -1358,7 +1358,7 @@ public class LevelPackScreen extends Screen {
 				error();
 			if (!packNode.getChildAt(before).equals(worldNode))
 				error();
-			pInfo.worlds.remove(before);
+			pInfo.worlds.remove((int)before);
 			pInfo.worlds.add(after, wInfo);
 			DefaultTreeModel model = (DefaultTreeModel) _Tree.getModel();
 			model.removeNodeFromParent(worldNode);
