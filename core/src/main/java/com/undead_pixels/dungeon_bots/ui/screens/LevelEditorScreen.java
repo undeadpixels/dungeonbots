@@ -669,7 +669,7 @@ public final class LevelEditorScreen extends Screen {
 		// Add the world at the bottom layer.
 		_View = new WorldView(world, (w) -> {
 			throw new RuntimeException("World cannot be won in level editor");
-		});
+		}, false);
 		_ViewControl = new Tool.ViewControl(_View);
 		getController().registerSignalsFrom(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
