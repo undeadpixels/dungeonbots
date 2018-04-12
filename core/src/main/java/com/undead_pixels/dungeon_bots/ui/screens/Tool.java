@@ -21,6 +21,7 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
@@ -689,6 +690,16 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// selection, just update the tile selection. Otherwise, nothing
 			// is selected.
 			List<Entity> se = world.getEntitiesUnderLocation(rect);
+			if (se.size()==1) {
+				// Fire the entity's onClicked event
+				SwingUtilities.invokeLater(new Runnable(){
+
+					@Override
+					public void run() {
+						Entity e = se.get(0);
+						e.enqueueScript("onClicked");						
+					}});
+			}
 			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
 			List<Tile> st = world.getTilesUnderLocation(rect);
 

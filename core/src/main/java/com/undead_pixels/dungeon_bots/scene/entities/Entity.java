@@ -28,7 +28,8 @@ import org.luaj.vm2.LuaValue;
  */
 public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem,
 		HasEntity, HasTeam, HasImage, Inspectable {
-public static float MIN_IDLE_THRESHOLD = 5.0f;
+
+	public static float MIN_IDLE_THRESHOLD = 5.0f;
 
 	/**
 	 * 
@@ -83,11 +84,7 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 		this.world = world;
 		this.name = name;
 		this.scripts = scripts;
-		if (scripts != null)
-			scripts.add(new UserScript("onIdle",
-					"-- This script will execute only when the entity has \n-- been idle for a while (usually about 60 seconds).\n",
-					SecurityLevel.NONE));
-
+		standardizeResources();
 		if (world != null) {
 			this.id = world.makeID();
 		} else {
@@ -151,7 +148,7 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 		} else {
 			idle += dt;
 			if (idle > idleThreshold) {
-				idle = 0;				
+				idle = 0;
 				enqueueScript("onIdle");
 			}
 		}
@@ -218,7 +215,7 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 	 * Returns an ID number associated with this entity. The ID number should
 	 * not be user-facing.
 	 */
-	@Bind(value=SecurityLevel.AUTHOR,doc = "The Unique ID of the Entity")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "The Unique ID of the Entity")
 	public final int getId() {
 		return this.id;
 	}
@@ -255,6 +252,7 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 		this.idleThreshold = f;
 	}
 
+
 	@Bind(value = SecurityLevel.NONE, doc = "Set the Help associated with this entity.")
 	public final void setHelp(LuaValue help) {
 		this.help = help.checkjstring();
@@ -285,11 +283,36 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		actionQueue = new ActionQueue(this);
-		if (!scripts.contains("onIdle")){
-			UserScript s = new UserScript("onIdle", "--This script will execute only when the entity has \n-- been idle for a while (usually about 60 seconds).", SecurityLevel.NONE);
-			this.scripts.add(s);
+		standardizeResources();
+	}
+	
+	/**This method will ensure that this Entity contains all the necessary scripts, etc., for a new 
+	 * instantiated Entity or for an Entity that is deserialized from an earlier source that lacked 
+	 * those resources.*/
+	protected void standardizeResources(){
+		if (scripts != null){
+			if (!scripts.contains("onIdle")) {
+				UserScript s = new UserScript("onIdle",
+						"-- This script will execute when the entity has \n-- been idle for a while (usually about 60 seconds).",
+						SecurityLevel.NONE);
+				this.scripts.add(s);
+			}
+			if (!scripts.contains("onClicked")){
+				UserScript s = new UserScript("onClicked", "-- This script executes whenever the entity has been clicked.", SecurityLevel.NONE);
+				this.scripts.add(s);
+			}	
+			if (!scripts.contains("onExamined")){
+				UserScript s = new UserScript("onExamined", "-- This script executes whenever an editor is opened for this entity.)", SecurityLevel.NONE);
+				this.scripts.add(s);
+			}
+			if (!scripts.contains("onEdited")){
+				UserScript s = new UserScript("onEdited", "-- This script executes whenever the entity has been edited.", SecurityLevel.NONE);
+				this.scripts.add(s);
+			}
 		}
-		if (idleThreshold < MIN_IDLE_THRESHOLD) idleThreshold = 60f;
+		
+		if (idleThreshold < MIN_IDLE_THRESHOLD)
+			idleThreshold = 60f;
 	}
 
 
@@ -315,8 +338,10 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 	public boolean enqueueScript(String scriptName) {
 		synchronized (this) {
 			UserScript s = scripts.get(scriptName);
-			if (s == null)
+			if (s == null) {
+				System.err.println("Unrecognized script:" + scriptName);
 				return false;
+			}
 			this.getSandbox().enqueueCodeBlock(s.code);
 		}
 		return true;
@@ -437,17 +462,8 @@ public static float MIN_IDLE_THRESHOLD = 5.0f;
 
 	}
 
-/*
-	*//**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*//*
-	public void setSecurityLevel(String name, SecurityLevel level) {
-		if (permissions == null)
-			permissions = new HashMap<String, SecurityLevel>();
-		else
-			permissions.clear();
-		permissions.put(name, level);
-	}*/
-	
+
+
 	public Iterable<String> listPermissionNames() {
 		return permissions.keySet();
 	}

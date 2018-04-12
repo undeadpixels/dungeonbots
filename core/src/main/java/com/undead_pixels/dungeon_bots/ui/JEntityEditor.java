@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -96,8 +97,17 @@ public final class JEntityEditor extends JTabbedPane {
 
 		else
 			super.setVisible(value);
-		if (value)
+		if (value){
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
+			Entity e = this.entity;
+			SwingUtilities.invokeLater(new Runnable(){
+
+				@Override
+				public void run() {
+					e.enqueueScript("onExamined");
+				}});
+			
+			}
 	}
 
 
@@ -326,6 +336,14 @@ public final class JEntityEditor extends JTabbedPane {
 				Tool.pushUndo(entity.getWorld(), u);
 				dialog.dispose();
 				jee.dialog = null;
+				SwingUtilities.invokeLater(new Runnable(){
+
+					@Override
+					public void run() {
+						entity.enqueueScript("onEdited");
+					}
+					
+				});
 				break;
 			case "CANCEL":
 				if (jee.changed) {
