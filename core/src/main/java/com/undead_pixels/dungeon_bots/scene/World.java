@@ -11,8 +11,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.swing.*;
@@ -32,7 +30,6 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
-import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -80,11 +77,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	private transient List<Entity> toRemove = new ArrayList<>();
 
-	/**
-	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
-	 */
-	@Deprecated
-	private transient LevelPack levelPack = null;
 
 	/**
 	 * The of this world (may be user-readable)
@@ -145,11 +137,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private int timesReset = 0;
 
 	/**
-	 * An id counter, used to hand out id's to entities
-	 * 
-	 * TODO - see if this conflicts with anything Stewart is doing.
-	 *
-	 * Also TODO - is this even useful anymore?
+	 * An id counter, used to hand out id's to entities.  The id is needed when a game is rewinded, so entities with 
+	 * a particular ID in the old world can have their scripts copied to entities with a matching ID in the newly 
+	 * deserialized world. 
 	 */
 	private int idCounter = 0;
 
@@ -635,7 +625,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if
-	 * it was never in the world to begin with.*/
+	 * it was never in the world to begin with.  Stashes removed entities into a private list so 
+	 * any changes to their scripts will not be lost in the event of a game reset.*/
 	public boolean removeEntity(Entity e) {
 		if (!entities.remove(e))
 			return false;
