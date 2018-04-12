@@ -620,8 +620,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+	/**This is necessary because a game that is rewinded will have to copy all the entity's scripts 
+	 * into the newly deserialized versions of those entities.  If they are removed from the entities 
+	 * list, then that copy couldn't happen otherwise.*/
+	private transient ArrayList<Entity> removedEntities = new ArrayList<Entity>();
+	
+	
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Removes the entity from the world")
-	public Boolean removeEntity(LuaValue entity) {
+	public Boolean removeEntity(LuaValue entity) { 
 		return removeEntity((Entity)entity.checktable().get("this").checkuserdata(Entity.class));
 	}
 
@@ -1248,34 +1254,53 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * is re-serialized from bytes, and any changes a player has made to scripts would be 
 	 * lost in this process.
 	 */
-	public synchronized void persistScriptsFrom(World prior) {
+	public synchronized void persistScriptsFrom(World dirty) {
 		synchronized (this) {
-			HashMap<Integer, Entity> oldEntities = new HashMap<Integer, Entity>(), newEntities = new HashMap<Integer, Entity>();
-			for (Entity e : prior.entities) oldEntities.put(e.getId(), e);
-			for (Entity e : this.entities) newEntities.put(e.getId(),  e);
-			
-			for (Entity old_e : prior.entities){
-				Entity new_e = newEntities.remove(old_e.getId());
-				if (new_e==null)
-					this.message(old_e, "An entity from before the rewind does not exist.  Its scripts cannot be copied.", LoggingLevel.ERROR);
-				else if (new_e.getScripts() ==null && old_e.getScripts()!=null)
-					this.message(new_e,  "New version of entity has no scripts while old versions of entity does have scripts.",  LoggingLevel.ERROR);
-				else if (new_e.getScripts()!=null && old_e.getScripts()==null)
-					this.message(new_e,  "Old version of entity has no scripts while new versions of entity does have scripts.",  LoggingLevel.ERROR);
-				else if (new_e.getScripts()==null && old_e.getScripts()==null)
-					continue;
-				else new_e.getScripts().setTo(old_e.getScripts());
-			}
-			
-			for (Entity new_e : newEntities.values()){
-				this.message(new_e, "An entity from after the rewind did not exist before the rewind.  Its scripts will be restarting.", LoggingLevel.ERROR);				
-			}
-			
-			// TODO - this only persists the changes to the level script and bot
-			// scripts
-			//this.levelScripts.setTo(prior.levelScripts);
-			//this.botScripts.setTo(prior.botScripts);
+			HashMap<Integer, Entity> dirtyEntities = new HashMap<Integer, Entity>(),
+					cleanEntities = new HashMap<Integer, Entity>();
 
+			// The "dirty" entities include those entities in the old World,
+			// plus those entities removed from the old World.
+			for (Entity e : dirty.entities)
+				dirtyEntities.put(e.getId(), e);
+			for (Entity e : dirty.removedEntities)
+				dirtyEntities.put(e.getId(), e);
+
+			// The "clean" entities are those entities that are in the
+			// newly-deserialized World (ie, this World).
+			for (Entity e : this.entities)
+				cleanEntities.put(e.getId(), e);
+
+			for (Entity dirty_e : dirty.entities) {
+				Entity clean_e = cleanEntities.remove(dirty_e.getId());
+				// This can happen if an Entity was added during the game.
+				if (clean_e == null)
+					this.message(dirty_e,
+							"An entity from before the rewind does not exist.  Its scripts cannot be copied.",
+							LoggingLevel.STDOUT);
+				// Sanity check
+				else if (clean_e.getScripts() == null && dirty_e.getScripts() != null)
+					this.message(clean_e,
+							"New version of entity has no scripts while old versions of entity does have scripts.",
+							LoggingLevel.ERROR);
+				//Sanity check
+				else if (clean_e.getScripts() != null && dirty_e.getScripts() == null)
+					this.message(clean_e,
+							"Old version of entity has no scripts while new versions of entity does have scripts.",
+							LoggingLevel.ERROR);
+				//This can happen for non-scriptable entities like FloatingText
+				else if (clean_e.getScripts() == null && dirty_e.getScripts() == null)
+					continue;
+				else
+					clean_e.getScripts().setTo(dirty_e.getScripts());
+			}
+
+			for (Entity new_e : cleanEntities.values()) {
+				// This shouldn't happen.  This was the point of maintaining World.removedEntities.
+				this.message(new_e,
+						"An entity from after the rewind did not exist before the rewind.  Its scripts will be restarting.",
+						LoggingLevel.ERROR);
+			}
 		}
 	}
 
