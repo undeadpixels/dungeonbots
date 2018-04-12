@@ -480,7 +480,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 */
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found in the specified direction if possible")
-	public Boolean take(
+	public Integer take(
 			@Doc("The Direction of the entity to take the item from") LuaValue dir,
 			@Doc("The Index of the Item") LuaValue index) {
 		switch (dir.checkjstring().toLowerCase()) {
@@ -493,7 +493,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			case "right":
 				return takeRight(index);
 			default:
-				return false;
+				return -1;
 		}
 	}
 
@@ -559,6 +559,76 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		}
 		else return world.tryLook(getPosition());
 	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "")
+	public Boolean give(
+			@Doc("A Varargs of the direction to give, the index from your inventory to give from, and optionally the location in the target inventory to give to")
+					Varargs args) {
+		final int start = args.arg1().isstring() ? 1 : 2;
+		final String dir = args.arg(start).checkjstring();
+		switch (dir.toLowerCase()) {
+			case "up":
+				return giveUp(args.subargs(start + 1));
+			case "down":
+				return giveDown(args.subargs(start + 1));
+			case "left":
+				return giveLeft(args.subargs(start + 1));
+			case "right":
+				return giveRight(args.subargs(start + 1));
+			default:
+				return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Give the item specified at the actors inventory index to the entity RIGHT from the actor")
+	public Boolean giveRight(@Doc("A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory") Varargs args) {
+		final int start = args.arg1().isnumber() ? 0 : 1;
+		final int srcIndex = args.arg(start + 1).toint() - 1;
+		final int dstIndex = args.arg(start + 2).isnil() ? -1 : args.arg(start + 2).toint() - 1;
+		if(dstIndex < 0)
+			return world.tryGive(this.inventory.peek(srcIndex), right());
+		else {
+			return world.tryGive(this.inventory.peek(srcIndex),dstIndex, right());
+		}
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Give the item specified at the actors inventory index to the entity LEFT from the actor")
+	public Boolean giveLeft(@Doc("A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory") Varargs args) {
+		final int start = args.arg1().isnumber() ? 0 : 1;
+		final int srcIndex = args.arg(start + 1).toint() - 1;
+		final int dstIndex = args.arg(start + 2).isnil() ? -1 : args.arg(start + 2).toint() - 1;
+		if(dstIndex < 0)
+			return world.tryGive(this.inventory.peek(srcIndex), left());
+		else {
+			return world.tryGive(this.inventory.peek(srcIndex),dstIndex, left());
+		}
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Give the item specified at the actors inventory index to the entity DOWN from the actor")
+	public Boolean giveDown(@Doc("A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory") Varargs args) {
+		final int start = args.arg1().isnumber() ? 0 : 1;
+		final int srcIndex = args.arg(start + 1).toint() - 1;
+		final int dstIndex = args.arg(start + 2).isnil() ? -1 : args.arg(start + 2).toint() - 1;
+		if(dstIndex < 0)
+			return world.tryGive(this.inventory.peek(srcIndex), down());
+		else {
+			return world.tryGive(this.inventory.peek(srcIndex),dstIndex, down());
+		}
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Give the item specified at the actors inventory index to the entity UP from the actor")
+	public Boolean giveUp(@Doc("A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory") Varargs args) {
+		final int start = args.arg1().isnumber() ? 0 : 1;
+		final int srcIndex = args.arg(start + 1).toint() - 1;
+		final int dstIndex = args.arg(start + 2).isnil() ? -1 : args.arg(start + 2).toint() - 1;
+		if(dstIndex < 0)
+			return world.tryGive(this.inventory.peek(srcIndex), up());
+		else {
+			return world.tryGive(this.inventory.peek(srcIndex),dstIndex, up());
+		}
+	}
+
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Actor inspects objects or entities UP relative to their position")
@@ -638,26 +708,26 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found UP relative to the Actor")
-	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(this,up(), index.checkint() - 1);
+	private Integer takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this,up(), index.checkint() - 1) + 1;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
-	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(this, down(), index.checkint() - 1);
+	private Integer takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, down(), index.checkint() - 1) + 1;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
-	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(this, left(), index.checkint() - 1);
+	private Integer takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, left(), index.checkint() - 1) + 1;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
-	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
-		return world.tryTake(this, right(), index.checkint() - 1);
+	private Integer takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, right(), index.checkint() - 1) + 1;
 	}
 
 	@Bind(value = SecurityLevel.DEFAULT,

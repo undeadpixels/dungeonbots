@@ -48,6 +48,9 @@ public class LuaProxyFactory {
 		t.set("type", LuaValue.valueOf(Optional.ofNullable(src.getClass().getDeclaredAnnotation(BindTo.class))
 				.map(BindTo::value)
 				.orElse(src.getClass().getSimpleName())));
+		t.set("data", LuaValue.tableOf());
+		// Add a modifiable table to allow users to attach state to entities
+
 		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
 		src.getBindableMethods()

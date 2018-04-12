@@ -38,7 +38,7 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	/**
 	 * The max weight of the inventory.
 	 */
-	private final int maxWeight = 100;
+	private final int maxWeight = 1000;
 
 	final Entity owner;
 
@@ -137,6 +137,8 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(item);
+					this.owner.getSandbox().fireEvent("INV_MODIFIED");
+					this.owner.getSandbox().fireEvent("ITEM_GIVEN");
 					return true;
 				}
 			}
@@ -150,21 +152,43 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	 * @param ir
 	 * @return
 	 */
-	public boolean tryTakeItem(ItemReference ir) {
+	public Integer tryTakeItem(final ItemReference ir) {
 		if(ir.item.isEmpty())
-			return true;
+			return -1;
 		synchronized (this.inventory) {
 			if(weight() + ir.item.getWeight() > maxWeight)
-				return false;
+				return -1;
 			for(int i = 0; i < this.inventory.length; i++) {
 				if(inventory[i].getItem().isEmpty()) {
 					inventory[i].setItem(ir.derefItem());
-					
 					owner.getSandbox().fireEvent("ITEM_GIVEN", inventory[i].getLuaValue());
-					return true;
+					owner.getSandbox().fireEvent("INV_MODIFIED");
+					return i;
 				}
 			}
-			return false;
+			return -1;
+		}
+	}
+
+	/**
+	 * Overload of method that only derefs item if an item can be 'added'
+	 * Otherwise, does not deref the item from the ItemReference
+	 * @param ir
+	 * @return
+	 */
+	public Integer tryTakeItem(final ItemReference ir, int index) {
+		if(ir.item.isEmpty())
+			return -1;
+		synchronized (this.inventory) {
+			if(weight() + ir.item.getWeight() > maxWeight)
+				return -1;
+			if(inventory[index].getItem().isEmpty()) {
+				inventory[index].setItem(ir.derefItem());
+				owner.getSandbox().fireEvent("ITEM_GIVEN", inventory[index].getLuaValue());
+				owner.getSandbox().fireEvent("INV_MODIFIED");
+				return index + 1;
+			}
+			return -1;
 		}
 	}
 
@@ -174,15 +198,6 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 		return addItem((Item)item.checktable()
 				.get("this")
 				.checkuserdata(Item.class));
-	}
-
-	public boolean addItems(Item... items) {
-		for(Item i : items) {
-			if(!addItem(i)) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public boolean containsItem(Item i) {
@@ -196,7 +211,7 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	 */
 	@Bind(value = SecurityLevel.ENTITY,
 			doc = "Puts an ItemReferences Item into this inventory")
-	public Boolean putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
+	public Integer putItem(@Doc("The ItemReference to deref and place into this inventory") LuaValue luaItem) {
 		return tryTakeItem(ItemReference.class.cast(luaItem.checktable().get("this").checkuserdata(ItemReference.class)));
 	}
 
@@ -253,6 +268,7 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 	public void reset() {
 		Stream.of(inventory).forEach(itemRef ->
 				itemRef.setItem(new Item.EmptyItem()));
+		this.owner.getSandbox().fireEvent("INV_MODIFIED");
 	}
 
 	/**
@@ -292,6 +308,38 @@ public class Inventory implements GetLuaFacade, Serializable, HasImage {
 		return Stream.of(inventory)
 				.map(i -> i.getValue())
 				.reduce(0, (a,b) -> a + b);
+	}
+
+	@Bind(value = SecurityLevel.NONE, doc = "Swap the items at the two positions in the inventory")
+	public Boolean swap(
+			@Doc("The first item to swap") LuaValue first,
+			@Doc("The second item to swap") LuaValue second) {
+		final int f = first.checkint() - 1;
+		final int s = second.checkint() - 1;
+		if ((f < this.inventory.length && f > 0) && (s < this.inventory.length && s > 0)) {
+			final ItemReference a = inventory[f];
+			final ItemReference b = inventory[s];
+			final Item swap = a.item;
+			a.item = b.item;
+			b.item = swap;
+			this.owner.getSandbox().fireEvent("INV_MODIFIED");
+			return true;
+		}
+		else
+			return false;
+	}
+
+	public void swapInventory(final Inventory other) {
+		int min = Math.min(this.inventory.length, other.inventory.length);
+		for(int i = 0; i < min; i++) {
+			final ItemReference left = this.inventory[i];
+			final ItemReference right = other.inventory[i];
+			final Item swap = left.item;
+			left.item = right.item;
+			right.item = swap;
+		}
+		this.owner.getSandbox().fireEvent("INV_MODIFIED");
+		other.owner.getSandbox().fireEvent("INV_MODIFIED");
 	}
 
 	@Override

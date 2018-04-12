@@ -62,6 +62,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 
 	public ItemReference setItem(Item i) {
 		this.item = i;
+		this.inventory.owner.getSandbox().fireEvent("INV_MODIFIED");
 		return this;
 	}
 
@@ -264,6 +265,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return
 	 */
 	public Item derefItem() {
+		this.inventory.owner.getSandbox().fireEvent("INV_MODIFIED");
 		Item i = item;
 		this.item = new Item.EmptyItem();
 		return i;

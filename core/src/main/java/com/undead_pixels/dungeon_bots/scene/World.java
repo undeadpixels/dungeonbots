@@ -1440,23 +1440,23 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param index The index into the inventory of the entity to take the item
 	 * @return True if taking the item succeeded, false otherwise.
 	 */
-	public Boolean tryTake(final Actor src, final Point2D.Float pos, final int index) {
-		return typeAtPos(pos, HasInventory.class)
-				.filter(HasInventory::canTake)
-				.anyMatch(e -> {
-					final ItemReference ir = e.getInventory().peek(index);
-					final String itemName = ir.getName();
-					final boolean taken = src.getInventory().tryTakeItem(ir);
-					if(taken) {
-						message(src,
-								String.format("%s took %s from %s",
-										src.getName(),
-										itemName,
-										e.getClass().getSimpleName()),
-								LoggingLevel.GENERAL);
-					}
-					return taken;
-				});
+	public Integer tryTake(final Actor src, final Point2D.Float pos, final int index) {
+		for(Actor a : typeAtPos(pos, Actor.class)
+				.filter(HasInventory::canTake).collect(Collectors.toList())) {
+			final ItemReference ir = a.getInventory().peek(index);
+			final String itemName = ir.getName();
+			final Integer taken = src.getInventory().tryTakeItem(ir);
+			if(taken >= 0) {
+				message(src,
+						String.format("%s took %s from %s",
+								src.getName(),
+								itemName,
+								a.getName()),
+						LoggingLevel.GENERAL);
+			}
+			return taken;
+		}
+		return -1;
 	}
 
 
@@ -1516,8 +1516,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				.filter(e -> e.canTake())
 				.anyMatch(e -> {
 					final String name = itemReference.getName();
-					final boolean gives = e.getInventory().tryTakeItem(itemReference);
-					if(gives) {
+					final int gives = e.getInventory().tryTakeItem(itemReference);
+					if(gives > 0) {
 						message(e,
 								String.format("%s gives %s to %s",
 										itemReference.inventory.getOwner().getName(),
@@ -1525,7 +1525,32 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 										e.getClass().getSimpleName()),
 								LoggingLevel.GENERAL);
 					}
-					return gives;
+					return gives > 0;
+				});
+	}
+
+	/**
+	 * Try to get the Item specified with the ItemReference at the specified lcoation
+	 * @param itemReference
+	 * @param index
+	 * @param location
+	 * @return
+	 */
+	public Boolean tryGive(final ItemReference itemReference, final int index, final Point2D.Float location) {
+		return typeAtPos(location, Actor.class)
+				.filter(e -> e.canTake())
+				.anyMatch(e -> {
+					final String name = itemReference.getName();
+					final int gives = e.getInventory().tryTakeItem(itemReference, index);
+					if(gives > 0) {
+						message(e,
+								String.format("%s gives %s to %s",
+										itemReference.inventory.getOwner().getName(),
+										name,
+										e.getClass().getSimpleName()),
+								LoggingLevel.GENERAL);
+					}
+					return gives > 0;
 				});
 	}
 
@@ -1635,8 +1660,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Finds and returns the first entity with the specified name")
-	public Entity findEntity(LuaValue nameOrId) {
+			doc = "Finds and returns the first entity with the specified name or id")
+	public Entity findEntity(@Doc("Name is a String, ID is a number") LuaValue nameOrId) {
 		return entities.stream()
 				.filter(nameOrId.isnumber() ?
 						(Entity e) -> e.getId() == nameOrId.checkint() :
@@ -1660,7 +1685,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Logs a message with a Quest logging level")
-	public void logQuest(LuaValue message) {
+	public void logQuest(@Doc("The message to Log") LuaValue message) {
 		message(this, message.checkjstring(), LoggingLevel.QUEST);
 	}
 
