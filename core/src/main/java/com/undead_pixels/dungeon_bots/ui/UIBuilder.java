@@ -1503,7 +1503,8 @@ public class UIBuilder {
 			clip.start();
 			return clip;
 		} catch (Exception e) {
-			System.err.println("Could not play music: " + filename + " - " + e.getMessage());
+			if (verbose)
+				System.err.println("Could not play music: " + filename + " - " + e.getMessage());
 			return null;
 		}
 
@@ -1603,6 +1604,6 @@ public class UIBuilder {
 		_CachedSounds.put(filename, bytes);
 		return bytes;
 	}
-	
-	
+
+
 }

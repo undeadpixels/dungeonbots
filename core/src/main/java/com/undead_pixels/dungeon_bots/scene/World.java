@@ -1243,14 +1243,38 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * Resets this world
+	 * Copies the scripts associated with bots from a prior world into the bots with the same 
+	 * ID numbers in this world.  This method is necessary after a rewind because the world 
+	 * is re-serialized from bytes, and any changes a player has made to scripts would be 
+	 * lost in this process.
 	 */
-	public synchronized void persistScriptsFrom(World other) {
+	public synchronized void persistScriptsFrom(World prior) {
 		synchronized (this) {
+			HashMap<Integer, Entity> oldEntities = new HashMap<Integer, Entity>(), newEntities = new HashMap<Integer, Entity>();
+			for (Entity e : prior.entities) oldEntities.put(e.getId(), e);
+			for (Entity e : this.entities) newEntities.put(e.getId(),  e);
+			
+			for (Entity old_e : prior.entities){
+				Entity new_e = newEntities.remove(old_e.getId());
+				if (new_e==null)
+					this.message(old_e, "An entity from before the rewind does not exist.  Its scripts cannot be copied.", LoggingLevel.ERROR);
+				else if (new_e.getScripts() ==null && old_e.getScripts()!=null)
+					this.message(new_e,  "New version of entity has no scripts while old versions of entity does have scripts.",  LoggingLevel.ERROR);
+				else if (new_e.getScripts()!=null && old_e.getScripts()==null)
+					this.message(new_e,  "Old version of entity has no scripts while new versions of entity does have scripts.",  LoggingLevel.ERROR);
+				else if (new_e.getScripts()==null && old_e.getScripts()==null)
+					continue;
+				else new_e.getScripts().setTo(old_e.getScripts());
+			}
+			
+			for (Entity new_e : newEntities.values()){
+				this.message(new_e, "An entity from after the rewind did not exist before the rewind.  Its scripts will be restarting.", LoggingLevel.ERROR);				
+			}
+			
 			// TODO - this only persists the changes to the level script and bot
 			// scripts
-			this.levelScripts.setTo(other.levelScripts);
-			this.botScripts.setTo(other.botScripts);
+			//this.levelScripts.setTo(prior.levelScripts);
+			//this.botScripts.setTo(prior.botScripts);
 
 		}
 	}

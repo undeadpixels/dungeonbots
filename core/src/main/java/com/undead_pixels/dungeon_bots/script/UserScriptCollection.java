@@ -76,7 +76,9 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	}
 
 
-	/**
+	/** Shallow-copies the scripts from the given script collection into this script collection.  Note that 
+	 * the scripts will be the same references as those in the original, because the script objects 
+	 * themselves are not copied.
 	 * @param other
 	 */
 	public synchronized void setTo (UserScriptCollection other) {

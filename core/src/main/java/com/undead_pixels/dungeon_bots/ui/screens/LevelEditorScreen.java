@@ -394,7 +394,7 @@ public final class LevelEditorScreen extends Screen {
 					System.out.println("Could not open file: " + openLevelPackFile.getName());
 					return;
 				}
-				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
+				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(p));
 				return;
 			case "Exit to Main":
 				if (JOptionPane.showConfirmDialog(LevelEditorScreen.this, "Are you sure?", "Exit to Main",

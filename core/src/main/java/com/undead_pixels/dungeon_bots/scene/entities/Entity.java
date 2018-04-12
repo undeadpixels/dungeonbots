@@ -134,13 +134,13 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	/**Accumulated idle time.*/
 	private transient float idle = 0f;
-	private float idleThreshold = 5f;
+	private float idleThreshold = 60f;
 
 
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		boolean isIdle = actionQueue.act(dt);
+		boolean isIdle = actionQueue.isEmpty();
 
 		// Enqueue an idle call, if enough time has elapsed.
 		if (!isIdle) {
@@ -310,6 +310,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 				this.scripts.add(s);
 			}
 		}
+		
 		
 		if (idleThreshold < MIN_IDLE_THRESHOLD)
 			idleThreshold = 60f;

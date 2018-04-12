@@ -243,11 +243,9 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		/**Returns the minimum zoom value for this control, based on the world's size.*/
 		public float getMinZoom() {
-			Point2D.Float size = view.getWorld().getSize();
-			float min = Math.min(size.x, size.y);
-			float max = Math.max(size.x, size.y);
-			float aspect = Math.min(min, max);
-			return MIN_ZOOM_SCALAR / aspect;
+			Point2D.Float size = view.getWorld().getSize();			
+			float maxMeasure = Math.max(size.x, size.y);
+			return MIN_ZOOM_SCALAR / maxMeasure;
 		}
 
 
