@@ -38,6 +38,7 @@ import javax.swing.plaf.TreeUI;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.Element;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
@@ -610,14 +611,51 @@ public class CodeInsertions {
 		JTree codeInsertionTree = makeTree((s) -> {
 			System.out.println("got string: "+s);
 			Document d = editor.getDocument();
+
 			int pos = editor.getCaretPosition();
+			Element root = d.getDefaultRootElement();
+			
+			int row = 0;
+			for(; row < root.getElementCount(); row++) {
+				if(root.getElement(row).getEndOffset() > pos) {
+					break;
+				}
+			}
+			
+			if(s.contains("\n")) {
+				int rowBegin = root.getElement(row).getStartOffset();
+				int rowEnd = root.getElement(row).getEndOffset();
+				String rowStr = "";
+				try {
+					rowStr = d.getText(rowBegin, rowEnd - rowBegin);
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+				
+				String whitespace = "";
+				
+				int col = 0;
+				for(; Character.isWhitespace(rowStr.charAt(col)); col++) {
+					whitespace += rowStr.charAt(col);
+				}
+				
+				if(rowStr.equals(whitespace)) {
+					// blank row; that's easy
+				} else {
+					// make a new row, I guess
+					s = "\n" + s;
+				}
+				
+				pos = rowEnd-1;
+				
+				s = s.replace("\n", "\n"+whitespace);
+			}
+			
 			try {
 				d.insertString(pos, s, null);
-				System.out.println("Attempted inserting string: "+s);
 			} catch (BadLocationException e1) {
 				e1.printStackTrace();
 			}
-			
 			
 			editor.requestFocusInWindow();
 		});
