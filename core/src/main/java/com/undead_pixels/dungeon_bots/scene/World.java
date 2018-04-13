@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	private transient LuaSandbox mapSandbox;
 
-	private transient List<Entity> toRemove = new ArrayList<>();
+	private transient ConcurrentLinkedDeque<Entity> toRemove = new ConcurrentLinkedDeque<>();
 
 	/**
 	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
@@ -239,7 +240,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	private WorldEvent<String> getStringEvent(StringEventType t) {
+	private synchronized WorldEvent<String> getStringEvent(StringEventType t) {
 		switch (t) {
 		case KEY_PRESSED:
 			if (keyPressedEvent == null)
@@ -254,43 +255,43 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	public void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
+	public synchronized void listenTo(EntityEventType t, Object owner, Consumer<Entity> func) {
 		WorldEvent<Entity> ev = getEntityEvent(t);
 		ev.addListener(owner, func);
 	}
 
 
-	public void fire(EntityEventType t, Entity e) {
+	public synchronized void fire(EntityEventType t, Entity e) {
 		WorldEvent<Entity> ev = getEntityEvent(t);
 		ev.fire(e);
 	}
 
 
-	public void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
+	public synchronized void listenTo(WorldEventType t, Object owner, Consumer<World> func) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.addListener(owner, func);
 	}
 
 
-	public void fire(WorldEventType t, World w) {
+	public synchronized void fire(WorldEventType t, World w) {
 		WorldEvent<World> ev = getWorldEvent(t);
 		ev.fire(w);
 	}
 
 
-	public void listenTo(StringEventType t, Object owner, Consumer<String> func) {
+	public synchronized void listenTo(StringEventType t, Object owner, Consumer<String> func) {
 		WorldEvent<String> ev = getStringEvent(t);
 		ev.addListener(owner, func);
 	}
 
 
-	public void fire(StringEventType t, String s) {
+	public synchronized void fire(StringEventType t, String s) {
 		WorldEvent<String> ev = getStringEvent(t);
 		ev.fire(s);
 	}
 
 
-	public void removeEventListenersByOwner(Object owner) {
+	public synchronized void removeEventListenersByOwner(Object owner) {
 		for (EntityEventType t : EntityEventType.values()) {
 			getEntityEvent(t).removeListenerFamily(owner);
 		}
@@ -461,13 +462,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public void update(float dt) {
 		// update tiles from tileTypes, if dirty
-		synchronized (this) {
 			// Remove all entities that have been asynchronously
-			// queued to be removed.
-			synchronized (getToRemove()) {
-				for (Entity e : getToRemove())
-					entities.remove(e);
-				getToRemove().clear();
+			// queued to be removed
+
+		final Entity[] remove = getToRemove().toArray(new Entity[]{});
+		synchronized (this) {
+			for (Entity e : remove) {
+				removeEntity(e);
+				getToRemove().remove(e);
 			}
 
 			refreshTiles();
@@ -633,6 +635,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			if (tile != null && tile.getOccupiedBy() == e)
 				tile.setOccupiedBy(null);
 		}
+		removeEventListenersByOwner(e);
 		fire(EntityEventType.ENTITY_REMOVED, e);
 		message(this, String.format("%s was DESTROYED", e.getName()), LoggingLevel.GENERAL);
 		return true;
@@ -1705,17 +1708,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return false;
 	}
 
-	private List<Entity> getToRemove() {
+	private ConcurrentLinkedDeque<Entity> getToRemove() {
 		if(toRemove == null) {
-			toRemove = new ArrayList<>();
+			toRemove = new ConcurrentLinkedDeque<>();
 		}
 		return toRemove;
 	}
 
 	public void queueRemove(final Entity e) {
-		synchronized (toRemove) {
-			toRemove.add(e);
-		}
+		getToRemove().add(e);
 	}
 
 

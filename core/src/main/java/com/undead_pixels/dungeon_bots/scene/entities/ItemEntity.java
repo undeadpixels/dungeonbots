@@ -75,7 +75,7 @@ public class ItemEntity extends Actor implements HasInventory {
 
 	public <T extends HasInventory> Boolean pickUp(final T dst) {
 		if(dst.getInventory().addItem(getItem())) {
-			world.removeEntity(this);
+			world.queueRemove(this);
 			this.inventory.reset();
 			return true;
 		}
