@@ -110,7 +110,7 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The X position of the GoldItem") LuaValue x,
 			@Doc("The Y position of the GoldItem") LuaValue y,
 			@Doc("The Weight of the GoldItem") LuaValue weight) {
-		return ItemEntity.gold(userDataOf(World.class, world), x.tofloat(), y.tofloat(), weight.toint());
+		return ItemEntity.gold(userDataOf(World.class, world), x.tofloat() - 1f, y.tofloat() - 1f , weight.toint());
 	}
 
 	public static final TextureRegion DIAMOND_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 1, 2);
@@ -123,7 +123,7 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The World the DiamondEntity belongs to") LuaValue world,
 			@Doc("The X position of the DiamondEntity") LuaValue x,
 			@Doc("The Y position of the DiamondEntity") LuaValue y) {
-		return ItemEntity.diamond(userDataOf(World.class, world), x.tofloat(), y.tofloat());
+		return ItemEntity.diamond(userDataOf(World.class, world), x.tofloat() - 1f, y.tofloat() - 1f);
 	}
 
 	public static final TextureRegion GEM_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 6, 2);
@@ -136,7 +136,7 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The World the GemEntity belongs to") LuaValue world,
 			@Doc("The X position of the GemEntity") LuaValue x,
 			@Doc("The Y position of the GemEntity") LuaValue y) {
-		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat(), y.tofloat());
+		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat() - 1f, y.tofloat() - 1f);
 	}
 
 	@Override

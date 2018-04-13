@@ -433,7 +433,7 @@ public class LevelPack {
 
 
 	public int getLevelCount() {
-		return levelCount;
+		return levels.size();
 	}
 
 
