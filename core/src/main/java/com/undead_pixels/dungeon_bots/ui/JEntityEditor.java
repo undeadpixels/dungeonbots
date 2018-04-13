@@ -237,7 +237,9 @@ public final class JEntityEditor extends JTabbedPane {
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);
-		dialog.pack();
+		
+		dialog.setSize(600, 500);
+		
 		return jee;
 	}
 

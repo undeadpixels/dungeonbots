@@ -4,6 +4,7 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,14 +12,16 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
@@ -26,14 +29,21 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.jdesktop.swingx.VerticalLayout;
+
+import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
+
+import jsyntaxpane.DefaultSyntaxKit;
 
 
 /**
@@ -46,10 +56,12 @@ public class CodeInsertions {
 
 
 	public static void main(String[] args) {
+		DefaultSyntaxKit.initKit();
+		
 		JFrame f = new JFrame("");
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		f.add(new CodeInsertions().makeTree());
+		f.add(new CodeInsertions().makeTree((s) -> System.out.println(s)));
 		f.pack();
 		f.setVisible(true);
 	}
@@ -89,8 +101,6 @@ public class CodeInsertions {
 				this.originalBegin = originalBegin;
 				this.originalEnd = originalEnd;
 				this.originalString = originalString;
-				
-				System.out.println(originalBegin+":"+originalEnd+" = "+originalString);
 
 				if(originalEnd - originalBegin < 2) {
 					currentString = originalString;
@@ -237,9 +247,12 @@ public class CodeInsertions {
 		
 		InsertionReplacementState state = new InsertionReplacementState(entry);
 		
-		JTextArea codeArea = new JTextArea();
-		codeArea.setText(state.toString());
+		JEditorPane codeArea = new JEditorPane();
+		JScrollPane codeScroll = new JScrollPane(codeArea);
 		codeArea.setEditable(false);
+		codeArea.setFocusable(true);
+		codeArea.setContentType("text/lua");
+		codeArea.setText(state.toString());
 		
 		ArrayList<JTextField> textFields = new ArrayList<>();
 		DocumentListener docListener = new DocumentListener() {
@@ -265,7 +278,7 @@ public class CodeInsertions {
 			
 		};
 
-		replacerView.add(codeArea);
+		replacerView.add(codeScroll);
 		replacerView.add(new JSeparator());
 		
 		
@@ -281,7 +294,11 @@ public class CodeInsertions {
 			replacerView.add(box);
 		}
 		
-		JOptionPane.showConfirmDialog(null, replacerView, entry.name, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
+		int result = JOptionPane.showConfirmDialog(null, replacerView, entry.name, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
+		
+		if(result == JOptionPane.OK_OPTION) {
+			acceptAction.accept(codeArea.getText());
+		}
 	}
 
 	public CodeInsertions() {
@@ -397,10 +414,11 @@ public class CodeInsertions {
 	/**
 	 * @return
 	 */
-	private JTree makeTree () {
+	public JTree makeTree (Consumer<String> action) {
 		JTree ret = new JTree(treeModel);
 		
 		ret.setRootVisible(false);
+		ret.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		
 		for(int i = 0; i < ret.getRowCount(); i++) {
 			ret.expandRow(i);
@@ -416,7 +434,7 @@ public class CodeInsertions {
 					Object o = node.getUserObject();
 					if(o instanceof InsertionEntry) {
 						InsertionEntry ie = (InsertionEntry)o;
-						fireTemplateReplacer(ie, (s) -> System.out.println(s));
+						fireTemplateReplacer(ie, action);
 					}
 				}
 			}
@@ -424,6 +442,28 @@ public class CodeInsertions {
 		});
 		
 		return ret;
+	}
+
+	/**
+	 * @param editor
+	 * @return
+	 */
+	public JScrollPane makeScroller (JEditorPane editor) {
+		JTree codeInsertionTree = makeTree((s) -> {
+			System.out.println("got string: "+s);
+			Document d = editor.getDocument();
+			int pos = editor.getCaretPosition();
+			try {
+				d.insertString(pos, s, null);
+				System.out.println("Attempted inserting string: "+s);
+			} catch (BadLocationException e1) {
+				e1.printStackTrace();
+			}
+		});
+		JScrollPane insertionScroller = new JScrollPane(codeInsertionTree);
+		insertionScroller.setBorder(BorderFactory.createTitledBorder("Insert:"));
+		
+		return insertionScroller;
 	}
 	
 }

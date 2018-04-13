@@ -17,10 +17,13 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -46,6 +49,9 @@ public class JScriptCollectionEditor extends JPanel {
 		editor.setEditable(true);
 
 		// Create the list.
+		if(scripts.isEmpty()) {
+			scripts.add(new UserScript("init", "--Write your new script here."));
+		}
 		this.scripts = scripts;
 		UserScript[] scriptsSorted = scripts.toArray();
 		scriptList = new JList<UserScript>();
@@ -82,17 +88,31 @@ public class JScriptCollectionEditor extends JPanel {
 			editor.setScript(null);
 
 		JScrollPane scriptScroller = new JScrollPane(scriptList);
-		scriptScroller.setBorder(BorderFactory.createTitledBorder("Editable scripts."));
+		
+		Box scriptListBox = new Box(BoxLayout.Y_AXIS);
+		scriptListBox.setBorder(BorderFactory.createTitledBorder("Editable scripts"));
+
+		CodeInsertions codeInsertions = new CodeInsertions();
+		JScrollPane insertionScroller = codeInsertions.makeScroller(editor.getEditor());
 
 		// Make buttons for add/remove of scripts.
-		JPanel bttnPanel = new JPanel(new FlowLayout());
-		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list.")
+		Box bttnPanel = new Box(BoxLayout.X_AXIS);
+		bttnPanel.add(Box.createGlue());
+		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list")
 				.action("ADD_SCRIPT", controller).create());
-		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list.")
+		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list")
 				.action("REMOVE_SCRIPT", controller).create());
 		Box leftBox = new Box(BoxLayout.Y_AXIS);
-		leftBox.add(scriptScroller);
-		leftBox.add(bttnPanel);
+		bttnPanel.add(Box.createGlue());
+		bttnPanel.setMaximumSize(bttnPanel.getPreferredSize());
+
+		scriptListBox.add(bttnPanel);
+		scriptListBox.add(scriptScroller);
+		scriptList.setPreferredSize(new Dimension(scriptList.getPreferredSize().width, 100));
+		insertionScroller.setPreferredSize(new Dimension(insertionScroller.getPreferredSize().width, 250));
+		leftBox.add(scriptListBox);
+		leftBox.add(insertionScroller);
+		
 
 		this.setLayout(new BorderLayout());
 		this.add(leftBox, BorderLayout.LINE_START);
