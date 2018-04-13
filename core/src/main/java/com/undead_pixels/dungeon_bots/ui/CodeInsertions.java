@@ -17,9 +17,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -77,6 +80,8 @@ public class CodeInsertions {
 			public final int originalBegin;
 			public final int originalEnd;
 			public final String originalString;
+			public final String templateName;
+			public final String templateType;
 			public String currentString;
 			
 			public Field(int originalBegin, int originalEnd, String originalString) {
@@ -89,11 +94,29 @@ public class CodeInsertions {
 
 				if(originalEnd - originalBegin < 2) {
 					currentString = originalString;
+					templateName = originalString;
+					templateType = "";
 				} else {
 					// remove the type info
 					String inner = originalString.substring(1, originalString.length()-1);
-					String beforeColon = inner.split(":")[0];
-					currentString = "<"+beforeColon+">";
+					String[] innerSplit = inner.split(":");
+					templateName = innerSplit[0];
+					
+					if(innerSplit.length > 1) {
+						templateType = innerSplit[1];
+					} else {
+						templateType = "";
+					}
+					
+					currentString = "<"+templateName+">";
+				}
+			}
+			
+			public String getInlineRepresentation() {
+				if(currentString.equals("")) {
+					return "<"+templateName+">";
+				} else {
+					return currentString;
 				}
 			}
 		}
@@ -124,7 +147,7 @@ public class CodeInsertions {
 			for(Field field : fields) {
 				String normalText = entry.templateText.substring(prevField.originalEnd, field.originalBegin);
 				ret.append(normalText);
-				ret.append(field.currentString);
+				ret.append(field.getInlineRepresentation());
 				
 				prevField = field;
 			}
@@ -216,19 +239,49 @@ public class CodeInsertions {
 		
 		JTextArea codeArea = new JTextArea();
 		codeArea.setText(state.toString());
+		codeArea.setEditable(false);
+		
+		ArrayList<JTextField> textFields = new ArrayList<>();
+		DocumentListener docListener = new DocumentListener() {
+
+			@Override
+			public void insertUpdate (DocumentEvent e) {
+				changedUpdate(e);
+			}
+
+			@Override
+			public void removeUpdate (DocumentEvent e) {
+				changedUpdate(e);
+			}
+
+			@Override
+			public void changedUpdate (DocumentEvent e) {
+				for(int i = 0; i < state.fields.size(); i++) {
+					state.fields.get(i).currentString = textFields.get(i).getText();
+				}
+				
+				codeArea.setText(state.toString());
+			}
+			
+		};
+
+		replacerView.add(codeArea);
+		replacerView.add(new JSeparator());
+		
 		
 		for(InsertionReplacementState.Field field : state.fields) {
 			JTextField textField = new JTextField(field.currentString);
+			textField.getDocument().addDocumentListener(docListener);
+			textFields.add(textField);
 			
 			Box box = new Box(BoxLayout.X_AXIS);
-			box.add(new JLabel(field.originalString));
+			box.add(new JLabel(field.templateName));
 			box.add(textField);
 			
 			replacerView.add(box);
 		}
 		
-		replacerView.add(codeArea);
-		JOptionPane.showConfirmDialog(null, replacerView);
+		JOptionPane.showConfirmDialog(null, replacerView, entry.name, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 	}
 
 	public CodeInsertions() {
