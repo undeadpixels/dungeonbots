@@ -144,13 +144,6 @@ public final class LevelEditorScreen extends Screen {
 
 		// TODO - some of the names produced by lambdas might need to be changed
 		// later
-
-		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1),
-				(x, y) -> {
-					// TODO - create new actual entity class
-					return new DeletemeEntity(world,
-							AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
-				}));
 		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3),
 				(x, y) -> {
 					// TODO - create new actual entity class
@@ -189,6 +182,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
 			return new Sign(world, "", x, y);
+		}));
+		result.add(new EntityType("multipleChoiceQuestion", ItemEntity.MULTI_CHOICE_QUESTION, (x, y) -> {
+			return ItemEntity.multipleChoiceQuestion(world, x, y,"","");
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);

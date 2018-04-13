@@ -7,6 +7,8 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.MultipleChoiceQuestion;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Diamond;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gem;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
@@ -19,6 +21,10 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemEntity extends Actor implements HasInventory {
 
@@ -139,6 +145,26 @@ public class ItemEntity extends Actor implements HasInventory {
 		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat() - 1f, y.tofloat() - 1f);
 	}
 
+	public static final TextureRegion MULTI_CHOICE_QUESTION =
+			AssetManager.getTextureRegion("DawnLike/GUI/GUI0.png", 0, 0);
+	public static ItemEntity multipleChoiceQuestion(World w, float x, float y, String description, String... questions) {
+		return new ItemEntity(w,
+				"multipleChoiceQuestion",
+				MULTI_CHOICE_QUESTION,
+				new MultipleChoiceQuestion(w, description, questions),
+				x, y);
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Multiple Choice Question")
+	public static ItemEntity multipleChoiceQuestion(@Doc("World + x + y + descr + questions ...") Varargs args) {
+		return ItemEntity.multipleChoiceQuestion(
+				userDataOf(World.class,args.arg(1)),
+						args.arg(2).tofloat(),
+						args.arg(3).tofloat(),
+						args.arg(4).tojstring(),
+						Question.varargsToStringArr(args.subargs(5)));
+	}
+
 	@Override
 	@BindTo("inventory")
 	@Bind(value = SecurityLevel.ENTITY, doc = "Get the ItemEntity's inventory")
@@ -147,6 +173,8 @@ public class ItemEntity extends Actor implements HasInventory {
 	}
 
 	@Override
+	@BindTo("toString")
+	@Bind(value = SecurityLevel.NONE, doc = "Look at an Item Entity")
 	public String inspect() {
 		return String.format(
 				"%s %s",

@@ -134,7 +134,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				case "right":
 					return useRight();
 				default:
-					return false;
+					return useSelf();
 			}
 		}
 		else {
@@ -145,9 +145,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	@Override
 	@Bind(value=SecurityLevel.DEFAULT, doc="Contextually uses the Item on the caller. Action varies depending on the Item.")
 	public Boolean useSelf() {
-		final Entity owner = inventory.owner;
-		final Point2D.Float pos = owner.getPosition();
-		return owner.getWorld().tryUse(this, pos);
+		return item.applyTo(inventory.owner);
 	}
 
 	/**
