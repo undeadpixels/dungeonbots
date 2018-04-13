@@ -263,7 +263,12 @@ public class CodeInsertions {
 			if(newlinePlace > i) {
 				i = newlinePlace;
 			} else {
-				i = sb.lastIndexOf(" ", i + cols);
+				int nextI = sb.lastIndexOf(" ", i + cols);
+				if(i == nextI) {
+					i += cols;
+				} else {
+					i = nextI;
+				}
 			}
 			if(i == -1) break;
 			sb.replace(i, i + 1, "\n");
@@ -316,10 +321,12 @@ public class CodeInsertions {
 		};
 
 		replacerView.add(helpTextLabel);
+		replacerView.add(Box.createVerticalStrut(10));
 		replacerView.add(codeScroll);
+		replacerView.add(Box.createVerticalStrut(5));
 		replacerView.add(new JSeparator());
 		
-		replacerView.add(Box.createVerticalStrut(5));
+		replacerView.add(Box.createVerticalStrut(10));
 		
 		JPanel bottomBox = new JPanel();
 		GroupLayout groupLayout = new GroupLayout(bottomBox);
@@ -355,7 +362,8 @@ public class CodeInsertions {
 		
 		replacerView.add(bottomBox);
 		
-		int result = JOptionPane.showConfirmDialog(null, replacerView, entry.name, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
+		int result = JOptionPane.showConfirmDialog(null, replacerView, "Insert " + entry.name + "?",
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 		
 		if(result == JOptionPane.OK_OPTION) {
 			String text = codeArea.getText();
@@ -370,57 +378,65 @@ public class CodeInsertions {
 
 	public CodeInsertions() {
 		
+		// help
+		this.add("Help", "help()", "The help function returns everything accessible to this lua script environment. "
+				+ "If you're looking for help about the world, try help(world) or for information about what this entity can do,"
+				+ "try help(this).", "help()");
+		this.add("Help", "help(this)", "The help function help information about objects passed to it. "
+				+ "This command will show everything that this object can do.", "help(this)");
+		
 		// loops
 		this.add("Flow Control", "While loop", "While loops continue to repeat, while their given condition is met.",
 				  "while <Condition:boolean> do\n"
-				+ "  -- Your Code Here\n"
+				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "Repeat loop (\"do\")",
 				"Repeat loops (or \"do\") always execute once, and then continue executing until a condition triggers them to end.",
 				  "repeat\n"
-				+ "  -- Your Code Here\n"
+				+ "    -- Your Code Here\n"
 				+ "until <Condition:boolean>");
 		this.add("Flow Control", "For loop", 
 				"For loops execute a loop a given number of times.\n"
 				+ "Think of them as \"Execute this code for N repetitions\".",
-				  "for <Variable Name> = <Begin:int> , <End:int> do\n"
-				+ "  -- Your Code Here\n"
+				  "for <Variable Name> = <Begin:int>, <End:int> do\n"
+				+ "    -- Your Code Here\n"
 				+ "end");
-		this.add("Flow Control", "For loop with Increment", 
-				"This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
+		this.add("Flow Control", "For loop with Increment",
+				"For loops execute a loop a given number of times.\n"
+				+ "This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
 				+ "produces numbers separated by the given increment-by parameter.",
 				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
-				+ "  -- Your Code Here\n"
+				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
 				"A for-each loop will perform a given operation on each element of a table.\n"
 				+ "The key and value pair is given to indicate that myTable[key] = value.",
 				  "for key, value in pairs(<Table Name>) do\n"
-				+ "  -- Your Code Here\n"
+				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "If statement",
 				"If statements only execute code if a certain condition is met.",
 				  "if <Condition:boolean> then\n"
-				+ "  -- This runs if true\n"
+				+ "    -- This runs if true\n"
 				+ "end");
 		this.add("Flow Control", "If/Else statement",
 				"If statements only execute code if a certain condition is met.\n"
 				+ "An else clause allows alternate code to run if the condition is not met.",
 				  "if <Condition:boolean> then\n"
-				+ "  -- This runs if true\n"
+				+ "    -- This runs if true\n"
 				+ "else\n"
-				+ "  -- This runs if false\n"
+				+ "    -- This runs if false\n"
 				+ "end");
 		this.add("Flow Control", "If/Else-if statement",
 				"If statements only execute code if a certain condition is met.\n"
 				+ "An else-if clause only runs if the \"if\" clause didn't run and the given condition is met.\n"
 				+ "An else clause allows alternate code to run if none of conditions are met.",
 				  "if <Condition 1:boolean> then\n"
-				+ "  -- This runs if true\n"
+				+ "    -- This runs if true\n"
 				+ "elseif <Condition 2:boolean> then\n"
-				+ "  -- This runs if the next condition is true\n"
+				+ "    -- This runs if the next condition is true\n"
 				+ "else\n"
-				+ "  -- This runs if none of the above were true\n"
+				+ "    -- This runs if none of the above were true\n"
 				+ "end");
 
 		// functions
@@ -430,13 +446,13 @@ public class CodeInsertions {
 				+ "They just say to get out the flour that you got through some hidden process.\n"
 				+ "Likewise in programming, you can explain how to do something once (in a function), and then use that elsewhere.",
 				  "function f ()\n"
-				+ "  -- Your code here\n"
+				+ "    -- Your code here\n"
 				+ "end");
-		this.add("Functions", "Lambda-style",
+		this.add("Functions", "Lambda-style function",
 				"Functions are a nice way to organize your code.\n"
 				+ "Lambda expressions (and these lambda-like functions) are a more compact way to express functions.",
 				  "f = function ()\n"
-				+ "  -- Your code here\n"
+				+ "    -- Your code here\n"
 				+ "end");
 		
 		// comments
@@ -470,12 +486,13 @@ public class CodeInsertions {
 		this.add("Operators", "subtraction (-)", OPERATOR_HELP, "<A> - <B>");
 		this.add("Operators", "multiplication (*)", OPERATOR_HELP, "<A> * <B>");
 		this.add("Operators", "float division (/)", OPERATOR_HELP+"\n"
-				+ "The reason this is \"float division\" is because something like 1/2 = .5, "
-				+ "but when you're dealing with integers (see floor division) 1/2 = 0.",
+				+ "The reason this is \"float division\" is because something like 1/2 = .5. "
+				+ "In other programming languages division of integers always results in an integer (so 1/2 = 0, and 3/2 = 1), "
+				+ "but in lua, 1/2 = .5 and 3/2 = 1.5.",
 				"<A> / <B>");
-		this.add("Operators", "floor division (//)", OPERATOR_HELP+"\n"
-				+ "Floor division only handles integers, so 1/2 = 0.\n"
-				+ "For division where 1/2 = .5, see float division.", "<A> // <B>");
+		//this.add("Operators", "floor division (//)", OPERATOR_HELP+"\n"
+		//		+ "Floor division only handles integers, so 1/2 = 0.\n"
+		//		+ "For division where 1/2 = .5, see float division.", "<A> // <B>");
 		this.add("Operators", "modulo (%)", "The modulo operator is similar to the remainder from long devision.", "<A> % <B>");
 		this.add("Operators", "exponentiation (^)", OPERATOR_HELP, "<A> ^ <B>");
 		
@@ -539,9 +556,7 @@ public class CodeInsertions {
 	 */
 	public JTree makeTree (Consumer<String> action) {
 		JTree ret = new JTree(treeModel);
-		for(Object k : UIManager.getDefaults().keySet()) {
-			System.out.println(k);
-		}
+		ret.setToolTipText("Click on one of these insertions to see what it does");
 		
 		ret.setForeground(Color.white);
 		
@@ -602,6 +617,9 @@ public class CodeInsertions {
 			} catch (BadLocationException e1) {
 				e1.printStackTrace();
 			}
+			
+			
+			editor.requestFocusInWindow();
 		});
 		JScrollPane insertionScroller = new JScrollPane(codeInsertionTree);
 		insertionScroller.setBorder(BorderFactory.createTitledBorder("Insert:"));
