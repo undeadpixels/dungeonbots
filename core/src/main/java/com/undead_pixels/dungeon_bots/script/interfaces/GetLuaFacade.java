@@ -1,13 +1,17 @@
 package com.undead_pixels.dungeon_bots.script.interfaces;
+import com.undead_pixels.dungeon_bots.LuaDoc;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
-import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
-import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.luaj.vm2.LuaValue;
 
 import java.lang.reflect.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -17,9 +21,6 @@ import java.util.stream.Stream;
  */
 public interface GetLuaFacade {
 
-	int getId();
-	String getName();
-
 	/**
 	 * Get a LuaValue of this object.
 	 * @return A LuaTable decorated with LuaFunctions that will invoke the methods of <br>this object.
@@ -28,12 +29,9 @@ public interface GetLuaFacade {
 		return LuaProxyFactory.getLuaValue(this);
 	}
 
-	/**
-	 * Get a LuaBinding object that is a tuple containing the name and LuaValue of the desired binding.
-	 * @return A LuaBining for this object.
-	 */
-	default LuaBinding getLuaBinding() {
-		return new LuaBinding(getName(), getLuaValue());
+	@Bind(value = SecurityLevel.NONE, doc = "Return a String documenting the functionality of the invoked type")
+	default String help() {
+		return LuaDoc.docClassToString(this.getClass());
 	}
 
 	/**
@@ -111,4 +109,5 @@ public interface GetLuaFacade {
 				.map(BindTo::value)
 				.orElse(m.getName());
 	}
+
 }

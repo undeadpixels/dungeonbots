@@ -6,14 +6,14 @@ import org.jdesktop.swingx.auth.LoginService;
 import org.jdesktop.swingx.auth.PasswordStore;
 import org.jdesktop.swingx.auth.UserNameStore;
 
-import com.undead_pixels.dungeon_bots.ui.UIBuilder.ButtonBuilder;
-
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -24,9 +24,10 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
@@ -41,8 +42,33 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 
 public class UIBuilder {
+
+	protected static final String FIELD_ACTION = "action";
+	protected static final String FIELD_ACTION_COMMAND = "action_command";
+	protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
+	protected static final String FIELD_ALIGNMENT_X = "alignment_x";
+	protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
+	protected static final String FIELD_BACKGROUND = "background";
+	protected static final String FIELD_BORDER = "border";
+	protected static final String FIELD_ENABLED = "enabled";
+	protected static final String FIELD_FOCUSABLE = "focusable";
+	protected static final String FIELD_FOREGROUND = "foreground";
+	protected static final String FIELD_HORIZONTAL_TEXT_POSITION = "horizontal_text_position";
+	protected static final String FIELD_HOTKEY = "hotkey";
+	protected static final String FIELD_IMAGE = "image";
+	protected static final String FIELD_INSETS = "insets";
+	protected static final String FIELD_MAX_SIZE = "max_size";
+	protected static final String FIELD_MIN_SIZE = "min_size";
+	protected static final String FIELD_MNEMONIC = "mnemonic";
+	protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
+	protected static final String FIELD_TEXT = "text";
+	protected static final String FIELD_TOOLTIP = "tooltip";
+	protected static final String FIELD_VERTICAL_TEXT_POSITION = "vertical_text_position";
+	protected static final int DEFAULT_PREFERRED_WIDTH = -1;
+	protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
 
 	/**
 	 * Whether or not verbose messages will be printed. Verbose messages include:
@@ -109,6 +135,318 @@ public class UIBuilder {
 	}
 
 
+	public static final class LabelBuilder {
+
+		protected static abstract class PropertyBuilder<P> {
+
+			protected final P value;
+
+
+			public PropertyBuilder(P value) {
+				this.value = value;
+			}
+
+
+			public final void apply(JLabel label) {
+				apply(label, value);
+			}
+
+
+			protected abstract void apply(JLabel label, P value);
+		}
+
+
+		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
+
+
+		public final void reset() {
+			properties.clear();
+		}
+
+
+		public final LabelBuilder alignmentX(float alignment) {
+			properties.put(FIELD_ALIGNMENT_X, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(JLabel label, Float value) {
+					label.setAlignmentX(value);
+				}
+			});
+			return this;
+		}
+
+
+		public final LabelBuilder alignmentY(float alignment) {
+			properties.put(FIELD_ALIGNMENT_Y, new PropertyBuilder<Float>(alignment) {
+
+				@Override
+				public void apply(JLabel label, Float value) {
+					label.setAlignmentY(value);
+				}
+			});
+			return this;
+		}
+
+
+		/**Specifies the background color.*/
+		public final LabelBuilder background(Color color) {
+			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(JLabel label, Color color) {
+					label.setBackground(color);
+				}
+			});
+			return this;
+		}
+
+
+		public final LabelBuilder border(Border border) {
+			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
+
+				@Override
+				protected void apply(JLabel label, Border value) {
+					label.setBorder(value);
+				}
+			});
+			return this;
+		}
+
+
+		public final LabelBuilder enabled(boolean value) {
+			properties.put(FIELD_ENABLED, new PropertyBuilder<Boolean>(value) {
+
+				@Override
+				public void apply(JLabel label, Boolean value) {
+					label.setEnabled(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets focusability as specified. */
+		public final LabelBuilder focusable(boolean focusable) {
+			properties.put(FIELD_FOCUSABLE, new PropertyBuilder<Boolean>(focusable) {
+
+				@Override
+				public void apply(JLabel label, Boolean value) {
+					label.setFocusable(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/**Specifies the foreground color.*/
+		public final LabelBuilder foreground(Color color) {
+			properties.put(FIELD_FOREGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(JLabel label, Color color) {
+					label.setForeground(color);
+				}
+			});
+			return this;
+		}
+
+
+		/**
+		 * Specifies an image from the given filename to be displayed. If the
+		 * file could not be opened, sets the displayed text to the filename.
+		 * The image will fill the entire button.
+		 */
+		public final LabelBuilder image(String filename) {
+			return image(UIBuilder.getImage(filename));
+		}
+
+
+		/**
+		 * Specifies an image to be displayed. The image will fill the entire
+		 * button.
+		 */
+		public final LabelBuilder image(Image image) {
+			properties.put(FIELD_IMAGE, new PropertyBuilder<Image>(image) {
+
+				@Override
+				public void apply(JLabel label, Image img) {
+					label.setIcon(new ImageIcon(img));
+				}
+			});
+			return this;
+		}
+
+
+		/** Sets the maximum height as indicated. */
+		public LabelBuilder maxHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(-1, height));
+			else
+				return maxSize(new Dimension(existingMax.value.width, height));
+		}
+
+
+		/** Sets the maximum size as indicated. */
+		public LabelBuilder maxSize(int width, int height) {
+			return maxSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the maximum size as indicated. */
+		public LabelBuilder maxSize(Dimension size) {
+			properties.put(FIELD_MAX_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setMaximumSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the maximum width as indicated. */
+		public LabelBuilder maxWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingMax = (PropertyBuilder<Dimension>) properties.get(FIELD_MAX_SIZE);
+			if (existingMax == null)
+				return maxSize(new Dimension(width, -1));
+			else
+				return maxSize(new Dimension(width, existingMax.value.height));
+		}
+
+
+		/** Sets the minimum height as indicated. */
+		public LabelBuilder minHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(-1, height));
+			else
+				return minSize(new Dimension(existingmin.value.width, height));
+		}
+
+
+		/** Sets the minimum size as indicated. */
+		public LabelBuilder minSize(int width, int height) {
+			return minSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the minimum size as indicated. */
+		public LabelBuilder minSize(Dimension size) {
+			properties.put(FIELD_MIN_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setMinimumSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the minimum width as indicated. */
+		public LabelBuilder minWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingmin = (PropertyBuilder<Dimension>) properties.get(FIELD_MIN_SIZE);
+			if (existingmin == null)
+				return minSize(new Dimension(width, -1));
+			else
+				return minSize(new Dimension(width, existingmin.value.height));
+		}
+
+
+		/** Sets the preferred height as indicated. */
+		public LabelBuilder prefHeight(int height) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(-1, height));
+			else
+				return prefSize(new Dimension(existingpref.value.width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public LabelBuilder preferredSize(int width, int height) {
+			return prefSize(new Dimension(width, height));
+		}
+
+
+		/** Sets the preferred size as indicated. */
+		public LabelBuilder prefSize(Dimension size) {
+			properties.put(FIELD_PREFERRED_SIZE, new PropertyBuilder<Dimension>(size) {
+
+				@Override
+				public void apply(JLabel label, Dimension value) {
+					label.setPreferredSize(value);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Sets the preferred width as indicated. */
+		public LabelBuilder prefWidth(int width) {
+			@SuppressWarnings("unchecked")
+			PropertyBuilder<Dimension> existingpref = (PropertyBuilder<Dimension>) properties.get(FIELD_PREFERRED_SIZE);
+			if (existingpref == null)
+				return prefSize(new Dimension(width, -1));
+			else
+				return prefSize(new Dimension(width, existingpref.value.height));
+		}
+
+
+		/**
+		 * Specifies the given text to be displayed by buttons created by this
+		 * builder.
+		 */
+		public final LabelBuilder text(String text) {
+			properties.put(FIELD_TEXT, new PropertyBuilder<String>(text) {
+
+				@Override
+				public void apply(JLabel label, String txt) {
+					label.setText(txt);
+				}
+
+			});
+			return this;
+		}
+
+
+		/** Adds the given tooltip text to buttons created by this builder. */
+		public final LabelBuilder toolTip(String toolTipText) {
+			properties.put(FIELD_TOOLTIP, new PropertyBuilder<String>(toolTipText) {
+
+				@Override
+				public void apply(JLabel label, String t) {
+					label.setToolTipText(t);
+				}
+
+			});
+			return this;
+		}
+
+
+		public final JLabel create() {
+			JLabel lbl = new JLabel();
+			for (PropertyBuilder<?> p : properties.values())
+				p.apply(lbl);
+			return lbl;
+		}
+
+
+	}
+
+
 	/**
 	 * blah blah blah. Try this:
 	 * <p>
@@ -128,36 +466,18 @@ public class UIBuilder {
 			}
 
 
-			public final void apply(AbstractButton bttn){
+			public final void apply(AbstractButton bttn) {
 				apply(bttn, value);
 			}
+
+
 			protected abstract void apply(AbstractButton bttn, P value);
 		}
 
 
-		protected static final String FIELD_ACTION = "action";
-		protected static final String FIELD_ACTION_COMMAND = "action_command";
-		protected static final String FIELD_ACTION_LISTENER = "action_command_listener";
-		protected static final String FIELD_ALIGNMENT_X = "alignment_x";
-		protected static final String FIELD_ALIGNMENT_Y = "alignment_x";
-		protected static final String FIELD_ENABLED = "enabled";
-		protected static final String FIELD_FOCUSABLE = "focusable";
-		protected static final String FIELD_HOTKEY = "hotkey";
-		protected static final String FIELD_IMAGE = "image";
-		protected static final String FIELD_INSETS = "insets";
-		protected static final String FIELD_MAX_SIZE = "max_size";
-		protected static final String FIELD_MIN_SIZE = "min_size";
-		protected static final String FIELD_MNEMONIC = "mnemonic";
-		protected static final String FIELD_PREFERRED_SIZE = "preferred_size";
-		protected static final String FIELD_TEXT = "text";
-		protected static final String FIELD_TOOLTIP = "tooltip";
-
-		protected static final int DEFAULT_PREFERRED_WIDTH = -1;
-		protected static final int DEFAULT_PREFERRED_HEIGHT = -1;
-
 		// protected HashMap<String, Object> settings = new HashMap<String,
 		// Object>();
-		protected HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
+		protected final HashMap<String, PropertyBuilder<?>> properties = new HashMap<String, PropertyBuilder<?>>();
 
 
 		/** Clears all settings from this ButtonBuilder. */
@@ -241,6 +561,31 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the background color.*/
+		public final ButtonBuilder<T> background(Color color) {
+			properties.put(FIELD_BACKGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setBackground(color);
+				}
+			});
+			return this;
+		}
+
+
+		public final ButtonBuilder<T> border(Border border) {
+			properties.put(FIELD_BORDER, new PropertyBuilder<Border>(border) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Border value) {
+					bttn.setBorder(value);
+				}
+			});
+			return this;
+		}
+
+
 		public final ButtonBuilder<T> enabled(boolean value) {
 			properties.put(FIELD_ENABLED, new PropertyBuilder<Boolean>(value) {
 
@@ -263,6 +608,19 @@ public class UIBuilder {
 					bttn.setFocusable(value);
 				}
 
+			});
+			return this;
+		}
+
+
+		/**Specifies the foreground color.*/
+		public final ButtonBuilder<T> foreground(Color color) {
+			properties.put(FIELD_FOREGROUND, new PropertyBuilder<Color>(color) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Color color) {
+					bttn.setForeground(color);
+				}
 			});
 			return this;
 		}
@@ -316,6 +674,22 @@ public class UIBuilder {
 		 */
 		public final ButtonBuilder<T> hotkey(int keyEvent, int modifiers) {
 			return hotkey(KeyStroke.getKeyStroke(keyEvent, modifiers));
+		}
+
+
+		/**Specifies the horizontal position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.LEFT.*/
+		public final ButtonBuilder<T> horizontalTextPosition(int swingConstant) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setHorizontalTextPosition(swingConstant);
+				}
+
+			});
+			return this;
 		}
 
 
@@ -493,9 +867,6 @@ public class UIBuilder {
 		}
 
 
-		
-		
-		
 		/** Sets the minimum height as indicated. */
 		public ButtonBuilder<T> minHeight(int height) {
 			@SuppressWarnings("unchecked")
@@ -537,15 +908,18 @@ public class UIBuilder {
 				return minSize(new Dimension(width, existingmin.value.height));
 		}
 
+
 		public final ButtonBuilder<T> mnemonic(char mnemonic) {
-			properties.put(FIELD_MNEMONIC, new PropertyBuilder<Character>(mnemonic){
+			properties.put(FIELD_MNEMONIC, new PropertyBuilder<Character>(mnemonic) {
+
 				@Override
 				public void apply(AbstractButton bttn, Character value) {
 					bttn.setMnemonic(value);
-				}				
+				}
 			});
 			return this;
 		}
+
 
 		/** Sets the preferred height as indicated. */
 		public ButtonBuilder<T> prefHeight(int height) {
@@ -587,19 +961,42 @@ public class UIBuilder {
 			else
 				return prefSize(new Dimension(width, existingpref.value.height));
 		}
-		
 
 
 		/**
 		 * Specifies the given text to be displayed by buttons created by this
 		 * builder.
 		 */
-		public final ButtonBuilder<T> text(String text) {			
+		public final ButtonBuilder<T> text(String text) {
 			properties.put(FIELD_TEXT, new PropertyBuilder<String>(text) {
 
 				@Override
 				public void apply(AbstractButton bttn, String txt) {
 					bttn.setText(txt);
+				}
+
+			});
+			return this;
+		}
+
+
+		/**Specifies the horizontal and vertical position of text in relation to set images.  
+		 * The values supplied should be one of the SwingConstants.  Default values are 
+		 * SwingConstants.LEFT and SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> textPosition(int horizontal, int vertical) {
+			properties.put(FIELD_HORIZONTAL_TEXT_POSITION, new PropertyBuilder<Integer>(horizontal) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer horizontal) {
+					bttn.setHorizontalTextPosition(horizontal);
+				}
+
+			});
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(vertical) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer vertical) {
+					bttn.setVerticalTextPosition(vertical);
 				}
 
 			});
@@ -621,6 +1018,21 @@ public class UIBuilder {
 		}
 
 
+		/**Specifies the vertical position of text in relation to set images.  
+		 * The value supplied should be one of the SwingConstants.  Default value is 
+		 * SwingConstants.CENTER.*/
+		public final ButtonBuilder<T> verticalTextPosition(int swingConstant) {
+			properties.put(FIELD_VERTICAL_TEXT_POSITION, new PropertyBuilder<Integer>(swingConstant) {
+
+				@Override
+				protected void apply(AbstractButton bttn, Integer value) {
+					bttn.setVerticalTextPosition(swingConstant);
+				}
+
+			});
+			return this;
+		}
+
 
 		/**
 		 * Create an uninitialized button as it is defined in Swing, for example
@@ -639,9 +1051,9 @@ public class UIBuilder {
 			// Apply all set properties to the new button.
 			for (PropertyBuilder<?> p : properties.values())
 				p.apply(bttn);
-		
+
 			// The 'enter' key should do the same as the 'space' key.
-			//TODO:  Should this be hard-coded, or an option?
+			// TODO: Should this be hard-coded, or an option?
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, false)),
 					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), JComponent.WHEN_FOCUSED);
 			bttn.registerKeyboardAction(bttn.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true)),
@@ -666,6 +1078,7 @@ public class UIBuilder {
 
 		protected static final String FIELD_ACCELERATOR = "accelerator";
 
+
 		// TODO: a templating system for child menus?
 
 		@Override
@@ -675,17 +1088,16 @@ public class UIBuilder {
 
 
 		public final MenuBuilder accelerator(KeyStroke accelerator) {
-			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+			properties.put(FIELD_ACCELERATOR, new PropertyBuilder<KeyStroke>(accelerator) {
 
 				@Override
 				protected void apply(AbstractButton bttn, KeyStroke value) {
-					((JMenu)bttn).setAccelerator(value);
+					((JMenu) bttn).setAccelerator(value);
 				}
-				
+
 			});
 			return this;
 		}
-
 
 
 		public final MenuBuilder accelerator(int key, int mask) {
@@ -700,24 +1112,23 @@ public class UIBuilder {
 		protected static final String FIELD_ACCELERATOR = "accelerator";
 
 
-
 		@Override
 		protected JMenuItem createUninitialized() {
 			return new JMenuItem();
 		}
 
+
 		public final MenuItemBuilder accelerator(KeyStroke accelerator) {
-			properties.put(FIELD_ACCELERATOR,  new PropertyBuilder<KeyStroke>(accelerator){
+			properties.put(FIELD_ACCELERATOR, new PropertyBuilder<KeyStroke>(accelerator) {
 
 				@Override
 				protected void apply(AbstractButton bttn, KeyStroke value) {
-					((JMenuItem)bttn).setAccelerator(value);
+					((JMenuItem) bttn).setAccelerator(value);
 				}
-				
+
 			});
 			return this;
 		}
-		
 
 
 		public final MenuItemBuilder accelerator(int key, int mask) {
@@ -745,15 +1156,15 @@ public class UIBuilder {
 	}
 
 
-	/**
-	 * Returns a builder for a JToggleButton. The builder pattern will allow the
-	 * following call:
-	 * <p>
-	 * JToggleButton t = buildToggleButton().text("I'm a
-	 * button").action("CLICK", listener).create();
-	 */
-	public static ToggleButtonBuilder buildToggleButton() {
-		return new ToggleButtonBuilder();
+	/**Returns a builder for a JLabel.*/
+	public static LabelBuilder buildLabel() {
+		return new LabelBuilder();
+	}
+
+
+	/**Returns a builder for a JMenu.*/
+	public static MenuBuilder buildMenu() {
+		return new MenuBuilder();
 	}
 
 
@@ -765,44 +1176,15 @@ public class UIBuilder {
 	}
 
 
-	/**Returns a builder for a JMenu.*/
-	public static MenuBuilder buildMenu() {
-		return new MenuBuilder();
-	}
-
-
 	/**
-	 * Creates a menu item with the given header, that responds to the given
-	 * accelerator and mnemonic. The accelerator is a key chord that will invoke
-	 * the item even if the menu is not open. The mnemonic is the underlined
-	 * letter of a menu item. The command conveyed to the listener will be the
-	 * header.
+	 * Returns a builder for a JToggleButton. The builder pattern will allow the
+	 * following call:
+	 * <p>
+	 * JToggleButton t = buildToggleButton().text("I'm a
+	 * button").action("CLICK", listener).create();
 	 */
-	@Deprecated
-	public static JMenuItem makeMenuItem(String header, KeyStroke accelerator, int mnemonic, ActionListener listener) {
-		JMenuItem result = new JMenuItem(header);
-
-		if (accelerator != null) {
-			result.setAccelerator(accelerator);
-		}
-
-		if (mnemonic != 0)
-			result.setMnemonic(mnemonic);
-
-		result.setActionCommand(header);
-		result.addActionListener(listener);
-
-		return result;
-	}
-
-
-	/**
-	 * Creates a menu item with the given header. The command conveyed to the
-	 * listener will be the header.
-	 */
-	@Deprecated
-	public static JMenuItem makeMenuItem(String header, ActionListener listener) {
-		return makeMenuItem(header, null, 0, listener);
+	public static ToggleButtonBuilder buildToggleButton() {
+		return new ToggleButtonBuilder();
 	}
 
 
@@ -869,36 +1251,98 @@ public class UIBuilder {
 
 
 	/** The cached GUI images. */
-	private static HashMap<String, Image> _Images = new HashMap<String, Image>();
+	private static final HashMap<String, Image> _Images = new HashMap<String, Image>();
 
 
 	/**
 	 * Gets an Image based on the image at the given location. Also, caches
 	 * loaded images so that a call to the same image resource will not load it
 	 * twice. If no image exists at the given location, returns null and prints
-	 * a missing resource message to System.err.
+	 * a missing resource message to System.err (when verbose is on).
 	 */
 	public static Image getImage(String filename) {
+		return getImage(filename, false);
+	}
+
+
+	/**
+	 * Gets an Image based on the image at the given location. Also, caches
+	 * loaded images so that a call to the same image resource will not load it
+	 * twice. If no image exists at the given location, returns null and prints
+	 * a missing resource message to System.err (when verbose is on).
+	 * @param absolute Whether or not the absolute filename is given.  If true, 
+	 * will simply look for the given filename.  If false, will look for the 
+	 * file in the current working directory.
+	 */
+	public static Image getImage(String filename, boolean absolute) {
+		filename = filename.toLowerCase();
 		if (filename == null || filename.equals(""))
 			return null;
-
 		if (_Images.containsKey(filename))
 			return _Images.get(filename);
-
-		String path = System.getProperty("user.dir") + "/" + filename;
+		String path = absolute ? filename : System.getProperty("user.dir") + "/" + filename;
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(path));
 		} catch (IOException ioex) {
 			if (verbose)
-				System.err.println("Image resource missing: " + path);
+				System.err.println("Image resource missing: " + filename + "\t" + ioex.getMessage());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
-		_Images.put(filename, img);
-
+		if (img != null)
+			_Images.put(filename, img);
 		return img;
+	}
+
+
+	public static Image getImage(URL url) {
+		if (url == null)
+			return null;
+		if (_Images.containsKey(url.toString()))
+			return _Images.get(url);
+		BufferedImage img = null;
+		try {
+			img = ImageIO.read(url);
+		} catch (IOException ioex) {
+			if (verbose)
+				System.err.println("Image resource failed to download: " + url + "\t" + ioex.getMessage());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		if (img != null)
+			_Images.put(url.toString(), img);
+		return img;
+	}
+
+
+	private static final HashMap<String, Font> _Fonts = new HashMap<String, Font>();
+
+
+	public static Font getFont(String filename) {
+		return getFont(filename, false);
+	}
+
+
+	public static Font getFont(String filename, boolean absolute) {
+		filename = filename.toLowerCase();
+		if (filename == null || filename.equals(""))
+			return null;
+		if (_Fonts.containsKey(filename))
+			return _Fonts.get(filename);
+		String path = absolute ? filename : System.getProperty("user.dir") + "/" + filename;
+		Font f = null;
+		try {
+			f = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path));
+			_Fonts.put(filename, f);
+			return f;
+		} catch (IOException ex) {
+			if (verbose)
+				System.err.println("Font resource missing: " + filename);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return null;
 	}
 
 

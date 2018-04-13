@@ -1,8 +1,10 @@
 package com.undead_pixels.dungeon_bots.script.proxy;
 
+import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
+import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
 import com.undead_pixels.dungeon_bots.script.interfaces.*;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
@@ -43,6 +45,9 @@ public class LuaProxyFactory {
 	public static <T extends GetLuaFacade> LuaValue getLuaValue(final T src) {
 		final LuaTable t = new LuaTable();
 		t.set("this", LuaValue.userdataOf(src));
+		t.set("type", LuaValue.valueOf(Optional.ofNullable(src.getClass().getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(src.getClass().getSimpleName())));
 		/* Use reflection to find and bind any methods annotated using @Bind
 		 *  that have the appropriate security level */
 		src.getBindableMethods()
@@ -69,19 +74,6 @@ public class LuaProxyFactory {
 		return proxy;
 	}
 
-
-	/**
-	 * Generates a LuaBinding associated with the target objects
-	 * that has been decorated with LuaFunctions that can invoke
-	 * methods of the target object that have been annotated with @Bind.
-	 * @param src The target object
-	 * @param <T> A Type that implements GetLuaFacade
-	 * @return A LuaBinding to the src object
-	 */
-	public static <T extends GetLuaFacade> LuaBinding getBindings(final T src) {
-		return new LuaBinding(src.getName(), src.getLuaValue());
-	}
-
 	/**
 	 * Generates a LuaBinding that contains a name and LuaValue that can invoke methods of the target class
 	 * @param src The target class
@@ -90,6 +82,12 @@ public class LuaProxyFactory {
 	 */
 	public static <T extends GetLuaFacade> LuaBinding getBindings(final Class<T> src) {
 		final LuaTable t = new LuaTable();
+		final String name = Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
+				.map(BindTo::value)
+				.orElse(src.getSimpleName());
+
+		t.set("class", LuaValue.userdataOf(src));
+		t.set("name", LuaValue.valueOf(name));
 		/* Use reflection to find and bind any methods annotated using @BindMethod
 		 *  that have the appropriate security level */
 		GetLuaFacade.getBindableStaticMethods(src)
@@ -106,10 +104,7 @@ public class LuaProxyFactory {
 					}
 					catch (Exception e) { }
 				});
-		return new LuaBinding(
-				Optional.ofNullable(src.getDeclaredAnnotation(BindTo.class))
-						.map(BindTo::value)
-						.orElse(src.getSimpleName()), t);
+		return new LuaBinding(name, t);
 	}
 
 	private static Stream<Class<?>> getAllInterfaces(final Class<?> c) {
@@ -184,7 +179,7 @@ public class LuaProxyFactory {
 		final Class<?> returnType = m.getReturnType();
 
 		// All Java to LuaBindings are created as VarArgFunction objects
-		class Vararg extends VarArgFunction {
+		class Vararg extends VarArgFunction implements NonReflectiveDoc {
 			@Override
 			public Varargs invoke(Varargs args) {
 				try {
@@ -198,6 +193,14 @@ public class LuaProxyFactory {
 					ex.printStackTrace();
 					return LuaValue.error(ex.toString());
 				}
+			}
+
+			/* (non-Javadoc)
+			 * @see com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc#doc()
+			 */
+			@Override
+			public String doc () {
+				return LuaDoc.docMethodToString(m);
 			}
 		}
 		return CoerceJavaToLua.coerce(new Vararg());

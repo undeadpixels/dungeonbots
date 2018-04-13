@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 
 import org.junit.Assert;
 
@@ -131,7 +132,9 @@ public class RenderTest {
 
 		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
-		World world = new World(new File(levelName));
+		LevelPack levelPack = LevelPack.fromFile(levelName);
+		World world = levelPack.getCurrentWorld();
+		world.runInitScripts();
 		RenderingContext batch = new RenderingContext(img.createGraphics(), img.getWidth(), img.getHeight());
 		OrthographicCamera cam = new OrthographicCamera(w, h);
 		
@@ -149,7 +152,7 @@ public class RenderTest {
 	
 	@Test
 	public void drawLevel1() {
-		ColorBuckets histo = createAndHistoWorld(800, 600, "level1.lua");
+		ColorBuckets histo = createAndHistoWorld(800, 600, "legacy_level1.json");
 		histo.printHistogram();
 
 
@@ -162,7 +165,7 @@ public class RenderTest {
 	
 	@Test
 	public void drawMaze1() {
-		ColorBuckets histo = createAndHistoWorld(800, 600, "maze1.lua");
+		ColorBuckets histo = createAndHistoWorld(800, 600, "legacy_maze1.json");
 		histo.printHistogram();
 
 
@@ -175,7 +178,7 @@ public class RenderTest {
 	
 	@Test
 	public void drawMaze2() {
-		ColorBuckets histo = createAndHistoWorld(800, 600, "maze2.lua");
+		ColorBuckets histo = createAndHistoWorld(800, 600, "legacy_maze2.json");
 		histo.printHistogram();
 
 

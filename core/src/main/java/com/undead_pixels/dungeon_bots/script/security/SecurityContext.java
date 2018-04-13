@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script.security;
 
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -33,9 +34,7 @@ public class SecurityContext {
 	 * A player-level or author-level security context for a given entity.
 	 * 
 	 * The actual level is determined by the entity's team.
-	 * 
-	 * @param whitelist
-	 * @param securityLevel
+	 *
 	 * @param entity
 	 */
 	public SecurityContext(Entity entity) {
@@ -47,6 +46,8 @@ public class SecurityContext {
 			this.securityLevel = SecurityLevel.AUTHOR;
 			break;
 		case PLAYER:
+			this.securityLevel = SecurityLevel.TEAM;
+			break;
 		case NONE:
 		default:
 			this.securityLevel = SecurityLevel.NONE;
@@ -59,8 +60,6 @@ public class SecurityContext {
 
 	/**
 	 * An author-level security context for the world
-	 * @param whitelist
-	 * @param securityLevel
 	 * @param world
 	 */
 	public SecurityContext(World world) {
@@ -77,7 +76,6 @@ public class SecurityContext {
 		
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
-		// TODO - just have an interface to get team and entity owners
 		if(o instanceof HasEntity) {
 			Entity e = ((HasEntity)o).getEntity();
 			if(e != null) {
@@ -124,5 +122,19 @@ public class SecurityContext {
 	 */
 	public Entity getEntity () {
 		return entity;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getOwnerName () {
+		if(entity != null) {
+			return entity.getName();
+		}
+		return "world";
+	}
+
+public Optional<World> getWorld() {
+		return Optional.ofNullable(world);
 	}
 }

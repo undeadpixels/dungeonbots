@@ -4,6 +4,7 @@ import com.undead_pixels.dungeon_bots.math.Cartesian;
 import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.World.StringEventType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.ui.screens.Tool;
@@ -15,11 +16,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 /**
  * The screen for the regular game
@@ -41,40 +51,138 @@ public class WorldView extends JComponent {
 	private transient Tile[] selectedTiles = null;
 	private transient Entity[] selectedEntities = null;
 	private Tool renderingTool = null;
+	private boolean isPlaying = false;
+	private final Timer timer;
+	private final Consumer<World> winAction;
 
-	/*
-	 * @Deprecated public WorldView() { // world = new World(new //
-	 * File("sample-level-packs/sample-pack-1/levels/level1.lua")); world = new
-	 * World(new File("sample-level-packs/sample-pack-1/levels/level2.lua"));
-	 * 
-	 * this.setPreferredSize(new Dimension(9999, 9999));
-	 * 
-	 * this.setFocusable(true); this.requestFocusInWindow(); }
-	 */
-
-	public WorldView(World world) {
+	public WorldView(World world, Consumer<World> winAction) {
 		this.world = world;
+		this.winAction = winAction;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
 
 		this.setPreferredSize(new Dimension(9999, 9999));
+
+		timer = new Timer(16, new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (WorldView.this.world != null) {
+					long nowTime = System.nanoTime();
+					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
+
+					if (dt > 1_000_000_000.0f) {
+						dt = 1_000_000_000; // cap dt at 1 second
+					}
+
+					lastTime = nowTime;
+					WorldView.this.world.update(dt);
+
+					if (WorldView.this.world.isWon()) {
+						timer.stop();
+						winAction.accept(world);
+					}
+				}
+
+				repaint();
+			}
+
+		});
+
+		if (world.isPlayOnStart()) {
+			setPlaying(true);
+		}
+
+		timer.start();
+
+		this.setFocusable(true);
+		this.requestFocusInWindow();
+		
+		this.addHierarchyListener(new HierarchyListener() {
+			public void hierarchyChanged(HierarchyEvent e) {
+				if((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+					if(WorldView.this.isShowing()) {
+						WorldView.this.requestFocusInWindow();
+						timer.start();
+					} else {
+						timer.stop();
+					}
+				}
+			}
+		});
+		this.addAncestorListener(new AncestorListener() {
+
+			@Override
+			public void ancestorAdded (AncestorEvent event) {
+				timer.start();
+			}
+
+			@Override
+			public void ancestorRemoved (AncestorEvent event) {
+				timer.stop();
+				System.out.println(requestFocusInWindow());
+			}
+
+			@Override
+			public void ancestorMoved (AncestorEvent event) {
+				
+			}
+			
+		});
+
+		this.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped (KeyEvent e) {
+			}
+			
+			String lookupKeycode(KeyEvent e) {
+
+				switch(e.getKeyCode()) {
+					case KeyEvent.VK_UP:
+						return "up";
+					case KeyEvent.VK_DOWN:
+						return "down";
+					case KeyEvent.VK_LEFT:
+						return "left";
+					case KeyEvent.VK_RIGHT:
+						return "right";
+					default:
+						char c = e.getKeyChar();
+						if(c == KeyEvent.CHAR_UNDEFINED) {
+							return null;
+						} else {
+							return ""+c;
+						}
+				}
+			}
+
+			@Override
+			public void keyPressed (KeyEvent e) {
+				String key = lookupKeycode(e);
+				if(key != null) {
+					world.fire(StringEventType.KEY_PRESSED, key);
+				}
+			}
+
+			@Override
+			public void keyReleased (KeyEvent e) {
+				String key = lookupKeycode(e);
+				if(key != null) {
+					world.fire(StringEventType.KEY_RELEASED, key);
+				}
+			}
+			
+		});
 	}
+
 
 	/**
 	 * Renders the world using the camera transform specific to this WorldView
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-
-		long nowTime = System.nanoTime();
-		float dt = (nowTime - lastTime) / 1_000_000_000.0f;
-		lastTime = nowTime;
-
-		// TODO - move this update() thing elsewhere.
-		if (world != null) {
-			world.update(dt);
-		}
 
 		try {
 			Graphics2D g2d = (Graphics2D) g;
@@ -120,45 +228,31 @@ public class WorldView extends JComponent {
 			renderSelectedTiles(g2d, batch);
 			renderSelectedEntities(g2d, batch);
 			if (renderingTool != null)
-				renderingTool.render(g2d);
+				renderingTool.render(g2d, batch);
 
 		} catch (ClassCastException ex) {
 			ex.printStackTrace();
 		}
-
-		// TODO - this should live elsewhere, but it'll at least help cap fps
-		// for now.
-		long spareTime = 15_000_000 - (System.nanoTime() - lastTime);
-		int sleepTime = (int) (spareTime / 1000_000);
-		// System.out.println("DT = "+dt+", sleep = "+sleepTime);
-		if (sleepTime > 0) {
-			Timer t = new Timer(sleepTime, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					repaint();
-				}
-			});
-			t.setRepeats(false);
-			t.start();
-		} else {
-			repaint();
-		}
 	}
+
 
 	/** Returns the camera being used to view the world. */
 	public OrthographicCamera getCamera() {
 		return cam;
 	}
 
+
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(double screenX, double screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
 	}
 
+
 	/** Returns the given screen coordinates, translated into game space. */
 	public Point2D.Float getScreenToGameCoords(int screenX, int screenY) {
 		return cam.unproject((float) screenX, (float) screenY);
 	}
+
 
 	/**
 	 * Returns a rectangle defined by the given corner points, translated into
@@ -168,19 +262,36 @@ public class WorldView extends JComponent {
 		Point2D.Float pt1 = cam.unproject((float) x1, (float) y1);
 		Point2D.Float pt2 = cam.unproject((float) x2, (float) y2);
 
-		return Cartesian.makeRectangle(pt1,  pt2);
-		
+		return Cartesian.makeRectangle(pt1, pt2);
+
 	}
+
 
 	/** Returns the world currently being viewed. */
 	public World getWorld() {
 		return world;
 	}
 
+
 	/** Sets the world to be viewed. */
 	public void setWorld(World world) {
 		this.world = world;
+
+		setPlaying(world.isPlayOnStart());
 	}
+
+
+	/**Returns whether the grid is being displayed.*/
+	public boolean getShowGrid() {
+		return this.showGrid;
+	}
+
+
+	/**Sets whether to display the grid.*/
+	public void setShowGrid(boolean value) {
+		this.showGrid = value;
+	}
+
 
 	// ==================================================
 	// ======= WorldView SELECTION STUFF ================
@@ -191,10 +302,12 @@ public class WorldView extends JComponent {
 		return selectedTiles.clone();
 	}
 
+
 	/** Sets the selected tiles to an array copy of the indicated collection. */
 	public void setSelectedTiles(Tile[] newTiles) {
 		selectedTiles = newTiles;
 	}
+
 
 	private void renderSelectedTiles(Graphics2D g2d, RenderingContext batch) {
 		Tile[] st = this.selectedTiles;
@@ -213,10 +326,12 @@ public class WorldView extends JComponent {
 		}
 	}
 
+
 	/** Returns a copied array of the selected entities. */
 	public Entity[] getSelectedEntities() {
 		return selectedEntities.clone();
 	}
+
 
 	/**
 	 * Sets the selected entities to an array copy of the indicated collection.
@@ -224,6 +339,7 @@ public class WorldView extends JComponent {
 	public void setSelectedEntities(Entity[] newEntities) {
 		selectedEntities = newEntities;
 	}
+
 
 	private void renderSelectedEntities(Graphics2D g2d, RenderingContext batch) {
 		Entity[] se = this.selectedEntities;
@@ -242,15 +358,18 @@ public class WorldView extends JComponent {
 		}
 	}
 
+
 	/** Returns the scribbling render tool. */
-	public Tool getRenderingTool() {
+	public Tool getAdornmentTool() {
 		return renderingTool;
 	}
 
+
 	/** Sets the scribbling render tool. */
-	public void setRenderingTool(Tool tool) {
+	public void setAdornmentTool(Tool tool) {
 		this.renderingTool = tool;
 	}
+
 
 	/** Returns whether the given entity is selected. */
 	public boolean isSelectedEntity(Entity e) {
@@ -264,6 +383,7 @@ public class WorldView extends JComponent {
 		return false;
 	}
 
+
 	/** Returns whether the given tile is selected. */
 	public boolean isSelectedTile(Tile tile) {
 		Tile[] selected = selectedTiles;
@@ -274,8 +394,6 @@ public class WorldView extends JComponent {
 				return true;
 		return false;
 	}
-	
-
 
 
 	/**
@@ -296,6 +414,24 @@ public class WorldView extends JComponent {
 				return true;
 		}
 		return false;
+	}
+
+
+	/**
+	 * @param isPlaying
+	 */
+	public void setPlaying(boolean isPlaying) {
+		this.isPlaying = isPlaying;
+
+		if (isPlaying) {
+			world.runInitScripts();
+		}
+	}
+
+
+	/**Returns whether this WorldView is current playing.*/
+	public boolean getPlaying() {
+		return this.isPlaying;
 	}
 
 }

@@ -62,6 +62,8 @@ public class UndoStack {
 
 	/**Add an Undoable to the undo stack.  Doing so will clear the redo stack.*/
 	public void push(Undoable<?> u) {
+		if (u == null)
+			throw new RuntimeException("A null undoable cannot be pushed on the stack.");
 		_Lock.lock();
 		try {
 			_Undoables.addLast(u);
@@ -75,9 +77,21 @@ public class UndoStack {
 	}
 
 
+	/**Clears both the undo and the redo stacks.*/
+	public void clear() {
+		_Lock.lock();
+		try {
+			_Undoables.clear();
+			_Redoables.clear();
+		} finally {
+			_Lock.unlock();
+		}
+	}
+
+
 	/**Returns the next Undoable on the stack (which will be added to the internal redo stack for later redo() ).
 	 * Use this function to find the next action to undo.  If no such item for undo is present, returns null.*/
-	public Undoable<?> nextUndo() {
+	public Undoable<?> popUndo() {
 
 		_Lock.lock();
 		try {
@@ -95,7 +109,7 @@ public class UndoStack {
 
 	/** Returns the next Undoable on the internal redo stack (which will be added to the undo stack for later undo() ).
 	 * Use this function to find the next action to redo.  If no such item for redo is present, returns null.*/
-	public Undoable<?> nextRedo() {
+	public Undoable<?> popRedo() {
 		if (_Redoables.size() == 0)
 			return null;
 		_Lock.lock();
@@ -132,4 +146,6 @@ public class UndoStack {
 		}
 
 	}
+
+
 }

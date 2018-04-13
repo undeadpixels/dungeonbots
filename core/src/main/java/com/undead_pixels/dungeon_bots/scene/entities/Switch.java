@@ -1,9 +1,13 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 
+@Doc("A Switch is an Entity that's contextual use function invokes a event")
 public class Switch extends SpriteEntity implements Useable {
 	
 	/**
@@ -26,7 +30,18 @@ public class Switch extends SpriteEntity implements Useable {
 	}
 
 	@Override
+	public TeamFlavor getTeam() {
+		return TeamFlavor.AUTHOR;
+	}
+
+	@Override
 	public Boolean use() {
-		return null;
+		// Signal appropriate observer to invoke onUse script if present
+		return false;
+	}
+
+	@Override
+	public String inspect() {
+		return this.getClass().getSimpleName();
 	}
 }

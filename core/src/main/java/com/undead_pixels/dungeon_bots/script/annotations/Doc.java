@@ -8,5 +8,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Doc {
-	String value() default "";
+	String value();
+	String name() default "";
 }

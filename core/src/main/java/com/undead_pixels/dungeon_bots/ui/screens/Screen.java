@@ -8,7 +8,6 @@ import java.awt.event.ContainerListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowListener;
 import java.beans.PropertyChangeListener;
 import java.beans.VetoableChangeListener;
 import java.util.HashMap;
@@ -17,13 +16,13 @@ import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.ListModel;
 import javax.swing.event.AncestorListener;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
  * Defines GUI and control interface. A protected GUI state can be stored.
@@ -31,6 +30,11 @@ import com.undead_pixels.dungeon_bots.scene.World;
  */
 public abstract class Screen extends JFrame {
 
+	// NOTE - these really should be in only the screens where it's actually relevant
+	// for example, the main menu does not need them, and they are duplicated other places.
+	protected LevelPack levelPack;
+	protected World world;
+	
 	/**
 	 * 
 	 */
@@ -46,10 +50,25 @@ public abstract class Screen extends JFrame {
 
 	protected Screen() {
 		super();
+		this.world = null;
+		this.levelPack = null;
+	}
+	
+	protected Screen(LevelPack levelPack){
+		super();
+		this.world = (this.levelPack = levelPack).getCurrentWorld();		
+	}
+	
+	/**NOTE:  this constructur should not be used, as every level should have an associated World*/
+	@Deprecated
+	protected Screen (World world){
+		this.world = world;
+		this.levelPack = null;
 	}
 
 
 	public void setup() {
+		this.setIconImage(UIBuilder.getImage("images/sprite.jpg"));
 		this._Controller = this.makeController();
 		this.setDefaultLayout();
 		this.addComponents(this.getContentPane());
@@ -109,12 +128,11 @@ public abstract class Screen extends JFrame {
 	 * Screen will not be chock-full of irrelevant event handlers. This class
 	 * must be extended in any class that inherits from Screen.
 	 */
-	protected abstract class ScreenController
-			implements MouseInputListener, KeyListener, ActionListener, ChangeListener {
+	protected abstract class ScreenController implements ActionListener {
 
 		/**A convenience function that registers this controller as a listener for all applicable listening runtime types.  
 		 * TODO:  cut out the ones that aren't actually used.*/
-		public void registerSignals(Component signaller) {
+		public void registerSignalsFrom(Component signaller) {
 			if (this instanceof MouseInputListener)
 				signaller.addMouseListener((MouseInputListener) this);
 			if (this instanceof MouseWheelListener)

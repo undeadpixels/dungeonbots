@@ -1,11 +1,15 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.Weapon;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.weapons.WeaponStats;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
@@ -51,8 +55,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	
 	/**
 	 * The text associated with this actor
-	 * 
-	 * TODO - this might want to be refactored eventually
 	 */
 	private FloatingText floatingText;
 
@@ -60,7 +62,28 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * Relative directions (although effectively cardinal directions since the screen doesn't rotate)
 	 */
 	public enum Direction {
-		UP, DOWN, LEFT, RIGHT
+		UP, DOWN, LEFT, RIGHT;
+
+		/**
+		 * @param dx
+		 * @param dy
+		 * @return
+		 */
+		public static Direction byDelta (float dx, float dy) {
+			if(Math.abs(dx) > Math.abs(dy)) {
+				if(dx > 0) {
+					return RIGHT;
+				} else {
+					return LEFT;
+				}
+			} else {
+				if(dy > 0) {
+					return UP;
+				} else {
+					return DOWN;
+				}
+			}
+		}
 	}
 
 	/**
@@ -70,7 +93,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts) {
 		super(world, name, tex, scripts);
 		floatingText = new FloatingText(this, name+"-text");
-		world.addEntity(floatingText);
 	}
 	
 	/**
@@ -80,7 +102,24 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	public Actor(World world, String name, TextureRegion tex, UserScriptCollection scripts, float x, float y) {
 		super(world, name, tex, scripts, x, y);
 		floatingText = new FloatingText(this, name+"-text");
+	}
+	
+	/**
+	 * Should only ever be called by the world, in its addEntity
+	 * @param world
+	 */
+	@Override
+	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
+	}
+
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		
+		sandbox.registerEventType("ITEM_GIVEN", "Called when this entity is given an item", "item");
+	
+		return sandbox;
 	}
 
 	@Override
@@ -91,28 +130,6 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	@Override
 	public boolean isSolid() {
 		return true;
-	}
-	
-	/**
-	 * @param dir
-	 * @param dist
-	 */
-	@Deprecated
-	public void moveInstantly(Direction dir, int dist) {
-		switch (dir) {
-			case UP:
-				sprite.setY(sprite.getY() + dist);
-				break;
-			case DOWN:
-				sprite.setY(sprite.getY() - dist);
-				break;
-			case LEFT:
-				sprite.setX(sprite.getX() - dist);
-				break;
-			case RIGHT:
-				sprite.setX(sprite.getX() + dist);
-				break;
-		}
 	}
 
 	/**
@@ -142,7 +159,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		Entity e = this;
 		final int _dx = dx, _dy = dy;
 		final int[] initialPos = {0, 0};
-		
+		final HasImage imgSrc = this;
 		SpriteAnimatedAction tryMoveAction = new SpriteAnimatedAction(sprite, getMoveDuration()) {
 			
 			public boolean preAct() {
@@ -150,6 +167,9 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
 				if(canMove) steps++; else bumps++;
+				world.message(imgSrc,
+								canMove ? "Moved" : "Bumped",
+								LoggingLevel.GENERAL);
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				return canMove;
 			}
@@ -227,7 +247,11 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * @param blocking		Whether this call should block until the movement has finished
 	 * @return
 	 */
-	private Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
+	protected Actor moveAmt(Varargs amt, Direction direction, boolean blocking) {
+		this.world.message(
+				this,
+				String.format("Invokes Move %s", direction.name()),
+				LoggingLevel.GENERAL);
 		int SIZE = amt.narg();
 		int n;
 		if (SIZE < 2)
@@ -236,6 +260,31 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			n = amt.arg(2).checkint();
 		for(int i = 0; i < n; i++)
 			this.queueMoveSlowly(direction, blocking);
+		return this;
+	}
+	
+	/**
+	 * Moves the player a given direction and distance
+	 * @author Stewart Charles
+	 * @since 1.0
+	 * @return The invoked Actor
+	 */
+	@Bind(SecurityLevel.DEFAULT)
+	@Doc("Moves the player a given direction")
+	final public Actor move(@Doc("The direction and number of spaces to move") Varargs dirAmt) {
+		Direction direction;
+		int n;
+		try {
+			direction = Direction.valueOf(dirAmt.checkjstring(2).toUpperCase());
+			n = dirAmt.optint(3, 1);
+		} catch(LuaError e) {
+			direction = Direction.valueOf(dirAmt.checkjstring(1).toUpperCase());
+			n = dirAmt.optint(2, 1);
+		}
+
+		for(int i = 0; i < n; i++)
+			this.queueMoveSlowly(direction, true);
+		
 		return this;
 	}
 
@@ -341,27 +390,25 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
-	@Bind(SecurityLevel.DEFAULT)
-	@Doc("Get the position of the player as an x,y varargs pair")
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the position of the player as an x,y varargs pair")
 	final public Varargs position() {
-		Point2D.Float pos = this.getPosition();
+		final Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
 	}
 
 	/**
 	 * @param args
 	 */
-	@Bind(SecurityLevel.DEFAULT)
-	@Doc("Prints the argument text above the player")
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Prints the argument text above the player")
 	final public void say(@Doc("The text for the player to say") Varargs args) {
-		String text = "";
-		
+		final StringBuilder text = new StringBuilder();
 		for(int i = 2; i <= args.narg(); i++) {
 			if(i > 2)
-				text += " ";
-			text += args.tojstring(i);
+				text.append(" ");
+			text.append(args.tojstring(i));
 		}
-		this.addText(text);
+		this.addText(text.toString());
 	}
 
 	/**
@@ -374,22 +421,260 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	}
 
 	@Override
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get the Inventory of the Player")
 	@BindTo("inventory")
-	@Doc("Get the Inventory of the Player")
 	public Inventory getInventory() {
 		return inventory;
 	}
 
-	@Doc("Get the Number of Steps taken by the Actor")
-	@Bind(SecurityLevel.DEFAULT)
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get the Number of Steps taken by the Actor")
 	public int steps() {
 		return steps;
 	}
 
-	@Doc("Get the Number of Collisions made by the Actor with walls")
-	@Bind(SecurityLevel.DEFAULT) public int bumps() {
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Get the Number of Collisions made by the Actor with walls")
+	public int bumps() {
 		return bumps;
 	}
 
+	@Override
+	public Boolean giveItem(ItemReference ir) {
+		final Item item = ir.derefItem();
+		return this.inventory.addItem(item) || ir.inventory.addItem(item);
+	}
+
+	/**
+	 * Peek at the inventory of the first entity found int he target direction relative to the Actor
+	 * @param dir The Direction of the target entity
+	 * @return A LuaTable that is an array of tables containing the name and description of items.
+	 */
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at an entities inventory in the specified direction\nrelative to the actor.")
+	public LuaValue peek(@Doc("The direction to peek [up,down,left,right]") LuaValue dir) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return peekUp();
+			case "down":
+				return peekDown();
+			case "left":
+				return peekLeft();
+			case "right":
+				return peekRight();
+			default:
+				return LuaValue.NIL;
+		}
+	}
+
+	/**
+	 * Takes an item from an entity found in the specified direction at the argument index
+	 * @param dir The direction of the target entity
+	 * @param index The index into the inventory of the target entity
+	 * @return True if taking the item succeeded, False otherwise
+	 */
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Take an item from the inventory of any entity found in the specified direction if possible")
+	public Boolean take(
+			@Doc("The Direction of the entity to take the item from") LuaValue dir,
+			@Doc("The Index of the Item") LuaValue index) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return takeUp(index);
+			case "down":
+				return takeDown(index);
+			case "left":
+				return takeLeft(index);
+			case "right":
+				return takeRight(index);
+			default:
+				return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Grabs any Item Entities that exist in the tile the player is in")
+	public Boolean grab() {
+		return world.tryGrab(this);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Contextually use an object/entity in the specified direction relative to the actor")
+	public Boolean use(@Doc("The direction of the entity or object to Use") LuaValue dir) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return useUp();
+			case "down":
+				return useDown();
+			case "left":
+				return useLeft();
+			case "right":
+				return useRight();
+			default:
+				return false;
+		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Pushes any pushable objects in the associated direction")
+	public Actor push(@Doc("The Direction to try to push an object") LuaValue dir) {
+		switch (dir.checkjstring().toLowerCase()) {
+			case "up":
+				return pushUp();
+			case "down":
+				return pushDown();
+			case "left":
+				return pushLeft();
+			case "right":
+				return pushRight();
+			default:
+				return this;
+		}
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities in the specified direction")
+	public String look(
+			@Doc("A Varargs of either the Dir to look. Nil if Looking at the players position") LuaValue v) {
+		if(v.isstring()) {
+			switch (v.checkjstring().toLowerCase()) {
+				case "up":
+					return lookUp();
+				case "down":
+					return lookDown();
+				case "left":
+					return lookLeft();
+				case "right":
+					return lookRight();
+				default:
+					return "Nothing...";
+			}
+		}
+		else return world.tryLook(getPosition());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities UP relative to their position")
+	public String lookUp() {
+		return world.tryLook(up());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities DOWN relative to their position")
+	public String lookDown() {
+		return world.tryLook(down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities LEFT relative to their position")
+	public String lookLeft() {
+		return world.tryLook(left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Actor inspects objects or entities RIGHT relative to their position")
+	public String lookRight() {
+		return world.tryLook(right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Push objects UP relative to the Actor")
+	public Actor pushUp() {
+		world.tryPush(this, up(), Direction.UP);
+		return this;
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Push objects DOWN relative to the Actor")
+	public Actor pushDown() {
+		world.tryPush(this, down(), Direction.DOWN);
+		return this;
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Push objects LEFT relative to the Actor")
+	public Actor pushLeft() {
+		world.tryPush(this, left(), Direction.LEFT);
+		return this;
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Push objects RIGHT relative to the Actor")
+	public Actor pushRight() {
+		world.tryPush(this, right(), Direction.RIGHT);
+		return this;
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at the inventory of any entity UP relative to the actor")
+	public LuaValue peekUp() {
+		return world.tryPeek(this, up());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at the inventory of any entity DOWN relative to the actor")
+	public LuaValue peekDown() {
+		return world.tryPeek(this, down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at the inventory of any entity LEFT relative to the actor")
+	public LuaValue peekLeft() {
+		return world.tryPeek(this, left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Peek at the inventory of any entity RIGHT relative to the actor")
+	public LuaValue peekRight() {
+		return world.tryPeek(this, right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Take an item from the inventory of any entity found UP relative to the Actor")
+	private Boolean takeUp(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this,up(), index.checkint() - 1);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Take an item from the inventory of any entity found DOWN relative to the Actor")
+	private Boolean takeDown(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, down(), index.checkint() - 1);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Take an item from the inventory of any entity found LEFT relative to the Actor")
+	private Boolean takeLeft(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, left(), index.checkint() - 1);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Take an item from the inventory of any entity found RIGHT relative to the Actor")
+	private Boolean takeRight(@Doc("The Index of the item in the owners inventory") LuaValue index) {
+		return world.tryTake(this, right(), index.checkint() - 1);
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Contextually use an object or entity RIGHT relative to the actor")
+	private Boolean useRight() {
+		return world.tryUse(this, right());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Contextually use an object or entity LEFT relative to the actor")
+	private Boolean useLeft() {
+		return world.tryUse(this, left());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Contextually use an object or entity DOWN relative to the actor")
+	private Boolean useDown() {
+		return world.tryUse(this, down());
+	}
+
+	@Bind(value = SecurityLevel.DEFAULT,
+			doc = "Contextually use an object or entity UP relative to the actor")
+	private Boolean useUp() {
+		return world.tryUse(this, up());
+	}
 }

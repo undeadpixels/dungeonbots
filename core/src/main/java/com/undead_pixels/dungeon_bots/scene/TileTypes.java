@@ -46,7 +46,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		super();
 
 
-		// TODO - visually test these all at some point
 		Point2D.Float[] offsetsWalls = new Point2D.Float[] {
 				new Point2D.Float(0, 1), // 0 default
 				new Point2D.Float(1, 0), // 1 only left
@@ -88,19 +87,17 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		final int TILESIZE = 16;
 		
 		// register some default tile types
-		// XXX
-		registerTile("goal", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 3, 5, null, false, false);
-		// XXX
-		registerTile("door", AssetManager.getTexture("DawnLike/Objects/Door0.png"), TILESIZE, 0, 0, null, false, true);
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
 		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
 		registerTile("tiles_big", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 5, 2, null, false, false);
 		registerTile("tiles_small", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 6, 2, null, false, false);
 		registerTile("tiles_diamond", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 2, null, false, false);
-		
+		registerTile("fillpit", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 0, null, false, false);
+
 		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
 		registerTile("pit", AssetManager.getTexture("DawnLike/Objects/Trap1.png"), TILESIZE, 5, 2, null, false, true);
+
 	}
 
 	@Bind @BindTo("new")
@@ -166,16 +163,6 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	}
 
 	@Override
-	public int getId() {
-		return 0;
-	}
-
-	@Override
-	public String getName() {
-		return "tileTypes";
-	}
-
-	@Override
 	public LuaValue getLuaValue() {
 		if(this.luaValue == null)
 			this.luaValue = LuaProxyFactory.getLuaValue(this);
@@ -185,5 +172,9 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 	@Override
 	public Iterator<TileType> iterator() {
 		return typeMap.values().iterator();
+	}
+	
+	public TileType[] toArray(){
+		return typeMap.values().toArray(new TileType[typeMap.values().size()]);
 	}
 }

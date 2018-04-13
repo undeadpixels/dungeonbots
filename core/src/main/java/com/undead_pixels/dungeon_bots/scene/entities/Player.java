@@ -5,7 +5,14 @@ import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.UserScript;
+import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.*;
+import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.annotations.Bind;
+import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.geom.Point2D;
@@ -15,32 +22,46 @@ import org.luaj.vm2.LuaValue;
 /**
  * An Actor intended to be scripted and controlled by player users in a code
  * REPL or Editor
- * 
+ *
  * @author Stewart Charles
  * @version 1.0
  */
 @Doc("A Player is an Actor afforded with more privileges")
 public class Player extends RpgActor {
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	
 	public static final TextureRegion DEFAULT_TEXTURE = AssetManager.getTextureRegion("DawnLike/Characters/Player0.png", 3, 1);
-
-	@Deprecated
-	protected String defaultCode;
 
 	/**
 	 * Constructor
 	 * @param world The world this player belongs to
 	 * @param name The name of this player
 	 */
-	public Player(World world, String name) {
-		super(world, name, DEFAULT_TEXTURE, world.getPlayerTeamScripts(), 0, 0);
+	public Player(World world, String name, float x, float y) {
+		super(world, name, DEFAULT_TEXTURE, makePlayerScript(), x, y);
+	}
 
-		//world.getDefaultWhitelist().addAutoLevelsForBindables(this);
+	/**
+	 * @return
+	 */
+	private static UserScriptCollection makePlayerScript () {
+		UserScriptCollection ret = new UserScriptCollection();
+		ret.add(new UserScript("init", "registerKeyPressedListener(function(k)\n"
+				+ "  if k==\"up\" then this:up() end\n"
+				+ "  if k==\"down\" then this:down() end\n"
+				+ "  if k==\"left\" then this:left() end\n"
+				+ "  if k==\"right\" then this:right() end\n"
+				+ "  \n"
+				+ "  if k==\"w\" then this:up() end\n"
+				+ "  if k==\"s\" then this:down() end\n"
+				+ "  if k==\"a\" then this:left() end\n"
+				+ "  if k==\"d\" then this:right() end\n"
+				+ "end)\n"));
+		return ret;
 	}
 
 	/**
@@ -51,41 +72,35 @@ public class Player extends RpgActor {
 	 * @return A newly constructed Player that has been coerced into it's<br>
 	 * associated LuaValue
 	 */
-	@Bind(SecurityLevel.AUTHOR)
 	@BindTo("new")
 	@Doc("Assigns a new player")
+	@Deprecated
+	@Bind(SecurityLevel.AUTHOR)
 	public static Player newPlayer(
 			@Doc("The assigned World") LuaValue world,
 			@Doc("The X position of the player") LuaValue x,
 			@Doc("The Y Position of the player") LuaValue y) {
 		World w = (World) world.checktable().get("this").checkuserdata(World.class);
-		Player p = w.getPlayer();
+		Player p = new Player(w, "player", (float) x.checkdouble() - 1.0f, (float) y.checkdouble() - 1.0f);
 		p.steps = 0;
 		p.bumps = 0;
-		p.sprite.setX((float) x.checkdouble() - 1.0f);
-		p.sprite.setY((float) y.checkdouble() - 1.0f);
+		w.addEntity(p);
 		return p;
 	}
 
-	@Bind(SecurityLevel.DEFAULT)
-	public void tryAgain() {
-		world.reset();
-	}
-	/**
-	 * Used to create a non-useful player to display in the Level Editor's
-	 * palette.
-	 */
-	public static Player worldlessPlayer() {
-		return new Player(null, "A player");
-	}
-
-	@Bind(SecurityLevel.AUTHOR)
-	public void setDefaultCode(LuaValue df) {
-		defaultCode = df.tojstring();
-	}
-
-	public String getDefaultCode() {
-		return defaultCode != null ? defaultCode : "";
+	@Override
+	public LuaSandbox createSandbox() {
+		LuaSandbox sandbox = super.createSandbox();
+		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key"); // TODO - make repeating/coalescing
+		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
+		});
+		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
+			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+		});
+	
+		return sandbox;
 	}
 
 	public void setPosition(Point2D.Float v) {
@@ -101,26 +116,21 @@ public class Player extends RpgActor {
 	public TeamFlavor getTeam() {
 		return TeamFlavor.PLAYER;
 	}
-	
+
 	public void resetInventory() {
 		this.inventory.reset();
-		this.inventory.addItem(new Note(this.world,"Welcome to Dungeonbots!"));
+
 	}
 
-	/**
-	 *
-	 * @param luaDir
-	 * @param itemReference
-	 * @return
-	 */
-	@Bind(SecurityLevel.DEFAULT)
-	public Boolean use(LuaValue luaDir, LuaValue itemReference) {
-		String dir = luaDir.checkjstring().toUpperCase();
-		ItemReference itemRef = (ItemReference) itemReference.checktable().get("this")
-				.checkuserdata(ItemReference.class);
-		Direction direction = Direction.valueOf(dir);
-		return false;
-		//return this.world.tryUse(itemRef, direction, this);
+	@Override
+	public LuaSandbox getSandbox() {
+		LuaSandbox ret = super.getSandbox();
+		ret.addBindable("player", this);
+		return ret;
 	}
 
+	@Override
+	public String inspect() {
+		return "Player";
+	}
 }

@@ -1,6 +1,5 @@
 package com.undead_pixels.dungeon_bots;
 
-import com.undead_pixels.dungeon_bots.scene.ActorBuilder;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.*;
 import com.undead_pixels.dungeon_bots.script.*;
@@ -14,21 +13,21 @@ import static java.lang.String.*;
 
 public class ScriptApiTest {
 
-	private final double EPSILON = 0.00001;
+	private final double EPSILON = 0.001;
 	private volatile boolean eventCalled = false;
 
 	@Test public void testGetBindings() {
 		World w = new World();
-		Player player = new Player(w, "player");
+		Player player = new Player(w, "player", 1, 1);
 		w.addEntity(player);
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG);
-		se.addBindable(player);
+		se.addBindable("player", player);
 		LuaInvocation luaScript = se.init("player:queueUp();");
 		luaScript.join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		player.getWorld().setSize(16,16);
 		player.getWorld().update(1.f);
-		Assert.assertEquals( 1.0, player.getPosition().y, EPSILON);
+		Assert.assertEquals( 2.0, player.getPosition().y, EPSILON);
 	}
 
 	@Test public void testScriptApiSingleArgumentFunction() {
@@ -40,16 +39,6 @@ public class ScriptApiTest {
 				this.name = name;
 			}
 
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
-
 			@Bind(SecurityLevel.AUTHOR) @BindTo("greeting")
 			public LuaValue greet(LuaValue luaValue) {
 				String greet = luaValue.checkjstring();
@@ -57,8 +46,8 @@ public class ScriptApiTest {
 			}
 		}
 
-		OneArg player = new OneArg( "player");
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
+		OneArg player = new OneArg("player");
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("player", player);
 		LuaInvocation luaScript = se.init("return player:greeting('Hello');");
 		luaScript.join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE
@@ -81,69 +70,60 @@ public class ScriptApiTest {
 			public LuaValue error() {
 				return LuaValue.NIL;
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		DebugError player = new DebugError( "player");
 		// Create a LuaSandbox with a SecurityLevel less than what the error function is tagged with
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEFAULT).addBindable(player);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEFAULT).addBindable("player", player);
 		LuaInvocation luaScript = se.init("return player:error();");
 		luaScript.join();
 		Assert.assertEquals(ScriptStatus.LUA_ERROR, luaScript.getStatus());
 	}
 
 	@Test public void testActorMovement() {
-		Actor player = new ActorBuilder().setName("player").createActor();
-		World w = player.getWorld();
-		w.setSize(16,16);
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
+		World w = new World();
+		Actor player = new Player(w, "player", 1, 1);
+		w.addEntity(player);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("player", player);
 
 		LuaInvocation luaScript = se.init("player:queueUp();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player Y Position not moved 'UP'",
-				1.0, player.getPosition().y, EPSILON);
+				2.0, player.getPosition().y, EPSILON);
 
 		luaScript = se.init("player:queueDown();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player Y Position not moved 'DOWN'",
-				0.0, player.getPosition().y, EPSILON);
+				1.0, player.getPosition().y, EPSILON);
 
 		luaScript = se.init("player:queueRight();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player X Position not moved 'RIGHT'",
-				1.0, player.getPosition().x, EPSILON);
+				2.0, player.getPosition().x, EPSILON);
 
 		luaScript = se.init("player:queueLeft();").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		w.update(1.f);
 		Assert.assertEquals("Player X Position not moved 'LEFT'",
-				0.0, player.getPosition().x, EPSILON);
+				1.0, player.getPosition().x, EPSILON);
 
 	}
 
 	@Test public void testActorPosition() {
-		Actor player = new ActorBuilder().setName("player").createActor();
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(player);
+		World w = new World();
+		Actor player = new Player(w, "player", 1, 1);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("player", player);
 
 		LuaInvocation luaScript = se.init("return player.position();");
 		luaScript.join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE);
 		Assert.assertTrue(luaScript.getResults().isPresent());
 		Varargs ans = luaScript.getResults().get();
-		Assert.assertEquals(1.0, ans.arg(1).todouble(), EPSILON);
-		Assert.assertEquals(1.0, ans.arg(2).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(1).todouble(), EPSILON);
+		Assert.assertEquals(2.0, ans.arg(2).todouble(), EPSILON);
 	}
 
 	@Test public void testTwoArgFunction() {
@@ -161,20 +141,10 @@ public class ScriptApiTest {
 				number = a.checkint() + b.checkint();
 				return CoerceJavaToLua.coerce(number);
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(testEntity);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable("test", testEntity);
 		LuaInvocation luaScript = scriptEnvironment.init("return test:add(15,23);").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
@@ -197,20 +167,10 @@ public class ScriptApiTest {
 				number = a.checkint() + b.checkint() + c.checkint();
 				return CoerceJavaToLua.coerce(number);
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(testEntity);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable("test", testEntity);
 		Assert.assertTrue("Initial value of Entity number is not expected value",
 				testEntity.number == 0);
 		LuaInvocation luaScript = scriptEnvironment.init("return test:add(7, 23, 45);").join();
@@ -243,20 +203,10 @@ public class ScriptApiTest {
 				number = ans;
 				return CoerceJavaToLua.coerce(ans);
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		TestEntity testEntity = new TestEntity("test");
-		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable(testEntity);
+		LuaSandbox scriptEnvironment = new LuaSandbox(SecurityLevel.DEBUG).addBindable("test", testEntity);
 		LuaInvocation luaScript = scriptEnvironment.init("return test.add(1,2,3,4,5,6,7,8);").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		int ans = luaScript.getResults().get().toint(1);
@@ -286,20 +236,10 @@ public class ScriptApiTest {
 				this.dexterity = dex;
 				this.intelligence = intel;
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		RpgActor rpg = new RpgActor("rpg",4 , 5, 6);
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(rpg);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("rpg", rpg);
 		LuaInvocation luaScript = se.init("return rpg.strength, rpg.dexterity, rpg.intelligence;").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		Varargs v = luaScript.getResults().get();
@@ -321,20 +261,10 @@ public class ScriptApiTest {
 				stats.set("dexterity", dex);
 				stats.set("intelligence", intel);
 			}
-
-			@Override
-			public String getName() {
-				return name;
-			}
-
-			@Override
-			public int getId() {
-				return 0;
-			}
 		}
 
 		RpgActor rpgEntity = new RpgActor("rpg",4 , 5, 6);
-		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable(rpgEntity);
+		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG).addBindable("rpg", rpgEntity);
 		LuaInvocation luaScript = se.init("return rpg.stats.strength, rpg.stats.dexterity, rpg.stats.intelligence;").join();
 		Assert.assertTrue(luaScript.getStatus() == ScriptStatus.COMPLETE && luaScript.getResults().isPresent());
 		Varargs v = luaScript.getResults().get();
@@ -363,7 +293,7 @@ public class ScriptApiTest {
 
 	@Test public void testGetUserData() {
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.addBindable(new World("w"))
+				.addBindable("w", new World("w"))
 				.addBindableClass(Player.class);
 		LuaInvocation script = se.init("return Player.new(w,2.0,2.0);").join();
 		Assert.assertTrue(script.getStatus() == ScriptStatus.COMPLETE && script.getResults().isPresent());
@@ -377,7 +307,7 @@ public class ScriptApiTest {
 	@Test public void testGetAndUseUserData() {
 		World w = new World("world");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.addBindable(w)
+				.addBindable("world", w)
 				.addBindableClass(Player.class);
 
 		LuaInvocation script = se.init("p = Player.new(world,2.0,2.0); return p;").join();
@@ -398,7 +328,7 @@ public class ScriptApiTest {
 	@Test public void testReadOnlyTables() {
 		World world = new World("w");
 		LuaSandbox se = new LuaSandbox(SecurityLevel.DEBUG)
-				.addBindable(world)
+				.addBindable("w", world)
 				.addBindableClass(Player.class);
 		LuaInvocation script = se.init("p = Player.new(w,1.0,1.0); p.this = nil; return p;").join();
 		Assert.assertTrue(script.getError().getMessage().contains("Attempt to update readonly table"));

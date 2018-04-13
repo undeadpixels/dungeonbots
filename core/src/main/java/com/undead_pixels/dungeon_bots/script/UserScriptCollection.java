@@ -6,10 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * A collection of UserScripts  
- * TODO:  does this need to be thread-safe?  The GUI only works on one thread, but I know the 
- * scripting system draws from it and it seems like it would need thread safety for that 
- * reason.
+ * A collection of UserScripts
  *
  */
 public class UserScriptCollection implements Iterable<UserScript>, Serializable {
@@ -34,37 +31,75 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	}
 
 
-	public void add(UserScript script) {
+	public synchronized void add(UserScript script) {
 		storage.put(script.name, script);
 		// TODO - this doesn't handle the editing of names
 	}
 
 
-	public UserScript get(String name) {
+	public synchronized UserScript get(String name) {
 		return storage.getOrDefault(name, null);
 	}
 
 
-	public void remove(String name) {
+	public synchronized void remove(String name) {
 		storage.remove(name);
 	}
 
 
-	public void clear() {
+	public synchronized void clear() {
 		storage.clear();
 	}
 
 
 	@Override
-	public Iterator<UserScript> iterator() {
+	public synchronized Iterator<UserScript> iterator() {
 		return storage.values().iterator();
 	}
 
 
 	/**Returns an array of all contained UserScripts, sorted by name.*/
-	public UserScript[] toArray() {
+	public synchronized UserScript[] toArray() {
 		UserScript[] result = storage.values().toArray(new UserScript[storage.values().size()]);
 		Arrays.sort(result);
 		return result;
 	}
+
+	public UserScriptCollection copy(){
+		
+		UserScriptCollection ret = new UserScriptCollection();
+		for (UserScript original : this.storage.values()) ret.add(original.copy());
+		return ret;
+	}
+
+
+	/**
+	 * @param other
+	 */
+	public synchronized void setTo (UserScriptCollection other) {
+		storage.clear();
+		storage.putAll(other.storage);
+	}
+
+
+	@Override
+	public synchronized String toString () {
+		StringBuilder ret = new StringBuilder();
+
+		for (String name : storage.keySet()) {
+			ret.append(storage.get(name).toString());
+		}
+
+		return ret.toString();
+	}
+
+
+	/**
+	 * @return
+	 */
+	public boolean isEmpty () {
+		return storage.isEmpty();
+	}
+
+
 }

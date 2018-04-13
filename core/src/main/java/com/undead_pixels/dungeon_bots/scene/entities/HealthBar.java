@@ -11,12 +11,10 @@ public class HealthBar extends ChildEntity {
 
 	public HealthBar(Entity parent, String name) {
 		super(parent, name);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void render(RenderingContext batch) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -25,4 +23,8 @@ public class HealthBar extends ChildEntity {
 		return 100;
 	}
 
+	@Override
+	public String inspect() {
+		return "Some kind of mystical health bar?";
+	}
 }
