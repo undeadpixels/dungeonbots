@@ -94,7 +94,7 @@ public class JScriptCollectionEditor extends JPanel {
 		scriptListBox.setBorder(BorderFactory.createTitledBorder("Editable scripts"));
 
 		CodeInsertions codeInsertions = new CodeInsertions(sandbox);
-		JScrollPane insertionScroller = codeInsertions.makeScroller(editor.getEditor());
+		JScrollPane insertionScroller = codeInsertions.makeScrollerAndSetup(editor.getEditor());
 
 		// Make buttons for add/remove of scripts.
 		Box bttnPanel = new Box(BoxLayout.X_AXIS);

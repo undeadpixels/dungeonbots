@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
@@ -42,25 +43,16 @@ import jsyntaxpane.DefaultSyntaxKit;
 
 
 /**
+ * Utilities (and views) for automagically inserting code into an editor
+ * 
  * @author kevin
  *
  */
 public class CodeInsertions {
 
-
-
-
-	public static void main(String[] args) {
-		DefaultSyntaxKit.initKit();
-		
-		JFrame f = new JFrame("");
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		f.add(new CodeInsertions().makeTree((s) -> System.out.println(s)));
-		f.pack();
-		f.setVisible(true);
-	}
-
+	/**
+	 * An entry in the list of possible insertions
+	 */
 	public static class InsertionEntry {
 		public final String name;
 		public final String description;
@@ -84,7 +76,13 @@ public class CodeInsertions {
 		}
 	}
 	
+	/**
+	 * A state holding progress through replacing variable names in an insertion
+	 */
 	private static class InsertionReplacementState {
+		/**
+		 * A single template name in an insertion with some info about it
+		 */
 		private static class Field {
 			public final int originalBegin;
 			public final int originalEnd;
@@ -99,12 +97,13 @@ public class CodeInsertions {
 				this.originalEnd = originalEnd;
 				this.originalString = originalString;
 
+				// get more info if possible
 				if(originalEnd - originalBegin < 2) {
 					currentString = originalString;
 					templateName = originalString;
 					templateType = "";
 				} else {
-					// remove the type info
+					// split the type info off
 					String inner = originalString.substring(1, originalString.length()-1);
 					String[] innerSplit = inner.split(":");
 					templateName = innerSplit[0];
@@ -119,6 +118,9 @@ public class CodeInsertions {
 				}
 			}
 			
+			/**
+			 * @return	A good way to represent this field inline with the rest of the code
+			 */
 			public String getInlineRepresentation() {
 				if(currentString.equals("")) {
 					return "<"+templateName+">";
@@ -147,6 +149,7 @@ public class CodeInsertions {
 		}
 		
 		public String toString() {
+			// Condense all fields and non-field text down, then return
 			StringBuilder ret = new StringBuilder();
 			
 			Field prevField = new Field(0, 0, "");
@@ -176,6 +179,7 @@ public class CodeInsertions {
 
 		@Override
 		public int hashCode () {
+			// autogen'd
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ( (name == null) ? 0 : name.hashCode());
@@ -184,6 +188,7 @@ public class CodeInsertions {
 
 		@Override
 		public boolean equals (Object obj) {
+			// autogen'd
 			if (this == obj)
 				return true;
 			if (obj == null)
@@ -206,6 +211,7 @@ public class CodeInsertions {
 	private HashMap<InsertionEntryGroup, Integer> groups = new HashMap<>();
 	
 	public void add(InsertionEntry e) {
+		// append an InsertionEntry to the table model
 		DefaultMutableTreeNode groupNode;
 		
 		if(groups.containsKey(e.group)) {
@@ -239,6 +245,9 @@ public class CodeInsertions {
 		return ret;
 	}
 	
+	/**
+	 * A stupid function to do line wrapping for JLabels, since JLabels don't support it and JTextAreas are uncooperative
+	 */
 	private String wrap(String text, int cols) {
 		StringBuilder sb = new StringBuilder(text);
 
@@ -267,6 +276,12 @@ public class CodeInsertions {
 		return "<html>"+retStr+"</html>";
 	}
 	
+	/**
+	 * Creates a template replacer window, allowing variables/fields/etc to be chosen
+	 * 
+	 * @param entry
+	 * @param acceptAction
+	 */
 	private void fireTemplateReplacer(InsertionEntry entry, Consumer<String> acceptAction) {
 		JPanel replacerView = new JPanel(new VerticalLayout());
 		
@@ -298,6 +313,7 @@ public class CodeInsertions {
 			@Override
 			public void changedUpdate (DocumentEvent e) {
 				for(int i = 0; i < state.fields.size(); i++) {
+					// update model
 					state.fields.get(i).currentString = textFields.get(i).getText();
 				}
 				
@@ -314,6 +330,8 @@ public class CodeInsertions {
 		
 		replacerView.add(Box.createVerticalStrut(10));
 		
+		
+		// make the labels and text boxes line up nicely
 		JPanel bottomBox = new JPanel();
 		GroupLayout groupLayout = new GroupLayout(bottomBox);
 		bottomBox.setLayout(groupLayout);
@@ -348,6 +366,10 @@ public class CodeInsertions {
 		
 		replacerView.add(bottomBox);
 		
+		
+		
+		
+		// show the user the dialog
 		int result = JOptionPane.showConfirmDialog(null, replacerView, "Insert " + entry.name + "?",
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 		
@@ -362,6 +384,9 @@ public class CodeInsertions {
 		}
 	}
 
+	/**
+	 * Creates a default list of insertions, largely based on lua spec, but with a few handy dungeonbots-specific things
+	 */
 	public CodeInsertions() {
 		
 		// help
@@ -538,7 +563,7 @@ public class CodeInsertions {
 
 	
 	/**
-	 * @return
+	 * @return	A JTree representing the insertions available
 	 */
 	public JTree makeTree (Consumer<String> action) {
 		JTree ret = new JTree(treeModel);
@@ -589,25 +614,28 @@ public class CodeInsertions {
 	}
 
 	/**
+	 * Creates a JTree for the list of insertions, wraps it in a scroll pane, and builds listeners
+	 * 
 	 * @param editor
 	 * @return
 	 */
-	public JScrollPane makeScroller (JEditorPane editor) {
+	public JScrollPane makeScrollerAndSetup (JEditorPane editor) {
 		JTree codeInsertionTree = makeTree((s) -> {
-			System.out.println("got string: "+s);
 			Document d = editor.getDocument();
 
 			int pos = editor.getCaretPosition();
-			Element root = d.getDefaultRootElement();
-			
-			int row = 0;
-			for(; row < root.getElementCount(); row++) {
-				if(root.getElement(row).getEndOffset() > pos) {
-					break;
-				}
-			}
 			
 			if(s.contains("\n")) {
+				// find out where in the document we are so we can handle indentation
+				Element root = d.getDefaultRootElement();
+				int row = 0;
+				for(; row < root.getElementCount(); row++) {
+					if(root.getElement(row).getEndOffset() > pos) {
+						break;
+					}
+				}
+				
+				// Get the current row so we can look at the whitespace/indentation it has...
 				int rowBegin = root.getElement(row).getStartOffset();
 				int rowEnd = root.getElement(row).getEndOffset();
 				String rowStr = "";
@@ -617,10 +645,8 @@ public class CodeInsertions {
 					e.printStackTrace();
 				}
 				
+				// collect the whitespace at the beginning
 				String whitespace = "";
-				
-				System.out.println("Rowstr = '"+rowStr+"'");
-				
 				int col = 0;
 				for(; col < rowStr.length() && Character.isWhitespace(rowStr.charAt(col)); col++) {
 					whitespace += rowStr.charAt(col);
@@ -634,9 +660,7 @@ public class CodeInsertions {
 				}
 				
 				pos = rowEnd-1;
-				
 				s = s.replace("\n", "\n"+whitespace);
-				
 				editor.setCaretPosition(pos);
 			}
 			
@@ -648,6 +672,7 @@ public class CodeInsertions {
 			
 			editor.requestFocusInWindow();
 		});
+		
 		JScrollPane insertionScroller = new JScrollPane(codeInsertionTree);
 		insertionScroller.setBorder(BorderFactory.createTitledBorder("Insert:"));
 		

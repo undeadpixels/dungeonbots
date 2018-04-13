@@ -156,7 +156,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		Box outerBox = new Box(BoxLayout.X_AXIS);
 		
 		CodeInsertions codeInsertions = new CodeInsertions(this._Sandbox);
-		JScrollPane insertionScroller = codeInsertions.makeScroller(_EditorPane);
+		JScrollPane insertionScroller = codeInsertions.makeScrollerAndSetup(_EditorPane);
 		
 		outerBox.add(insertionScroller);
 		outerBox.add(splitPaneWrapper);
