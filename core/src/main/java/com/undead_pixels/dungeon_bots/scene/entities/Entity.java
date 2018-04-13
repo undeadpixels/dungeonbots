@@ -140,8 +140,10 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		boolean isIdle = actionQueue.isEmpty();
+		
+		actionQueue.act(dt);
 
+  boolean isIdle = actionQueue.isEmpty();
 		// Enqueue an idle call, if enough time has elapsed.
 		if (!isIdle) {
 			idle = 0f;
