@@ -92,6 +92,7 @@ public final class LevelEditorScreen extends Screen {
 	private static final String COMMAND_PERMISSIONS = "EDIT_PERMISSIONS";
 	private static final String COMMAND_RESIZE = "RESIZE_WORLD";
 	private static final String COMMAND_CENTER_VIEW = "CENTER_VIEW";
+	private static final String COMMAND_RESET_MACHINE = "RESET_MACHINE";
 
 
 	// Defined by Swing, don't change this:
@@ -342,6 +343,17 @@ public final class LevelEditorScreen extends Screen {
 				// _ViewControl.setZoomAsPercentage(0.5f);
 				_ViewControl.setMapView();
 				break;
+			case COMMAND_RESET_MACHINE:
+				World oldWorld = world;
+				world = Serializer.deepCopy(world);
+				world.resetFrom(oldWorld);
+				world.onBecomingVisibleInGameplay();
+				_View.setWorld(world);
+				_Selector.setWorld(world);
+				_TilePen.setWorld(world);
+				_EntityPlacer.setWorld(world);
+				_Eraser.setWorld(world);
+				break;
 			case COMMAND_RESIZE:
 				JWorldSizer jws = JWorldSizer.showDialog(LevelEditorScreen.this, world, _View);
 				jws.getDialog().addWindowListener(new WindowListenerAdapter() {
@@ -387,10 +399,12 @@ public final class LevelEditorScreen extends Screen {
 				return;
 			case "Open LevelPack":
 				File openLevelPackFile = FileControl.openPackDialog(LevelEditorScreen.this);
-				if (openLevelPackFile == null){
-					System.out.println("Open cancelled."); return;}
+				if (openLevelPackFile == null) {
+					System.out.println("Open cancelled.");
+					return;
+				}
 				LevelPack p = LevelPack.fromFile(openLevelPackFile.getPath());
-				if (p==null){
+				if (p == null) {
 					System.out.println("Could not open file: " + openLevelPackFile.getName());
 					return;
 				}
@@ -742,6 +756,9 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.setOrientation(SwingConstants.VERTICAL);
 		_ToolBar.setFocusable(false);
 		_ToolBar.setFloatable(true);
+		_ToolBar.add(UIBuilder.buildButton().image("icons/disaster.png").text("Reset").toolTip("Reset the machine.")
+				.action(COMMAND_RESET_MACHINE, getController()).create());
+		_ToolBar.addSeparator();
 		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
 				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		_ToolBar.add(zoomSlider);

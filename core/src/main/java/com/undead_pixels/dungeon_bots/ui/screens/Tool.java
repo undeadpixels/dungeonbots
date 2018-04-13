@@ -129,14 +129,17 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 
 	/**This method is called when the tool is first activated as the selected tool.*/
-	public void onActivated(){
-		
+	public void onActivated() {
+
 	}
+
+
 	/**This method is called when the tool is no longer the activated, selected tool.*/
-	public void onDeactivated(){
-		
+	public void onDeactivated() {
+
 	}
-	
+
+
 	// ===============================================
 	// ========== Tool UI HANDLING ===================
 	// ===============================================
@@ -243,7 +246,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		/**Returns the minimum zoom value for this control, based on the world's size.*/
 		public float getMinZoom() {
-			Point2D.Float size = view.getWorld().getSize();			
+			Point2D.Float size = view.getWorld().getSize();
 			float maxMeasure = Math.max(size.x, size.y);
 			return MIN_ZOOM_SCALAR / maxMeasure;
 		}
@@ -462,8 +465,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 	public static class Eraser extends Tool {
 
-		private final World world;
+		private World world;
 		private final WorldView view;
+
+
+		public void setWorld(World world) {
+			this.world = world;
+		}
 
 
 		public Eraser(WorldView view, World world) {
@@ -472,10 +480,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.world = world;
 		}
 
-		public void onDeactivated(){
+
+		public void onDeactivated() {
 			view.setSelectedEntities(null);
 			view.setSelectedTiles(null);
 		}
+
 
 		public Undoable<Entity> removeEntity(Entity e) {
 			if (world.removeEntity(e)) {
@@ -593,6 +603,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+		public void setWorld(World world) {
+			this.world = world;
+			cornerA = null;
+			cornerB = null;
+		}
+
+
 		/**Sets whether this Selector can select entities.*/
 		public Selector setSelectsEntities(boolean value) {
 			selectsEntities = value;
@@ -688,15 +705,16 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// selection, just update the tile selection. Otherwise, nothing
 			// is selected.
 			List<Entity> se = world.getEntitiesUnderLocation(rect);
-			if (se.size()==1) {
+			if (se.size() == 1) {
 				// Fire the entity's onClicked event
-				SwingUtilities.invokeLater(new Runnable(){
+				SwingUtilities.invokeLater(new Runnable() {
 
 					@Override
 					public void run() {
 						Entity e = se.get(0);
-						e.enqueueScript("onClicked");						
-					}});
+						e.enqueueScript("onClicked");
+					}
+				});
 			}
 			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
 			List<Tile> st = world.getTilesUnderLocation(rect);
@@ -772,25 +790,18 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		/**
-		 * @param world
-		 */
-		public void setWorld(World world) {
-			this.world = world;
-		}
-
 	}
 
 
 	public static class TilePen extends Tool {
 
 		private final WorldView view;
-		private final World world;
+		private World world;
 		private HashMap<Point, Tile> oldTiles = null;
 		private HashMap<Point, Tile> newTiles = null;
 
 		public final SelectionModel selection;
-		private TileType drawingTileType;
+		private TileType drawingTileType = null;
 
 
 		public TilePen(WorldView view, SelectionModel selection) {
@@ -798,6 +809,14 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
+		}
+
+
+		public void setWorld(World world) {
+			this.world = world;
+			oldTiles = null;
+			newTiles = null;
+			drawingTileType = null;
 		}
 
 
@@ -929,7 +948,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	public static class EntityPlacer extends Tool {
 
 		private final WorldView view;
-		private final World world;
+		private World world;
 		private final SelectionModel selection;
 		private final Window owner;
 		private final SecurityLevel securityLevel;
@@ -942,6 +961,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.selection = selection;
 			this.owner = owner;
 			this.securityLevel = securityLevel;
+		}
+
+
+		public void setWorld(World world) {
+			this.world = world;
 		}
 
 

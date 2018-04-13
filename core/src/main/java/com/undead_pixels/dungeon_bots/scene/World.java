@@ -630,6 +630,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public boolean removeEntity(Entity e) {
 		if (!entities.remove(e))
 			return false;
+		if (removedEntities==null) removedEntities = new ArrayList<Entity>();
 		removedEntities.add(e);
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
@@ -1258,6 +1259,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// plus those entities removed from the old World.
 			for (Entity e : dirty.entities)
 				dirtyEntities.put(e.getId(), e);
+			if (dirty.removedEntities != null)
 			for (Entity e : dirty.removedEntities)
 				dirtyEntities.put(e.getId(), e);
 
