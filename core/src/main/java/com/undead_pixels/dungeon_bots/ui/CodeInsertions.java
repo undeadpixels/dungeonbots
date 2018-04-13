@@ -3,6 +3,7 @@
  */
 package com.undead_pixels.dungeon_bots.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,11 +26,16 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.TreeUI;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -138,7 +145,7 @@ public class CodeInsertions {
 			super();
 			this.entry = entry;
 			
-			Pattern templatePattern = Pattern.compile("<[^>]*>");
+			Pattern templatePattern = Pattern.compile("<[^<>]*>");
 			Matcher matches = templatePattern.matcher(entry.templateText);
 			
 			while(matches.find()) {
@@ -282,24 +289,52 @@ public class CodeInsertions {
 		replacerView.add(codeScroll);
 		replacerView.add(new JSeparator());
 		
+		replacerView.add(Box.createVerticalStrut(5));
+		
+		JPanel bottomBox = new JPanel();
+		GroupLayout groupLayout = new GroupLayout(bottomBox);
+		bottomBox.setLayout(groupLayout);
+		
+		groupLayout.setAutoCreateGaps(true);
+		groupLayout.setAutoCreateContainerGaps(true);
+		
+		GroupLayout.SequentialGroup hGroup = groupLayout.createSequentialGroup();
+		GroupLayout.Group leftGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.TRAILING);
+		hGroup.addGroup(leftGroup);
+		GroupLayout.Group rightGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING);
+		hGroup.addGroup(rightGroup);
+		groupLayout.setHorizontalGroup(hGroup);
+		
+		GroupLayout.SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
+		groupLayout.setVerticalGroup(verticalGroup);
 		
 		for(InsertionReplacementState.Field field : state.fields) {
 			JTextField textField = new JTextField(field.currentString, 20);
 			textField.getDocument().addDocumentListener(docListener);
 			textFields.add(textField);
 			
-			Box box = new Box(BoxLayout.X_AXIS);
-			box.add(new JPanel());
-			box.add(new JLabel(field.templateName));
-			box.add(textField);
+			JLabel label = new JLabel(field.templateName);
+			label.setLabelFor(textField);
 			
-			replacerView.add(box);
+			leftGroup.addComponent(label);
+			rightGroup.addComponent(textField);
+			
+			verticalGroup.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+					.addComponent(label).addComponent(textField));
 		}
+		
+		replacerView.add(bottomBox);
 		
 		int result = JOptionPane.showConfirmDialog(null, replacerView, entry.name, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 		
 		if(result == JOptionPane.OK_OPTION) {
-			acceptAction.accept(codeArea.getText());
+			String text = codeArea.getText();
+			
+			if(text.contains("\n")) {
+				text = text + "\n";
+			}
+			
+			acceptAction.accept(text);
 		}
 	}
 
@@ -313,17 +348,17 @@ public class CodeInsertions {
 		this.add("Flow Control", "Repeat loop (\"do\")",
 				  "repeat\n"
 				+ "  -- Your Code Here\n"
-				+ "until <condition:boolean>");
+				+ "until <Condition:boolean>");
 		this.add("Flow Control", "For loop",
-				  "for <VariableName> = <Begin:int> , <End:int> do\n"
+				  "for <Variable Name> = <Begin:int> , <End:int> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For loop with Increment",
-				  "for <VariableName> = <Begin:float>, <End:float>, <IncrementBy:float> do\n"
+				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
-				  "for key, value in pairs(<TableName>) do\n"
+				  "for key, value in pairs(<Table Name>) do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "If statement",
@@ -337,9 +372,9 @@ public class CodeInsertions {
 				+ "  -- This runs if false\n"
 				+ "end");
 		this.add("Flow Control", "If/Else-if statement",
-				  "if <Condition:boolean> then\n"
+				  "if <Condition 1:boolean> then\n"
 				+ "  -- This runs if true\n"
-				+ "elseif <Condition:boolean> then\n"
+				+ "elseif <Condition 2:boolean> then\n"
 				+ "  -- This runs if the next condition is true\n"
 				+ "else\n"
 				+ "  -- This runs if none of the above were true\n"
@@ -430,6 +465,22 @@ public class CodeInsertions {
 	 */
 	public JTree makeTree (Consumer<String> action) {
 		JTree ret = new JTree(treeModel);
+		for(Object k : UIManager.getDefaults().keySet()) {
+			System.out.println(k);
+		}
+		
+		ret.setForeground(Color.white);
+		
+		TreeUI uncastUI = ret.getUI();
+		
+		if(uncastUI instanceof BasicTreeUI) {
+			BasicTreeUI ui = (BasicTreeUI)uncastUI;
+			ui.setCollapsedIcon(TreeIcons.collapsedIcon);
+			ui.setExpandedIcon(TreeIcons.expandedIcon);
+		}
+		
+		
+		
 		
 		ret.setRootVisible(false);
 		ret.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -442,8 +493,10 @@ public class CodeInsertions {
 
 			@Override
 			public void valueChanged (TreeSelectionEvent e) {
+				
 				Object nodeAsObj = e.getPath().getLastPathComponent();
-				if(nodeAsObj instanceof DefaultMutableTreeNode) {
+				
+				if(ret.getSelectionCount() == 1 && nodeAsObj instanceof DefaultMutableTreeNode) {
 					DefaultMutableTreeNode node = (DefaultMutableTreeNode)nodeAsObj;
 					Object o = node.getUserObject();
 					if(o instanceof InsertionEntry) {
@@ -451,6 +504,8 @@ public class CodeInsertions {
 						fireTemplateReplacer(ie, action);
 					}
 				}
+				
+				ret.clearSelection();
 			}
 			
 		});
