@@ -46,6 +46,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.jdesktop.swingx.JXLabel;
 import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
@@ -76,6 +77,7 @@ public class CodeInsertions {
 
 	public static class InsertionEntry {
 		public final String name;
+		public final String description;
 		public final String templateText;
 		public final InsertionEntryGroup group;
 		
@@ -83,11 +85,12 @@ public class CodeInsertions {
 			return templateText; // TODO - make readable
 		}
 
-		public InsertionEntry(InsertionEntryGroup group, String name, String templateText) {
+		public InsertionEntry(InsertionEntryGroup group, String name, String description, String templateText) {
 			super();
 			this.group = group;
 			this.name = name;
 			this.templateText = templateText;
+			this.description = description;
 		}
 		
 		public String toString() {
@@ -232,12 +235,12 @@ public class CodeInsertions {
 		groupNode.add(new DefaultMutableTreeNode(e));
 	}
 
-	public void add(InsertionEntryGroup group, String name, String templateText) {
-		add(new InsertionEntry(group, name, templateText));
+	public void add(InsertionEntryGroup group, String name, String description, String templateText) {
+		add(new InsertionEntry(group, name, description, templateText));
 	}
 
-	public void add(String group, String name, String templateText) {
-		add(new InsertionEntry(getGroupByName(group), name, templateText));
+	public void add(String group, String name, String description, String templateText) {
+		add(new InsertionEntry(getGroupByName(group), name, description, templateText));
 	}
 	
 	
@@ -248,6 +251,29 @@ public class CodeInsertions {
 	public InsertionEntryGroup getGroupByName (String group) {
 		InsertionEntryGroup ret = new InsertionEntryGroup(group);
 		return ret;
+	}
+	
+	private String wrap(String text, int cols) {
+		StringBuilder sb = new StringBuilder(text);
+
+		// https://stackoverflow.com/questions/4212675/wrap-the-string-after-a-number-of-characters-word-wise-in-java
+		int i = 0;
+		while (i + cols < sb.length()) {
+			int newlinePlace = sb.lastIndexOf("\n", i + cols);
+			if(newlinePlace > i) {
+				i = newlinePlace;
+			} else {
+				i = sb.lastIndexOf(" ", i + cols);
+			}
+			if(i == -1) break;
+			sb.replace(i, i + 1, "\n");
+		}
+		
+		String retStr = sb.toString();
+		retStr = retStr.replace("<", "&lt;");
+		retStr = retStr.replace(">", "&gt;");
+		retStr = retStr.replace("\n", "<br>");
+		return "<html>"+retStr+"</html>";
 	}
 	
 	private void fireTemplateReplacer(InsertionEntry entry, Consumer<String> acceptAction) {
@@ -261,6 +287,9 @@ public class CodeInsertions {
 		codeArea.setFocusable(true);
 		codeArea.setContentType("text/lua");
 		codeArea.setText(state.toString());
+		
+		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
+		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
 		
 		ArrayList<JTextField> textFields = new ArrayList<>();
 		DocumentListener docListener = new DocumentListener() {
@@ -286,6 +315,7 @@ public class CodeInsertions {
 			
 		};
 
+		replacerView.add(helpTextLabel);
 		replacerView.add(codeScroll);
 		replacerView.add(new JSeparator());
 		
@@ -341,37 +371,50 @@ public class CodeInsertions {
 	public CodeInsertions() {
 		
 		// loops
-		this.add("Flow Control", "While loop",
+		this.add("Flow Control", "While loop", "While loops continue to repeat, while their given condition is met.",
 				  "while <Condition:boolean> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "Repeat loop (\"do\")",
+				"Repeat loops (or \"do\") always execute once, and then continue executing until a condition triggers them to end.",
 				  "repeat\n"
 				+ "  -- Your Code Here\n"
 				+ "until <Condition:boolean>");
-		this.add("Flow Control", "For loop",
+		this.add("Flow Control", "For loop", 
+				"For loops execute a loop a given number of times.\n"
+				+ "Think of them as \"Execute this code for N repetitions\".",
 				  "for <Variable Name> = <Begin:int> , <End:int> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
-		this.add("Flow Control", "For loop with Increment",
+		this.add("Flow Control", "For loop with Increment", 
+				"This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
+				+ "produces numbers separated by the given increment-by parameter.",
 				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
+				"A for-each loop will perform a given operation on each element of a table.\n"
+				+ "The key and value pair is given to indicate that myTable[key] = value.",
 				  "for key, value in pairs(<Table Name>) do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "If statement",
+				"If statements only execute code if a certain condition is met.",
 				  "if <Condition:boolean> then\n"
 				+ "  -- This runs if true\n"
 				+ "end");
 		this.add("Flow Control", "If/Else statement",
+				"If statements only execute code if a certain condition is met.\n"
+				+ "An else clause allows alternate code to run if the condition is not met.",
 				  "if <Condition:boolean> then\n"
 				+ "  -- This runs if true\n"
 				+ "else\n"
 				+ "  -- This runs if false\n"
 				+ "end");
 		this.add("Flow Control", "If/Else-if statement",
+				"If statements only execute code if a certain condition is met.\n"
+				+ "An else-if clause only runs if the \"if\" clause didn't run and the given condition is met.\n"
+				+ "An else clause allows alternate code to run if none of conditions are met.",
 				  "if <Condition 1:boolean> then\n"
 				+ "  -- This runs if true\n"
 				+ "elseif <Condition 2:boolean> then\n"
@@ -382,51 +425,82 @@ public class CodeInsertions {
 
 		// functions
 		this.add("Functions", "Function Declaration",
+				"Functions are a nice way to organize your code.\n"
+				+ "It's just like baking: your cookie recipe doesn't explain how to make flour from scratch. "
+				+ "They just say to get out the flour that you got through some hidden process.\n"
+				+ "Likewise in programming, you can explain how to do something once (in a function), and then use that elsewhere.",
 				  "function f ()\n"
 				+ "  -- Your code here\n"
 				+ "end");
 		this.add("Functions", "Lambda-style",
+				"Functions are a nice way to organize your code.\n"
+				+ "Lambda expressions (and these lambda-like functions) are a more compact way to express functions.",
 				  "f = function ()\n"
 				+ "  -- Your code here\n"
 				+ "end");
 		
 		// comments
 		this.add("Comments", "One-line Comment",
+				"Comments are things that the computer ignores when running the script.\n"
+				+ "They are helpful for humans trying to read and understand your code.",
 				  "-- This is a comment");
 		this.add("Comments", "Multi-line Comment",
+				"Comments are things that the computer ignores when running the script.\n"
+				+ "They are helpful for humans trying to read and understand your code.\n"
+				+ "Multi-line comments are helpful when you have a lot to say.",
 				  "--[[\n"
 				+ "  This is a mult-line comment\n"
 				+ "]]");
 		
 
 		// keyword values
-		this.add("Keyword values", "nil (null)", "nil");
-		this.add("Keyword values", "false", "false");
-		this.add("Keyword values", "true", "true");
+		this.add("Keyword values", "nil (null)", "nil (or null/nullptr in other languages) is an indication that there is no value for a given variable.\n"
+				+ "If you ask someone \"How many dogs do you have\" and they respond \"None\", and then you ask them \"What is your first dog's name?\","
+				+ "the appropriate response from them is \"nil\"",
+				"nil");
+		this.add("Keyword values", "false", "Something that is never true.",
+				"false");
+		this.add("Keyword values", "true", "Something that is always true.",
+				"true");
 		
 
 		// operators
-		this.add("Operators", "addition (+)", "<A> + <B>");
-		this.add("Operators", "subtraction (-)", "<A> - <B>");
-		this.add("Operators", "multiplication (*)", "<A> * <B>");
-		this.add("Operators", "float division (/)", "<A> / <B>");
-		this.add("Operators", "floor division (//)", "<A> // <B>");
-		this.add("Operators", "modulo (%)", "<A> % <B>");
-		this.add("Operators", "exponentiation (^)", "<A> ^ <B>");
+		final String OPERATOR_HELP = "Operators in programming are just like the ones you learned about in math class.";
+		this.add("Operators", "addition (+)", OPERATOR_HELP, "<A> + <B>");
+		this.add("Operators", "subtraction (-)", OPERATOR_HELP, "<A> - <B>");
+		this.add("Operators", "multiplication (*)", OPERATOR_HELP, "<A> * <B>");
+		this.add("Operators", "float division (/)", OPERATOR_HELP+"\n"
+				+ "The reason this is \"float division\" is because something like 1/2 = .5, "
+				+ "but when you're dealing with integers (see floor division) 1/2 = 0.",
+				"<A> / <B>");
+		this.add("Operators", "floor division (//)", OPERATOR_HELP+"\n"
+				+ "Floor division only handles integers, so 1/2 = 0.\n"
+				+ "For division where 1/2 = .5, see float division.", "<A> // <B>");
+		this.add("Operators", "modulo (%)", "The modulo operator is similar to the remainder from long devision.", "<A> % <B>");
+		this.add("Operators", "exponentiation (^)", OPERATOR_HELP, "<A> ^ <B>");
 		
 		
-		this.add("Operators", "logical OR", "<A> or <B>");
-		this.add("Operators", "logical AND", "<A> and <B>");
-		this.add("Operators", "logical NOT", "not <A>");
+		this.add("Operators", "logical OR",
+				"If <A> or <B> is true, or if both are true, then the result of the \"or\" statement is true.",
+				"<A> or <B>");
+		this.add("Operators", "logical AND",
+				"If <A> and <B> is true, then the result of the \"and\" statement is true.\n"
+				+ "Otherwise, the result is false.", "<A> and <B>");
+		this.add("Operators", "logical NOT",
+				"If <A> is false, then \"not <A>\" is true.\n"
+				+ "If <A> is true, then \"not <A>\" is false.", "not <A>");
 
-		this.add("Operators", "equality", "<A> == <B>");
-		this.add("Operators", "inequality", "<A> ~= <B>");
-		this.add("Operators", "less than", "<A> < <B>");
-		this.add("Operators", "greater than", "<A> > <B>");
-		this.add("Operators", "less or equal", "<A> <= <B>");
-		this.add("Operators", "greater or equal", "<A> >= <B>");
+		this.add("Operators", "equality", "True if <A> and <B> are equal", "<A> == <B>");
+		this.add("Operators", "inequality", "True if <A> and <B> are not equal", "<A> ~= <B>");
+		this.add("Operators", "less than", "True if <A> is less than <B>", "<A> < <B>");
+		this.add("Operators", "greater than", "True if <A> is greater than <B>", "<A> > <B>");
+		this.add("Operators", "less or equal", "True if <A> is less than or equal to <B>", "<A> <= <B>");
+		this.add("Operators", "greater or equal", "True if <A> is greater than or equal to <B>", "<A> >= <B>");
 		
-		this.add("Operators", "Array Length", "#<Array>");
+		this.add("Operators", "Array Length",
+				"Arrays are long collections of values.\n"
+				+ "The length of the array is the number of values in that collection.",
+				"#<Array>");
 
 		//this.add("Operators", "bitwise AND", "<A> & <B>");
 		//this.add("Operators", "bitwise OR", "<A> | <B>");
@@ -453,7 +527,7 @@ public class CodeInsertions {
 		this();
 		
 		for(LuaSandbox.EventInfo i : sandbox.getEvents()) {
-			this.add("Events", i.niceName, i.generateTemplateListener());
+			this.add("Events", i.niceName, i.description, i.generateTemplateListener());
 		}
 	}
 	
