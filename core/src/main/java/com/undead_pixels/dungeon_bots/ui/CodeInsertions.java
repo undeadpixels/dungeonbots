@@ -4,18 +4,14 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -26,12 +22,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.TreeUI;
@@ -40,18 +32,11 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-import org.jdesktop.swingx.JXLabel;
 import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
-import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 
 import jsyntaxpane.DefaultSyntaxKit;
 
@@ -627,15 +612,17 @@ public class CodeInsertions {
 				int rowEnd = root.getElement(row).getEndOffset();
 				String rowStr = "";
 				try {
-					rowStr = d.getText(rowBegin, rowEnd - rowBegin);
+					rowStr = d.getText(rowBegin, rowEnd - rowBegin - 1);
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
 				
 				String whitespace = "";
 				
+				System.out.println("Rowstr = '"+rowStr+"'");
+				
 				int col = 0;
-				for(; Character.isWhitespace(rowStr.charAt(col)); col++) {
+				for(; col < rowStr.length() && Character.isWhitespace(rowStr.charAt(col)); col++) {
 					whitespace += rowStr.charAt(col);
 				}
 				
@@ -649,6 +636,8 @@ public class CodeInsertions {
 				pos = rowEnd-1;
 				
 				s = s.replace("\n", "\n"+whitespace);
+				
+				editor.setCaretPosition(pos);
 			}
 			
 			try {
