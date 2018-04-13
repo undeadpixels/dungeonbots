@@ -391,37 +391,39 @@ public class CodeInsertions {
 		
 		// help
 		this.add("Help", "help()", "The help function returns everything accessible to this lua script environment. "
-				+ "If you're looking for help about the world, try help(world) or for information about what this entity can do,"
+				+ "If you're looking for help about the world, try help(world) or for information about what this entity can do, "
 				+ "try help(this).", "help()");
 		this.add("Help", "help(this)", "The help function help information about objects passed to it. "
 				+ "This command will show everything that this object can do.", "help(this)");
 		
 		// loops
-		this.add("Flow Control", "While loop", "While loops continue to repeat, while their given condition is met.",
+		this.add("Flow Control", "While loop", "While loops repeat the code inside of them, but only while their given condition is met.",
 				  "while <Condition:boolean> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "Repeat loop (\"do\")",
-				"Repeat loops (or \"do\") always execute once, and then continue executing until a condition triggers them to end.",
+				"Repeat loops (or \"do loops\" in other programming languages) always execute once, "
+				+ "and then continue executing until a condition triggers them to end.",
 				  "repeat\n"
 				+ "    -- Your Code Here\n"
 				+ "until <Condition:boolean>");
 		this.add("Flow Control", "For loop", 
-				"For loops execute a loop a given number of times.\n"
+				"For loops execute the code inside of them a given number of times.\n"
 				+ "Think of them as \"Execute this code for N repetitions\".",
 				  "for <Variable Name> = <Begin:int>, <End:int> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For loop with Increment",
-				"For loops execute a loop a given number of times.\n"
+				"For loops execute the code inside of them a given number of times.\n"
 				+ "This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
-				+ "produces numbers separated by the given increment-by parameter.",
+				+ "produces numbers separated by the given <Increment By> parameter.",
 				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
-				"A for-each loop will perform a given operation on each element of a table.\n"
-				+ "The key and value pair is given to indicate that myTable[key] = value.",
+				"A for-each loop will perform a given operation on each element of an array or table "
+				+ "(also known as a dictionary in other programming languages).\n"
+				+ "The key and value pair indicates that myTable[key] = value.",
 				  "for key, value in pairs(<Table Name>) do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
@@ -440,7 +442,7 @@ public class CodeInsertions {
 				+ "end");
 		this.add("Flow Control", "If/Else-if statement",
 				"If statements only execute code if a certain condition is met.\n"
-				+ "An else-if clause only runs if the \"if\" clause didn't run and the given condition is met.\n"
+				+ "An else-if clause only runs if the \"if\" clause didn't run and the next given condition is met.\n"
 				+ "An else clause allows alternate code to run if none of conditions are met.",
 				  "if <Condition 1:boolean> then\n"
 				+ "    -- This runs if true\n"
@@ -453,9 +455,10 @@ public class CodeInsertions {
 		// functions
 		this.add("Functions", "Function Declaration",
 				"Functions are a nice way to organize your code.\n"
-				+ "It's just like baking: your cookie recipe doesn't explain how to make flour from scratch. "
-				+ "They just say to get out the flour that you got through some hidden process.\n"
-				+ "Likewise in programming, you can explain how to do something once (in a function), and then use that elsewhere.",
+				+ "It's just like baking: your cookie recipe probably has you assemble your dough in a few pieces. "
+				+ "First it asks you to assemble the dry ingredients, then store them somewhere. "
+				+ "Next you assemble the liquids, and then you put it all together. "
+				+ "Likewise in programming, you can explain how to do something once (in a function), and then use that function anywhere.",
 				  "function f ()\n"
 				+ "    -- Your code here\n"
 				+ "end");
@@ -468,7 +471,7 @@ public class CodeInsertions {
 		
 		// comments
 		this.add("Comments", "One-line Comment",
-				"Comments are things that the computer ignores when running the script.\n"
+				"Comments are things that the computer ignores when running your script.\n"
 				+ "They are helpful for humans trying to read and understand your code.",
 				  "-- This is a comment");
 		this.add("Comments", "Multi-line Comment",
@@ -476,14 +479,13 @@ public class CodeInsertions {
 				+ "They are helpful for humans trying to read and understand your code.\n"
 				+ "Multi-line comments are helpful when you have a lot to say.",
 				  "--[[\n"
-				+ "  This is a mult-line comment\n"
+				+ "  This is a mult-line comment.\n"
+				+ "  Write as much as you want in here.\n"
 				+ "]]");
 		
 
 		// keyword values
-		this.add("Keyword values", "nil (null)", "nil (or null/nullptr in other languages) is an indication that there is no value for a given variable.\n"
-				+ "If you ask someone \"How many dogs do you have\" and they respond \"None\", and then you ask them \"What is your first dog's name?\","
-				+ "the appropriate response from them is \"nil\"",
+		this.add("Keyword values", "nil (null)", "nil (or null in other languages) is an indication that there is no value for a given variable.",
 				"nil");
 		this.add("Keyword values", "false", "Something that is never true.",
 				"false");
@@ -497,8 +499,8 @@ public class CodeInsertions {
 		this.add("Operators", "subtraction (-)", OPERATOR_HELP, "<A> - <B>");
 		this.add("Operators", "multiplication (*)", OPERATOR_HELP, "<A> * <B>");
 		this.add("Operators", "float division (/)", OPERATOR_HELP+"\n"
-				+ "The reason this is \"float division\" is because something like 1/2 = .5. "
-				+ "In other programming languages division of integers always results in an integer (so 1/2 = 0, and 3/2 = 1), "
+				+ "The reason this is specified as \"float division\" is because something like 1/2 = .5. "
+				+ "In other programming languages, division of integers always results in another integer (so 1/2 = 0, and 3/2 = 1), "
 				+ "but in lua, 1/2 = .5 and 3/2 = 1.5.",
 				"<A> / <B>");
 		//this.add("Operators", "floor division (//)", OPERATOR_HELP+"\n"
@@ -518,16 +520,25 @@ public class CodeInsertions {
 				"If <A> is false, then \"not <A>\" is true.\n"
 				+ "If <A> is true, then \"not <A>\" is false.", "not <A>");
 
-		this.add("Operators", "equality", "True if <A> and <B> are equal", "<A> == <B>");
-		this.add("Operators", "inequality", "True if <A> and <B> are not equal", "<A> ~= <B>");
+		this.add("Operators", "equality", "True if <A> and <B> are equal.\n"
+				+ "Note that the == operator does not apply to unique tables that have the same contents.\n\n"
+				+ "3 == 3 is true.\n"
+				+ "If we say \"myTable = {a=1}\", then\n"
+				+ "myTable == myTable is true (as myTable is the exact same table as itself), but:\n"
+				+ "{a=1} == {a=1} is false, since two unique tables holding the same values are created in this last case.", "<A> == <B>");
+		this.add("Operators", "inequality", "True if <A> and <B> are not equal.\n"
+				+ "For example, 1 ~= 2 is true, but\n"
+				+ "5 ~= 5 is false.\n\n"
+				+ "Tables are handled slightly different from numbers. "
+				+ "For more information, please click on the \"equality\" operator from this list.", "<A> ~= <B>");
 		this.add("Operators", "less than", "True if <A> is less than <B>", "<A> < <B>");
 		this.add("Operators", "greater than", "True if <A> is greater than <B>", "<A> > <B>");
 		this.add("Operators", "less or equal", "True if <A> is less than or equal to <B>", "<A> <= <B>");
 		this.add("Operators", "greater or equal", "True if <A> is greater than or equal to <B>", "<A> >= <B>");
 		
-		this.add("Operators", "Array Length",
+		this.add("Operators", "Array length",
 				"Arrays are long collections of values.\n"
-				+ "The length of the array is the number of values in that collection.",
+				+ "The length of an array is the number of values that it holds.",
 				"#<Array>");
 
 		//this.add("Operators", "bitwise AND", "<A> & <B>");
