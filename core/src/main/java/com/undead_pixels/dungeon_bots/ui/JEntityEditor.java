@@ -63,7 +63,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
+			scriptEditor = new JScriptCollectionEditor(entity.getSandbox(), state.getScripts(), security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 

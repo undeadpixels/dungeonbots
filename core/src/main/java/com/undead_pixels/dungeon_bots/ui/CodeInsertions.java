@@ -41,6 +41,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.jdesktop.swingx.VerticalLayout;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 
 import jsyntaxpane.DefaultSyntaxKit;
@@ -283,11 +284,12 @@ public class CodeInsertions {
 		
 		
 		for(InsertionReplacementState.Field field : state.fields) {
-			JTextField textField = new JTextField(field.currentString);
+			JTextField textField = new JTextField(field.currentString, 20);
 			textField.getDocument().addDocumentListener(docListener);
 			textFields.add(textField);
 			
 			Box box = new Box(BoxLayout.X_AXIS);
+			box.add(new JPanel());
 			box.add(new JLabel(field.templateName));
 			box.add(textField);
 			
@@ -303,14 +305,6 @@ public class CodeInsertions {
 
 	public CodeInsertions() {
 		
-		// comments
-		this.add("Comments", "One-line Comment",
-				  "-- This is a comment");
-		this.add("Comments", "Multi-line Comment",
-				  "--[[\n"
-				+ "  This is a mult-line comment\n"
-				+ "]]");
-		
 		// loops
 		this.add("Flow Control", "While loop",
 				  "while <Condition:boolean> do\n"
@@ -324,7 +318,7 @@ public class CodeInsertions {
 				  "for <VariableName> = <Begin:int> , <End:int> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
-		this.add("Flow Control", "For loop by",
+		this.add("Flow Control", "For loop with Increment",
 				  "for <VariableName> = <Begin:float>, <End:float>, <IncrementBy:float> do\n"
 				+ "  -- Your Code Here\n"
 				+ "end");
@@ -356,56 +350,76 @@ public class CodeInsertions {
 				  "function f ()\n"
 				+ "  -- Your code here\n"
 				+ "end");
-		this.add("Functions", "Lambda-style Declaration",
+		this.add("Functions", "Lambda-style",
 				  "f = function ()\n"
 				+ "  -- Your code here\n"
 				+ "end");
 		
+		// comments
+		this.add("Comments", "One-line Comment",
+				  "-- This is a comment");
+		this.add("Comments", "Multi-line Comment",
+				  "--[[\n"
+				+ "  This is a mult-line comment\n"
+				+ "]]");
 		
+
+		// keyword values
+		this.add("Keyword values", "nil (null)", "nil");
+		this.add("Keyword values", "false", "false");
+		this.add("Keyword values", "true", "true");
+		
+
+		// operators
+		this.add("Operators", "addition (+)", "<A> + <B>");
+		this.add("Operators", "subtraction (-)", "<A> - <B>");
+		this.add("Operators", "multiplication (*)", "<A> * <B>");
+		this.add("Operators", "float division (/)", "<A> / <B>");
+		this.add("Operators", "floor division (//)", "<A> // <B>");
+		this.add("Operators", "modulo (%)", "<A> % <B>");
+		this.add("Operators", "exponentiation (^)", "<A> ^ <B>");
+		
+		
+		this.add("Operators", "logical OR", "<A> or <B>");
+		this.add("Operators", "logical AND", "<A> and <B>");
+		this.add("Operators", "logical NOT", "not <A>");
+
+		this.add("Operators", "equality", "<A> == <B>");
+		this.add("Operators", "inequality", "<A> ~= <B>");
+		this.add("Operators", "less than", "<A> < <B>");
+		this.add("Operators", "greater than", "<A> > <B>");
+		this.add("Operators", "less or equal", "<A> <= <B>");
+		this.add("Operators", "greater or equal", "<A> >= <B>");
+		
+		this.add("Operators", "Array Length", "#<Array>");
+
+		//this.add("Operators", "bitwise AND", "<A> & <B>");
+		//this.add("Operators", "bitwise OR", "<A> | <B>");
+		//this.add("Operators", "bitwise exclusive OR", "<A> ~ <B>");
+		//this.add("Operators", "right shift", "<A> >> <B>");
+		//this.add("Operators", "left shift", "<A> << <B>");
+		//this.add("Operators", "unary bitwise NOT", "~ <A>");
 		
 		/*
-		 * nil | false | true
 		 * ‘{’ [fieldlist] ‘}’
 		 * ""
 		 * [[]]
 		 * 
-		 * +: addition
-		 * -: subtraction
-		 * : multiplication
-		 * /: float division
-		 * //: floor division
-		 * %: modulo
-		 * ^: exponentiation
-		 * -: unary minus
-		 * 
-		 * &: bitwise AND
-		 * |: bitwise OR
-		 * ~: bitwise exclusive OR
-		 * >>: right shift
-		 * <<: left shift
-		 * ~: unary bitwise NOT
-		 * 
-		 * ==: equality
-		 * ~=: inequality
-		 * <: less than
-		 * >: greater than
-		 * <=: less or equal
-		 * >=: greater or equal
-		 * 
-		 * 10 or 20 --> 10
-		 * 10 or error() --> 10
-		 * nil or "a" --> "a"
-		 * nil and 10 --> nil
-		 * false and error() --> false
-		 * false and nil --> false
-		 * false or nil --> nil
-		 * 10 and 20 --> 20
-		 * 
-		 * #
-		 * 
 		 */
 		
 		
+	}
+	
+
+	/**
+	 * Adds default insertions and headers for events
+	 */
+	public CodeInsertions(LuaSandbox sandbox) {
+		this();
+		
+		for(LuaSandbox.EventInfo i : sandbox.getEvents()) {
+			this.add("Events", i.niceName, i.generateTemplateListener());
+		}
 	}
 	
 	

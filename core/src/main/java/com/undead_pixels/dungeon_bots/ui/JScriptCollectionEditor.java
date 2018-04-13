@@ -25,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -40,7 +41,7 @@ public class JScriptCollectionEditor extends JPanel {
 	private final UserScriptCollection scripts;
 
 
-	public JScriptCollectionEditor(UserScriptCollection scripts, SecurityLevel security) {
+	public JScriptCollectionEditor(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security) {
 		editor = new JScriptEditor(security);
 		this.security = security;
 		// Create the editor.
@@ -92,7 +93,7 @@ public class JScriptCollectionEditor extends JPanel {
 		Box scriptListBox = new Box(BoxLayout.Y_AXIS);
 		scriptListBox.setBorder(BorderFactory.createTitledBorder("Editable scripts"));
 
-		CodeInsertions codeInsertions = new CodeInsertions();
+		CodeInsertions codeInsertions = new CodeInsertions(sandbox);
 		JScrollPane insertionScroller = codeInsertions.makeScroller(editor.getEditor());
 
 		// Make buttons for add/remove of scripts.
