@@ -140,11 +140,12 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
-		
+
+		// Next item on the queue acts.
 		actionQueue.act(dt);
 
-  boolean isIdle = actionQueue.isEmpty();
 		// Enqueue an idle call, if enough time has elapsed.
+		boolean isIdle = actionQueue.isEmpty(); 
 		if (!isIdle) {
 			idle = 0f;
 		} else {
@@ -300,15 +301,15 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 				this.scripts.add(s);
 			}
 			if (!scripts.contains("onClicked")){
-				UserScript s = new UserScript("onClicked", "-- This script executes whenever the entity has been clicked.", SecurityLevel.NONE);
+				UserScript s = new UserScript("onClicked", "-- This script executes whenever \n--the entity has been clicked.\n", SecurityLevel.NONE);
 				this.scripts.add(s);
 			}	
 			if (!scripts.contains("onExamined")){
-				UserScript s = new UserScript("onExamined", "-- This script executes whenever an editor is opened for this entity.)", SecurityLevel.NONE);
+				UserScript s = new UserScript("onExamined", "-- This script executes whenever \n--an editor is opened for this \n--entity. A global variable called \n--'message' is set that you can \n--use to determine what part of \n--the editor examined the entity.", SecurityLevel.NONE);
 				this.scripts.add(s);
 			}
 			if (!scripts.contains("onEdited")){
-				UserScript s = new UserScript("onEdited", "-- This script executes whenever the entity has been edited.", SecurityLevel.NONE);
+				UserScript s = new UserScript("onEdited", "-- This script executes whenever \n--the entity has been edited.\n", SecurityLevel.NONE);
 				this.scripts.add(s);
 			}
 		}
@@ -338,14 +339,23 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 
 	/**Fires a script into the action queue.  This does not guarantee execution.*/
-	public boolean enqueueScript(String scriptName) {
+	public boolean enqueueScript(String scriptName, String...prepends) {
 		synchronized (this) {
 			UserScript s = scripts.get(scriptName);
 			if (s == null) {
 				System.err.println("Unrecognized script:" + scriptName);
 				return false;
 			}
-			this.getSandbox().enqueueCodeBlock(s.code);
+			if (prepends.length == 0)
+				this.getSandbox().enqueueCodeBlock(s.code);
+			else if (prepends.length == 1)
+				this.getSandbox().enqueueCodeBlock(s.code, prepends[0]);
+			else {
+				String[] newPrepends = new String[prepends.length-1];
+				for (int i = 1; i < prepends.length; i++) newPrepends[i-1] = prepends[i];
+				this.getSandbox().enqueueCodeBlock(s.code, prepends[0], newPrepends);
+
+			}
 		}
 		return true;
 

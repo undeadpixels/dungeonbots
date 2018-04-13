@@ -220,6 +220,25 @@ public final class LuaSandbox implements Serializable {
 	public LuaInvocation enqueueCodeBlock(String codeBlock, ScriptEventStatusListener... listeners) {
 		return enqueueCodeBlock(codeBlock, null, listeners);
 	}
+	
+
+	/**This is a HACK way of getting a message into the Sandbox.  Every input argument in the form 
+	 * of "variable=message" will be prepended as a variable declaration to the code block.*/
+	public LuaInvocation enqueueCodeBlock(String codeBlock, String keyValuePair, String... keyValuePairs) {
+		//TODO:  gotta be a more elegant way to accomplish this that is understandable for users.
+		StringBuilder sb = new StringBuilder();
+		String split[] = keyValuePair.split("=");
+		if (split.length == 2)
+			sb.append("local " + split[0] + " = \"" + split[1] + "\"\n");
+		for (String kvp : keyValuePairs) {
+			split = kvp.split("=");
+			if (split.length != 2)
+				continue;
+			sb.append("local " + split[0] + " = \"" + split[1] + "\"\n");
+		}
+		sb.append(codeBlock);
+		return enqueueCodeBlock(sb.toString(), new ScriptEventStatusListener[0]);
+	}
 
 	/**
 	 * @param codeBlock			A block of lua code to execute

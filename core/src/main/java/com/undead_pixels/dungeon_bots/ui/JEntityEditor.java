@@ -104,7 +104,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 				@Override
 				public void run() {
-					e.enqueueScript("onExamined");
+					e.enqueueScript("onExamined","message=Entity Editor");
 				}});
 			
 			}
