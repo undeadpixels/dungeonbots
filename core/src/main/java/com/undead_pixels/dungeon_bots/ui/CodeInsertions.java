@@ -855,7 +855,7 @@ public class CodeInsertions {
 					return ret;
 					});
 		this.add("Arrays/Tables", "New Table (dictionary)",
-				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
+				"Tables are a collection of values, mapped from their name.\n"
 				+ "For example, if I have a brown German Shepherd named Fido that's 3 years old, "
 				+ "then fido = {\"color\"=\"brown\", \"breed\"=\"German Shepherd\", \"age\"=3}.\n",
 				(count) -> {
