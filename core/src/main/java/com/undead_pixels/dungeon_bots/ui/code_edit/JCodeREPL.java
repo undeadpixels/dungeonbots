@@ -41,6 +41,7 @@ import org.luaj.vm2.Varargs;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.ScriptEventStatusListener;
 import com.undead_pixels.dungeon_bots.script.ScriptStatus;
+import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -77,8 +78,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 	 * JCodeREPL CONSTRUCTION MEMBERS
 	 * ================================================================ */
 
-	/** Creates a new REPL. All code will execute in the given sandbox. */
-	public JCodeREPL(LuaSandbox sandbox) {
+	/** Creates a new REPL. All code will execute in the given sandbox. 
+	 * @param transparent */
+	public JCodeREPL(LuaSandbox sandbox, boolean transparent) {
 
 		if (sandbox == null)
 			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
@@ -91,7 +93,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_SystemMessageStyle = putSimpleAttributeSet(Color.GREEN, Color.BLACK, true);
 		_ErrorMessageStyle = putSimpleAttributeSet(Color.RED, Color.BLACK, true);
 
-		addComponents();
+		addComponents(transparent);
 
 		_MessagePane.setText("");
 		_EditorPane.setText("");
@@ -103,14 +105,31 @@ public class JCodeREPL extends JPanel implements ActionListener {
 
 
 	/**
+	 * @param transparent 
 	 * @param entity
+	 */
+	public JCodeREPL(GetLuaSandbox sandboxable, boolean transparent) {
+		this(sandboxable.getSandbox(), transparent);
+	}
+
+
+	/**
+	 * @param world
 	 */
 	public JCodeREPL(GetLuaSandbox sandboxable) {
 		this(sandboxable.getSandbox());
 	}
 
 
-	private void addComponents() {
+	/**
+	 * @param luaSandbox
+	 */
+	public JCodeREPL(LuaSandbox luaSandbox) {
+		this(luaSandbox, false);
+	}
+
+
+	private void addComponents(boolean transparent) {
 		this.setLayout(new BorderLayout());
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 
@@ -162,6 +181,9 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		outerBox.add(splitPaneWrapper);
 		
 		this.add(outerBox);
+		
+		if(transparent)
+			this.setOpaque(false);
 
 
 		_EditorPane.requestFocusInWindow();

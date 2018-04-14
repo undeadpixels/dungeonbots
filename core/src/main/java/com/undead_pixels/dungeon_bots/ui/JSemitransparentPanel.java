@@ -4,6 +4,8 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -49,7 +51,7 @@ public class JSemitransparentPanel extends JPanel {
 	
 	private boolean draggable;
 	private float blur = 0.0f;
-	private Color color = new Color(0, 0, 0, 127);
+	private Color color = new Color(50, 45, 40, 200);
 	private int roundingRadius = 8;
 	private Shape shape;
 	private boolean hasAnchorTail = true;
@@ -78,7 +80,7 @@ public class JSemitransparentPanel extends JPanel {
 		javax.swing.Timer t = new Timer(15, new ActionListener() {
 			@Override
 			public void actionPerformed (ActionEvent e) {
-				setAnchor(150, (float) (200 + Math.sin(System.currentTimeMillis() / 1000.0) * 200));
+				setAnchor(250, (float) (300 + Math.sin(System.currentTimeMillis() / 10000.0) * 0));
 				update(.015f);
 			}
 		});
@@ -132,12 +134,13 @@ public class JSemitransparentPanel extends JPanel {
 		if(dxInt != 0 || dyInt != 0) {
 			Point before = contentPane.getLocation();
 			this.contentPane.setLocation(before.x + dxInt, before.y + dyInt);
-			System.out.println("Putting at "+(before.x + dxInt)+","+ (before.y + dyInt));
+			
+			// compute bounding box and fit
+			
 			this.repaint();
 			accumulatedDx -= dxInt;
 			accumulatedDy -= dyInt;
 		} else {
-			System.out.println("Staying ("+dxTarget+", "+dyTarget+")");
 		}
 	}
 	
@@ -195,5 +198,26 @@ public class JSemitransparentPanel extends JPanel {
 		g2.setColor(color);
 		g2.fill(shape);
 		
+	}
+
+	/**
+	 * 
+	 */
+	public void recursiveTransparentify () {
+		recursiveTransparentify(this.contentPane);
+	}
+	
+	private static void recursiveTransparentify(Component comp) {
+		if(comp instanceof JComponent) {
+			JComponent j = (JComponent) comp;
+			j.setOpaque(false);
+		}
+		if(comp instanceof Container) {
+			Container cont = (Container) comp;
+
+			for(Component c : cont.getComponents()) {
+				recursiveTransparentify(c);
+			}
+		}
 	}
 }

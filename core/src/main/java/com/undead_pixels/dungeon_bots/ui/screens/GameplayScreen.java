@@ -35,6 +35,7 @@ import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.World.MessageListener;
+import com.undead_pixels.dungeon_bots.scene.entities.Bot;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -191,7 +192,10 @@ public class GameplayScreen extends Screen {
 		semitrans.setSize(600, 600);
 		ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
 		JLabel label = new JLabel(terminalImage);
-		semitrans.getContentPane().add(label);
+		//semitrans.getContentPane().add(label);
+		JEntityEditor jee = JEntityEditor.crateEntityEditorPane(new Bot(new World(), "myBot"), SecurityLevel.AUTHOR, semitrans.getContentPane(), view, true);
+		semitrans.getContentPane().setSize(600, 500);
+		semitrans.recursiveTransparentify();
 		//semitrans.getContentPane().add(new JButton("TEST"));
 		this.getLayeredPane().add(semitrans, (Integer) 100);
 
