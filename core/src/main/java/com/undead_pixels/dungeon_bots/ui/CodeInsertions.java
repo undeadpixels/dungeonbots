@@ -225,6 +225,14 @@ public class CodeInsertions {
 			
 			public boolean setCurrentString (String currentString) {
 				this.currentString = currentString;
+				
+				if(templateType.equals("identifier")) {
+					if(!currentString.matches("[_A-Za-z][_A-Z-a-z0-9]*") &&
+							!currentString.isEmpty()) {
+						return false;
+					}
+				}
+				
 				return true;
 			}
 			
@@ -262,7 +270,7 @@ public class CodeInsertions {
 				 * @param originalString
 				 */
 				public CountField() {
-					super(-1, -1, "<Count>");
+					super(-1, -1, "Count");
 					this.setCurrentString("3");
 				}
 				
@@ -547,8 +555,12 @@ public class CodeInsertions {
 				}
 				
 				boolean updateGui = state.update();
-				
-				codeArea.setText(state.toString());
+
+				String text = state.toString();
+				while(text.split("\\r\\n|\\r|\\n").length < 5) { // ensure 5 lines
+					text += "\n ";
+				}
+				codeArea.setText(text);
 				
 				if(updateGui) {
 					fillBottomBox(bottomBox, state, codeArea, textFields); // recursion at its finest
@@ -606,6 +618,7 @@ public class CodeInsertions {
 			first.requestFocusInWindow();
 		}
 		
+		docListener.changedUpdate(null); // sync the text fields for things like color
 		bottomBox.revalidate();
 		codeArea.revalidate();
 	}
@@ -626,14 +639,6 @@ public class CodeInsertions {
 		codeArea.setEditable(false);
 		codeArea.setFocusable(true);
 		codeArea.setContentType("text/lua");
-		String beginText = state.toString();
-		while(beginText.split("\\r\\n|\\r|\\n").length < 5) { // ensure 5 lines
-			System.out.println("Expanding: /"+Arrays.toString(beginText.split("\\r\\n|\\r|\\n"))+"/");
-			beginText += "\n ";
-		}
-		codeArea.setText(beginText);
-		codeScroll.setMinimumSize(new Dimension(100, 100));
-		codeArea.setMinimumSize(new Dimension(100, 100));
 		
 		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
 		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -699,14 +704,14 @@ public class CodeInsertions {
 		this.add("Flow Control", "For loop", 
 				"For loops execute the code inside of them a given number of times.\n"
 				+ "Think of them as \"Execute this code for N repetitions\".",
-				  "for <Variable Name> = <Begin:int>, <End:int> do\n"
+				  "for <Variable Name:identifier> = <Begin:int>, <End:int> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For loop with Increment",
 				"For loops execute the code inside of them a given number of times.\n"
 				+ "This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
 				+ "produces numbers separated by the given <Increment By> parameter.",
-				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
+				  "for <Variable Name:identifier> = <Begin:float>, <End:float>, <Increment By:float> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
@@ -866,7 +871,7 @@ public class CodeInsertions {
 								ret += ", ";
 							}
 						}
-						ret += "<Key "+(i+1)+">=<Value "+(i+1)+">";
+						ret += "<Key "+(i+1)+":identifier>=<Value "+(i+1)+">";
 					}
 					if(count > 3) {
 						ret += "\n";
@@ -883,7 +888,7 @@ public class CodeInsertions {
 				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
 				+ "For example, if Fido is 3 years old, then fido.age = 3.\n"
 				+ "This updates or creates a value in an array or table.",
-				"<Table Name>.<Key Name> = <New Value>");
+				"<Table Name>.<Key Name:identifier> = <New Value>");
 		this.add("Arrays/Tables", "Append value to array",
 				"We can combine the length operator and setting a particular index to append to an array.\n"
 				+ "For more information on those operators, try clicking on them.",
