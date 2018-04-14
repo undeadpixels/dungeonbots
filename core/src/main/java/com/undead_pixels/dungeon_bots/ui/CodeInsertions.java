@@ -535,8 +535,18 @@ public class CodeInsertions {
 		this.add("Operators", "greater than", "True if <A> is greater than <B>", "<A> > <B>");
 		this.add("Operators", "less or equal", "True if <A> is less than or equal to <B>", "<A> <= <B>");
 		this.add("Operators", "greater or equal", "True if <A> is greater than or equal to <B>", "<A> >= <B>");
-		
-		this.add("Operators", "Array length",
+
+		this.add("Arrays/Tables", "Set array/table value",
+				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
+				+ "For example, if Fido is 3 years old, then fido[\"age\"] = 3.\n"
+				+ "This updates or creates a value in an array or table.",
+				"<Table Name>[<Index Name>] = <New Value>");
+		this.add("Arrays/Tables", "Set table value (\".\" style)",
+				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
+				+ "For example, if Fido is 3 years old, then fido.age = 3.\n"
+				+ "This updates or creates a value in an array or table.",
+				"<Table Name>.<Key Name> = <New Value>");
+		this.add("Arrays/Tables", "Array length",
 				"Arrays are long collections of values.\n"
 				+ "The length of an array is the number of values that it holds.",
 				"#<Array>");
