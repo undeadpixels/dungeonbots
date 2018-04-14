@@ -52,7 +52,7 @@ public class JWorldEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (world.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
+			scriptEditor = new JScriptCollectionEditor(world.getSandbox(), state.getScripts(), security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 

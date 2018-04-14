@@ -59,6 +59,12 @@ public final class JScriptEditor extends JPanel {
 	/** The script being edited. */
 	private UserScript _Script = null;
 	private final JEditorPane editor;
+	
+	public JEditorPane getEditor () {
+		return editor;
+	}
+
+
 	private final SecurityLevel _SecurityLevel;
 	private final Controller _Controller;
 	private final JComboBox<Font> _FontChooser;

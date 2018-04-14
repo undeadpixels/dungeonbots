@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox.EventInfo;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
@@ -38,6 +39,7 @@ import java.util.stream.*;
  */
 public final class LuaSandbox implements Serializable {
 	
+
 	/**
 	 * 
 	 */
@@ -55,6 +57,7 @@ public final class LuaSandbox implements Serializable {
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 	private final ThreadGroup threadGroup = new ThreadGroup("lua-"+(id++));
 	private final HashMap<String, HashSet<LuaValue>> eventListeners = new HashMap<>();
+	private final HashMap<String, EventInfo> eventInfos = new HashMap<>();
 
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -274,7 +277,7 @@ public final class LuaSandbox implements Serializable {
 		catch (IOException io) { }
 		return outputStream.toString();
 	}
-
+	
 	private void doPrint(String str) {
 		System.out.println("print: "+str);
 		try { bufferedOutputStream.write(str.getBytes()); }
@@ -365,7 +368,7 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	public class HelpFunction extends VarArgFunction implements NonReflectiveDoc {
-
+		
 		private String helpSingle(String comment, LuaValue lv) {
 
 			if(lv.istable()) {
@@ -373,28 +376,28 @@ public final class LuaSandbox implements Serializable {
 					Class<?> clazz = lv.get("this") == LuaValue.NIL ?
 							(Class<?>)lv.get("class").checkuserdata(Class.class) :
 								lv.get("this").checkuserdata().getClass();
-
+							
 					return comment+LuaDoc.docClassToString(clazz);
 				} else { // table but not class
 					ArrayList<String> ret = new ArrayList<>();
-
-
-
+					
+					
+					
 					LuaValue k = LuaValue.NIL;
 					while(true) {
 						Varargs kv = lv.checktable().next(k);
-
+						
 						if(kv == LuaValue.NIL) {
 							break;
 						}
-
+						
 						k = kv.arg1();
 						ret.add(k.tojstring() + "\t=\t" + kv.arg(2).tojstring());
-
+						
 					}
-
+					
 					ret.sort(String.CASE_INSENSITIVE_ORDER);
-
+					
 					return comment+ret.stream().reduce("", (a,b) -> a+"\n"+b);
 				}
 			} else { // not a table
@@ -405,7 +408,7 @@ public final class LuaSandbox implements Serializable {
 				}
 			}
 		}
-
+		
 		@Override
 		public LuaValue invoke(Varargs v) {
 			if(v.narg() == 0) {
@@ -428,9 +431,9 @@ public final class LuaSandbox implements Serializable {
 		}
 	}
 	private class RegisterListenerFunction extends OneArgFunction implements NonReflectiveDoc {
-
+		
 		private final String docs, eventName, funcName;
-
+		
 		public RegisterListenerFunction(String eventName, String funcName, String docs) {
 			super();
 			this.docs = docs;
@@ -446,7 +449,7 @@ public final class LuaSandbox implements Serializable {
 			eventListeners.get(eventName).add(arg);
 			return LuaValue.NIL;
 		}
-
+		
 		@Override
 		public String tojstring() {
 			return "function: " + funcName;
@@ -480,6 +483,62 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
+	 * @author kevin
+	 *
+	 */
+	public class EventInfo {
+
+		public final String registerEventListenerFunctionName;
+		public final String niceName;
+		public final String description;
+		public final String[] argNames;
+
+		/**
+		 * @param description
+		 * @param argNames
+		 */
+		public EventInfo(String eventName, String description, String... argNames) {
+
+			// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
+			boolean shouldUpper = true;
+			String functionName = "";
+			String niceName = "";
+			String eventNameLower = eventName.toLowerCase();
+			for(int i = 0; i < eventNameLower.length(); i++) {
+				char c = eventNameLower.charAt(i);
+				if(c == '_') {
+					shouldUpper = true;
+					niceName += " ";
+					continue;
+				}
+				
+				if(shouldUpper) {
+					functionName += (""+c).toUpperCase();
+					niceName += (""+c).toUpperCase();
+					shouldUpper = false;
+				} else {
+					functionName += c;
+					niceName += c;
+				}
+			}
+			
+			registerEventListenerFunctionName = "register" + functionName + "Listener";
+			
+			this.niceName = niceName+" Listener";
+			this.description = description;
+			this.argNames = argNames;
+		}
+		
+		public String generateTemplateListener() {
+			return registerEventListenerFunctionName+"(function("+Stream.of(argNames).reduce((a, b) -> a+", "+b).orElse("")+")\n"
+					+ "    -- Your code here\n"
+					+ "end)";
+			
+		}
+		
+	}
+
+	/**
 	 * Registers an event type and allows this sandbox to request to listen to it
 	 * 
 	 * @param eventName		Something of the form FOO_BAR_BLAH,
@@ -487,37 +546,17 @@ public final class LuaSandbox implements Serializable {
 	 */
 	public synchronized void registerEventType(String eventName, String description, String... argNames) {
 		eventListeners.put(eventName, new HashSet<LuaValue>());
-		// TODO - store description and argNames somewhere
+		EventInfo einfo = new EventInfo(eventName, description, argNames);
+		eventInfos.put(eventName, einfo);
 		
-		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
-		boolean shouldUpper = true;
-		String registerEventListenerFunctionName = "";
-		String eventNameLower = eventName.toLowerCase();
-		for(int i = 0; i < eventNameLower.length(); i++) {
-			char c = eventNameLower.charAt(i);
-			if(c == '_') {
-				shouldUpper = true;
-				continue;
-			}
-			
-			if(shouldUpper) {
-				registerEventListenerFunctionName += (""+c).toUpperCase();
-				shouldUpper = false;
-			} else {
-				registerEventListenerFunctionName += c;
-			}
-		}
-		
-		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
+		String registerEventListenerFunctionName = einfo.registerEventListenerFunctionName;
 		
 		String docs = description+"\n\n"+
 				"Usage:\n"
-				+ registerEventListenerFunctionName+"(function("+Stream.of(argNames).reduce((a,b) -> (a+", "+b)).orElse("")+")\n"
-				+ "    -- Your code here\n"
-				+ "end)";
-
+				+ einfo.generateTemplateListener();
+		
 		RegisterListenerFunction registerEventListenerFunction = new RegisterListenerFunction(eventName, registerEventListenerFunctionName, docs);
-
+		
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
 
@@ -532,6 +571,13 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
+	 * 
+	 */
+	public Collection<EventInfo> getEvents () {
+		return eventInfos.values();
+	}
+
+	/**
 	 * @param trigger
 	 */
 	public void safeWaitUntil (Supplier<Boolean> trigger) {
@@ -539,11 +585,5 @@ public final class LuaSandbox implements Serializable {
 		while(trigger.get() == false) {
 			currentInvoke.safeSleep(5);
 		}
-	}
-
-	public boolean registerEventListener(final String eventName, final LuaValue fn) {
-		return Optional.ofNullable(eventListeners.get(eventName))
-				.map(fns -> fns.add(fn))
-				.orElse(false);
 	}
 }
