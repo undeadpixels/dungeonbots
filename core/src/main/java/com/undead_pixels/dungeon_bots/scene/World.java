@@ -687,8 +687,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	@Bind(SecurityLevel.AUTHOR)
-	public void setFlag(LuaValue flagName, LuaValue flagVal) {
+	@Bind(value = SecurityLevel.AUTHOR,
+			doc = "Set Game flags for the following\n" +
+					"'autoPlay:boolean', 'name:string', 'playstyle:[EntityTurns,RTS,TeamTurns]'")
+	public void setFlag(@Doc("The Flag Name [autoPlay,name,playstyle, timesReset]") LuaValue flagName,
+						@Doc("The Value of the flag") LuaValue flagVal) {
 		switch (flagName.checkjstring()) {
 		case "autoPlay":
 			this.autoPlay = flagVal.checkboolean();
