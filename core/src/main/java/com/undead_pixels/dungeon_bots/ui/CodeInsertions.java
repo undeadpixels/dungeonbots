@@ -86,16 +86,14 @@ public class CodeInsertions {
 		private static class Field {
 			public final int originalBegin;
 			public final int originalEnd;
-			public final String originalString;
 			public final String templateName;
 			public final String templateType;
-			public String currentString;
-			
+			private String currentString;
+
 			public Field(int originalBegin, int originalEnd, String originalString) {
 				super();
 				this.originalBegin = originalBegin;
 				this.originalEnd = originalEnd;
-				this.originalString = originalString;
 
 				// get more info if possible
 				if(originalEnd - originalBegin < 2) {
@@ -118,14 +116,100 @@ public class CodeInsertions {
 				}
 			}
 			
+			/* (non-Javadoc)
+			 * @see java.lang.Object#hashCode()
+			 */
+			@Override
+			public int hashCode () {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + originalBegin;
+				result = prime * result + originalEnd;
+				result = prime * result + ( (templateName == null) ? 0 : templateName.hashCode());
+				result = prime * result + ( (templateType == null) ? 0 : templateType.hashCode());
+				return result;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#equals(java.lang.Object)
+			 */
+			@Override
+			public boolean equals (Object obj) {
+				if (this == obj) {
+					return true;
+				}
+				if (obj == null) {
+					return false;
+				}
+				if (getClass() != obj.getClass()) {
+					return false;
+				}
+				Field other = (Field) obj;
+				if (originalBegin != other.originalBegin) {
+					return false;
+				}
+				if (originalEnd != other.originalEnd) {
+					return false;
+				}
+				if (templateName == null) {
+					if (other.templateName != null) {
+						return false;
+					}
+				} else if (!templateName.equals(other.templateName)) {
+					return false;
+				}
+				if (templateType == null) {
+					if (other.templateType != null) {
+						return false;
+					}
+				} else if (!templateType.equals(other.templateType)) {
+					return false;
+				}
+				return true;
+			}
+
 			/**
 			 * @return	A good way to represent this field inline with the rest of the code
 			 */
 			public String getInlineRepresentation() {
+				String currentString = getCurrentString ();
 				if(currentString.equals("")) {
 					return "<"+templateName+">";
 				} else {
 					return currentString;
+				}
+			}
+			
+			public String getCurrentString () {
+				return currentString;
+			}
+
+			
+			public void setCurrentString (String currentString) {
+				this.currentString = currentString;
+			}
+			
+			public static class SharedField extends Field {
+
+				public final Field parent;
+				
+				/**
+				 * @param originalBegin
+				 * @param originalEnd
+				 * @param originalString
+				 */
+				public SharedField(int originalBegin, int originalEnd, String originalString, Field parent) {
+					super(originalBegin, originalEnd, originalString);
+					this.parent = parent;
+				}
+
+				public String getCurrentString () {
+					return parent.currentString;
+				}
+
+				
+				public void setCurrentString (String currentString) {
+					parent.currentString = currentString;
 				}
 			}
 		}
@@ -144,7 +228,24 @@ public class CodeInsertions {
 				int end = matches.end();
 				String str = matches.group();
 				
-				fields.add(new Field(start, end, str));
+				if(str.endsWith(":shared>")) {
+					Field parent = new Field(0, 0, "<error>");
+					String searchFor = str.substring(1).split(":")[0];
+					for(Field f : fields) {
+						if(f.templateName.equals(searchFor)) {
+							parent = f;
+							break;
+						}
+					}
+					
+					if(parent.templateName.equals("error")) {
+						System.err.println("Could not find parent for: "+searchFor);
+					}
+					
+					fields.add(new Field.SharedField(start, end, str, parent));
+				} else {
+					fields.add(new Field(start, end, str));
+				}
 			}
 		}
 		
@@ -297,7 +398,7 @@ public class CodeInsertions {
 		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
 		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
 		
-		ArrayList<JTextField> textFields = new ArrayList<>();
+		HashMap<InsertionReplacementState.Field, JTextField> textFields = new HashMap<>();
 		DocumentListener docListener = new DocumentListener() {
 
 			@Override
@@ -314,7 +415,11 @@ public class CodeInsertions {
 			public void changedUpdate (DocumentEvent e) {
 				for(int i = 0; i < state.fields.size(); i++) {
 					// update model
-					state.fields.get(i).currentString = textFields.get(i).getText();
+					InsertionReplacementState.Field f = state.fields.get(i);
+					JTextField textField = textFields.get(f);
+					if(textField != null) {
+						f.setCurrentString(textField.getText());
+					}
 				}
 				
 				codeArea.setText(state.toString());
@@ -350,9 +455,12 @@ public class CodeInsertions {
 		groupLayout.setVerticalGroup(verticalGroup);
 		
 		for(InsertionReplacementState.Field field : state.fields) {
-			JTextField textField = new JTextField(field.currentString, 20);
+			if(field instanceof InsertionReplacementState.Field.SharedField) {
+				continue;
+			}
+			JTextField textField = new JTextField(field.getCurrentString(), 20);
 			textField.getDocument().addDocumentListener(docListener);
-			textFields.add(textField);
+			textFields.put(field, textField);
 			
 			JLabel label = new JLabel(field.templateName);
 			label.setLabelFor(textField);
@@ -546,6 +654,10 @@ public class CodeInsertions {
 				+ "For example, if Fido is 3 years old, then fido.age = 3.\n"
 				+ "This updates or creates a value in an array or table.",
 				"<Table Name>.<Key Name> = <New Value>");
+		this.add("Arrays/Tables", "Append value to array",
+				"We can combine the length operator and setting a particular index to append to an array.\n"
+				+ "For more information on those operators, try clicking on them.",
+				"<Table Name>[#<Table Name::shared> + 1] = <New Value>");
 		this.add("Arrays/Tables", "Array length",
 				"Arrays are long collections of values.\n"
 				+ "The length of an array is the number of values that it holds.",
