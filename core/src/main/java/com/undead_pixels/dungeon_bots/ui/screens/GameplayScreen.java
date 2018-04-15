@@ -169,14 +169,8 @@ public class GameplayScreen extends Screen {
 		JScrollPane messageScroller = new JScrollPane(_MessagePane);
 		JPanel messagePanel = new JPanel();
 		messagePanel.setLayout(new BorderLayout());
-		messagePanel.add(emblem, BorderLayout.PAGE_START);
+		messagePanel.add(emblem, BorderLayout.NORTH);
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
-		message("This is a regular message from the world.\n", LoggingLevel.GENERAL);
-		message("This is an error message from the world.\n", LoggingLevel.ERROR);
-		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", LoggingLevel.GENERAL);
-		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", LoggingLevel.ERROR);
-		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL,
-				Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -237,12 +231,6 @@ public class GameplayScreen extends Screen {
 	/**Posts the given image to the message pane.*/
 	public void message(Image image, int width, int height) {
 		_MessagePane.message(image, width, height);
-	}
-
-
-	/**Posts the given images to the message pane.*/
-	public void message(Image[] images, int width, int height) {
-		_MessagePane.message(images, width, height);
 	}
 
 

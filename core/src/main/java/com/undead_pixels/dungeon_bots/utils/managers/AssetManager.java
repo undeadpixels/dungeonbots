@@ -1,5 +1,6 @@
 package com.undead_pixels.dungeon_bots.utils.managers;
 
+import java.awt.Dimension;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +35,18 @@ public class AssetManager {
 		} catch(IOException ex) {
 			ex.printStackTrace();
 			return null;
+		}
+	}
+	
+	
+	public static Dimension biggestWithinMaintainingAspect(Dimension original, Dimension newDim) {
+		Dimension dimx = new Dimension(newDim.width, newDim.width/original.width * original.height);
+		Dimension dimy = new Dimension(newDim.height/original.height * original.width, newDim.height);
+		
+		if(dimx.width < dimy.height) {
+			return dimx;
+		} else {
+			return dimy;
 		}
 	}
 
