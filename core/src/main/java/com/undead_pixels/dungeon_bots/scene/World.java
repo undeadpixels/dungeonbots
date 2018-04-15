@@ -441,6 +441,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void win() {
 		isWon = true;
 
+		this.message(this, "World has been won!", LoggingLevel.DEBUG);
 		fire(WorldEventType.WIN, this);
 	}
 
@@ -598,6 +599,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return;
 		}
 
+		this.message(this, "Adding entity "+e.getName()+" to the world", LoggingLevel.DEBUG);
 		entities.add(e);
 		e.onAddedToWorld(this);
 		fire(EntityEventType.ENTITY_ADDED, e);
@@ -625,6 +627,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public boolean removeEntity(Entity e) {
 		if (!entities.remove(e))
 			return false;
+		this.message(this, "Removing entity "+e.getName()+" from the world", LoggingLevel.DEBUG);
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
 			if (tile != null && tile.getOccupiedBy() == e)
@@ -749,6 +752,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	public void setSize(int w, int h, int offsetX, int offsetY) {
+		this.message(this, "Changing world size to "+w+"x"+h+".", LoggingLevel.DEBUG);
 
 		// Copy all tiles into a new array of tiles.
 		Tile[][] newTiles = new Tile[w][h];
@@ -878,6 +882,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setTile(int x, int y, TileType tileType) {
 		if (!isInBounds(x, y))
 			return;
+		
+		this.message(this, "Setting tile at ("+x+", "+y+") to "+tileType.getName(), LoggingLevel.DEBUG);
 
 		tilesAreStale = true;
 		if (tiles[x][y] == null)
@@ -891,6 +897,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setTile(int x, int y, Tile tile) {
 		if (!isInBounds(x, y))
 			return;
+		this.message(this, "Setting tile at ("+x+", "+y+") to "+tile.getType().getName(), LoggingLevel.DEBUG);
 		tilesAreStale = true;
 		tiles[x][y] = tile;
 	}
@@ -1117,6 +1124,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void didLeaveTile(Entity e, int x, int y) {
 		Tile tile = getTile(x, y);
 		tile.setOccupiedBy(null);
+		this.message(e, "Left tile at ("+x+", "+y+")", LoggingLevel.DEBUG);
 
 
 		fire(EntityEventType.ENTITY_MOVED, e);
@@ -1185,7 +1193,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * For people who don't know how to use floor()
+	 * For people who don't want to use floor()
 	 * 
 	 * @param x
 	 * @param y
@@ -1324,7 +1332,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@Bind(SecurityLevel.DEFAULT)
 	@Doc("Creates and displays an Alert window.")
 	public void alert(@Doc("The Alert message") LuaValue alert, @Doc("The Title of the Alert Window") LuaValue title) {
-		showAlert(alert.checkjstring(), title.checkjstring());
+		showAlert(alert.checkjstring(),
+				title.isnil() ? "" : title.optjstring(""));
 	}
 
 
@@ -1334,10 +1343,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param title
 	 */
 	public void showAlert(String alert, String title) {
+		this.message(this, title + (title.length()>=1?"\n":"") + alert, LoggingLevel.QUEST);
 		Thread t = new Thread(() -> JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE));
 		t.start();
 	}
-
 
 	/**
 	 * Opens a browser to a given url
@@ -1361,6 +1370,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (String allow : allowedURLs) {
 				if (urlNoProtocol.startsWith(allow + "/") || urlNoProtocol.startsWith("www." + allow + "/")
 						|| urlNoProtocol.equals(allow) || urlNoProtocol.equals("www." + allow)) {
+					this.message(this, "Opening browser to "+urlString, LoggingLevel.DEBUG);
 					java.awt.Desktop.getDesktop().browse(new URI(urlString));
 					return;
 				}
@@ -1560,7 +1570,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void tryPush(final Actor src, final Point2D.Float pos, final Actor.Direction dir) {
 		typeAtPos(pos, Pushable.class)
 				.forEach(e -> {
-					message(src, "pushes " + e.getClass().getSimpleName(), LoggingLevel.GENERAL);
+					message(src, "pushes " + e.getClass().getSimpleName(), LoggingLevel.DEBUG);
 					e.push(dir);
 				});
 	}
@@ -1714,6 +1724,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
+		this.message(this, "Changing security level of  "+name+" to "+level.name(), LoggingLevel.DEBUG);
 		permissions.put(name, level);
 	}
 }

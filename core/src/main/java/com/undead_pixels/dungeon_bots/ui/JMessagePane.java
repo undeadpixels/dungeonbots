@@ -81,9 +81,8 @@ public final class JMessagePane extends JPanel {
 		setLayout(new BorderLayout());
 		levelChooser = new JComboBox<>(new LogLevelSelection[] {
 				new LogLevelSelection(EnumSet.allOf(LoggingLevel.class), "All (debug)"),
-				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.GENERAL, LoggingLevel.STDOUT), "Standard"),
-				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.GENERAL), "No Prints"),
-				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.STDOUT), "No General"),
+				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.GENERAL, LoggingLevel.STDOUT), "Normal"),
+				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.STDOUT), "Reduced"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST), "Error and Quest"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR), "Error Only"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.QUEST), "Quest Only"),

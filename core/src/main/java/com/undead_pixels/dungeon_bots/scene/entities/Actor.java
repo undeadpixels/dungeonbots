@@ -166,10 +166,19 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 				initialPos[0] = Math.round(e.getPosition().x);
 				initialPos[1] = Math.round(e.getPosition().y);
 				boolean canMove = world.requestMoveToNewTile(e, _dx + initialPos[0], _dy + initialPos[1]);
-				if(canMove) steps++; else bumps++;
-				world.message(imgSrc,
-								canMove ? "Moved" : "Bumped",
-								LoggingLevel.GENERAL);
+				if(canMove) {
+					steps++;
+
+					world.message(imgSrc,
+									"Moving to ("+(_dx + initialPos[0])+", "+(_dy + initialPos[1])+")",
+									LoggingLevel.DEBUG);
+				} else {
+					bumps++;
+					world.message(imgSrc,
+							"Bumped at ("+initialPos[0]+", "+initialPos[1]+")",
+							LoggingLevel.DEBUG);
+				}
+				
 				this.setFinalPosition(_dx + initialPos[0], _dy + initialPos[1]);
 				return canMove;
 			}
@@ -251,7 +260,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		this.world.message(
 				this,
 				String.format("Invokes Move %s", direction.name()),
-				LoggingLevel.GENERAL);
+				LoggingLevel.DEBUG);
 		int SIZE = amt.narg();
 		int n;
 		if (SIZE < 2)
