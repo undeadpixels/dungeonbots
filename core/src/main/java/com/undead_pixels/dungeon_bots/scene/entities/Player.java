@@ -30,7 +30,7 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 @Doc("A Player is an Actor afforded with more privileges")
-public class Player extends RpgActor implements Pushable {
+public class Player extends Actor implements Pushable {
 
 	/**
 	 *

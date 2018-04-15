@@ -31,8 +31,10 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Ghost;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
@@ -864,17 +866,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		return null;
 	}
 
+	public boolean isBlocking(int x, int y) {
+		final int w = tiles.length;
+		final int h = tiles[0].length;
+		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
+	}
 
 	@Bind(SecurityLevel.DEFAULT)
 	public Boolean isBlocking(LuaValue lx, LuaValue ly) {
 		final int x = lx.checkint() - 1;
 		final int y = ly.checkint() - 1;
-		final int w = tiles.length;
-		final int h = tiles[0].length;
-
-		// TODO - an event?
-
-		return x >= 0 && x <= w - 1 && y >= 0 && y <= h - 1 && tiles[x][y].isSolid();
+		return isBlocking(x,y);
 	}
 
 
@@ -1277,17 +1279,33 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		state.put("Times Reset", timesReset);
 		// TODO - this should involve bots and stuff, too...
 		// also TODO - we should clean up stuff we ended up not using like health
+		/*
 		Player player = getPlayer();
 		if (player != null) {
 			state.put("Steps", player.steps());
 			state.put("Bumps", player.bumps());
-			state.put("Health", player.getHealth());
-			state.put("Mana", player.getMana());
-			state.put("Stamina", player.getStamina());
-		}
+			state.put("Player Treasure", player.getInventory().getTotalValue());
+		}*/
+		state.put("Steps", getPlayerEntities()
+				.map(e -> e.steps())
+				.reduce(0, (a,b) -> a + b));
+		state.put("Bumps", getPlayerEntities()
+				.map(e -> e.bumps())
+				.reduce(0, (a,b) -> a + b));
+		state.put("Player Treasure", getPlayerEntities()
+				.map(e -> e.getInventory().getTotalValue())
+				.reduce(0, (a, b) -> a + b));
+		state.put("Total Treasure", getTotalValue());
 		return state;
 	}
 
+	private Stream<Actor> getPlayerEntities() {
+		return  entities.stream().filter(e ->
+						Player.class.isAssignableFrom(e.getClass())
+								|| Bot.class.isAssignableFrom(e.getClass())
+								|| Ghost.class.isAssignableFrom(e.getClass()))
+						.map(Actor.class::cast);
+	}
 
 	/**
 	 *

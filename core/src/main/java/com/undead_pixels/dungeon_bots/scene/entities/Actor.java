@@ -753,4 +753,18 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	private Boolean useUp() {
 		return world.tryUse(this, up());
 	}
+
+	@Bind(value = SecurityLevel.NONE)
+	public LuaValue getBlocking() {
+		final LuaTable tbl = new LuaTable();
+		tbl.set("up", isBlocking(up()));
+		tbl.set("down", isBlocking(down()));
+		tbl.set("left", isBlocking(left()));
+		tbl.set("right", isBlocking(right()));
+		return tbl;
+	}
+
+	private LuaValue isBlocking(final Point2D.Float pos) {
+		return LuaValue.valueOf(world.isBlocking(Math.round(pos.x), Math.round(pos.y)));
+	}
 }
