@@ -639,7 +639,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 		removeEventListenersByOwner(e);
 		fire(EntityEventType.ENTITY_REMOVED, e);
-		message(this, String.format("%s was DESTROYED", e.getName()), LoggingLevel.GENERAL);
+		message(this, String.format("%s was removed", e.getName()), LoggingLevel.GENERAL);
 		return true;
 	}
 
