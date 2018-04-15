@@ -16,6 +16,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -86,7 +87,8 @@ public class JPackDownloadDialog extends JDialog {
 					boolean isSelected, boolean cellHasFocus) {
 				JPanel pnl = new JPanel(new HorizontalLayout());
 				Image img = pack.image;
-				if (img==null) img = UIBuilder.getImage(BAD_DOWNLOAD_IMAGE);
+				if (img == null)
+					img = UIBuilder.getImage(BAD_DOWNLOAD_IMAGE);
 				pnl.add(new JLabel(
 						new ImageIcon(img.getScaledInstance(ICON_SIZE.width, ICON_SIZE.height, Image.SCALE_FAST))));
 
@@ -161,7 +163,7 @@ public class JPackDownloadDialog extends JDialog {
 			return p;
 		} catch (Exception e) {
 			System.err.println("Could not parse JSON LevelPack.");
-			//e.printStackTrace();
+			// e.printStackTrace();
 			return null;
 		}
 	}
@@ -178,6 +180,37 @@ public class JPackDownloadDialog extends JDialog {
 		BufferedReader reader = null;
 		try {
 			url = new URL(address);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0"); 
+			int responseCode = conn.getResponseCode();
+			//System.out.println("Response code:" + responseCode);
+			reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String line = null;
+			StringBuilder sb = new StringBuilder();
+			while ((line = reader.readLine()) != null)
+				sb.append(line + "\n");
+			String ret = sb.toString();
+			return ret;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		} finally {
+			try {
+				reader.close();
+			} catch (Exception e) {
+				// do nothing
+			}
+		}
+
+	}
+
+
+	private static final String downloadResourceB(String address) {
+		URL url = null;
+		BufferedReader reader = null;
+		try {
+			url = new URL(address);
 			reader = new BufferedReader(new InputStreamReader(url.openStream()));
 			StringBuilder sb = new StringBuilder();
 			String line = null;
@@ -187,8 +220,9 @@ public class JPackDownloadDialog extends JDialog {
 			String ret = sb.toString();
 			return ret;
 		} catch (IOException e) {
-			if (url != null) System.err.println("Error fetching resource: " + url.toString());
-			//e.printStackTrace();
+			if (url != null)
+				System.err.println("Error fetching resource: " + url.toString());
+			// e.printStackTrace();
 			return null;
 		} finally {
 			try {
@@ -279,6 +313,7 @@ public class JPackDownloadDialog extends JDialog {
 		for (Page.Pack pack : currentPage.packs) {
 			model.addElement(pack);
 			try {
+				String resource = downloadResource(WEBSITE + pack.picture_link);
 				URL url = new URL(WEBSITE + pack.picture_link);
 				pack.image = UIBuilder.getImage(url);
 			} catch (Exception ex) {
