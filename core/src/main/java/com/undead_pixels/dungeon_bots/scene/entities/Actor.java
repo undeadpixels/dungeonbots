@@ -754,17 +754,29 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		return world.tryUse(this, up());
 	}
 
-	@Bind(value = SecurityLevel.NONE)
-	public LuaValue getBlocking() {
+	@Bind(value = SecurityLevel.NONE, doc = "Get a table that identifies if adjacent tiles are blocking (i.e. walls or doors)"
+			+ "\nblocking = {up = <boolean>, down = <boolean>, left = <boolean>, right = <boolean>}")
+	public LuaValue nearbyBlocking() {
 		final LuaTable tbl = new LuaTable();
-		tbl.set("up", isBlocking(up()));
-		tbl.set("down", isBlocking(down()));
-		tbl.set("left", isBlocking(left()));
-		tbl.set("right", isBlocking(right()));
+		tbl.set("up", LuaValue.valueOf(isBlocking(up())));
+		tbl.set("down", LuaValue.valueOf(isBlocking(down())));
+		tbl.set("left", LuaValue.valueOf(isBlocking(left())));
+		tbl.set("right", LuaValue.valueOf(isBlocking(right())));
 		return tbl;
 	}
 
-	private LuaValue isBlocking(final Point2D.Float pos) {
-		return LuaValue.valueOf(world.isBlocking(Math.round(pos.x), Math.round(pos.y)));
+	@Bind(value = SecurityLevel.NONE, doc = "Get a table that identifies if adjacent tiles are open (i.e. floor)"
+			+ "\nblocking = {up = <boolean>, down = <boolean>, left = <boolean>, right = <boolean>}")
+	public LuaValue nearbyOpen() {
+		final LuaTable tbl = new LuaTable();
+		tbl.set("up", LuaValue.valueOf(!isBlocking(up())));
+		tbl.set("down", LuaValue.valueOf(!isBlocking(down())));
+		tbl.set("left", LuaValue.valueOf(!isBlocking(left())));
+		tbl.set("right", LuaValue.valueOf(!isBlocking(right())));
+		return tbl;
+	}
+
+	private boolean isBlocking(final Point2D.Float pos) {
+		return world.isBlocking(Math.round(pos.x), Math.round(pos.y));
 	}
 }
