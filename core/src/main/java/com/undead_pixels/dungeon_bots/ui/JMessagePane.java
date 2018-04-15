@@ -80,14 +80,15 @@ public final class JMessagePane extends JPanel {
 	private JMessagePane() {
 		setLayout(new BorderLayout());
 		levelChooser = new JComboBox<>(new LogLevelSelection[] {
-				new LogLevelSelection(EnumSet.allOf(LoggingLevel.class), "All"),
+				new LogLevelSelection(EnumSet.allOf(LoggingLevel.class), "All (debug)"),
+				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.GENERAL, LoggingLevel.STDOUT), "Standard"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.GENERAL), "No Prints"),
-				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.STDOUT), "Output and Quest"),
+				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST, LoggingLevel.STDOUT), "No General"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR, LoggingLevel.QUEST), "Error and Quest"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.ERROR), "Error Only"),
 				new LogLevelSelection(EnumSet.of(LoggingLevel.QUEST), "Quest Only"),
 		});
-		levelChooser.setSelectedIndex(2);
+		levelChooser.setSelectedIndex(1);
 		setAllowedTypes(((LogLevelSelection)levelChooser.getSelectedItem()).level);
 		levelChooser.addItemListener(new ItemListener() {
 			@Override
@@ -129,10 +130,12 @@ public final class JMessagePane extends JPanel {
 	public synchronized void setAllowedTypes(EnumSet<LoggingLevel> messageLevel) {
 		this.messageLevel = messageLevel;
 		
-		this.messagePane.setText("");
-		this.messagePane.removeAll();
-		for(MessageInfo inf : allMessages) {
-			insert(inf);
+		if(messagePane != null) {
+			this.messagePane.setText("");
+			this.messagePane.removeAll();
+			for(MessageInfo inf : allMessages) {
+				insert(inf);
+			}
 		}
 	}
 
@@ -160,7 +163,7 @@ public final class JMessagePane extends JPanel {
 		// Second, insert the text with the appropriate color.
 		try {
 			StyleConstants.setForeground(style, inf.color);
-			doc.insertString(doc.getLength(), inf.text + "\n", style);
+			doc.insertString(doc.getLength(), inf.text + "\n\n", style);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}

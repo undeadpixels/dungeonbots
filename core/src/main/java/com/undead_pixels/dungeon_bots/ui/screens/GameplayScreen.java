@@ -60,7 +60,7 @@ public class GameplayScreen extends Screen {
 	/** The JComponent that views the current world state. */
 	private WorldView view;
 	private final boolean isSwitched;
-	private JMessagePane _MessagePane;
+	private JMessagePane _MessagePane = JMessagePane.create();;
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
@@ -71,14 +71,14 @@ public class GameplayScreen extends Screen {
 		this.isSwitched = switched;
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
-		world.onBecomingVisibleInGameplay();
 		world.registerMessageListener(new MessageListener() {
-
 			@Override
 			public void message(HasImage src, String message, LoggingLevel level) {
 				GameplayScreen.this.message(src, message, level);
 			}
 		});
+
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -161,7 +161,6 @@ public class GameplayScreen extends Screen {
 		JLabel emblem = new JLabel(new ImageIcon(emblemImg));
 		emblem.setLayout(new BorderLayout());
 		emblem.setPreferredSize(new Dimension(250, 100));
-		_MessagePane = JMessagePane.create();
 		_MessagePane.setFocusable(false);
 		_MessagePane.setPreferredSize(new Dimension(250, -1));
 		// TODO: consult http://java-sl.com/wrap.html for forced wrap of long

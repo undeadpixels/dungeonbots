@@ -175,7 +175,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	private MessageListener messageListener;
+	private transient MessageListener messageListener;
 	// =============================================
 	// ====== Events and stuff
 	// =============================================
@@ -405,6 +405,8 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 				e.sandboxInit();
 			}
 			this.didInit = true;
+			
+			this.message(this, "World Initialization finished", LoggingLevel.DEBUG);
 		}
 	}
 
@@ -1650,7 +1652,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			try {
 				messageListener.message(src, message, level);
 			}
-			catch (Throwable ignored) { }
+			catch (Throwable ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 
