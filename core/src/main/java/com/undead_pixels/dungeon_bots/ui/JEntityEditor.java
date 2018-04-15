@@ -63,7 +63,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the script editor.
 		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(state.getScripts(), security);
+			scriptEditor = new JScriptCollectionEditor(entity.getSandbox(), state.getScripts(), security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
 
@@ -237,7 +237,9 @@ public final class JEntityEditor extends JTabbedPane {
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);
-		dialog.pack();
+		
+		dialog.setSize(600, 500);
+		
 		return jee;
 	}
 
