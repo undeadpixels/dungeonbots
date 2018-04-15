@@ -151,6 +151,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				else {
 					final String errString = ans.arg(2).checkjstring();
 					if(errString.contains("ScriptInterruptException")) {
+						luaError = new LuaError(errString);
 						environment.worldMessage("Script Stopped", LoggingLevel.GENERAL);
 
 						setStatus(ScriptStatus.STOPPED);
