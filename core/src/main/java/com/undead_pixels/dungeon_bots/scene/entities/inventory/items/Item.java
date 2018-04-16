@@ -5,6 +5,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.ApplyItem;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
+import org.luaj.vm2.LuaValue;
 
 import java.io.Serializable;
 
@@ -19,10 +20,10 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 	 */
 	private static final long serialVersionUID = 1L;
 	protected final World world;
-	protected final String name;
-	protected final String description;
-	protected final int value;
-	protected final int weight;
+	protected String name;
+	protected String description;
+	protected int value;
+	protected int weight;
 
 	/**
 	 * A Static Empty Item class used for default Inventory Slots
@@ -68,6 +69,26 @@ public abstract class Item implements GetLuaFacade, Serializable, ApplyItem {
 	@Doc("Get the Name of the Item")
 	public String getName() {
 		return this.name;
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Name of the Item")
+	public void setName(LuaValue name) {
+		this.name = name.checkjstring();
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the description of the Item")
+	public void setDescription(LuaValue description) {
+		this.description = description.checkjstring();
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Value of the Item")
+	public void setValue(LuaValue value) {
+		this.value = value.toint();
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Weight of the Item")
+	public void setWeight(LuaValue weight) {
+		this.weight = weight.toint();
 	}
 
 	public boolean isEmpty() {

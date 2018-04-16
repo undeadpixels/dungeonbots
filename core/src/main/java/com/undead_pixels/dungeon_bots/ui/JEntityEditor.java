@@ -26,6 +26,7 @@ import org.jdesktop.swingx.HorizontalLayout;
 
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.Sign;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -49,14 +50,23 @@ public final class JEntityEditor extends JTabbedPane {
 	private boolean changed = false;
 
 	private JScriptCollectionEditor scriptEditor = null;
+	private JSignEditor signEditor;
+	private JEntityPropertyControl propertyControl = null;
 
-
+	
+	
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
 	private JEntityEditor(Entity entity, SecurityLevel security, boolean transparent) {
 		this.entity = entity;
 		this.security = security;
 		state = State.fromEntity(entity);
+
+		// Set up the sign editor.
+		if (entity instanceof Sign) {
+			signEditor = new JSignEditor(state, (Sign) entity, security);
+			addTab("Sign Text", null, signEditor, "The text this sign will show.");
+		}
 
 		// Set up the REPL.
 		if (entity.getPermission("REPL").level <= security.level) {
@@ -68,6 +78,12 @@ public final class JEntityEditor extends JTabbedPane {
 		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
 			scriptEditor = new JScriptCollectionEditor(entity.getSandbox(), state.getScripts(), security, transparent);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
+		}
+		
+		if (entity.getPermission("PROPERTIES").level <= security.level){
+			propertyControl = new JEntityPropertyControl(entity, security);
+			JComponent properties = propertyControl.create();
+			addTab("Properties", null, properties, "Properties of this entity.");
 		}
 
 	}
@@ -96,6 +112,7 @@ public final class JEntityEditor extends JTabbedPane {
 	public static final class State {
 
 		private HashMap<String, Object> map = new HashMap<String, Object>();
+		private HashMap<String, SecurityLevel> perms = new HashMap<>();
 
 
 		private State() {
@@ -106,6 +123,16 @@ public final class JEntityEditor extends JTabbedPane {
 			State s = new State();
 			s.map.put("SCRIPTS", entity.getScripts().copy());
 			s.map.put("HELP", entity.help);
+			
+			if(entity instanceof Sign) {
+				s.map.put("SIGN_TEXT", ((Sign)entity).getMessage());
+			}
+
+			
+			for(String perm : entity.listPermissionNames()) {
+				entity.setSecurityLevel(perm, entity.getPermission(perm));
+			}
+			
 			return s;
 		}
 
@@ -123,6 +150,33 @@ public final class JEntityEditor extends JTabbedPane {
 			String help = (String) map.get("HELP");
 			if (help != null)
 				entity.help = help;
+			
+
+			if(entity instanceof Sign) {
+				String text = map.get("SIGN_TEXT").toString();
+				((Sign)entity).setMessage(text);
+			}
+			
+			for(String perm : perms.keySet()) {
+				entity.setSecurityLevel(perm, perms.get(perm));
+			}
+		}
+
+
+		/**
+		 * @param text
+		 */
+		public void setSignText (String text) {
+			map.put("SIGN_TEXT", text);
+		}
+
+
+		/**
+		 * @param flagName
+		 * @param level
+		 */
+		public void setPermission (String flagName, SecurityLevel level) {
+			perms.put(flagName, level);
 		}
 	}
 
@@ -284,7 +338,9 @@ public final class JEntityEditor extends JTabbedPane {
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "COMMIT":
-				jee.scriptEditor.save();
+				if(jee.scriptEditor!=null) jee.scriptEditor.save();
+				if(jee.signEditor!=null) jee.signEditor.save();
+				if(jee.propertyControl!=null) jee.propertyControl.save(jee.state);
 				Undoable<State> u = new Undoable<State>(State.fromEntity(entity), jee.state) {
 
 					@Override

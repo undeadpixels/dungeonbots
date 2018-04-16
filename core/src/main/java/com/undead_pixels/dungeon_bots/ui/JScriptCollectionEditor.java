@@ -143,8 +143,8 @@ public class JScriptCollectionEditor extends JPanel {
 	}
 
 
-	public void save() {
-		editor.saveScript();
+	public boolean save() {
+		return editor.saveScript();
 	}
 
 

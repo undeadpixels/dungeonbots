@@ -10,6 +10,7 @@ import org.luaj.vm2.Varargs;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -31,7 +32,7 @@ public class MultipleChoiceQuestion extends Question {
 	/**
 	 * A List of answers that are supplied to the Question form.
 	 */
-	private final String[] answers;
+	private String[] answers;
 
 	/**
 	 * The Context form that appears when the Question is used.
@@ -77,15 +78,13 @@ public class MultipleChoiceQuestion extends Question {
 	 */
 	@Override
 	public Boolean applyTo(Entity e) {
-		if(e.getClass().equals(Player.class)) {
-			/**  Do something that displays the multiple choice question. **/
-			if(form == null) {
-				form = questionForm( answers);
-				form.pack();
-			}
-			form.setVisible(true);
+		/**  Do something that displays the multiple choice question. **/
+		if(form == null) {
+			form = questionForm( answers);
+			form.pack();
 		}
-		return false;
+		form.setVisible(true);
+		return true;
 	}
 
 	@Override
@@ -127,5 +126,13 @@ public class MultipleChoiceQuestion extends Question {
 		localForm.add(submit, BorderLayout.SOUTH);
 		localForm.add(questionPanel, BorderLayout.CENTER);
 		return localForm;
+	}
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Answers for the question")
+	public void setAnswers(Varargs answers) {
+		this.answers = Question.varargsToStringArr(answers.arg1().isstring() ? answers : answers.subargs(2));
+	}
+
+	public Varargs getAnswers() {
+		return LuaValue.varargsOf(Stream.of(answers).map(v -> LuaValue.valueOf(v)).collect(Collectors.toList()).toArray(new LuaValue[]{}));
 	}
 }

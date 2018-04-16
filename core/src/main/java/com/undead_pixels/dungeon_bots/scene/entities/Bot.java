@@ -22,7 +22,7 @@ import java.awt.geom.Point2D;
  * @author Stewart Charles, Kevin Parker
  * @version 1.0
  */
-public class Bot extends RpgActor {
+public class Bot extends Actor {
 	
 	/**
 	 * 

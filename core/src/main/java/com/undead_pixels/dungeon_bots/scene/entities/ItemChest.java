@@ -19,7 +19,7 @@ import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 @Doc("An ItemChest is an Entity that contains a large Inventory.\n" +
 		"The ItemChest can be isLocked or unlocked based off of events or by unlocking\n" +
 		"with a key.")
-public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
+public class ItemChest extends Actor implements HasInventory, Lockable {
 	
 	/**
 	 * 
@@ -57,7 +57,9 @@ public class ItemChest extends SpriteEntity implements HasInventory, Lockable {
 		
 		sandbox.registerEventType("LOCK", "Called when this ItemChest is locked");
 		sandbox.registerEventType("UNLOCK", "Called when this ItemChest is unlocked");
-		sandbox.registerEventType("ITEM_GIVEN", "Called when this ItemChest is given an item", "item"); // TODO
+		sandbox.registerEventType("ITEM_GIVEN", "Called when this ItemChest is given an item", "item");
+		sandbox.registerEventType("INV_MODIFIED", "Called whenever the inventory has been modified, either from a removal, a swap, or an add");
+		// TODO
 	
 		return sandbox;
 	}

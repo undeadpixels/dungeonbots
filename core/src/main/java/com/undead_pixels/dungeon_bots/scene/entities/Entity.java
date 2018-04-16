@@ -94,8 +94,7 @@ public abstract class Entity
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(LuaReflection.getItemClasses())
-				.addBindableClasses(LuaReflection.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
 		return this.sandbox;
 	}
 
@@ -320,5 +319,9 @@ public abstract class Entity
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
 		permissions.put(name, level);
+	}
+	
+	public Iterable<String> listPermissionNames() {
+		return permissions.keySet();
 	}
 }

@@ -4,11 +4,16 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -56,7 +61,7 @@ public class CodeInsertions {
 	public static class InsertionEntry {
 		public final String name;
 		public final String description;
-		public final String templateText;
+		public String templateText;
 		public final InsertionEntryGroup group;
 		
 		public String humanReadableText() {
@@ -74,6 +79,31 @@ public class CodeInsertions {
 		public String toString() {
 			return this.name;
 		}
+		
+		public static class DynamicInsertionEntry extends InsertionEntry {
+			
+			public final Function<Integer, String> templateGenerator;
+
+			/**
+			 * @param group
+			 * @param name
+			 * @param description
+			 * @param templateText
+			 */
+			public DynamicInsertionEntry(InsertionEntryGroup group, String name, String description,
+					Function<Integer, String> templateGenerator) {
+				super(group, name, description, templateGenerator.apply(3));
+				this.templateGenerator = templateGenerator;
+			}
+
+			/**
+			 * @param count
+			 */
+			public void regen (int count) {
+				super.templateText = templateGenerator.apply(count);
+			}
+			
+		}
 	}
 	
 	/**
@@ -84,18 +114,24 @@ public class CodeInsertions {
 		 * A single template name in an insertion with some info about it
 		 */
 		private static class Field {
-			public final int originalBegin;
-			public final int originalEnd;
-			public final String originalString;
+			public int originalBegin;
+			public int originalEnd;
 			public final String templateName;
 			public final String templateType;
-			public String currentString;
-			
+			private String currentString;
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#toString()
+			 */
+			@Override
+			public String toString () {
+				return "Field [currentString=" + currentString + "]";
+			}
+
 			public Field(int originalBegin, int originalEnd, String originalString) {
 				super();
 				this.originalBegin = originalBegin;
 				this.originalEnd = originalEnd;
-				this.originalString = originalString;
 
 				// get more info if possible
 				if(originalEnd - originalBegin < 2) {
@@ -118,34 +154,231 @@ public class CodeInsertions {
 				}
 			}
 			
+			/* (non-Javadoc)
+			 * @see java.lang.Object#hashCode()
+			 */
+			@Override
+			public int hashCode () {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + originalBegin;
+				result = prime * result + originalEnd;
+				result = prime * result + ( (templateName == null) ? 0 : templateName.hashCode());
+				result = prime * result + ( (templateType == null) ? 0 : templateType.hashCode());
+				return result;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.lang.Object#equals(java.lang.Object)
+			 */
+			@Override
+			public boolean equals (Object obj) {
+				if (this == obj) {
+					return true;
+				}
+				if (obj == null) {
+					return false;
+				}
+				if (getClass() != obj.getClass()) {
+					return false;
+				}
+				Field other = (Field) obj;
+				if (originalBegin != other.originalBegin) {
+					return false;
+				}
+				if (originalEnd != other.originalEnd) {
+					return false;
+				}
+				if (templateName == null) {
+					if (other.templateName != null) {
+						return false;
+					}
+				} else if (!templateName.equals(other.templateName)) {
+					return false;
+				}
+				if (templateType == null) {
+					if (other.templateType != null) {
+						return false;
+					}
+				} else if (!templateType.equals(other.templateType)) {
+					return false;
+				}
+				return true;
+			}
+
 			/**
 			 * @return	A good way to represent this field inline with the rest of the code
 			 */
 			public String getInlineRepresentation() {
+				String currentString = getCurrentString ();
 				if(currentString.equals("")) {
 					return "<"+templateName+">";
 				} else {
 					return currentString;
 				}
 			}
+			
+			public String getCurrentString () {
+				return currentString;
+			}
+
+			
+			public boolean setCurrentString (String currentString) {
+				this.currentString = currentString;
+				
+				if(templateType.equals("identifier")) {
+					if(!currentString.matches("[_A-Za-z][_A-Z-a-z0-9]*") &&
+							!currentString.isEmpty()) {
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			
+			public static class SharedField extends Field {
+
+				public final Field parent;
+				
+				/**
+				 * @param originalBegin
+				 * @param originalEnd
+				 * @param originalString
+				 */
+				public SharedField(int originalBegin, int originalEnd, String originalString, Field parent) {
+					super(originalBegin, originalEnd, originalString);
+					this.parent = parent;
+				}
+
+				public String getCurrentString () {
+					return parent.currentString;
+				}
+
+				
+				public boolean setCurrentString (String currentString) {
+					return parent.setCurrentString(currentString);
+				}
+			}
+
+			public static class CountField extends Field {
+
+				private int count;
+				
+				/**
+				 * @param originalBegin
+				 * @param originalEnd
+				 * @param originalString
+				 */
+				public CountField() {
+					super(-1, -1, "Count");
+					this.setCurrentString("3");
+				}
+				
+				public boolean setCurrentString(String str) {
+					if(str.equals("")) {
+						count = 0;
+						super.setCurrentString(str);
+						return true;
+					}
+					try {
+						int tmpCount = Integer.parseInt(str);
+						if(tmpCount < 0 || tmpCount > 99) {
+							return false;
+						}
+						count = tmpCount;
+						super.setCurrentString(str);
+						return true;
+					} catch(NumberFormatException e) {}
+					return false;
+				}
+				
+				public int getCount() {
+					return count;
+				}
+			}
 		}
 		
+		private int oldCountFieldValue = -1;
+		private final Field.CountField countField;
 		public final InsertionEntry entry;
-		public final ArrayList<Field> fields = new ArrayList<>();
+		private final ArrayList<Field> allFields = new ArrayList<>();
+		private final ArrayList<Field> croppedFields = new ArrayList<>();
 		public InsertionReplacementState(InsertionEntry entry) {
 			super();
 			this.entry = entry;
+			if(entry instanceof InsertionEntry.DynamicInsertionEntry) {
+				countField = new Field.CountField();
+				allFields.add(countField);
+			} else {
+				countField = null;
+			}
 			
+			update();
+		}
+		
+		public boolean update() {
+			boolean needsUpdate = allFields.size() == 0;
+			
+			if(countField != null) {
+				if(countField.getCount() != oldCountFieldValue &&
+						entry instanceof InsertionEntry.DynamicInsertionEntry) {
+					InsertionEntry.DynamicInsertionEntry dynEntry = (InsertionEntry.DynamicInsertionEntry)entry;
+					dynEntry.regen(countField.getCount());
+					needsUpdate = true;
+					oldCountFieldValue = countField.getCount();
+				}
+			}
+			
+			if(!needsUpdate)
+				return false;
+
 			Pattern templatePattern = Pattern.compile("<[^<>]*>");
 			Matcher matches = templatePattern.matcher(entry.templateText);
 			
+			System.out.println("Update: "+entry.templateText);
+			
+			int i = countField==null ? -1 : 0;
 			while(matches.find()) {
+				i++;
+				
 				int start = matches.start();
 				int end = matches.end();
 				String str = matches.group();
 				
-				fields.add(new Field(start, end, str));
+				if(i < allFields.size()) {
+					allFields.get(i).originalBegin = start;
+					allFields.get(i).originalEnd = end;
+					continue;
+				}
+					
+				
+				if(str.endsWith(":shared>")) {
+					Field parent = new Field(0, 0, "<error>");
+					String searchFor = str.substring(1).split(":")[0];
+					for(Field f : allFields) {
+						if(f.templateName.equals(searchFor)) {
+							parent = f;
+							break;
+						}
+					}
+					
+					if(parent.templateName.equals("error")) {
+						System.err.println("Could not find parent for: "+searchFor);
+					}
+					
+					allFields.add(new Field.SharedField(start, end, str, parent));
+				} else {
+					allFields.add(new Field(start, end, str));
+				}
 			}
+			
+			croppedFields.clear();
+			for(int j = 0; j <= i; j++) {
+				croppedFields.add(allFields.get(j));
+			}
+			System.out.println("And fields: "+croppedFields);
+			
+			return true;
 		}
 		
 		public String toString() {
@@ -154,7 +387,10 @@ public class CodeInsertions {
 			
 			Field prevField = new Field(0, 0, "");
 			
-			for(Field field : fields) {
+			for(Field field : getFields()) {
+				if(field.originalBegin < 0) {
+					continue;
+				}
 				String normalText = entry.templateText.substring(prevField.originalEnd, field.originalBegin);
 				ret.append(normalText);
 				ret.append(field.getInlineRepresentation());
@@ -166,6 +402,10 @@ public class CodeInsertions {
 			ret.append(endText);
 			
 			return ret.toString();
+		}
+		
+		public ArrayList<Field> getFields() {
+			return croppedFields;
 		}
 	}
 	
@@ -230,9 +470,16 @@ public class CodeInsertions {
 	public void add(InsertionEntryGroup group, String name, String description, String templateText) {
 		add(new InsertionEntry(group, name, description, templateText));
 	}
+	public void add(InsertionEntryGroup group, String name, String description, Function<Integer, String> templateTextGen) {
+		add(new InsertionEntry.DynamicInsertionEntry(group, name, description, templateTextGen));
+	}
 
 	public void add(String group, String name, String description, String templateText) {
 		add(new InsertionEntry(getGroupByName(group), name, description, templateText));
+	}
+	
+	public void add(String group, String name, String description, Function<Integer, String> templateTextGen) {
+		add(new InsertionEntry.DynamicInsertionEntry(getGroupByName(group), name, description, templateTextGen));
 	}
 	
 	
@@ -276,28 +523,9 @@ public class CodeInsertions {
 		return "<html>"+retStr+"</html>";
 	}
 	
-	/**
-	 * Creates a template replacer window, allowing variables/fields/etc to be chosen
-	 * 
-	 * @param entry
-	 * @param acceptAction
-	 */
-	private void fireTemplateReplacer(InsertionEntry entry, Consumer<String> acceptAction) {
-		JPanel replacerView = new JPanel(new VerticalLayout());
+	private void fillBottomBox(JPanel bottomBox, InsertionReplacementState state, JEditorPane codeArea, HashMap<InsertionReplacementState.Field, JTextField> textFields) {
+		bottomBox.removeAll();
 		
-		InsertionReplacementState state = new InsertionReplacementState(entry);
-		
-		JEditorPane codeArea = new JEditorPane();
-		JScrollPane codeScroll = new JScrollPane(codeArea);
-		codeArea.setEditable(false);
-		codeArea.setFocusable(true);
-		codeArea.setContentType("text/lua");
-		codeArea.setText(state.toString());
-		
-		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
-		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
-		
-		ArrayList<JTextField> textFields = new ArrayList<>();
 		DocumentListener docListener = new DocumentListener() {
 
 			@Override
@@ -312,27 +540,36 @@ public class CodeInsertions {
 
 			@Override
 			public void changedUpdate (DocumentEvent e) {
-				for(int i = 0; i < state.fields.size(); i++) {
+				for(int i = 0; i < state.getFields().size(); i++) {
 					// update model
-					state.fields.get(i).currentString = textFields.get(i).getText();
+					InsertionReplacementState.Field f = state.getFields().get(i);
+					JTextField textField = textFields.get(f);
+					if(textField != null) {
+						boolean valid = f.setCurrentString(textField.getText());
+						if(valid) {
+							textField.setForeground(Color.white);
+						} else {
+							textField.setForeground(Color.red);
+						}
+					}
 				}
 				
-				codeArea.setText(state.toString());
+				boolean updateGui = state.update();
+
+				String text = state.toString();
+				while(text.split("\\r\\n|\\r|\\n").length < 5) { // ensure 5 lines
+					text += "\n ";
+				}
+				codeArea.setText(text);
+				
+				if(updateGui) {
+					fillBottomBox(bottomBox, state, codeArea, textFields); // recursion at its finest
+				}
 			}
 			
 		};
 
-		replacerView.add(helpTextLabel);
-		replacerView.add(Box.createVerticalStrut(10));
-		replacerView.add(codeScroll);
-		replacerView.add(Box.createVerticalStrut(5));
-		replacerView.add(new JSeparator());
-		
-		replacerView.add(Box.createVerticalStrut(10));
-		
-		
 		// make the labels and text boxes line up nicely
-		JPanel bottomBox = new JPanel();
 		GroupLayout groupLayout = new GroupLayout(bottomBox);
 		bottomBox.setLayout(groupLayout);
 		
@@ -349,10 +586,19 @@ public class CodeInsertions {
 		GroupLayout.SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
 		groupLayout.setVerticalGroup(verticalGroup);
 		
-		for(InsertionReplacementState.Field field : state.fields) {
-			JTextField textField = new JTextField(field.currentString, 20);
-			textField.getDocument().addDocumentListener(docListener);
-			textFields.add(textField);
+		JTextField first = null;
+		
+		for(InsertionReplacementState.Field field : state.getFields()) {
+			if(field instanceof InsertionReplacementState.Field.SharedField) {
+				continue;
+			}
+			
+			JTextField textField = textFields.get(field);
+			if(textField == null) {
+				textField = new JTextField(field.getCurrentString(), 20);
+				textField.getDocument().addDocumentListener(docListener);
+				textFields.put(field, textField);
+			}
 			
 			JLabel label = new JLabel(field.templateName);
 			label.setLabelFor(textField);
@@ -362,9 +608,57 @@ public class CodeInsertions {
 			
 			verticalGroup.addGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 					.addComponent(label).addComponent(textField));
+			
+			if(first == null) {
+				first = textField;
+			}
 		}
 		
-		replacerView.add(bottomBox);
+		if(first != null) {
+			first.requestFocusInWindow();
+		}
+		
+		docListener.changedUpdate(null); // sync the text fields for things like color
+		bottomBox.revalidate();
+		codeArea.revalidate();
+	}
+	
+	/**
+	 * Creates a template replacer window, allowing variables/fields/etc to be chosen
+	 * 
+	 * @param entry
+	 * @param acceptAction
+	 */
+	private void fireTemplateReplacer(InsertionEntry entry, Consumer<String> acceptAction) {
+		JPanel replacerView = new JPanel(new VerticalLayout());
+		
+		InsertionReplacementState state = new InsertionReplacementState(entry);
+		
+		JEditorPane codeArea = new JEditorPane();
+		JScrollPane codeScroll = new JScrollPane(codeArea);
+		codeArea.setEditable(false);
+		codeArea.setFocusable(true);
+		codeArea.setContentType("text/lua");
+		
+		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
+		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
+		
+
+		replacerView.add(helpTextLabel);
+		replacerView.add(Box.createVerticalStrut(10));
+		replacerView.add(codeScroll);
+		replacerView.add(Box.createVerticalStrut(5));
+		replacerView.add(new JSeparator());
+		
+		replacerView.add(Box.createVerticalStrut(10));
+		
+		
+		JPanel bottomBox = new JPanel();
+		fillBottomBox(bottomBox, state, codeArea, new HashMap<>());
+		
+		JScrollPane bottomScroll = new JScrollPane(bottomBox);
+		
+		replacerView.add(bottomScroll);
 		
 		
 		
@@ -374,13 +668,13 @@ public class CodeInsertions {
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 		
 		if(result == JOptionPane.OK_OPTION) {
-			String text = codeArea.getText();
+			String finalText = state.toString();
 			
-			if(text.contains("\n")) {
-				text = text + "\n";
+			if(finalText.contains("\n")) {
+				finalText = finalText + "\n";
 			}
 			
-			acceptAction.accept(text);
+			acceptAction.accept(finalText);
 		}
 	}
 
@@ -410,14 +704,14 @@ public class CodeInsertions {
 		this.add("Flow Control", "For loop", 
 				"For loops execute the code inside of them a given number of times.\n"
 				+ "Think of them as \"Execute this code for N repetitions\".",
-				  "for <Variable Name> = <Begin:int>, <End:int> do\n"
+				  "for <Variable Name:identifier> = <Begin:int>, <End:int> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For loop with Increment",
 				"For loops execute the code inside of them a given number of times.\n"
 				+ "This is like a normal \"for\" loop, except instead of producing numbers such as \"1, 2, 3, ...\", it "
 				+ "produces numbers separated by the given <Increment By> parameter.",
-				  "for <Variable Name> = <Begin:float>, <End:float>, <Increment By:float> do\n"
+				  "for <Variable Name:identifier> = <Begin:float>, <End:float>, <Increment By:float> do\n"
 				+ "    -- Your Code Here\n"
 				+ "end");
 		this.add("Flow Control", "For-each loop",
@@ -535,8 +829,71 @@ public class CodeInsertions {
 		this.add("Operators", "greater than", "True if <A> is greater than <B>", "<A> > <B>");
 		this.add("Operators", "less or equal", "True if <A> is less than or equal to <B>", "<A> <= <B>");
 		this.add("Operators", "greater or equal", "True if <A> is greater than or equal to <B>", "<A> >= <B>");
-		
-		this.add("Operators", "Array length",
+
+		this.add("Arrays/Tables", "New Array",
+				"Arrays are ordered collections of values\n"
+				+ "A bot's inventory acts similarly to an array, since you access the items in it by what number they are in the list.",
+				(count) -> {
+					String ret = "{";
+					if(count > 3) {
+						ret += "\n    ";
+					}
+					for(int i = 0; i < count; i++) {
+						if(i > 0) {
+							if(count > 3) {
+								ret += ",\n    ";
+							} else {
+								ret += ", ";
+							}
+						}
+						ret += "<Item "+(i+1)+">";
+					}
+					if(count > 3) {
+						ret += "\n";
+					}
+					ret += "}";
+					return ret;
+					});
+		this.add("Arrays/Tables", "New Table (dictionary)",
+				"Tables are a collection of values, mapped from their name.\n"
+				+ "For example, if I have a brown German Shepherd named Fido that's 3 years old, "
+				+ "then fido = {\"color\"=\"brown\", \"breed\"=\"German Shepherd\", \"age\"=3}.\n",
+				(count) -> {
+					String ret = "{";
+					if(count > 3) {
+						ret += "\n    ";
+					}
+					for(int i = 0; i < count; i++) {
+						if(i > 0) {
+							if(count > 3) {
+								ret += ",\n    ";
+							} else {
+								ret += ", ";
+							}
+						}
+						ret += "<Key "+(i+1)+":identifier>=<Value "+(i+1)+">";
+					}
+					if(count > 3) {
+						ret += "\n";
+					}
+					ret += "}";
+					return ret;
+					});
+		this.add("Arrays/Tables", "Set array/table value",
+				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
+				+ "For example, if Fido is 3 years old, then fido[\"age\"] = 3.\n"
+				+ "This updates or creates a value in an array or table.",
+				"<Table Name>[<Index Name>] = <New Value>");
+		this.add("Arrays/Tables", "Set table value (\".\" style)",
+				"Arrays are long collections of values, and tables are a collection of values, mapped from their name.\n"
+				+ "For example, if Fido is 3 years old, then fido.age = 3.\n"
+				+ "This updates or creates a value in an array or table.",
+				"<Table Name>.<Key Name:identifier> = <New Value>");
+		this.add("Arrays/Tables", "Append value to array",
+				"We can combine the length operator and setting a particular index to append to an array.\n"
+				+ "For more information on those operators, try clicking on them.",
+				"<Table Name>[#<Table Name::shared> + 1] = <New Value>");
+		this.add("Arrays/Tables", "Array length",
 				"Arrays are long collections of values.\n"
 				+ "The length of an array is the number of values that it holds.",
 				"#<Array>");
