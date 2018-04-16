@@ -185,21 +185,18 @@ public class GameplayScreen extends Screen {
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
 		pane.add(messagePanel, BorderLayout.LINE_END);
-		
-		
-		
+
+	}
+	
+	private void presentPoptart() {
 		JSemitransparentPanel semitrans = new JSemitransparentPanel();
 		semitrans.setSize(600, 600);
 		ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
 		JLabel label = new JLabel(terminalImage);
-		//semitrans.getContentPane().add(label);
-		JEntityEditor jee = JEntityEditor.crateEntityEditorPane(new Bot(new World(), "myBot"), SecurityLevel.AUTHOR, semitrans.getContentPane(), view, true);
 		semitrans.getContentPane().setSize(600, 500);
 		semitrans.recursiveTransparentify();
-		//semitrans.getContentPane().add(new JButton("TEST"));
 		this.getLayeredPane().add(semitrans, (Integer) 100);
-
-
+		
 	}
 
 
