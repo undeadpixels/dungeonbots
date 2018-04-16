@@ -11,9 +11,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.LinkedList;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -27,6 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputListener;
+
+import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.file.FileControl;
@@ -67,6 +72,20 @@ public class GameplayScreen extends Screen {
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
+	private LinkedList<Poptart> poptartQueue;
+	
+	public static class Poptart {
+		public final HasImage img;
+		public final String title, message;
+		
+		public Poptart(HasImage img, String title, String message) {
+			super();
+			this.img = img;
+			this.title = title;
+			this.message = message;
+		}
+		
+	}
 
 
 	public GameplayScreen(LevelPack pack, boolean switched) {
@@ -82,6 +101,7 @@ public class GameplayScreen extends Screen {
 				GameplayScreen.this.message(src, message, level);
 			}
 		});
+		world.registerPoptartListener((p) -> enqueuePoptart(p));
 	}
 
 
@@ -189,15 +209,59 @@ public class GameplayScreen extends Screen {
 		pane.add(view, BorderLayout.CENTER);
 		pane.add(playToolBar, BorderLayout.PAGE_END);
 		pane.add(messagePanel, BorderLayout.LINE_END);
+		
+		view.registerUpdateListener(() -> updatePoptart());
 
+	}
+
+	/**
+	 * @return
+	 */
+	private void updatePoptart () {
+		if(poptartIsUp) {
+			semitrans.setLocation(this.getWidth()-300, this.getHeight() - 400);
+		}
+	}
+
+	JSemitransparentPanel semitrans = new JSemitransparentPanel();
+	boolean poptartIsUp = false;
+	private void enqueuePoptart(Poptart p) {
+		poptartQueue.add(p);
+		
+		presentPoptart();
 	}
 	
 	private void presentPoptart() {
-		JSemitransparentPanel semitrans = new JSemitransparentPanel();
-		semitrans.setSize(600, 600);
-		ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
-		JLabel label = new JLabel(terminalImage);
-		semitrans.getContentPane().setSize(600, 500);
+		if(poptartQueue.isEmpty()) return;
+		if(poptartIsUp) return;
+		
+		poptartIsUp = true;
+		Poptart p = poptartQueue.pop();
+		
+
+		semitrans.setSize(600, 300);
+		//ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
+		//JLabel label = new JLabel(terminalImage);
+		
+		JPanel popPane = new JPanel(new VerticalLayout());
+		ImageIcon img = new ImageIcon(p.img.getImage());
+		popPane.add(new JLabel(p.title, img, JLabel.TRAILING));
+		popPane.add(new JLabel(p.message));
+		
+		Box okBox = new Box(BoxLayout.X_AXIS);
+		okBox.add(Box.createGlue());
+		
+		JButton okButton = new JButton("ok");
+		okBox.add(okButton);
+		
+		okButton.addActionListener((e) -> {
+			poptartIsUp = false;
+			semitrans.getContentPane().removeAll();
+			this.getLayeredPane().remove(semitrans);
+		});
+		
+		semitrans.getContentPane().add(popPane);
+		semitrans.getContentPane().setSize(600, 300);
 		semitrans.recursiveTransparentify();
 		this.getLayeredPane().add(semitrans, (Integer) 100);
 		

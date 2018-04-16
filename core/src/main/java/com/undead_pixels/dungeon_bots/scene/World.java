@@ -42,6 +42,8 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen.Poptart;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -179,7 +181,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	private MessageListener messageListener;
+	private transient MessageListener messageListener;
+
+	private transient Consumer<Poptart> poptartListener;
 	// =============================================
 	// ====== Events and stuff
 	// =============================================
@@ -1363,7 +1367,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param title
 	 */
 	public void showAlert(String alert, String title) {
-		Thread t = new Thread(() -> JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE));
+		Thread t = new Thread(() -> {
+			if(poptartListener != null) {
+				poptartListener.accept(new GameplayScreen.Poptart(this, title, alert));
+			} else {
+				JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
 		t.start();
 	}
 
@@ -1696,6 +1706,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void registerMessageListener(final MessageListener messageListener) {
 		this.messageListener = messageListener;
+	}
+
+
+	/**
+	 * @param object
+	 */
+	public void registerPoptartListener (Consumer<GameplayScreen.Poptart> p) {
+		this.poptartListener = p;
+		
 	}
 
 	public void message(HasImage src, String message, LoggingLevel level) {
