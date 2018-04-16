@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -101,9 +102,10 @@ public final class JMessagePane extends JPanel {
 		messagePane.setPreferredSize(new Dimension(250, -1));
 		
 		Box levelChooserBox = new Box(BoxLayout.X_AXIS);
-		levelChooserBox.add(new JSeparator());
+		levelChooserBox.add(Box.createGlue());
+		levelChooserBox.add(new JLabel("Log Level:"));
 		levelChooserBox.add(levelChooser);
-		levelChooserBox.add(new JSeparator());
+		levelChooserBox.add(Box.createGlue());
 		levelChooser.setMaximumSize(new Dimension(-1, levelChooser.getPreferredSize().height));
 		levelChooserBox.setMaximumSize(new Dimension(-1, levelChooser.getPreferredSize().height));
 		levelChooserBox.setPreferredSize(new Dimension(-1, levelChooser.getPreferredSize().height));
