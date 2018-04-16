@@ -133,6 +133,7 @@ public class EventsTest {
 
 		Bot b = new Bot(w, "b", 1, 1);
 		Door d = new Door(w, 2, 1);
+		d.lock();
 
 		w.addEntity(d); // TODO - seems to have a race condition where the bot can try useRight before door can finish registering for events
 		w.addEntity(b);
@@ -169,28 +170,29 @@ public class EventsTest {
 
 		Bot b = new Bot(w, "b", 1, 1);
 		Door d = new Door(w, 2, 1);
+		d.lock();
 
 		w.addEntity(d); // TODO - seems to have a race condition where the bot can try useRight before door can finish registering for events
 		w.addEntity(b);
-		
+
 		b.getInventory().addItem(new Key(w));
-		
+
 		b.getScripts().add(new UserScript("init",
 				"sleep(.001) " +
-				"bot:useRight() " +
-				"bot:inventory():peek(1):useRight() " +
-				"bot:right():right() " +
-				"print(\"not done?\") " +
-				"bot:useLeft() " +
-				"print(\"done?\")"));
+						"bot:inventory():peek(1):useRight() " +
+						"bot:useRight() " +
+						"bot:right():right() " +
+						"print(\"not done?\") " +
+						"bot:useLeft() " +
+						"print(\"done?\")"));
 
 		d.getScripts().add(new UserScript("init",
 				"registerOpenListener(function(dt)  print(\"opened\")  end) " +
-				"registerCloseListener(function(dt)  print(\"closed\")  end) " +
-				"registerEnterListener(function(dt)  print(\"entered\")  end) " +
-				"registerLockListener(function(dt)  print(\"locked\")  end) " +
-				"registerUnlockListener(function(dt)  print(\"unlocked\")  end) " +
-				"print(\"Registered callbacks\")"));
+						"registerCloseListener(function(dt)  print(\"closed\")  end) " +
+						"registerEnterListener(function(dt)  print(\"entered\")  end) " +
+						"registerLockListener(function(dt)  print(\"locked\")  end) " +
+						"registerUnlockListener(function(dt)  print(\"unlocked\")  end) " +
+						"print(\"Registered callbacks\")"));
 
 		w.runInitScripts();
 		checkForOutput(d.getSandbox(), () -> updateSome(w), "opened", "entered", "closed", "unlocked", "locked");

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.text.BadLocationException;
 
@@ -117,7 +118,7 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	 * 
 	 * @throws BadLocationException
 	 */
-	public void setLocks(Iterable<IntegerSet.Interval> highlightIntervals) throws BadLocationException {
+	public boolean setLocks(Iterable<IntegerSet.Interval> highlightIntervals) throws BadLocationException {
 		ArrayList<IntegerSet.Interval> list = new ArrayList<IntegerSet.Interval>();
 		for (IntegerSet.Interval i : highlightIntervals) {
 			if (i.start < 0 || i.start > i.end || i.end >= this.code.length())
@@ -127,7 +128,12 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 						this.code.length());
 			list.add(i.copy());
 		}
+		
+		IntegerSet.Interval[] oldLocks = this.locks;
+		
 		this.locks = list.toArray(new IntegerSet.Interval[list.size()]);
+		
+		return !Arrays.deepEquals(this.locks, oldLocks);
 	}
 	
 	@Override
@@ -143,6 +149,19 @@ public class UserScript implements Serializable, Comparable<UserScript> {
 	@Override
 	public int hashCode(){
 		return name.hashCode();
+	}
+
+	/**
+	 * @param text
+	 * @return		True if this script was changed; false otherwise
+	 */
+	public boolean setCode (String text) {
+		
+		if(! code.equals(text)) {
+			code = text;
+			return true;
+		}
+		return false;
 	}
 
 }

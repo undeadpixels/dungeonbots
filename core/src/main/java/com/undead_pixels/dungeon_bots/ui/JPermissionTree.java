@@ -57,14 +57,16 @@ public class JPermissionTree extends JTree {
 	private boolean changed = false;
 
 
-	private JPermissionTree() {
+	JPermissionTree() {
 		this.permissions = new ArrayList<Permission>();
 		this.setCellRenderer(new TreeRenderer());
 		this.setCellEditor(new TreeEditor((DefaultTreeCellRenderer) this.getCellRenderer()));
 		this.setEditable(true);
 		this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		this.setRootVisible(false);
-		setColors(new Color[] { Color.red, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.BLUE, Color.magenta });
+		this.availableLevels = new SecurityLevel[] { SecurityLevel.AUTHOR, SecurityLevel.ENTITY, SecurityLevel.TEAM,
+				SecurityLevel.NONE };
+		setColors(new Color[] { Color.red, Color.CYAN, Color.YELLOW, Color.GREEN, Color.BLUE, Color.magenta });
 		updateGUI();
 	}
 
@@ -101,6 +103,14 @@ public class JPermissionTree extends JTree {
 			Permission p = new Permission(id, entry.getValue(), whitelist.getInfo(entry.getKey()));
 			permissions.add(p);
 		}
+		this.updateGUI();
+	}
+
+
+	/**Adds a line for the specific permission.*/
+	public void addPermission(String name, SecurityLevel startingLevel, String helpInfo) {
+		Permission p = new Permission(name, startingLevel, helpInfo);
+		permissions.add(p);
 		this.updateGUI();
 	}
 
@@ -426,7 +436,7 @@ public class JPermissionTree extends JTree {
 		@Override
 		public String toString() {
 			String str = (type == null || type.equals("")) ? "" : type + ":";
-			str += label + "   " + (level != null ?  level.toString() : "<null>");
+			str += label + "   " + (level != null ? level.toString() : "<null>");
 			str += (info == null || info.equals("") ? "<no info>" : info.substring(0, Math.min(10, info.length())));
 			return str;
 		}

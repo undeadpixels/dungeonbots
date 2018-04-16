@@ -1,8 +1,37 @@
 [
   {
     "name": "Treasure",
-    "descr": "Treasures are Items that are have high monetary value.",
+    "descr": "Treasures are Items that have high monetary value.",
     "methods": []
+  },
+  {
+    "name": "Entity",
+    "descr": "",
+    "methods": [
+      {
+        "name": "getName",
+        "descr": "Get the Name of the Entity in it\u0027s world",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "setName",
+        "descr": "Set the Name of the Entity",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "getId",
+        "descr": "The Unique ID of the Entity",
+        "role": "AUTHOR",
+        "params": []
+      }
+    ]
   },
   {
     "name": "ResponseQuestion",
@@ -28,14 +57,14 @@
         ]
       },
       {
-        "name": "getResponseQuestions",
-        "descr": "Get the Response questions the User submitted.",
+        "name": "getDescription",
+        "descr": "Gets a String representation of the Question and currently input solutions.",
         "role": "AUTHOR",
         "params": []
       },
       {
-        "name": "getDescription",
-        "descr": "Gets a String representation of the Question and currently input solutions.",
+        "name": "getResponseQuestions",
+        "descr": "Get the Response questions the User submitted.",
         "role": "AUTHOR",
         "params": []
       }
@@ -46,9 +75,39 @@
     "descr": "Type that encapsulates descriptive information about an item queried from a peek method",
     "methods": [
       {
-        "name": "tostr",
+        "name": "toString",
         "descr": "Returns a string representation of the item",
         "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "name",
+        "descr": "Get the Name of the Item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "value",
+        "descr": "Get the Value of the Item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "weight",
+        "descr": "Get the Weight of the Item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "description",
+        "descr": "Get the Description of the Item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "index",
+        "descr": "Get the Index of the Item",
+        "role": "NONE",
         "params": []
       }
     ]
@@ -94,6 +153,78 @@
         ]
       },
       {
+        "name": "removeEntity",
+        "descr": "Removes the entity from the world",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "setFlag",
+        "descr": "Set Game flags for the following\n\u0027autoPlay:boolean\u0027, \u0027name:string\u0027, \u0027playstyle:[EntityTurns,RTS,TeamTurns]\u0027",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The Flag Name [autoPlay,name,playstyle, timesReset]"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Value of the flag"
+          }
+        ]
+      },
+      {
+        "name": "setTile",
+        "descr": "Sets the Tile at the argument positions",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the tile"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the tile"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The TileType of the tile [\u0027floor\u0027, \u0027tile\u0027, etc...]"
+          }
+        ]
+      },
+      {
+        "name": "setTiles",
+        "descr": "Set\u0027s a range of Tiles",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          },
+          {
+            "type": "LuaValue",
+            "descr": ""
+          },
+          {
+            "type": "LuaValue",
+            "descr": ""
+          },
+          {
+            "type": "LuaValue",
+            "descr": ""
+          },
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
         "name": "showAlert",
         "descr": "Creates an alert message",
         "role": "AUTHOR",
@@ -113,6 +244,28 @@
         "descr": "Query the total value of Treasure and Items found in the World",
         "role": "NONE",
         "params": []
+      },
+      {
+        "name": "findEntity",
+        "descr": "Finds and returns the first entity with the specified name or id",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "Name is a String, ID is a number"
+          }
+        ]
+      },
+      {
+        "name": "logQuest",
+        "descr": "Logs a message with a Quest logging level",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The message to Log"
+          }
+        ]
       },
       {
         "name": "getGoal",
@@ -200,24 +353,6 @@
     "descr": "A type that encapsulates abilities and stats for players with Rpg attributes",
     "methods": [
       {
-        "name": "health",
-        "descr": "Get the Health of the Player.\nWhen the Players health is Zero, the player dies.",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "mana",
-        "descr": "Get the Mana of the Player\nMana is consumed when using spells, or Items that require magic power.",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "stamina",
-        "descr": "Get the Stamina of the Player\nCertain actions require stamina to perform, such as attacks, or pushing heavy objects.",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
         "name": "stats",
         "descr": "Get the stats of the player.\n(strength, dexterity, intelligence, wisdom) \u003d player:getStats()",
         "role": "DEFAULT",
@@ -290,6 +425,24 @@
             "descr": "An Integer value greater than 0"
           }
         ]
+      },
+      {
+        "name": "health",
+        "descr": "Get the Health of the Player.\nWhen the Players health is Zero, the player dies.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "mana",
+        "descr": "Get the Mana of the Player\nMana is consumed when using spells, or Items that require magic power.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "stamina",
+        "descr": "Get the Stamina of the Player\nCertain actions require stamina to perform, such as attacks, or pushing heavy objects.",
+        "role": "DEFAULT",
+        "params": []
       }
     ]
   },
@@ -313,6 +466,17 @@
           {
             "type": "LuaValue",
             "descr": "A List/Table of answers to the question"
+          }
+        ]
+      },
+      {
+        "name": "setAnswers",
+        "descr": "Set the Answers for the question",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": ""
           }
         ]
       },
@@ -341,6 +505,50 @@
     "descr": "An Item is a type representing an immaterial game item that is carried in an Inventory.",
     "methods": [
       {
+        "name": "setName",
+        "descr": "Set the Name of the Item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "setValue",
+        "descr": "Set the Value of the Item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "setDescription",
+        "descr": "Set the description of the Item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
+        "name": "setWeight",
+        "descr": "Set the Weight of the Item",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": ""
+          }
+        ]
+      },
+      {
         "name": "getName",
         "descr": "Get the Name of the Item",
         "role": "NONE",
@@ -353,14 +561,14 @@
         "params": []
       },
       {
-        "name": "getDescription",
-        "descr": "Get the Description of the Item",
+        "name": "getWeight",
+        "descr": "Get the Weight of the Item",
         "role": "AUTHOR",
         "params": []
       },
       {
-        "name": "getWeight",
-        "descr": "Get the Weight of the Item",
+        "name": "getDescription",
+        "descr": "Get the Description of the Item",
         "role": "AUTHOR",
         "params": []
       }
@@ -445,35 +653,6 @@
         ]
       },
       {
-        "name": "steps",
-        "descr": "Get the Number of Steps taken by the Actor",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "bumps",
-        "descr": "Get the Number of Collisions made by the Actor with walls",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "inventory",
-        "descr": "Get the Inventory of the Player",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "use",
-        "descr": "Contextually use an object/entity in the specified direction relative to the actor",
-        "role": "DEFAULT",
-        "params": [
-          {
-            "type": "LuaValue",
-            "descr": "The direction of the entity or object to Use"
-          }
-        ]
-      },
-      {
         "name": "say",
         "descr": "Prints the argument text above the player",
         "role": "DEFAULT",
@@ -487,6 +666,85 @@
       {
         "name": "grab",
         "descr": "Grabs any Item Entities that exist in the tile the player is in",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "look",
+        "descr": "Actor inspects objects or entities in the specified direction",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "A Varargs of either the Dir to look. Nil if Looking at the players position"
+          }
+        ]
+      },
+      {
+        "name": "giveRight",
+        "descr": "Give the item specified at the actors inventory index to the entity RIGHT from the actor",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory"
+          }
+        ]
+      },
+      {
+        "name": "giveLeft",
+        "descr": "Give the item specified at the actors inventory index to the entity LEFT from the actor",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory"
+          }
+        ]
+      },
+      {
+        "name": "giveDown",
+        "descr": "Give the item specified at the actors inventory index to the entity DOWN from the actor",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory"
+          }
+        ]
+      },
+      {
+        "name": "giveUp",
+        "descr": "Give the item specified at the actors inventory index to the entity UP from the actor",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "A varargs of the index from the source Actors inventory, and optionally the destination index of the target inventory"
+          }
+        ]
+      },
+      {
+        "name": "lookUp",
+        "descr": "Actor inspects objects or entities UP relative to their position",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "lookDown",
+        "descr": "Actor inspects objects or entities DOWN relative to their position",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "lookLeft",
+        "descr": "Actor inspects objects or entities LEFT relative to their position",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "lookRight",
+        "descr": "Actor inspects objects or entities RIGHT relative to their position",
         "role": "DEFAULT",
         "params": []
       },
@@ -554,6 +812,35 @@
         ]
       },
       {
+        "name": "steps",
+        "descr": "Get the Number of Steps taken by the Actor",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "bumps",
+        "descr": "Get the Number of Collisions made by the Actor with walls",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "inventory",
+        "descr": "Get the Inventory of the Player",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "use",
+        "descr": "Contextually use an object/entity in the specified direction relative to the actor",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The direction of the entity or object to Use"
+          }
+        ]
+      },
+      {
         "name": "left",
         "descr": "Moves the player LEFT",
         "role": "DEFAULT",
@@ -596,6 +883,17 @@
             "descr": "The number of spaces to move"
           }
         ]
+      },
+      {
+        "name": "move",
+        "descr": "Moves the player a given direction",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The direction and number of spaces to move"
+          }
+        ]
       }
     ]
   },
@@ -613,7 +911,7 @@
   },
   {
     "name": "Gold",
-    "descr": "Gold is a Treasure that has a value that is a function of it\u0027s weight.",
+    "descr": "Gold is a Treasure that has a value that is a function of its weight.",
     "methods": [
       {
         "name": "new",
@@ -717,9 +1015,26 @@
         ]
       },
       {
+        "name": "multipleChoiceQuestion",
+        "descr": "Create a new Multiple Choice Question",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "World + x + y + descr + questions ..."
+          }
+        ]
+      },
+      {
         "name": "inventory",
         "descr": "Get the ItemEntity\u0027s inventory",
         "role": "ENTITY",
+        "params": []
+      },
+      {
+        "name": "toString",
+        "descr": "Look at an Item Entity",
+        "role": "NONE",
         "params": []
       }
     ]
@@ -728,6 +1043,17 @@
     "name": "Player",
     "descr": "A Player is an Actor afforded with more privileges",
     "methods": [
+      {
+        "name": "requestTrade",
+        "descr": "Requests to trade items with an entity. Completes trade if both entities request a trade.",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The target Player to trade with"
+          }
+        ]
+      },
       {
         "name": "new",
         "descr": "Assigns a new player",
@@ -756,7 +1082,7 @@
       {
         "name": "setPosition",
         "descr": "Set the position of the entity",
-        "role": "DEFAULT",
+        "role": "AUTHOR",
         "params": [
           {
             "type": "LuaValue",
@@ -813,6 +1139,18 @@
             "descr": "A TileType of the specified Type"
           }
         ]
+      }
+    ]
+  },
+  {
+    "name": "GetLuaFacade",
+    "descr": "",
+    "methods": [
+      {
+        "name": "help",
+        "descr": "Return a String documenting the functionality of the invoked type",
+        "role": "NONE",
+        "params": []
       }
     ]
   },
@@ -880,6 +1218,12 @@
         ]
       },
       {
+        "name": "toggleOpen",
+        "descr": "Toggles the open state of the door",
+        "role": "ENTITY",
+        "params": []
+      },
+      {
         "name": "unlock",
         "descr": "Sets the Door to an unlocked state.",
         "role": "ENTITY",
@@ -895,12 +1239,6 @@
         "name": "use",
         "descr": "Toggle the open state of the door depending on if it is locked.",
         "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "toggleOpen",
-        "descr": "Toggles the open state of the door",
-        "role": "ENTITY",
         "params": []
       }
     ]
@@ -927,15 +1265,51 @@
     "descr": "Inventory Item type that represents an item at a given spot in an Inventory.\nItem changes if the Inventory is modified.",
     "methods": [
       {
-        "name": "use",
-        "descr": "Contextually uses the Item. Action varies depending on the Item.",
+        "name": "hasItem",
+        "descr": "Test if the ItemReference contains an item",
+        "role": "NONE",
+        "params": []
+      },
+      {
+        "name": "useSelf",
+        "descr": "Contextually uses the Item on the caller. Action varies depending on the Item.",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "give",
+        "descr": "Give the item to any entities found at the specified direction relative to the owner of the item.",
         "role": "DEFAULT",
         "params": [
           {
-            "type": "Varargs",
-            "descr": ""
+            "type": "LuaValue",
+            "descr": "A direction relative to the entity"
           }
         ]
+      },
+      {
+        "name": "giveRight",
+        "descr": "Give the Item to any entities \u0027Right\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveLeft",
+        "descr": "Give the Item to any entities \u0027Left\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveDown",
+        "descr": "Give the Item to any entities \u0027Down\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "giveUp",
+        "descr": "Give the Item to any entities \u0027Up\u0027 relative to the owner of the item",
+        "role": "DEFAULT",
+        "params": []
       },
       {
         "name": "useRight",
@@ -962,45 +1336,15 @@
         "params": []
       },
       {
-        "name": "useSelf",
-        "descr": "Contextually uses the Item on the caller. Action varies depending on the Item.",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "giveUp",
-        "descr": "Give the Item to any entities \u0027Up\u0027 relative to the owner of the item",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "give",
-        "descr": "Give the item to any entities found at the specified direction relative to the owner of the item.",
+        "name": "use",
+        "descr": "Contextually uses the Item. Action varies depending on the Item.",
         "role": "DEFAULT",
         "params": [
           {
-            "type": "LuaValue",
-            "descr": "A direction relative to the entity"
+            "type": "Varargs",
+            "descr": ""
           }
         ]
-      },
-      {
-        "name": "giveDown",
-        "descr": "Give the Item to any entities \u0027Down\u0027 relative to the owner of the item",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "giveLeft",
-        "descr": "Give the Item to any entities \u0027Left\u0027 relative to the owner of the item",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "giveRight",
-        "descr": "Give the Item to any entities \u0027Right\u0027 relative to the owner of the item",
-        "role": "DEFAULT",
-        "params": []
       },
       {
         "name": "name",
@@ -1011,6 +1355,18 @@
       {
         "name": "value",
         "descr": "Asks the Item Reference for the monetary value of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "weight",
+        "descr": "Asks the Item Reference for the weight of the given Item",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "description",
+        "descr": "Asks the Item Reference for a description of the given Item",
         "role": "DEFAULT",
         "params": []
       },
@@ -1026,18 +1382,6 @@
         ]
       },
       {
-        "name": "description",
-        "descr": "Asks the Item Reference for a description of the given Item",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "weight",
-        "descr": "Asks the Item Reference for the weight of the given Item",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
         "name": "getItem",
         "descr": "Gets the referenced Item",
         "role": "AUTHOR",
@@ -1048,7 +1392,31 @@
   {
     "name": "Switch",
     "descr": "A Switch is an Entity that\u0027s contextual use function invokes a event",
-    "methods": []
+    "methods": [
+      {
+        "name": "setEnabled",
+        "descr": "Sets the current state of the switch",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "A boolean value"
+          }
+        ]
+      },
+      {
+        "name": "getEnabled",
+        "descr": "Get the Switch\u0027s enabled flag",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "use",
+        "descr": "Use the given switch",
+        "role": "ENTITY",
+        "params": []
+      }
+    ]
   },
   {
     "name": "SpellBook",
@@ -1091,6 +1459,12 @@
         ]
       },
       {
+        "name": "damage",
+        "descr": "Gets the Damage stat of the Weapon",
+        "role": "AUTHOR",
+        "params": []
+      },
+      {
         "name": "speed",
         "descr": "Gets the Speed stat of the Weapon",
         "role": "AUTHOR",
@@ -1099,12 +1473,6 @@
       {
         "name": "range",
         "descr": "Gets the Range stat of the Weapon",
-        "role": "AUTHOR",
-        "params": []
-      },
-      {
-        "name": "damage",
-        "descr": "Gets the Damage stat of the Weapon",
         "role": "AUTHOR",
         "params": []
       }
@@ -1173,13 +1541,70 @@
     ]
   },
   {
+    "name": "Sign",
+    "descr": "An Entity type that can be inspected ",
+    "methods": [
+      {
+        "name": "new",
+        "descr": "Create a new Sign",
+        "role": "AUTHOR",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The World the Sign belongs to"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Message the Sign should display"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The X position of the Sign"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The Y position of the Sign"
+          }
+        ]
+      },
+      {
+        "name": "setMessage",
+        "descr": "Change the message that the sign displays",
+        "role": "ENTITY",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The new message that should display"
+          }
+        ]
+      },
+      {
+        "name": "say",
+        "descr": "Prints the argument text above the player",
+        "role": "DEFAULT",
+        "params": [
+          {
+            "type": "Varargs",
+            "descr": "The text for the player to say"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "Inventory",
-    "descr": "",
+    "descr": "An Inventory is a data type that has functionality supporting accessing and retrieving Item Types",
     "methods": [
       {
         "name": "get",
         "descr": "Get an array of ItemReferences to the Inventory",
         "role": "DEFAULT",
+        "params": []
+      },
+      {
+        "name": "toString",
+        "descr": "Get a String representation of the Inventory",
+        "role": "NONE",
         "params": []
       },
       {
@@ -1212,6 +1637,27 @@
         ]
       },
       {
+        "name": "swap",
+        "descr": "Swap the items at the two positions in the inventory",
+        "role": "NONE",
+        "params": [
+          {
+            "type": "LuaValue",
+            "descr": "The first item to swap"
+          },
+          {
+            "type": "LuaValue",
+            "descr": "The second item to swap"
+          }
+        ]
+      },
+      {
+        "name": "weight",
+        "descr": "Query the total weight of items in the inventory",
+        "role": "DEFAULT",
+        "params": []
+      },
+      {
         "name": "maxWeight",
         "descr": "Get the Max Weight this Inventory can support",
         "role": "DEFAULT",
@@ -1229,30 +1675,6 @@
         ]
       },
       {
-        "name": "tos",
-        "descr": "Get a String representation of the Inventory",
-        "role": "NONE",
-        "params": []
-      },
-      {
-        "name": "unpack",
-        "descr": "Unpacks the Inventory contents to a Lua Varargs type",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "weight",
-        "descr": "Query the total weight of items in the inventory",
-        "role": "DEFAULT",
-        "params": []
-      },
-      {
-        "name": "totalValue",
-        "descr": "Calculates the total value of the contents of the Inventory",
-        "role": "NONE",
-        "params": []
-      },
-      {
         "name": "addItem",
         "descr": "Adds the Item to the Inventory if possible",
         "role": "ENTITY",
@@ -1264,6 +1686,12 @@
         ]
       },
       {
+        "name": "totalValue",
+        "descr": "Calculates the total value of the contents of the Inventory",
+        "role": "NONE",
+        "params": []
+      },
+      {
         "name": "getItem",
         "descr": "Get the underlying Item contained by the ItemReference at the index in the Inventory",
         "role": "ENTITY",
@@ -1273,6 +1701,12 @@
             "descr": "The Index of the Item"
           }
         ]
+      },
+      {
+        "name": "unpack",
+        "descr": "Unpacks the Inventory contents to a Lua Varargs type",
+        "role": "DEFAULT",
+        "params": []
       }
     ]
   },

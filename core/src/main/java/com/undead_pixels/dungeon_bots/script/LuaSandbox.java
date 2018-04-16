@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.script;
 import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox.EventInfo;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.NonReflectiveDoc;
@@ -39,6 +40,7 @@ import java.util.stream.*;
  */
 public final class LuaSandbox implements Serializable {
 	
+
 	/**
 	 * 
 	 */
@@ -56,6 +58,7 @@ public final class LuaSandbox implements Serializable {
 	private final List<Consumer<String>> outputEventListeners = new ArrayList<>();
 	private final ThreadGroup threadGroup = new ThreadGroup("lua-"+(id++));
 	private final HashMap<String, HashSet<LuaValue>> eventListeners = new HashMap<>();
+	private final HashMap<String, EventInfo> eventInfos = new HashMap<>();
 
 	/**
 	 * Initializes a LuaSandbox using JsePlatform.standardGloabls() as the Globals
@@ -509,6 +512,62 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
+	 * @author kevin
+	 *
+	 */
+	public class EventInfo {
+
+		public final String registerEventListenerFunctionName;
+		public final String niceName;
+		public final String description;
+		public final String[] argNames;
+
+		/**
+		 * @param description
+		 * @param argNames
+		 */
+		public EventInfo(String eventName, String description, String... argNames) {
+
+			// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
+			boolean shouldUpper = true;
+			String functionName = "";
+			String niceName = "";
+			String eventNameLower = eventName.toLowerCase();
+			for(int i = 0; i < eventNameLower.length(); i++) {
+				char c = eventNameLower.charAt(i);
+				if(c == '_') {
+					shouldUpper = true;
+					niceName += " ";
+					continue;
+				}
+				
+				if(shouldUpper) {
+					functionName += (""+c).toUpperCase();
+					niceName += (""+c).toUpperCase();
+					shouldUpper = false;
+				} else {
+					functionName += c;
+					niceName += c;
+				}
+			}
+			
+			registerEventListenerFunctionName = "register" + functionName + "Listener";
+			
+			this.niceName = niceName+" Listener";
+			this.description = description;
+			this.argNames = argNames;
+		}
+		
+		public String generateTemplateListener() {
+			return registerEventListenerFunctionName+"(function("+Stream.of(argNames).reduce((a, b) -> a+", "+b).orElse("")+")\n"
+					+ "    -- Your code here\n"
+					+ "end)";
+			
+		}
+		
+	}
+
+	/**
 	 * Registers an event type and allows this sandbox to request to listen to it
 	 * 
 	 * @param eventName		Something of the form FOO_BAR_BLAH,
@@ -516,34 +575,14 @@ public final class LuaSandbox implements Serializable {
 	 */
 	public synchronized void registerEventType(String eventName, String description, String... argNames) {
 		eventListeners.put(eventName, new HashSet<LuaValue>());
-		// TODO - store description and argNames somewhere
+		EventInfo einfo = new EventInfo(eventName, description, argNames);
+		eventInfos.put(eventName, einfo);
 		
-		// Make the name of the function: FOO_BAR_BLAH -> registerFooBarBlahListener
-		boolean shouldUpper = true;
-		String registerEventListenerFunctionName = "";
-		String eventNameLower = eventName.toLowerCase();
-		for(int i = 0; i < eventNameLower.length(); i++) {
-			char c = eventNameLower.charAt(i);
-			if(c == '_') {
-				shouldUpper = true;
-				continue;
-			}
-			
-			if(shouldUpper) {
-				registerEventListenerFunctionName += (""+c).toUpperCase();
-				shouldUpper = false;
-			} else {
-				registerEventListenerFunctionName += c;
-			}
-		}
-		
-		registerEventListenerFunctionName = "register" + registerEventListenerFunctionName + "Listener";
+		String registerEventListenerFunctionName = einfo.registerEventListenerFunctionName;
 		
 		String docs = description+"\n\n"+
 				"Usage:\n"
-				+ registerEventListenerFunctionName+"(function("+Stream.of(argNames).reduce((a,b) -> (a+", "+b)).orElse("")+")\n"
-				+ "    -- Your code here\n"
-				+ "end)";
+				+ einfo.generateTemplateListener();
 		
 		RegisterListenerFunction registerEventListenerFunction = new RegisterListenerFunction(eventName, registerEventListenerFunctionName, docs);
 		
@@ -558,6 +597,13 @@ public final class LuaSandbox implements Serializable {
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		
 		return invocation;
+	}
+
+	/**
+	 * 
+	 */
+	public Collection<EventInfo> getEvents () {
+		return eventInfos.values();
 	}
 
 	/**

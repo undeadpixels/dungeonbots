@@ -18,6 +18,7 @@ import javax.swing.ListCellRenderer;
 
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 /**
@@ -33,8 +34,8 @@ public class ResultsScreen extends Screen {
 
 	protected final World world;
 
-	public ResultsScreen(World world) {
-		super();
+	public ResultsScreen(LevelPack lp, World world) {
+		super(lp);
 		this.world = world;
 	}
 
@@ -47,7 +48,15 @@ public class ResultsScreen extends Screen {
 			public void actionPerformed(ActionEvent e) {
 				switch (e.getActionCommand()) {
 				case "OK":
-					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
+					final int index = levelPack.getCurrentWorldIndex();
+					final int count = levelPack.getAllWorlds().length;
+					if(index < count - 1) {
+						levelPack.setCurrentWorld(index + 1);
+						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+					}
+					else {
+						DungeonBotsMain.instance.setCurrentScreen(LevelPackScreen.fromDirectory(System.getProperty("user.dir")));
+					}
 					break;
 				case "Publish":
 				default:

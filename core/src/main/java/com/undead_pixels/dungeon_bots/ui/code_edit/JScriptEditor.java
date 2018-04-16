@@ -59,6 +59,12 @@ public final class JScriptEditor extends JPanel {
 	/** The script being edited. */
 	private UserScript _Script = null;
 	private final JEditorPane editor;
+	
+	public JEditorPane getEditor () {
+		return editor;
+	}
+
+
 	private final SecurityLevel _SecurityLevel;
 	private final Controller _Controller;
 	private final JComboBox<Font> _FontChooser;
@@ -185,17 +191,22 @@ public final class JScriptEditor extends JPanel {
 
 	/**
 	 * Overwrites the current script with the contents of this editor.  If no script is being edited, does nothing.
+	 * 
+	 * @return	True if the script was changed; false otherwise.
 	 */
-	public void saveScript() {
+	public boolean saveScript() {
+		boolean changed = false;
+		
 		if (_Script == null)
-			return;
+			return false;
 		try {
-			_Script.code = editor.getText();
-			_Script.setLocks(_Controller.getHighlightIntervals());
+			changed |= _Script.setCode(editor.getText());
+			changed |= _Script.setLocks(_Controller.getHighlightIntervals());
 		} catch (BadLocationException blex) {
 			System.err.println("Could not save locks to code. " + blex.getMessage());
 		}
-
+		
+		return changed;
 	}
 
 
