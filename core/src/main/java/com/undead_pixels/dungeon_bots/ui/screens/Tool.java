@@ -707,8 +707,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			List<Entity> se = world.getEntitiesUnderLocation(rect);
 			if (se.size() == 1) {
 				// Fire the entity's onClicked event
-				se.get(1).getSandbox().fireEvent("CLICKED");
-				se.get(1).getWorld().getSandbox().fireEvent("ENTITY_CLICKED", se.get(1).getLuaValue());
+				se.get(0).getSandbox().fireEvent("CLICKED");
+				se.get(0).getWorld().getSandbox().fireEvent("ENTITY_CLICKED", se.get(0).getLuaValue());
 			}
 			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
 			List<Tile> st = world.getTilesUnderLocation(rect);
