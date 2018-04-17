@@ -60,7 +60,7 @@ public class GameplayScreen extends Screen {
 	/** The JComponent that views the current world state. */
 	private WorldView view;
 	private final boolean isSwitched;
-	private JMessagePane _MessagePane;
+	private JMessagePane _MessagePane = JMessagePane.create();;
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
@@ -71,14 +71,14 @@ public class GameplayScreen extends Screen {
 		this.isSwitched = switched;
 		this.originalWorld = world;
 		this.world = Serializer.deepCopy(originalWorld);
-		world.onBecomingVisibleInGameplay();
 		world.registerMessageListener(new MessageListener() {
-
 			@Override
 			public void message(HasImage src, String message, LoggingLevel level) {
 				GameplayScreen.this.message(src, message, level);
 			}
 		});
+
+		world.onBecomingVisibleInGameplay();
 	}
 
 
@@ -165,7 +165,6 @@ public class GameplayScreen extends Screen {
 		JLabel emblem = new JLabel(new ImageIcon(emblemImg));
 		emblem.setLayout(new BorderLayout());
 		emblem.setPreferredSize(new Dimension(250, 100));
-		_MessagePane = JMessagePane.create();
 		_MessagePane.setFocusable(false);
 		_MessagePane.setPreferredSize(new Dimension(250, -1));
 		// TODO: consult http://java-sl.com/wrap.html for forced wrap of long
@@ -173,14 +172,8 @@ public class GameplayScreen extends Screen {
 		JScrollPane messageScroller = new JScrollPane(_MessagePane);
 		JPanel messagePanel = new JPanel();
 		messagePanel.setLayout(new BorderLayout());
-		messagePanel.add(emblem, BorderLayout.PAGE_START);
+		messagePanel.add(emblem, BorderLayout.NORTH);
 		messagePanel.add(messageScroller, BorderLayout.CENTER);
-		message("This is a regular message from the world.\n", LoggingLevel.GENERAL);
-		message("This is an error message from the world.\n", LoggingLevel.ERROR);
-		message(new Player(null, "p", 0, 0), "This is a regular message from an entity.\n", LoggingLevel.GENERAL);
-		message(new Player(null, "p", 0, 0), "This is an error message from an entity.\n", LoggingLevel.ERROR);
-		message(new Player(null, "p", 0, 0), "This is a green message.  Just because.\n", LoggingLevel.GENERAL,
-				Color.green);
 
 
 		pane.add(view, BorderLayout.CENTER);
@@ -241,12 +234,6 @@ public class GameplayScreen extends Screen {
 	/**Posts the given image to the message pane.*/
 	public void message(Image image, int width, int height) {
 		_MessagePane.message(image, width, height);
-	}
-
-
-	/**Posts the given images to the message pane.*/
-	public void message(Image[] images, int width, int height) {
-		_MessagePane.message(images, width, height);
 	}
 
 

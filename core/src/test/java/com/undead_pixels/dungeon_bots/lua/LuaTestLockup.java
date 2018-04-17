@@ -77,7 +77,7 @@ public class LuaTestLockup {
 			System.out.println("done killing");
 			finished[0] = true;
 
-			Assert.assertNotNull(invocation.getError());
+			Assert.assertNotNull("Expecting error", invocation.getError());
 			if(!invocation.getError().getMessage().contains("ScriptInterruptException")) {
 				throw new RuntimeException("Error does not contain ScriptInterruptException;\ninstead = " + invocation.getError().getMessage());
 			}

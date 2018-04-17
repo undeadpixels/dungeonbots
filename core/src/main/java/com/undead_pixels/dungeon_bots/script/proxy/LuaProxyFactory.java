@@ -162,7 +162,7 @@ public class LuaProxyFactory {
 		else {
 			Object[] ans = varargToArr(varargs);
 			if(paramTypes.length == ans.length) {
-				return ans;
+				return ans; // TODO - this causes slightly weird behavior with things like world:alert(onlyOneArg)
 			}
 			else {
 				switch (ans.length) {

@@ -10,6 +10,7 @@ import com.undead_pixels.dungeon_bots.queueing.CoalescingGroup;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.ScriptEventQueue;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaBinding;
@@ -296,14 +297,34 @@ public final class LuaSandbox implements Serializable {
 		catch (IOException io) { }
 		return outputStream.toString();
 	}
+
+	public void worldMessage(HasImage hi, String message, LoggingLevel level) {
+		getSecurityContext().getWorld().ifPresent(w -> {
+			w.message(hi, message, level);
+		});
+	}
+	public void worldMessage(String message, LoggingLevel level) {
+		getSecurityContext().getWorld().ifPresent(w -> {
+			w.message(getSecurityContext().getOwner(), message, level);
+		});
+	}
+	public void worldMessage(String message) {
+		getSecurityContext().getWorld().ifPresent(w -> {
+			Entity e = getSecurityContext().getEntity();
+			System.out.println("Message; e= "+e);
+			if(e != null) {
+				w.message(e, message, LoggingLevel.STDOUT);
+			} else { // probably a world sandbox
+				w.message(w, message, LoggingLevel.QUEST);
+			}
+		});
+	}
 	
 	private void doPrint(String str) {
 		System.out.println("print: "+str);
 		try { bufferedOutputStream.write(str.getBytes()); }
 		catch (IOException io) { }
-		getSecurityContext().getWorld().ifPresent(w ->
-			Optional.ofNullable(getSecurityContext().getEntity()).ifPresent(e ->
-					w.message(e, str, LoggingLevel.STDOUT)));
+		worldMessage(str);
 		outputEventListeners.forEach(cn -> cn.accept(str));
 	}
 
@@ -347,6 +368,7 @@ public final class LuaSandbox implements Serializable {
 	public class SleepFunction extends VarArgFunction implements NonReflectiveDoc {
 		@Override public LuaValue invoke(Varargs v) {
 			double sleeptime = v.optdouble(1, 1.0);
+			worldMessage(getSecurityContext().getOwnerName()+" sleeping for "+sleeptime, LoggingLevel.DEBUG);
 			
 			LuaInvocation currentInvoke = getQueue().getCurrent();
 			currentInvoke.safeSleep((long) (1000 * sleeptime));
@@ -367,7 +389,10 @@ public final class LuaSandbox implements Serializable {
 
 		@Override
 		public LuaValue call(LuaValue required) {
-			return Optional.ofNullable(scripts.get(required.checkjstring()))
+			String scriptName = required.checkjstring();
+			worldMessage(getSecurityContext().getOwnerName()+" require'd "+scriptName, LoggingLevel.DEBUG);
+			
+			return Optional.ofNullable(scripts.get(scriptName))
 					.map(script -> {
 						final LuaInvocation li = new LuaInvocation(LuaSandbox.this, script.code);
 						li.run();
@@ -389,6 +414,7 @@ public final class LuaSandbox implements Serializable {
 	public class HelpFunction extends VarArgFunction implements NonReflectiveDoc {
 		
 		private String helpSingle(String comment, LuaValue lv) {
+			worldMessage(getSecurityContext().getOwnerName()+" asked for help", LoggingLevel.DEBUG);
 
 			if(lv.istable()) {
 				if(lv.get("this").isuserdata() || lv.get("class").isuserdata()) {
@@ -465,6 +491,9 @@ public final class LuaSandbox implements Serializable {
 			if(!arg.isfunction()) {
 				throw new LuaError("Expected a function");
 			}
+			getSecurityContext().getWorld().ifPresent(w -> {
+				w.message(getSecurityContext().getOwner(), getSecurityContext().getOwnerName()+" is registering to listen to event type " + eventName, LoggingLevel.DEBUG);
+			});
 			eventListeners.get(eventName).add(arg);
 			return LuaValue.NIL;
 		}

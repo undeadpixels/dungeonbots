@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.HasEntity;
@@ -132,6 +133,13 @@ public class SecurityContext {
 			return entity.getName();
 		}
 		return "world";
+	}
+	
+	public HasImage getOwner() {
+		if(entity != null) {
+			return entity;
+		}
+		return world;
 	}
 
 public Optional<World> getWorld() {
