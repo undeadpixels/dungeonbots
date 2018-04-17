@@ -1371,7 +1371,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
 	@Doc("Creates and displays an Alert window.")
-	public void alert(@Doc("The Title of the Alert popup") LuaValue title,
+	public void alert(@Doc("The title of the alert popup") LuaValue title,
 			@Doc("The message to show to the player") LuaValue message) { // TODO - may add a LuaValue for source?
 		showAlert(message.checkjstring(),
 				title.isnil() ? "" : title.optjstring(""));

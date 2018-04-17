@@ -291,6 +291,11 @@ public final class JEntityEditor extends JTabbedPane {
 		
 		JEntityEditor jee = crateEntityEditorPane(entity, securityLevel, dialog, view, false);
 		
+		if(jee.dialog != null) {
+			dialog.dispose();
+			return jee;
+		}
+		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
 		jee.dialog = dialog;
