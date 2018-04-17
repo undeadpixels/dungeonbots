@@ -559,6 +559,15 @@ public final class LuaSandbox implements Serializable {
 		return fireEvent(eventName, null, args);
 	}
 	public synchronized LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
+		if(eventListeners.get(eventName) == null) {
+			System.err.println("Tried to fire event that isn't registered: "+eventName+"(in sandbox of "+securityContext.getOwnerName()+")");
+			return null;
+		}
+		if(eventListeners.get(eventName).isEmpty()) {
+			// nobody cares; ignore
+			return null;
+		}
+		
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		
