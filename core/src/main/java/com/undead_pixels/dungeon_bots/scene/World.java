@@ -35,6 +35,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -1254,6 +1255,35 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.registerEventType("ENTITY_CLICKED", "Called whenever an entity has been clicked.", "entity");
 			mapSandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when an entity's editor window is opened", "tabName", "entity");
 			mapSandbox.registerEventType("ENTITY_EDITOR_SAVED", "Called when the \"confirm\" button is clicked in an entity's editor.", "entity");
+
+			mapSandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key");
+			mapSandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
+			
+			final int[] releasedCounter = {0};
+			listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+				mapSandbox.fireEvent("KEY_PRESSED", new StringBasedLuaInvocationCoalescer(s, releasedCounter[0]), LuaValue.valueOf(s));
+			});
+			listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
+				mapSandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+				releasedCounter[0]++;
+			});
+
+			mapSandbox.registerEventType("ENTITY_ADDED", "Called when an entity is added to the world.", "entity");
+			mapSandbox.registerEventType("ENTITY_MOVED", "Called an entity moves.", "entity");
+			mapSandbox.registerEventType("ENTITY_REMOVED", "Called when an entity is removed from the world.", "entity");
+
+			listenTo(World.EntityEventType.ENTITY_ADDED, this, (e) -> {
+				mapSandbox.fireEvent("KEY_RELEASED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
+			listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+				mapSandbox.fireEvent("ENTITY_MOVED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
+			listenTo(World.EntityEventType.ENTITY_REMOVED, this, (e) -> {
+				mapSandbox.fireEvent("ENTITY_REMOVED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
 
 			return mapSandbox;
 		}

@@ -8,7 +8,7 @@ package com.undead_pixels.dungeon_bots.queueing;
  *
  * @param <T>	A type of objects to coalesce
  */
-public abstract class CoalescingGroup<T> {
+public interface CoalescingGroup<T> {
 
 	/**
 	 * Coalesces two objects together: the first one into the second one.

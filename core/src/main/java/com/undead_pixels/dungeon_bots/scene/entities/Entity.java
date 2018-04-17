@@ -12,6 +12,8 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
+import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -98,10 +100,22 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
 		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
+		sandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
 		sandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when this entity's editor window is opened", "tabName");
 		sandbox.registerEventType("IDLE", "Called when this entity has been idle for a while (usually about 60 seconds).");
 		sandbox.registerEventType("CLICKED", "Called whenever this entity has been clicked.");
 		sandbox.registerEventType("EDITOR_SAVED", "Called when the \"confirm\" button is clicked in this entity's editor.");
+		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key");
+		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
+		
+		final int[] releasedCounter = {0};
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			sandbox.fireEvent("KEY_PRESSED", new StringBasedLuaInvocationCoalescer(s, releasedCounter[0]), LuaValue.valueOf(s));
+		});
+		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
+			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+			releasedCounter[0]++;
+		});
 		
 		if (idleThreshold < MIN_IDLE_THRESHOLD)
 			idleThreshold = 60f;
@@ -168,6 +182,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		// Update the sandbox
 		if (sandbox != null) {
 			sandbox.update(dt);
+			getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 		}
 	}
 
