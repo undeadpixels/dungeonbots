@@ -338,7 +338,8 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	}
 
 
-	/**Fires a script into the action queue.  This does not guarantee execution.*/
+	/**Fires a script into the action queue.  This does not guarantee execution.  If the script does not exist, 
+	 * no action is taken.*/
 	public boolean enqueueScript(String scriptName, String...prepends) {
 		synchronized (this) {
 			UserScript s = scripts.get(scriptName);

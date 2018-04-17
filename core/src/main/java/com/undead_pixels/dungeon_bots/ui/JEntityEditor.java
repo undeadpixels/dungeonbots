@@ -19,6 +19,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -84,6 +86,15 @@ public final class JEntityEditor extends JTabbedPane {
 			propertyControl = new JEntityPropertyControl(state);
 			addTab("Properties", null, propertyControl.create(), "Properties of this entity.");
 		}
+
+		this.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
+				entity.enqueueScript("onExamined", "message=" + selectedTitle);
+			}
+		});
 	}
 
 
