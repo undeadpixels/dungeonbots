@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
@@ -146,13 +148,6 @@ public final class LevelEditorScreen extends Screen {
 
 		// TODO - some of the names produced by lambdas might need to be changed
 		// later
-
-		result.add(new EntityType("fish", AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1),
-				(x, y) -> {
-					// TODO - create new actual entity class
-					return new DeletemeEntity(world,
-							AssetManager.getTextureRegion("DawnLike/Characters/Aquatic0.png", 2, 1), x, y);
-				}));
 		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3),
 				(x, y) -> {
 					// TODO - create new actual entity class
@@ -190,6 +185,9 @@ public final class LevelEditorScreen extends Screen {
 		}));
 		result.add(new EntityType("sign", Sign.DEFAULT_TEXTURE, (x, y) -> {
 			return new Sign(world, "", x, y);
+		}));
+		result.add(new EntityType("multipleChoiceQuestion", ItemEntity.MULTI_CHOICE_QUESTION, (x, y) -> {
+			return ItemEntity.multipleChoiceQuestion(world, x, y,"","");
 		}));
 		result.add(new EntityType("gold", ItemEntity.GOLD_TEXTURE, (x, y) -> {
 			return ItemEntity.gold(world, x, y, 2);
@@ -687,7 +685,7 @@ public final class LevelEditorScreen extends Screen {
 		// Add the world at the bottom layer.
 		_View = new WorldView(world, (w) -> {
 			throw new RuntimeException("World cannot be won in level editor");
-		});
+		}, false);
 		_ViewControl = new Tool.ViewControl(_View);
 		getController().registerSignalsFrom(_View);
 		_View.setBounds(0, 0, this.getSize().width, this.getSize().height);
@@ -727,7 +725,9 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the tile palette GUI.
-		JComboBox<TileType> cboxTile = new JComboBox<TileType>(world.getTileTypes().toArray());
+		final TileType[] tt = world.getTileTypes().toArray();
+		Arrays.sort(tt, Comparator.comparing(TileType::getName));
+		JComboBox<TileType> cboxTile = new JComboBox<TileType>(tt);
 		cboxTile.setRenderer(_TileTypeItemRenderer);
 		cboxTile.addActionListener(getController());
 		_TileScroller = cboxTile;

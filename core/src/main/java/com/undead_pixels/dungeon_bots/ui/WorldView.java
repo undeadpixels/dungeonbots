@@ -54,10 +54,12 @@ public class WorldView extends JComponent {
 	private boolean isPlaying = false;
 	private final Timer timer;
 	private final Consumer<World> winAction;
+	private final boolean allowsPlay;
 
-	public WorldView(World world, Consumer<World> winAction) {
+	public WorldView(World world, Consumer<World> winAction, boolean allowsPlay) {
 		this.world = world;
 		this.winAction = winAction;
+		this.allowsPlay = allowsPlay;
 
 		lastTime = System.nanoTime(); // warning: this can overflow after 292
 										// years of runtime
@@ -423,6 +425,9 @@ public class WorldView extends JComponent {
 	 * @param isPlaying
 	 */
 	public void setPlaying(boolean isPlaying) {
+		if(!allowsPlay) {
+			return;
+		}
 		this.isPlaying = isPlaying;
 
 		if (isPlaying) {

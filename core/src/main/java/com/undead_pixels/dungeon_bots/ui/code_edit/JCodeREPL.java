@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.ui.code_edit;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +14,8 @@ import java.util.HashSet;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -41,6 +44,7 @@ import com.undead_pixels.dungeon_bots.script.ScriptStatus;
 import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
+import com.undead_pixels.dungeon_bots.ui.CodeInsertions;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 
 @SuppressWarnings("serial")
@@ -131,15 +135,29 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		startStopPanel.add(_CancelBttn);
 
 		JPanel executePanel = new JPanel(new BorderLayout());
-		executePanel.add(new JScrollPane(editorScroller), BorderLayout.CENTER);
+		executePanel.add(editorScroller, BorderLayout.CENTER);
 		executePanel.add(startStopPanel, BorderLayout.LINE_END);
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _MessageScroller, executePanel);
+		splitPane.setBorder(BorderFactory.createTitledBorder(" "));
 		splitPane.setContinuousLayout(true);
 		splitPane.setOneTouchExpandable(false);
-		splitPane.setDividerLocation(200);
 		splitPane.setDividerSize(20);
-		this.add(splitPane);
+		splitPane.setDividerLocation(200);
+		
+		Box splitPaneWrapper = new Box(BoxLayout.Y_AXIS);
+		splitPaneWrapper.add(splitPane);
+		
+		
+		Box outerBox = new Box(BoxLayout.X_AXIS);
+		
+		CodeInsertions codeInsertions = new CodeInsertions(this._Sandbox);
+		JScrollPane insertionScroller = codeInsertions.makeScrollerAndSetup(_EditorPane);
+		
+		outerBox.add(insertionScroller);
+		outerBox.add(splitPaneWrapper);
+		
+		this.add(outerBox);
 
 
 		_EditorPane.requestFocusInWindow();

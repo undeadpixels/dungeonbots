@@ -1,12 +1,15 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Key;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.MultipleChoiceQuestion;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Question;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Diamond;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gem;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.treasure.Gold;
@@ -19,6 +22,10 @@ import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemEntity extends Actor implements HasInventory {
 
@@ -75,8 +82,13 @@ public class ItemEntity extends Actor implements HasInventory {
 
 	public <T extends HasInventory> Boolean pickUp(final T dst) {
 		if(dst.getInventory().addItem(getItem())) {
-			world.removeEntity(this);
+			world.queueRemove(this);
 			this.inventory.reset();
+			this.world.message(this,
+					String.format("%s grabbed %s",
+							dst.getInventory().getOwner().getName(),
+							getName()),
+					LoggingLevel.GENERAL);
 			return true;
 		}
 		return false;
@@ -110,7 +122,7 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The X position of the GoldItem") LuaValue x,
 			@Doc("The Y position of the GoldItem") LuaValue y,
 			@Doc("The Weight of the GoldItem") LuaValue weight) {
-		return ItemEntity.gold(userDataOf(World.class, world), x.tofloat(), y.tofloat(), weight.toint());
+		return ItemEntity.gold(userDataOf(World.class, world), x.tofloat() - 1f, y.tofloat() - 1f , weight.toint());
 	}
 
 	public static final TextureRegion DIAMOND_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 1, 2);
@@ -123,7 +135,7 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The World the DiamondEntity belongs to") LuaValue world,
 			@Doc("The X position of the DiamondEntity") LuaValue x,
 			@Doc("The Y position of the DiamondEntity") LuaValue y) {
-		return ItemEntity.diamond(userDataOf(World.class, world), x.tofloat(), y.tofloat());
+		return ItemEntity.diamond(userDataOf(World.class, world), x.tofloat() - 1f, y.tofloat() - 1f);
 	}
 
 	public static final TextureRegion GEM_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 6, 2);
@@ -136,7 +148,27 @@ public class ItemEntity extends Actor implements HasInventory {
 			@Doc("The World the GemEntity belongs to") LuaValue world,
 			@Doc("The X position of the GemEntity") LuaValue x,
 			@Doc("The Y position of the GemEntity") LuaValue y) {
-		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat(), y.tofloat());
+		return ItemEntity.gem(userDataOf(World.class, world),x.tofloat() - 1f, y.tofloat() - 1f);
+	}
+
+	public static final TextureRegion MULTI_CHOICE_QUESTION =
+			AssetManager.getTextureRegion("DawnLike/GUI/GUI0.png", 0, 0);
+	public static ItemEntity multipleChoiceQuestion(World w, float x, float y, String description, String... questions) {
+		return new ItemEntity(w,
+				"multipleChoiceQuestion",
+				MULTI_CHOICE_QUESTION,
+				new MultipleChoiceQuestion(w, description, questions),
+				x, y);
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Create a new Multiple Choice Question")
+	public static ItemEntity multipleChoiceQuestion(@Doc("World + x + y + descr + questions ...") Varargs args) {
+		return ItemEntity.multipleChoiceQuestion(
+				userDataOf(World.class,args.arg(1)),
+						args.arg(2).tofloat(),
+						args.arg(3).tofloat(),
+						args.arg(4).tojstring(),
+						Question.varargsToStringArr(args.subargs(5)));
 	}
 
 	@Override
@@ -147,6 +179,8 @@ public class ItemEntity extends Actor implements HasInventory {
 	}
 
 	@Override
+	@BindTo("toString")
+	@Bind(value = SecurityLevel.NONE, doc = "Look at an Item Entity")
 	public String inspect() {
 		return String.format(
 				"%s %s",

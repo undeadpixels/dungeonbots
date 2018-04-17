@@ -62,6 +62,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 
 	public ItemReference setItem(Item i) {
 		this.item = i;
+		this.inventory.owner.getSandbox().fireEvent("INV_MODIFIED");
 		return this;
 	}
 
@@ -133,7 +134,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 				case "right":
 					return useRight();
 				default:
-					return false;
+					return useSelf();
 			}
 		}
 		else {
@@ -144,9 +145,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	@Override
 	@Bind(value=SecurityLevel.DEFAULT, doc="Contextually uses the Item on the caller. Action varies depending on the Item.")
 	public Boolean useSelf() {
-		final Entity owner = inventory.owner;
-		final Point2D.Float pos = owner.getPosition();
-		return owner.getWorld().tryUse(this, pos);
+		return item.applyTo(inventory.owner);
 	}
 
 	/**
@@ -264,6 +263,7 @@ public final class ItemReference implements GetLuaFacade, Serializable, Useable 
 	 * @return
 	 */
 	public Item derefItem() {
+		this.inventory.owner.getSandbox().fireEvent("INV_MODIFIED");
 		Item i = item;
 		this.item = new Item.EmptyItem();
 		return i;

@@ -99,4 +99,12 @@ public class UserScriptCollection implements Iterable<UserScript>, Serializable 
 	}
 
 
+	/**
+	 * @return
+	 */
+	public boolean isEmpty () {
+		return storage.isEmpty();
+	}
+
+
 }

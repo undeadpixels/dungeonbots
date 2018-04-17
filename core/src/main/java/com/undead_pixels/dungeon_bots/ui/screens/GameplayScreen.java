@@ -97,11 +97,11 @@ public class GameplayScreen extends Screen {
 		if (this.isSwitched) {
 			view = new WorldView(world, (w) -> {
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));
-			});
+			}, true);
 		} else {
 			view = new WorldView(world, (w) -> {
-				DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(w));
-			});
+				DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(levelPack,w));
+			}, true);
 		}
 		getController().registerSignalsFrom(view);
 		view.setBounds(0, 0, this.getSize().width, this.getSize().height);

@@ -1,7 +1,9 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
+import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Note;
@@ -16,6 +18,7 @@ import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
 
 import java.awt.geom.Point2D;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.luaj.vm2.LuaValue;
 
@@ -27,7 +30,7 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0
  */
 @Doc("A Player is an Actor afforded with more privileges")
-public class Player extends RpgActor {
+public class Player extends Actor implements Pushable {
 
 	/**
 	 *
@@ -60,7 +63,7 @@ public class Player extends RpgActor {
 				+ "  if k==\"s\" then this:down() end\n"
 				+ "  if k==\"a\" then this:left() end\n"
 				+ "  if k==\"d\" then this:right() end\n"
-				+ "end)\n"));
+				+ "end)\n\n"));
 		return ret;
 	}
 
@@ -99,7 +102,7 @@ public class Player extends RpgActor {
 		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
 			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
 		});
-	
+		sandbox.registerEventType("BUMPED", "Called when this player is bumped into", "Entity that bumps", "direction");
 		return sandbox;
 	}
 
@@ -124,7 +127,7 @@ public class Player extends RpgActor {
 
 	@Override
 	public Boolean useItem(ItemReference itemRef) {
-		return this.inventory.tryTakeItem(itemRef);
+		return this.inventory.tryTakeItem(itemRef) >= 0;
 	}
 
 	@Override
@@ -138,4 +141,43 @@ public class Player extends RpgActor {
 	public String inspect() {
 		return "Player";
 	}
+
+	@Override
+	public void push(Direction direction) {
+		// do nothing
+	}
+	transient volatile Player requestFrom = null;
+	transient volatile Player requestTo = null;
+	@Bind(value = SecurityLevel.NONE, doc = "Requests to trade items with an entity. Completes trade if both entities request a trade.")
+	public void requestTrade(@Doc("The target Player to trade with") LuaValue target) {
+		final Player test = (Player) target.checktable().get("this").checkuserdata(Entity.class);
+		synchronized (Player.class) {
+			if (test == this || test == requestTo) {
+				resetRequest();
+				return;
+			}
+			requestTo = test;
+			if (requestTo == requestFrom) {
+				this.inventory.swapInventory(requestTo.inventory);
+				world.message(this,
+						String.format("%s traded inventories with %s", this.name, requestTo.name),
+						LoggingLevel.GENERAL);
+				requestTo.resetRequest();
+				resetRequest();
+			} else
+				requestTo.requestFrom = this;
+		}
+	}
+
+	private void resetRequest() {
+		requestTo = null;
+		requestFrom = null;
+	}
+
+	@Override
+	public void bumpedInto(Entity e, Direction direction) {
+		getSandbox().fireEvent("BUMPED", e.getLuaValue(), LuaValue.valueOf(direction.name()));
+		world.message(this, String.format("Bumped %s", direction.name().toLowerCase()), LoggingLevel.GENERAL);
+	}
+
 }

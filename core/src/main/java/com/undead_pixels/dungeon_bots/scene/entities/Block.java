@@ -76,7 +76,17 @@ public class Block extends Actor implements Pushable {
 		LuaSandbox sandbox = super.createSandbox();
 		sandbox.registerEventType("PUSH", "Called when this block is pushed", "direction");
 		sandbox.registerEventType("BUMPED", "Called when this block is bumped into", "direction");
-
+		sandbox.registerEventType("MOVED",
+				"Called after the block has moved",
+				"The X position of the block",
+				"The Y position of the block");
+		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, e -> {
+			if(e == this) {
+				getSandbox().fireEvent("MOVED",
+						LuaValue.valueOf(getPosition().x + 1),
+						LuaValue.valueOf(getPosition().y + 1));
+			}
+		});
 		return sandbox;
 	}
 
@@ -100,7 +110,6 @@ public class Block extends Actor implements Pushable {
 		if(isMoveable) {
 			queueMoveSlowly(direction, true);
 		}
-
 		getSandbox().fireEvent("PUSH", LuaValue.valueOf(direction.name()));
 	}
 

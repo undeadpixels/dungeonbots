@@ -158,8 +158,9 @@ public class LuaReflection {
 				.sequential();
 	}
 
-	public static List<Class<? extends GetLuaFacade>> itemClasses = null;
-	public static List<Class<? extends GetLuaFacade>> entityClasses = null;
+	private static List<Class<? extends GetLuaFacade>> itemClasses = null;
+	private static List<Class<? extends GetLuaFacade>> entityClasses = null;
+	private static List<Class<? extends GetLuaFacade>> allClasses = null;
 
 	public static List<Class<? extends GetLuaFacade>> getItemClasses() {
 		if(itemClasses == null)
@@ -178,5 +179,18 @@ public class LuaReflection {
 		final FastClasspathScanner scanner = new FastClasspathScanner();
 		scanner.matchSubclassesOf(clz, e -> ans.add(e)).scan();
 		return ans;
+	}
+
+	public static List<Class<? extends GetLuaFacade>> getInterfacesOf(Class<? extends GetLuaFacade> clz) {
+		final List<Class<? extends GetLuaFacade>> ans = new LinkedList<>();
+		final FastClasspathScanner scanner = new FastClasspathScanner();
+		scanner.matchClassesImplementing(clz, e -> ans.add(e)).scan();
+		return ans;
+	}
+
+	public static List<Class<? extends GetLuaFacade>> getAllBindableClasses() {
+		if (allClasses == null)
+			allClasses = getInterfacesOf(GetLuaFacade.class);
+		return allClasses;
 	}
 }

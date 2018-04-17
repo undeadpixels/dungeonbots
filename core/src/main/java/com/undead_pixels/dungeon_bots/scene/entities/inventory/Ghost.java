@@ -23,11 +23,7 @@ public class Ghost extends RpgActor  {
 	public LuaSandbox getSandbox() {
 		final LuaSandbox sandbox =  super.getSandbox();
 		sandbox.registerEventType("ENTER", "called when an entity enters the Ghosts space", "entity");
-		world.listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
-			if(e.getPosition().distance(this.getPosition()) < 0.1) {
-				getSandbox().fireEvent("ENTER", e.getLuaValue());
-			}
-		});
+
 		return sandbox;
 	}
 

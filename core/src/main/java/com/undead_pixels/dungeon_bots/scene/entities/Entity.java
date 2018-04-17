@@ -97,7 +97,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
-		sandbox.addBindableClasses(LuaReflection.getItemClasses()).addBindableClasses(LuaReflection.getEntityClasses());
+		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
 		return this.sandbox;
 	}
 

@@ -89,13 +89,72 @@ public class TileTypes implements GetLuaFacade, Iterable<TileType>, Serializable
 		// register some default tile types
 
 		registerTile("floor", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 6, offsetsFloors, false, false);
+		registerTile("floor2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 3, offsetsFloors, false, false);
+		registerTile("floor3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 9, offsetsFloors, false, false);
+		registerTile("floor4", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 12, offsetsFloors, false, false);
+
+		registerTile("sand1", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 15, offsetsFloors, false, false);
+		registerTile("sand2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 18, offsetsFloors, false, false);
+		registerTile("sand3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 0, 21, offsetsFloors, false, false);
+
+		registerTile("wood-floor1", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 15, offsetsFloors, false, false);
+		registerTile("wood-floor2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 18, offsetsFloors, false, false);
+		registerTile("wood-floor3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 21, offsetsFloors, false, false);
+		registerTile("wood-floor4", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 24, offsetsFloors, false, false);
+
+
+		registerTile("snow1", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 15, offsetsFloors, false, false);
+		registerTile("snow2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 18, offsetsFloors, false, false);
+		registerTile("snow3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 21, offsetsFloors, false, false);
+
+		registerTile("rock1", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 3, offsetsFloors, false, false);
+		registerTile("rock2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 6, offsetsFloors, false, false);
+		registerTile("rock3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 14, 9, offsetsFloors, false, false);
+
 		registerTile("grass", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 6, offsetsFloors, false, false);
+		registerTile("grass2", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 3, offsetsFloors, false, false);
+		registerTile("grass3", AssetManager.getTexture("DawnLike/Objects/Floor.png"), TILESIZE, 7, 9, offsetsFloors, false, false);
+
 		registerTile("tiles_big", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 5, 2, null, false, false);
 		registerTile("tiles_small", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 6, 2, null, false, false);
 		registerTile("tiles_diamond", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 2, null, false, false);
 		registerTile("fillpit", AssetManager.getTexture("DawnLike/Objects/Tile.png"), TILESIZE, 7, 0, null, false, false);
 
 		registerTile("wall", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 6, offsetsWalls, false, true);
+		registerTile("wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 3, offsetsWalls, false, true);
+		registerTile("wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 9, offsetsWalls, false, true);
+		registerTile("wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 12, offsetsWalls, false, true);
+
+		registerTile("stone-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 15, offsetsWalls, false, true);
+		registerTile("stone-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 18, offsetsWalls, false, true);
+		registerTile("stone-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 21, offsetsWalls, false, true);
+		registerTile("stone-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 24, offsetsWalls, false, true);
+
+		registerTile("ice-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 27, offsetsWalls, false, true);
+		registerTile("ice-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 30, offsetsWalls, false, true);
+		registerTile("ice-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 33, offsetsWalls, false, true);
+		registerTile("ice-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 36, offsetsWalls, false, true);
+
+		registerTile("solid-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 39, offsetsWalls, false, true);
+		registerTile("solid-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 42, offsetsWalls, false, true);
+		registerTile("solid-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 45, offsetsWalls, false, true);
+		registerTile("solid-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 0, 48, offsetsWalls, false, true);
+
+		registerTile("alien-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 27, offsetsWalls, false, true);
+		registerTile("alien-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 30, offsetsWalls, false, true);
+		registerTile("alien-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 33, offsetsWalls, false, true);
+		registerTile("alien-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 36, offsetsWalls, false, true);
+
+		registerTile("wood-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 7, 3, offsetsWalls, false, true);
+		registerTile("wood-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 7, 6, offsetsWalls, false, true);
+		registerTile("wood-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 7, 9, offsetsWalls, false, true);
+		registerTile("wood-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 7, 12, offsetsWalls, false, true);
+
+		registerTile("mine-wall1", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 3, offsetsWalls, false, true);
+		registerTile("mine-wall2", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 6, offsetsWalls, false, true);
+		registerTile("mine-wall3", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 9, offsetsWalls, false, true);
+		registerTile("mine-wall4", AssetManager.getTexture("DawnLike/Objects/Wall.png"), TILESIZE, 14, 12, offsetsWalls, false, true);
+
 		registerTile("pit", AssetManager.getTexture("DawnLike/Objects/Trap1.png"), TILESIZE, 5, 2, null, false, true);
 
 	}

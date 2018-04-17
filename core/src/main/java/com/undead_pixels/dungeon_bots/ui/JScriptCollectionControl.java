@@ -17,12 +17,16 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
@@ -36,21 +40,21 @@ public class JScriptCollectionControl extends JPanel {
 	private final JScriptEditor editor;
 	private JList<UserScript> scriptList;
 	private final SecurityLevel security;
-	private final UserScriptCollection scripts;
+	private UserScriptCollection scripts;
 
 
-	JScriptCollectionControl(JEntityEditor.State state, SecurityLevel security) {
-		this(state.scripts, security, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
+	JScriptCollectionControl(LuaSandbox sandbox, JEntityEditor.State state, SecurityLevel security) {
+		this(sandbox, state.scripts, security, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
 				|| state.permissions.get(Entity.PERMISSION_ADD_REMOVE_SCRIPTS).level <= security.level);
 	}
 
 
-	JScriptCollectionControl(JWorldEditor.State state, SecurityLevel security) {
-		this(state.scripts, security, true);
+	JScriptCollectionControl(LuaSandbox sandbox, JWorldEditor.State state, SecurityLevel security) {
+		this(sandbox, state.scripts, security, true);
 	}
 
 
-	private JScriptCollectionControl(UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
+	private JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
 		editor = new JScriptEditor(security);
 		this.scripts = scripts;
 		this.security = security;
@@ -61,6 +65,10 @@ public class JScriptCollectionControl extends JPanel {
 		editor.setEditable(true);
 
 		// Create the list.
+		if(scripts.isEmpty()) {
+			scripts.add(new UserScript("init", "--Write your new script here."));
+		}
+		this.scripts = scripts;
 		UserScript[] scriptsSorted = scripts.toArray();
 		scriptList = new JList<UserScript>();
 		DefaultListModel<UserScript> model = new DefaultListModel<UserScript>();
@@ -96,21 +104,31 @@ public class JScriptCollectionControl extends JPanel {
 			editor.setScript(null);
 
 		JScrollPane scriptScroller = new JScrollPane(scriptList);
-		scriptScroller.setBorder(BorderFactory.createTitledBorder("Editable scripts."));
+		
+		Box scriptListBox = new Box(BoxLayout.Y_AXIS);
+		scriptListBox.setBorder(BorderFactory.createTitledBorder("Editable scripts"));
 
+		CodeInsertions codeInsertions = new CodeInsertions(sandbox);
+		JScrollPane insertionScroller = codeInsertions.makeScrollerAndSetup(editor.getEditor());
+
+		// Make buttons for add/remove of scripts.
+		Box bttnPanel = new Box(BoxLayout.X_AXIS);
+		bttnPanel.add(Box.createGlue());
+		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list")
+				.action("ADD_SCRIPT", controller).create());
+		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list")
+				.action("REMOVE_SCRIPT", controller).create());
 		Box leftBox = new Box(BoxLayout.Y_AXIS);
-		leftBox.add(scriptScroller);
+		bttnPanel.add(Box.createGlue());
+		bttnPanel.setMaximumSize(bttnPanel.getPreferredSize());
 
-		// Make buttons for add/remove of scripts?
-		if (addRemoveBttns) {
-			JPanel bttnPanel = new JPanel(new FlowLayout());
-			bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list.")
-					.action("ADD_SCRIPT", controller).create());
-			bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list.")
-					.action("REMOVE_SCRIPT", controller).create());
-			leftBox.add(bttnPanel);
-		}
-
+		scriptListBox.add(bttnPanel);
+		scriptListBox.add(scriptScroller);
+		scriptList.setPreferredSize(new Dimension(scriptList.getPreferredSize().width, 100));
+		insertionScroller.setPreferredSize(new Dimension(insertionScroller.getPreferredSize().width, 250));
+		leftBox.add(scriptListBox);
+		leftBox.add(insertionScroller);
+		
 
 		this.setLayout(new BorderLayout());
 		this.add(leftBox, BorderLayout.LINE_START);
