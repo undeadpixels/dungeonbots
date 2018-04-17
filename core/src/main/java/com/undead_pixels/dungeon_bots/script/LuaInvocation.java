@@ -85,6 +85,7 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 			functions = new LuaValue[] {environment.invokerGlobals.load(script, "main", environment.getGlobals())};
 		} catch(LuaError e) {
 			luaError = e;
+			env.worldMessage(luaError.getMessage(), LoggingLevel.ERROR);
 			scriptStatus = ScriptStatus.LUA_ERROR;
 			functions = new LuaValue[] {};
 			// TODO - why not just duck this error?
@@ -149,16 +150,17 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 				}
 				else {
 					final String errString = ans.arg(2).checkjstring();
-					final ScriptStatus scriptStatus = errString.contains("ScriptInterruptException")
-							? ScriptStatus.STOPPED :
-							ScriptStatus.LUA_ERROR;
-					setStatus(scriptStatus);
-					luaError = new LuaError(errString);
-					environment.getSecurityContext().getWorld()
-							.ifPresent(w -> w.message(
-									environment.getSecurityContext().getEntity(),
-									luaError.getMessage(),
-									LoggingLevel.ERROR));
+					if(errString.contains("ScriptInterruptException")) {
+						luaError = new LuaError(errString);
+						environment.worldMessage("Script Stopped", LoggingLevel.GENERAL);
+
+						setStatus(ScriptStatus.STOPPED);
+					} else {
+						luaError = new LuaError(errString);
+						environment.worldMessage(luaError.getMessage(), LoggingLevel.ERROR);
+
+						setStatus(ScriptStatus.LUA_ERROR);
+					}
 					break;
 				}
 			}
@@ -166,35 +168,17 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 		catch (ScriptInterruptException si) {
 			if(getStatus() != ScriptStatus.TIMEOUT) {
 				setStatus(ScriptStatus.STOPPED);
-				environment.getSecurityContext()
-						.getWorld()
-						.ifPresent(w ->
-								w.message(
-										environment.getSecurityContext().getEntity(),
-										"Script Stopped",
-										LoggingLevel.GENERAL));
+				environment.worldMessage("Script Stopped", LoggingLevel.GENERAL);
 			}
 		}
 		catch(LuaError le ) {
 			setStatus(ScriptStatus.LUA_ERROR);
-			environment.getSecurityContext()
-					.getWorld()
-					.ifPresent(w ->
-							w.message(
-									environment.getSecurityContext().getEntity(),
-									le.getMessage(),
-									LoggingLevel.ERROR));
+			environment.worldMessage(le.getMessage(), LoggingLevel.ERROR);
 			luaError = le;
 		}
 		catch (Throwable t) {
 			setStatus(ScriptStatus.ERROR);
-			environment.getSecurityContext()
-					.getWorld()
-					.ifPresent(w ->
-							w.message(
-									environment.getSecurityContext().getEntity(),
-									t.getMessage(),
-									LoggingLevel.ERROR));
+			environment.worldMessage(t.getMessage(), LoggingLevel.ERROR);
 		}
 		
 		if(getStatus() == ScriptStatus.RUNNING) {
@@ -203,6 +187,8 @@ public class LuaInvocation implements Taskable<LuaSandbox> {
 
 		synchronized (this) { this.notifyAll(); }
 	}
+	
+	
 
 	/**
 	 * Forces an executing thread to stop. Note that it is impossible to
