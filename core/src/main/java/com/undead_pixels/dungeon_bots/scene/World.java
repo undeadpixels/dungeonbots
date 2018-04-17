@@ -1096,7 +1096,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return true;
 		}
 
-		if (e.isSolid() && tiles[x][y].isSolid()) {
+		if (tiles[x][y].isSolid()) {
 			// System.out.println("Unable to move: tile solid");
 			return false;
 		}
