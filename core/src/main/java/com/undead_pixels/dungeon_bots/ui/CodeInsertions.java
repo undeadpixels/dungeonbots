@@ -332,6 +332,7 @@ public class CodeInsertions {
 			if(!needsUpdate)
 				return false;
 
+			boolean actuallyChanged = false;
 			Pattern templatePattern = Pattern.compile("<[^<>]*>");
 			Matcher matches = templatePattern.matcher(entry.templateText);
 			
@@ -346,8 +347,15 @@ public class CodeInsertions {
 				String str = matches.group();
 				
 				if(i < allFields.size()) {
-					allFields.get(i).originalBegin = start;
-					allFields.get(i).originalEnd = end;
+					Field f = allFields.get(i);
+					if(f.originalBegin != start) {
+						actuallyChanged = true;
+						f.originalBegin = start;
+					}
+					if(f.originalBegin != end) {
+						actuallyChanged = true;
+						f.originalEnd = end;
+					}
 					continue;
 				}
 					
@@ -366,8 +374,10 @@ public class CodeInsertions {
 						System.err.println("Could not find parent for: "+searchFor);
 					}
 					
+					actuallyChanged = true;
 					allFields.add(new Field.SharedField(start, end, str, parent));
 				} else {
+					actuallyChanged = true;
 					allFields.add(new Field(start, end, str));
 				}
 			}
@@ -378,7 +388,7 @@ public class CodeInsertions {
 			}
 			System.out.println("And fields: "+croppedFields);
 			
-			return true;
+			return actuallyChanged;
 		}
 		
 		public String toString() {
