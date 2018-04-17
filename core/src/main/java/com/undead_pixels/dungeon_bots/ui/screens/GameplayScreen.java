@@ -272,11 +272,11 @@ public class GameplayScreen extends Screen {
 		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD).deriveFont(24.0f));
 		headBox.add(titleLabel);
 		headBox.add(Box.createGlue());
-		String msgWrapped = StringWrap.wrap(p.message, 100, 3);
+		String msgWrapped = StringWrap.wrap(p.message, 60, 3);
+		System.out.println(msgWrapped);
 		JLabel msgLabel = new JLabel(msgWrapped);
-		msgLabel.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 50));
+		msgLabel.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 64));
 		msgBox.add(msgLabel);
-		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 50));
 		msgBox.add(Box.createGlue());
 		popPane.add(Box.createGlue());
 
@@ -297,6 +297,7 @@ public class GameplayScreen extends Screen {
 
 		popPane.add(headBox);
 		popPane.add(msgBox);
+		popPane.add(Box.createGlue());
 		popPane.add(okBox);
 
 		semitrans.getContentPane().add(popPane);

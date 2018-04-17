@@ -302,7 +302,7 @@ public final class JEntityEditor extends JTabbedPane {
 		// Build the dialog.
 		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
 		JEntityEditor jee = createEntityEditorPane(entity, securityLevel, dialog, view, false);
-
+		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
 		jee.dialog = dialog;

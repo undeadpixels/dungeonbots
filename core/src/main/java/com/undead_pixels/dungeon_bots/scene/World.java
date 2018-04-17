@@ -32,6 +32,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Ghost;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -1417,11 +1418,24 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	@Bind(SecurityLevel.DEFAULT)
+	/**
+	 * Shows a popup box'
+	 * 
+	 * @param alert
+	 * @param title
+	 */
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
 	@Doc("Creates and displays an Alert window.")
-	public void alert(@Doc("The Alert message") LuaValue alert, @Doc("The Title of the Alert Window") LuaValue title) {
-		showAlert(alert.checkjstring(),
-				title.isnil() ? "" : title.optjstring(""));
+	public void alert(@Doc("The title of the alert popup (optional)") LuaValue title,
+			@Doc("The message to show to the player") LuaValue message) { // TODO - may add a LuaValue for source?
+		
+		// if we're only being passsed a message with no title...
+		try {
+			title.checktable().get("this").checkuserdata(World.class);
+			showAlert(message.checkjstring(), "Message");
+		} catch(LuaError e) {
+			showAlert(message.checkjstring(), title.checkjstring());
+		}
 	}
 
 
@@ -1475,19 +1489,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			e1.printStackTrace();
 			throw new LuaError("Invalid URL!");
 		}
-	}
-
-
-	/**
-	 * Shows a popup box'
-	 * 
-	 * @param alert
-	 * @param title
-	 */
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
-	public void showAlert(@Doc("The Content of the Alert Message") LuaValue alert,
-			@Doc("The Title of the Alert window") LuaValue title) {
-		showAlert(alert.tojstring(), title.tojstring());
 	}
 
 	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
@@ -1752,10 +1753,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@BindTo("totalValue")
 	@Bind(value = SecurityLevel.NONE, doc = "Query the total value of Treasure and Items found in the World")
 	public Integer getTotalValue() {
-		return entities.parallelStream()
+		return entities.stream()
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
-				.map(e -> HasInventory.class.cast(e).getInventory().getTotalValue())
-				.reduce(0, (a,b) -> a + b);
+				.map(e -> Optional.ofNullable(HasInventory.class.cast(e).getInventory())
+						.map(Inventory::getTotalValue).orElse(0))
+				.reduce((a,b) -> a + b)
+				.orElse(0);
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR,

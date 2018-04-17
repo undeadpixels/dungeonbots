@@ -63,6 +63,7 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
+import com.undead_pixels.dungeon_bots.file.Community;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.JPackDownloadDialog;
@@ -247,12 +248,12 @@ public class LevelPackScreen extends Screen {
 
 
 		JPanel treeBttns = new JPanel();
-		
-		//Disabling the lock feature.
+
+		// Disabling the lock feature.
 		_BttnLockPack = UIBuilder.buildButton().image("icons/lock.png").text("Lock")
 				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Lock this LevelPack.")
 				.action("LOCK_LEVELPACK", getController()).focusable(false).create();
-		//treeBttns.add(_BttnLockPack);
+		// treeBttns.add(_BttnLockPack);
 		// treeBttns.add(_BttnEditScript =
 		// UIBuilder.buildButton().image("icons/text preview.png")
 		// .toolTip("Edit the transition
@@ -728,11 +729,12 @@ public class LevelPackScreen extends Screen {
 
 
 	static boolean save(PackInfo pInfo, File file) {
-		return save(pInfo.writeComplete(), file);		
+		return save(pInfo.writeComplete(), file);
 	}
-	
-	static boolean save(LevelPack pack, File file){
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {			
+
+
+	static boolean save(LevelPack pack, File file) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			String json = pack.toJson();
 			writer.write(json);
 			System.out.println("Save LevelPack complete to " + file.getPath());
@@ -1866,9 +1868,21 @@ public class LevelPackScreen extends Screen {
 				u = toggleLock(selPack);
 				break;
 			case "UPLOAD_LEVELPACK":
-				if (selPack != null) {
-					UIBuilder.login(null);
-				}
+				if (selPack == null)
+					return;
+				final LevelPack toUpload = selPack.getPack();
+				Community.login(null, new Community.TokenRunnable() {
+
+					@Override
+					public void run() {
+						boolean success = Community.upload(toUpload, this.getToken());
+						if (success) {
+							JOptionPane.showMessageDialog(LevelPackScreen.this, "Upload was successful.");
+						} else
+							JOptionPane.showMessageDialog(LevelPackScreen.this,
+									"Upload failed.  Check your internet connection and try again.");
+					}
+				});
 				break;
 			case "WORLD_DOWN":
 				u = moveWorldDown((WorldInfo) getCurrentSelection());

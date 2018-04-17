@@ -271,20 +271,16 @@ public final class JScriptEditor extends JPanel {
 
 			// Parentheses, quote, bracket problem fix - this is somewhat
 			// hackish but it works
-			if (offset < _Doc.getLength()) {
-				String nextStr = _Doc.getText(offset, 1);
-				if (text.equals(nextStr)) {
-					if (text.equals(")"))
-						replace(fb, offset, 1, nextStr, attr);
-					if (text.equals("\""))
-						replace(fb, offset, 1, nextStr, attr);
-					if (text.equals("]"))
-						replace(fb, offset, 1, nextStr, attr);
-					if (text.equals("}"))
-						replace(fb, offset, 1, nextStr, attr);
-				}
-
-			}
+			String nextStr = _Doc.getText(offset, 1);
+			if (offset < _Doc.getLength() && text.equals(nextStr)) {
+				if (text.equals(")"))
+					replace(fb, offset, 1, nextStr, attr);
+				if (text.equals("\""))
+					replace(fb, offset, 1, nextStr, attr);
+				if (text.equals("]"))
+					replace(fb, offset, 1, nextStr, attr);
+				if (text.equals("}"))
+					replace(fb, offset, 1, nextStr, attr);			}
 
 			else
 				super.insertString(fb, offset, text, attr);

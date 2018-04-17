@@ -1420,39 +1420,7 @@ public class UIBuilder {
 	}
 
 
-	public static void login(Runnable onSuccess) {
-		final String url = "https://dungeonbots.herokuapp.com/api/v1/sessions";
-		String testName = "admin@dungeonbots.herokuapp.com";
-		String testPswd = "undeadpixelspassword";
-		final String USER_AGENT = "Mozilla/5.0";
-
-		final JXLoginPane panel = new JXLoginPane(new LoginService() {
-
-
-			public boolean authenticate(String name, char[] password, String server) throws Exception {
-				String pswd = password.toString();
-				URL obj = new URL(url);
-				HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-				con.setRequestMethod("POST");
-				con.setRequestProperty("User-Agent", USER_AGENT);
-				con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-				//String body = "\"name\":\"" + testName + "\"\n\"password\":\"" + testPswd + "\"\n";
-				String body = "name=" + testName + "&password=" + testPswd;
-				System.out.println(body);
-				con.setDoOutput(true);
-				DataOutputStream dos = new DataOutputStream(con.getOutputStream());
-				dos.writeBytes(body);
-				dos.flush();
-				int responseCode = con.getResponseCode();
-				System.out.println(responseCode);
-				return true;
-			}
-		});
-
-		final JFrame frame = JXLoginPane.showLoginFrame(panel);
-frame.setVisible(true);
-
-	}
+	
 
 
 	// =======================================================
