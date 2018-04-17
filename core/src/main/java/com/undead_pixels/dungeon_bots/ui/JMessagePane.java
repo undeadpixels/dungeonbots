@@ -3,6 +3,7 @@ package com.undead_pixels.dungeon_bots.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -39,17 +40,21 @@ public final class JMessagePane extends JPanel {
 	
 	private static class MessageInfo {
 		Image img;
-		String text;
-		Color color;
-		LoggingLevel type;
+		final String text;
+		final String senderName;
+		final String timeString;
+		final Color color;
+		final LoggingLevel type;
 		public MessageInfo(Image img, String senderName, String text, Color color, LoggingLevel type) {
 			super();
 			String senderString = "";
 			if(senderName != null) {
 				senderString = " | "+senderName;
 			}
+			this.senderName = senderName == null ? "" : senderName;
+			this.timeString = LocalDateTime.now().toLocalTime().toString();
 			this.img = img.getScaledInstance(40, 40, Image.SCALE_FAST);;
-			this.text = LocalDateTime.now().toLocalTime() + senderString + "\n" + (text == null ? "" : text);
+			this.text = (text == null ? "" : text);
 			this.color = color;
 			this.type = type;
 		}
@@ -58,9 +63,11 @@ public final class JMessagePane extends JPanel {
 		public MessageInfo(Image img, int width, int height, LoggingLevel type) {
 			super();
 			this.img = img.getScaledInstance(width, height, Image.SCALE_FAST);;
-			this.text = LocalDateTime.now().toLocalTime() + "\n";
+			this.timeString = LocalDateTime.now().toLocalTime() + "\n";
 			this.color = Color.lightGray;
 			this.type = type;
+			this.text = "";
+			this.senderName = "";
 		}
 	}
 
@@ -164,15 +171,23 @@ public final class JMessagePane extends JPanel {
 
 		if(inf.img != null) {
 			// First, insert the sender's image.
-			JLabel lbl = new JLabel(new ImageIcon(inf.img));
+			Box imgBox = new Box(BoxLayout.X_AXIS);
+			Box nameBox = new Box(BoxLayout.Y_AXIS);
+			JLabel imageLabel = new JLabel(new ImageIcon(inf.img));
+			imgBox.add(imageLabel);
+			JLabel nameLabel = new JLabel(inf.senderName);
+			nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD));
+			nameBox.add(nameLabel);
+			nameBox.add(new JLabel(inf.timeString));
+			imgBox.add(nameBox);
 			messagePane.select(doc.getLength(), doc.getLength());
-			messagePane.insertComponent(lbl);
+			messagePane.insertComponent(imgBox);
 		}
 
 		// Second, insert the text with the appropriate color.
 		try {
 			StyleConstants.setForeground(style, inf.color);
-			doc.insertString(doc.getLength(), inf.text + "\n\n", style);
+			doc.insertString(doc.getLength(), "\n" + inf.text + "\n\n", style);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
@@ -215,7 +230,7 @@ public final class JMessagePane extends JPanel {
 	}
 
 	/**Insert an image, scaled to the given width and height.*/
-	public void message(Image image, int width, int height) {
+	public synchronized void message(Image image, int width, int height) {
 		MessageInfo msg = new MessageInfo(image, width, height, LoggingLevel.GENERAL);
 		allMessages.add(msg);
 		insert(msg);
