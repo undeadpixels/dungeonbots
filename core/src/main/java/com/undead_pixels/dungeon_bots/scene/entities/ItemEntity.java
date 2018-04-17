@@ -1,6 +1,7 @@
 package com.undead_pixels.dungeon_bots.scene.entities;
 
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
+import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TeamFlavor;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
@@ -83,6 +84,11 @@ public class ItemEntity extends Actor implements HasInventory {
 		if(dst.getInventory().addItem(getItem())) {
 			world.queueRemove(this);
 			this.inventory.reset();
+			this.world.message(this,
+					String.format("%s grabbed %s",
+							dst.getInventory().getOwner().getName(),
+							getName()),
+					LoggingLevel.GENERAL);
 			return true;
 		}
 		return false;

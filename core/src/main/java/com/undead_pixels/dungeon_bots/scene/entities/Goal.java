@@ -18,7 +18,7 @@ import org.luaj.vm2.LuaValue;
  * @author kevin
  *
  */
-public class Goal extends SpriteEntity {
+public class Goal extends Actor {
 
 	private static final long serialVersionUID = 1L;
 

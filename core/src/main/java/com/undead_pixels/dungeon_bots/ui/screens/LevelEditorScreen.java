@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
@@ -704,7 +706,9 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the tile palette GUI.
-		JComboBox<TileType> cboxTile = new JComboBox<TileType>(world.getTileTypes().toArray());
+		final TileType[] tt = world.getTileTypes().toArray();
+		Arrays.sort(tt, Comparator.comparing(TileType::getName));
+		JComboBox<TileType> cboxTile = new JComboBox<TileType>(tt);
 		cboxTile.setRenderer(_TileTypeItemRenderer);
 		cboxTile.addActionListener(getController());
 		_TileScroller = cboxTile;
