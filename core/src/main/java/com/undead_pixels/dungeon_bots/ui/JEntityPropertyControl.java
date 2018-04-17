@@ -55,26 +55,20 @@ public class JEntityPropertyControl {
 
 		propertiesPanel.setLayout(new BorderLayout());
 
-
-		ActionListener controller = new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				switch (e.getActionCommand()) {
-				case "CHANGE_IMAGE":
-					File f = FileControl.openImageDialog(propertiesPanel);
-					if (f == null || !f.exists())
-						return;
-					Image img = UIBuilder.getImage(f.getAbsolutePath());
-					// TODO: implement image changing?
-				default:
-
-					System.err.println("HAVE NOT IMPLEMENTED.");
-				}
-
-			}
-
-		};
+		/* ActionListener controller = new ActionListener() {
+		 * 
+		 * @Override public void actionPerformed(ActionEvent e) { switch
+		 * (e.getActionCommand()) { case "CHANGE_IMAGE": File f =
+		 * FileControl.openImageDialog(propertiesPanel); if (f == null ||
+		 * !f.exists()) return; Image img =
+		 * UIBuilder.getImage(f.getAbsolutePath()); // TODO: implement image
+		 * changing? default:
+		 * 
+		 * System.err.println("HAVE NOT IMPLEMENTED."); }
+		 * 
+		 * }
+		 * 
+		 * }; */
 
 		JLabel lblImage = UIBuilder.buildLabel().image(state.image.getScaledInstance(150, 150, Image.SCALE_SMOOTH))
 				.border(BorderFactory.createTitledBorder("Image")).create();
@@ -116,6 +110,10 @@ public class JEntityPropertyControl {
 		pnlHeader.add(lblImage, BorderLayout.CENTER);
 		pnlHeader.add(pnlHeaderText, BorderLayout.LINE_END);
 
+		System.out.println("PERMISSIONS:");
+		for (String p : state.permissions.keySet()){
+			System.out.println(p);
+		}
 		permissions = new JPermissionTree();
 		permissions.addPermission(Entity.PERMISSION_SELECTION, state.permissions.get("Selection"),
 				"Access level for whether the entity can be selected.  Note that if a user cannot select the entity, the entity editor cannot be opened either.");

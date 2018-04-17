@@ -25,6 +25,23 @@ public class IntegerSet extends IntervalSet<Integer> implements Iterable<Integer
 		return add(interval.start, interval.end);
 	}
 
+	public void spread(int atIndex, int size){
+		int leftIdx = this.getBracketingIntervalIndex(atIndex);
+		if (leftIdx <0) {
+			for (int i = 0; i < this.intervals.size(); i++){
+				this.intervals.get(i).start += size;
+				this.intervals.get(i).end += size;
+			}			
+			return;
+		} else if (intervals.get(leftIdx).end >= atIndex) {
+			intervals.get(leftIdx).end += size;
+		}
+		for (int i = leftIdx + 1; i < this.intervals.size(); i++) {
+			this.intervals.get(i).start += size;
+			this.intervals.get(i).end += size;
+		}
+	}
+	
 	@Override
 	public Iterator<IntegerSet.Interval> iterator() {
 		return new Iterator<IntegerSet.Interval>() {

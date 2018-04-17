@@ -73,7 +73,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**The instructions associated with an entity.  These are what is shown in 
 	 * the Entity Editor in the instruction pane.  The value can be null or any 
 	 * string.*/
-	private String help = "This is some example text instructions associated with an entity.";
+	private String help = "Try the 'help(this)' command to learn about this entity.";
 
 
 	/**
@@ -165,7 +165,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue.act(dt);
 
 		// Enqueue an idle call, if enough time has elapsed.
-		boolean isIdle = actionQueue.isEmpty(); 
+		boolean isIdle = actionQueue.isEmpty();
 		if (!isIdle) {
 			idle = 0f;
 		} else {
@@ -310,7 +310,8 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue = new ActionQueue(this);
 		standardizeResources();
 	}
-	
+
+
 	/**This method will ensure that this Entity contains all the necessary scripts, etc., for a new 
 	 * instantiated Entity or for an Entity that is deserialized from an earlier source that lacked 
 	 * those resources.*/
@@ -427,8 +428,32 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		HashMap<String, SecurityLevel> ret = new HashMap<String, SecurityLevel>();
 		if (permissions == null)
 			return ret;
-		for (Entry<String, SecurityLevel> entry : permissions.entrySet())
-			ret.put(entry.getKey(), entry.getValue());
+		
+		for (Entry<String, SecurityLevel> entry : permissions.entrySet()) {
+			
+			// This switch block is used to adapt the old names of the permissions to the new.
+			switch (entry.getKey().toUpperCase()) {
+			case "ENTITY_EDITOR":
+				ret.put(PERMISSION_ENTITY_EDITOR, entry.getValue());
+				break;
+			case "SCRIPT_EDITOR":
+				ret.put(PERMISSION_SCRIPT_EDITOR, entry.getValue());
+				break;
+			case "PROPERTIES":
+				ret.put(PERMISSION_PROPERTIES_EDITOR, entry.getValue());
+				break;
+			case "REPL":
+				ret.put(PERMISSION_COMMAND_LINE, entry.getValue());
+				break;
+			case "SELECTION":
+				ret.put(PERMISSION_SELECTION, entry.getValue());
+				break;
+			default:
+				ret.put(entry.getKey(), entry.getValue());
+			}
+
+		}
+
 		return ret;
 	}
 
@@ -449,7 +474,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			permissions.put(entry.getKey(), entry.getValue());
 
 	}
-
 
 
 	public Iterable<String> listPermissionNames() {

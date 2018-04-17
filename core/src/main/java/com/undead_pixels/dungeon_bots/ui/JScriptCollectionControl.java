@@ -44,17 +44,17 @@ public class JScriptCollectionControl extends JPanel {
 
 
 	JScriptCollectionControl(LuaSandbox sandbox, JEntityEditor.State state, SecurityLevel security) {
-		this(sandbox, state.scripts, security, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
+		this(sandbox, state.scripts, security, true, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
 				|| state.permissions.get(Entity.PERMISSION_ADD_REMOVE_SCRIPTS).level <= security.level);
 	}
 
 
 	JScriptCollectionControl(LuaSandbox sandbox, JWorldEditor.State state, SecurityLevel security) {
-		this(sandbox, state.scripts, security, true);
+		this(sandbox, state.scripts, security, true, true);
 	}
 
 
-	private JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security, boolean addRemoveBttns) {
+	private JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security, boolean transparent, boolean addRemoveBttns) {
 		editor = new JScriptEditor(security);
 		this.scripts = scripts;
 		this.security = security;
@@ -133,6 +133,20 @@ public class JScriptCollectionControl extends JPanel {
 		this.setLayout(new BorderLayout());
 		this.add(leftBox, BorderLayout.LINE_START);
 		this.add(editor, BorderLayout.CENTER);
+		
+		if(transparent)
+			this.setOpaque(false);
+	}
+
+
+	/**
+	 * @param sandbox
+	 * @param scripts
+	 * @param security
+	 */
+	@Deprecated
+	public JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security) {
+		this(sandbox, scripts, security, true, false);
 	}
 
 

@@ -70,6 +70,7 @@ import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.ui.JAboutDialog;
 import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.JWorldSizer;
@@ -313,6 +314,9 @@ public final class LevelEditorScreen extends Screen {
 
 			switch (e.getActionCommand()) {
 
+			case "About":				
+				new JAboutDialog(LevelEditorScreen.this).setVisible(true);
+				break;
 			case COMMAND_COMBOBOX_CHANGED:
 				if (e.getSource() == _EntityScroller) {
 					entitySelectionChanged();
@@ -788,8 +792,6 @@ public final class LevelEditorScreen extends Screen {
 
 		// Create the world menu.
 		JMenu worldMenu = UIBuilder.buildMenu().mnemonic('w').text("World").prefWidth(60).create();
-		worldMenu.add(
-				UIBuilder.buildMenuItem().mnemonic('d').text("Data").action("WORLD_DATA", getController()).create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('s').action("WORLD_SCRIPTS", getController()).text("Scripts")
 				.create());
 		worldMenu.add(UIBuilder.buildMenuItem().mnemonic('r').text("Resize").action(COMMAND_RESIZE, getController())
