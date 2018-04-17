@@ -492,6 +492,7 @@ public final class LuaSandbox implements Serializable {
 	 */
 	public class EventInfo {
 
+		public final String eventName;
 		public final String registerEventListenerFunctionName;
 		public final String niceName;
 		public final String description;
@@ -528,6 +529,7 @@ public final class LuaSandbox implements Serializable {
 			
 			registerEventListenerFunctionName = "register" + functionName + "Listener";
 			
+			this.eventName = eventName;
 			this.niceName = niceName+" Listener";
 			this.description = description;
 			this.argNames = argNames;
@@ -591,7 +593,16 @@ public final class LuaSandbox implements Serializable {
 	 * 
 	 */
 	public Collection<EventInfo> getEvents () {
-		return eventInfos.values();
+		ArrayList<EventInfo> ret = new ArrayList<>();
+		for(EventInfo e : eventInfos.values()) {
+			SecurityLevel lvl = getWhitelist().getLevel("events:"+e.eventName);
+			if(lvl == null) lvl = SecurityLevel.DEFAULT;
+
+			if(lvl.level <= getSecurityLevel().level) {
+				ret.add(e);
+			}
+		}
+		return ret;
 	}
 
 	/**
