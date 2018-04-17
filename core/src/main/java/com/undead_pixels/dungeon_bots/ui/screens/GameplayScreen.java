@@ -4,12 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.LinkedList;
 
@@ -50,6 +52,7 @@ import com.undead_pixels.dungeon_bots.ui.JSemitransparentPanel;
 import com.undead_pixels.dungeon_bots.ui.JMessagePane;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.WorldView;
+import com.undead_pixels.dungeon_bots.utils.StringWrap;
 
 /**
  * A screen for gameplay
@@ -72,7 +75,7 @@ public class GameplayScreen extends Screen {
 	private final World originalWorld;
 	private AbstractButton _PlayStopBttn;
 	private Tool.ViewControl _ViewControl;
-	private LinkedList<Poptart> poptartQueue;
+	private LinkedList<Poptart> poptartQueue = new LinkedList<>();
 	
 	public static class Poptart {
 		public final HasImage img;
@@ -207,16 +210,26 @@ public class GameplayScreen extends Screen {
 
 	}
 
+
+	private static final int POPTART_WIDTH = 500;
+	private static final int POPTART_HEIGHT = 200;
+	JSemitransparentPanel semitrans = new JSemitransparentPanel();
 	/**
 	 * @return
 	 */
 	private void updatePoptart () {
 		if(poptartIsUp) {
-			semitrans.setLocation(this.getWidth()-300, this.getHeight() - 400);
+			
+			
+			
+			semitrans.setLocation(view.getWidth()/2-POPTART_WIDTH/2,
+					view.getHeight()
+					+ view.getLocation().y
+					- POPTART_HEIGHT
+					- 40);
 		}
 	}
 
-	JSemitransparentPanel semitrans = new JSemitransparentPanel();
 	boolean poptartIsUp = false;
 	private void enqueuePoptart(Poptart p) {
 		poptartQueue.add(p);
@@ -227,19 +240,32 @@ public class GameplayScreen extends Screen {
 	private void presentPoptart() {
 		if(poptartQueue.isEmpty()) return;
 		if(poptartIsUp) return;
+
+		int padding = 32;
 		
 		poptartIsUp = true;
 		Poptart p = poptartQueue.pop();
 		
-
-		semitrans.setSize(600, 300);
+		semitrans.setFloatingFlavor(JSemitransparentPanel.FloatingFlavor.ANCHORED);
+		semitrans.setAnchor(0.0f, 0.0f);
+		semitrans.setSize(POPTART_WIDTH, POPTART_HEIGHT);
 		//ImageIcon terminalImage = new ImageIcon("icons/terminal.png");
 		//JLabel label = new JLabel(terminalImage);
 		
-		JPanel popPane = new JPanel(new VerticalLayout());
-		ImageIcon img = new ImageIcon(p.img.getImage());
-		popPane.add(new JLabel(p.title, img, JLabel.TRAILING));
-		popPane.add(new JLabel(p.message));
+		Box popPane = new Box(BoxLayout.Y_AXIS);
+		ImageIcon img = new ImageIcon(p.img.getImage().getScaledInstance(50, 50, Image.SCALE_FAST));
+
+		Box headBox = new Box(BoxLayout.X_AXIS);
+		Box msgBox = new Box(BoxLayout.X_AXIS);
+		
+		JLabel titleLabel = new JLabel(p.title, img, JLabel.LEADING);
+		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD).deriveFont(24.0f));
+		headBox.add(titleLabel);
+		headBox.add(Box.createGlue());
+		msgBox.add(new JLabel(StringWrap.wrap(p.message, 100)));
+		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 100));
+		msgBox.add(Box.createGlue());
+		popPane.add(Box.createGlue());
 		
 		Box okBox = new Box(BoxLayout.X_AXIS);
 		okBox.add(Box.createGlue());
@@ -251,10 +277,19 @@ public class GameplayScreen extends Screen {
 			poptartIsUp = false;
 			semitrans.getContentPane().removeAll();
 			this.getLayeredPane().remove(semitrans);
+			
+			presentPoptart();
 		});
 		
+
+		
+		popPane.add(headBox);
+		popPane.add(msgBox);
+		popPane.add(okBox);
+		
 		semitrans.getContentPane().add(popPane);
-		semitrans.getContentPane().setSize(600, 300);
+		semitrans.setHasAnchorTail(false);
+		popPane.setPreferredSize(new Dimension(POPTART_WIDTH-padding, POPTART_HEIGHT-padding));
 		semitrans.recursiveTransparentify();
 		this.getLayeredPane().add(semitrans, (Integer) 100);
 		

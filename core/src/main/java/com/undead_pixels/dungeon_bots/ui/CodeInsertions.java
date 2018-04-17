@@ -43,6 +43,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.utils.StringWrap;
 
 import jsyntaxpane.DefaultSyntaxKit;
 
@@ -492,37 +493,6 @@ public class CodeInsertions {
 		return ret;
 	}
 	
-	/**
-	 * A stupid function to do line wrapping for JLabels, since JLabels don't support it and JTextAreas are uncooperative
-	 */
-	private String wrap(String text, int cols) {
-		StringBuilder sb = new StringBuilder(text);
-
-		// https://stackoverflow.com/questions/4212675/wrap-the-string-after-a-number-of-characters-word-wise-in-java
-		int i = 0;
-		while (i + cols < sb.length()) {
-			int newlinePlace = sb.lastIndexOf("\n", i + cols);
-			if(newlinePlace > i) {
-				i = newlinePlace;
-			} else {
-				int nextI = sb.lastIndexOf(" ", i + cols);
-				if(i == nextI) {
-					i += cols;
-				} else {
-					i = nextI;
-				}
-			}
-			if(i == -1) break;
-			sb.replace(i, i + 1, "\n");
-		}
-		
-		String retStr = sb.toString();
-		retStr = retStr.replace("<", "&lt;");
-		retStr = retStr.replace(">", "&gt;");
-		retStr = retStr.replace("\n", "<br>");
-		return "<html>"+retStr+"</html>";
-	}
-	
 	private void fillBottomBox(JPanel bottomBox, InsertionReplacementState state, JEditorPane codeArea, HashMap<InsertionReplacementState.Field, JTextField> textFields) {
 		bottomBox.removeAll();
 		
@@ -640,7 +610,7 @@ public class CodeInsertions {
 		codeArea.setFocusable(true);
 		codeArea.setContentType("text/lua");
 		
-		JLabel helpTextLabel = new JLabel(wrap(entry.description, 70));
+		JLabel helpTextLabel = new JLabel(StringWrap.wrap(entry.description, 70));
 		helpTextLabel.setHorizontalAlignment(JLabel.CENTER);
 		
 

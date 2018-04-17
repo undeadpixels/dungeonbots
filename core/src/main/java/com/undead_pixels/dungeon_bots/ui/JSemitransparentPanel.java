@@ -55,7 +55,40 @@ public class JSemitransparentPanel extends JPanel {
 	private int roundingRadius = 8;
 	private Shape shape;
 	private boolean hasAnchorTail = true;
+	
+	/**
+	 * @return the hasAnchorTail
+	 */
+	public boolean hasAnchorTail () {
+		return hasAnchorTail;
+	}
+
+
+	
+	/**
+	 * @param hasAnchorTail the hasAnchorTail to set
+	 */
+	public void setHasAnchorTail (boolean hasAnchorTail) {
+		this.hasAnchorTail = hasAnchorTail;
+	}
+
 	private FloatingFlavor floatingFlavor = FloatingFlavor.FOLLOW;
+	
+	/**
+	 * @return the floatingFlavor
+	 */
+	public FloatingFlavor getFloatingFlavor () {
+		return floatingFlavor;
+	}
+
+	
+	/**
+	 * @param floatingFlavor the floatingFlavor to set
+	 */
+	public void setFloatingFlavor (FloatingFlavor floatingFlavor) {
+		this.floatingFlavor = floatingFlavor;
+	}
+
 	private float anchorX, anchorY;
 	private float tailWidth = 32.0f;
 	private JPanel contentPane = new JPanel();
@@ -77,16 +110,16 @@ public class JSemitransparentPanel extends JPanel {
 		//contentPane.setSize(100, 100);
 		
 
-		javax.swing.Timer t = new Timer(15, new ActionListener() {
-			@Override
-			public void actionPerformed (ActionEvent e) {
-				setAnchor(250, (float) (300 + Math.sin(System.currentTimeMillis() / 10000.0) * 0));
-				update(.015f);
-			}
-		});
+		//javax.swing.Timer t = new Timer(15, new ActionListener() {
+		//	@Override
+		//	public void actionPerformed (ActionEvent e) {
+		//		setAnchor(250, (float) (300 + Math.sin(System.currentTimeMillis() / 10000.0) * 0));
+		//		update(.015f);
+		//	}
+		//});
 		
-		t.setRepeats(true);
-		t.start();
+		//t.setRepeats(true);
+		//t.start();
 	}
 	
 	public JComponent getContentPane() {
