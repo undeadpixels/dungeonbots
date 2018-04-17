@@ -207,4 +207,13 @@ public final class JMessagePane extends JPanel {
 	}
 
 
+	/**
+	 * 
+	 */
+	public void reset () {
+		allMessages.clear();
+		setAllowedTypes(this.getAllowedTypes()); // reset the view as well
+	}
+
+
 }

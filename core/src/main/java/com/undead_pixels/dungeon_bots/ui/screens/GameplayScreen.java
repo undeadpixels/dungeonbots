@@ -97,7 +97,18 @@ public class GameplayScreen extends Screen {
 		super(pack);
 		this.isSwitched = switched;
 		this.originalWorld = world;
-		this.world = Serializer.deepCopy(originalWorld);
+		this.setWorld(Serializer.deepCopy(originalWorld));
+	}
+
+
+	/**
+	 * @param world - the new world to use
+	 */
+	private void setWorld (World world) {
+		this.world.registerMessageListener(null); // un-listen to the old world
+		
+		this.world = world;
+		
 		world.registerMessageListener(new MessageListener() {
 			@Override
 			public void message(HasImage src, String message, LoggingLevel level) {
@@ -105,8 +116,20 @@ public class GameplayScreen extends Screen {
 			}
 		});
 		world.registerPoptartListener((p) -> enqueuePoptart(p));
-
+		
+		if(view != null) {
+			view.setWorld(world);
+		}
+		
 		world.onBecomingVisibleInGameplay();
+		
+		Controller controller = (Controller) getController();
+		if(controller != null) {
+			Tool.Selector selector = controller.selector;
+			if(selector != null) {
+				selector.setWorld(world);
+			}
+		}
 	}
 
 
@@ -423,11 +446,9 @@ public class GameplayScreen extends Screen {
 
 			case COMMAND_REWIND:
 				World oldWorld = world;
-				world = Serializer.deepCopy(originalWorld);
+				_MessagePane.reset();
+				setWorld(Serializer.deepCopy(originalWorld));
 				world.resetFrom(oldWorld);
-				view.setWorld(world);
-				world.onBecomingVisibleInGameplay();
-				((Controller) getController()).selector.setWorld(world);
 				break;
 			case "Switch to Editor":
 				DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen(levelPack));

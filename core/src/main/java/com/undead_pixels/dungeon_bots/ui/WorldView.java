@@ -169,7 +169,7 @@ public class WorldView extends JComponent {
 			public void keyPressed (KeyEvent e) {
 				String key = lookupKeycode(e);
 				if(key != null) {
-					world.fire(StringEventType.KEY_PRESSED, key);
+					WorldView.this.world.fire(StringEventType.KEY_PRESSED, key);
 				}
 			}
 
@@ -177,7 +177,7 @@ public class WorldView extends JComponent {
 			public void keyReleased (KeyEvent e) {
 				String key = lookupKeycode(e);
 				if(key != null) {
-					world.fire(StringEventType.KEY_RELEASED, key);
+					WorldView.this.world.fire(StringEventType.KEY_RELEASED, key);
 				}
 			}
 			
