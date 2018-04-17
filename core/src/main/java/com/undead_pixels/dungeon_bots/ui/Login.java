@@ -28,7 +28,9 @@ import com.undead_pixels.dungeon_bots.User;
 /**
  * A login component that returns a user by calling the Login.challenge()
  * method. If login is invalid, the Login.challenge() method returns null.
+ * NOTE:  Using the professional JXLoginPane instead
  */
+@Deprecated
 public class Login extends JDialog {
 	
 	/**
