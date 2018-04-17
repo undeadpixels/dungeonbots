@@ -269,15 +269,15 @@ public class GameplayScreen extends Screen {
 		JLabel msgLabel = new JLabel(msgWrapped);
 		msgLabel.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 64));
 		msgBox.add(msgLabel);
-		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 64));
 		msgBox.add(Box.createGlue());
-		popPane.add(Box.createGlue());
+		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 64));
 		
 		Box okBox = new Box(BoxLayout.X_AXIS);
 		okBox.add(Box.createGlue());
 		
 		JButton okButton = new JButton("Ok");
 		okBox.add(okButton);
+		okBox.setMaximumSize(new Dimension(999999, okButton.getPreferredSize().height));
 		
 		okButton.addActionListener((e) -> {
 			poptartIsUp = false;
@@ -291,6 +291,7 @@ public class GameplayScreen extends Screen {
 		
 		popPane.add(headBox);
 		popPane.add(msgBox);
+		popPane.add(Box.createGlue());
 		popPane.add(okBox);
 		
 		semitrans.getContentPane().add(popPane);
