@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -192,7 +193,12 @@ public final class JMessagePane extends JPanel {
 			e.printStackTrace();
 		}
 		
-		messagePane.select(doc.getLength(), doc.getLength());
+		SwingUtilities.invokeLater(() -> {
+			synchronized(JMessagePane.this) {
+				messagePane.revalidate();
+				messagePane.select(doc.getLength(), doc.getLength());
+			}
+		});
 	}
 
 
