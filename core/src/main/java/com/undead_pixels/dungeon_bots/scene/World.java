@@ -33,6 +33,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionGrouping;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.Ghost;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.HasInventory;
+import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -1689,10 +1690,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	@BindTo("totalValue")
 	@Bind(value = SecurityLevel.NONE, doc = "Query the total value of Treasure and Items found in the World")
 	public Integer getTotalValue() {
-		return entities.parallelStream()
+		return entities.stream()
 				.filter(e -> HasInventory.class.isAssignableFrom(e.getClass()))
-				.map(e -> HasInventory.class.cast(e).getInventory().getTotalValue())
-				.reduce(0, (a,b) -> a + b);
+				.map(e -> Optional.ofNullable(HasInventory.class.cast(e).getInventory())
+						.map(Inventory::getTotalValue).orElse(0))
+				.reduce((a,b) -> a + b)
+				.orElse(0);
 	}
 
 	@Bind(value = SecurityLevel.AUTHOR,
