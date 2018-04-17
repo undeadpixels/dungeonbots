@@ -106,7 +106,7 @@ public class EventsTest {
 			w.update(1);
 			
 			try {
-				Thread.sleep(5);
+				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				return;
 			}
@@ -141,7 +141,7 @@ public class EventsTest {
 		b.getInventory().addItem(new Key(w));
 		
 		b.getScripts().add(new UserScript("init",
-				"sleep(.001) " +
+				"sleep(.1) " +
 				"bot:inventory():peek(1):useRight() " +
 				"bot:useRight() " +
 				"bot:right():right() " +
@@ -178,7 +178,7 @@ public class EventsTest {
 		b.getInventory().addItem(new Key(w));
 
 		b.getScripts().add(new UserScript("init",
-				"sleep(.001) " +
+				"sleep(.1) " +
 						"bot:inventory():peek(1):useRight() " +
 						"bot:useRight() " +
 						"bot:right():right() " +

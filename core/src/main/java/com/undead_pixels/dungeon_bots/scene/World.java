@@ -37,12 +37,15 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen;
+import com.undead_pixels.dungeon_bots.ui.screens.GameplayScreen.Poptart;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -181,6 +184,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	private transient MessageListener messageListener;
+	private transient Consumer<Poptart> poptartListener;
 	// =============================================
 	// ====== Events and stuff
 	// =============================================
@@ -490,8 +494,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update entities
 			for (Entity e : entities) {
 				ActionQueue aq = e.getActionQueue();
-				playstyle.dequeueIfAllowed(aq);
+				boolean isTurn = playstyle.dequeueIfAllowed(aq);
 				e.update(dt);
+				if(isTurn)
+					e.getSandbox().fireEvent("ON_TURN", new StringBasedLuaInvocationCoalescer("ON_TURN"));
 			}
 			playstyle.update();
 
@@ -1365,11 +1371,24 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	@Bind(SecurityLevel.DEFAULT)
+	/**
+	 * Shows a popup box'
+	 *
+	 * @param alert
+	 * @param title
+	 */
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
 	@Doc("Creates and displays an Alert window.")
-	public void alert(@Doc("The Alert message") LuaValue alert, @Doc("The Title of the Alert Window") LuaValue title) {
-		showAlert(alert.checkjstring(),
-				title.isnil() ? "" : title.optjstring(""));
+	public void alert(@Doc("The title of the alert popup (optional)") LuaValue title,
+			@Doc("The message to show to the player") LuaValue message) { // TODO - may add a LuaValue for source?
+
+		// if we're only being passsed a message with no title...
+		try {
+			title.checktable().get("this").checkuserdata(World.class);
+			showAlert(message.checkjstring(), "Message");
+		} catch(LuaError e) {
+			showAlert(message.checkjstring(), title.checkjstring());
+		}
 	}
 
 
@@ -1380,7 +1399,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 */
 	public void showAlert(String alert, String title) {
 		this.message(this, title + (title.length()>=1?"\n":"") + alert, LoggingLevel.QUEST);
-		Thread t = new Thread(() -> JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE));
+		Thread t = new Thread(() -> {
+			if(poptartListener != null) {
+				poptartListener.accept(new GameplayScreen.Poptart(this, title, alert));
+			} else {
+				JOptionPane.showMessageDialog(null, alert, title, JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
 		t.start();
 	}
 
@@ -1419,20 +1444,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
-
-	/**
-	 * Shows a popup box'
-	 * 
-	 * @param alert
-	 * @param title
-	 */
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
-	public void showAlert(@Doc("The Content of the Alert Message") LuaValue alert,
-			@Doc("The Title of the Alert window") LuaValue title) {
-		showAlert(alert.tojstring(), title.tojstring());
-	}
-
-	public Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
+	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
 		return entities.stream().filter(e -> e.getPosition().distance(pos) < 0.1);
 	}
 
@@ -1715,6 +1727,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	public void registerMessageListener(final MessageListener messageListener) {
 		this.messageListener = messageListener;
+	}
+
+
+	/**
+	 * @param object
+	 */
+	public void registerPoptartListener (Consumer<GameplayScreen.Poptart> p) {
+		this.poptartListener = p;
+
 	}
 
 	public void message(HasImage src, String message, LoggingLevel level) {
