@@ -13,7 +13,9 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -262,15 +264,18 @@ public class GameplayScreen extends Screen {
 		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD).deriveFont(24.0f));
 		headBox.add(titleLabel);
 		headBox.add(Box.createGlue());
-		msgBox.add(new JLabel(StringWrap.wrap(p.message, 100)));
-		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 100));
+		String msgWrapped = StringWrap.wrap(p.message, 100, 3);
+		JLabel msgLabel = new JLabel(msgWrapped);
+		msgLabel.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 50));
+		msgBox.add(msgLabel);
+		msgBox.setMaximumSize(new Dimension(POPTART_WIDTH - padding, 50));
 		msgBox.add(Box.createGlue());
 		popPane.add(Box.createGlue());
 		
 		Box okBox = new Box(BoxLayout.X_AXIS);
 		okBox.add(Box.createGlue());
 		
-		JButton okButton = new JButton("ok");
+		JButton okButton = new JButton("Ok");
 		okBox.add(okButton);
 		
 		okButton.addActionListener((e) -> {
@@ -293,6 +298,7 @@ public class GameplayScreen extends Screen {
 		semitrans.recursiveTransparentify();
 		this.getLayeredPane().add(semitrans, (Integer) 100);
 		
+		okButton.requestFocusInWindow();
 	}
 
 
