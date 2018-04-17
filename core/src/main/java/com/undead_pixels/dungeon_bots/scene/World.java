@@ -1106,14 +1106,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return true;
 		}
 
-		if (tiles[x][y].isSolid()) {
+		if (e.isSolid() && tiles[x][y].isSolid()) {
 			// System.out.println("Unable to move: tile solid");
 			return false;
 		}
-		if (tiles[x][y].isOccupied()) {
+		if (e.isSolid() && tiles[x][y].isOccupied()) {
 			Entity o = tiles[x][y].getOccupiedBy();
 			if (o != null && o instanceof Pushable) {
 				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
+			}
+			if(o != null && e instanceof Pushable) {
+				((Pushable) e).bumpedInto(o, Actor.Direction.byDelta(x + e.getPosition().x, y + e.getPosition().y));
 			}
 			// System.out.println("Unable to move: tile occupied");
 			return false;
@@ -1428,7 +1431,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		showAlert(alert.tojstring(), title.tojstring());
 	}
 
-	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
+	public Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
 		return entities.stream().filter(e -> e.getPosition().distance(pos) < 0.1);
 	}
 

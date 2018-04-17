@@ -149,9 +149,7 @@ public final class LevelEditorScreen extends Screen {
 		result.add(new EntityType("demon", AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3),
 				(x, y) -> {
 					// TODO - create new actual entity class
-					return new DeletemeEntity(world,
-							AssetManager.getTextureRegion("DawnLike/Characters/Demon0.png", 2, 3), x, y);
-				}));
+					return new Demon(world, x, y);}));
 		result.add(new EntityType("ghost", AssetManager.getTextureRegion("DawnLike/Characters/Undead0.png", 2, 4),
 				(x, y) -> {
 					// TODO - create new actual entity class

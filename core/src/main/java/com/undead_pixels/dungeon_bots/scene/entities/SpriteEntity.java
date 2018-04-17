@@ -97,8 +97,8 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	public void setPosition(
 			@Doc("The X position of the entity") LuaValue x,
 			@Doc("The Y position of the entity") LuaValue y) {
-		this.sprite.setX(x.tofloat());
-		this.sprite.setY(y.tofloat());
+		this.sprite.setX(x.tofloat() - 1);
+		this.sprite.setY(y.tofloat() - 1);
 	}
 
 	@Override
