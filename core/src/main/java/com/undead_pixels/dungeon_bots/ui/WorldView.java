@@ -24,6 +24,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import javax.swing.JComponent;
@@ -55,6 +56,7 @@ public class WorldView extends JComponent {
 	private final Timer timer;
 	private final Consumer<World> winAction;
 	private final boolean allowsPlay;
+	private final ArrayList<Runnable> updateListeners = new ArrayList<>();
 
 	public WorldView(World world, Consumer<World> winAction, boolean allowsPlay) {
 		this.world = world;
@@ -70,6 +72,9 @@ public class WorldView extends JComponent {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				for(Runnable r : updateListeners) {
+					r.run();
+				}
 				if (WorldView.this.world != null) {
 					long nowTime = System.nanoTime();
 					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
@@ -439,6 +444,14 @@ public class WorldView extends JComponent {
 	/**Returns whether this WorldView is current playing.*/
 	public boolean getPlaying() {
 		return this.isPlaying;
+	}
+
+
+	/**
+	 * @param object
+	 */
+	public void registerUpdateListener (Runnable r) {
+		updateListeners.add(r);
 	}
 
 }

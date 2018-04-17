@@ -1,6 +1,8 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -58,7 +60,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
-	private JEntityEditor(Entity entity, SecurityLevel security) {
+	private JEntityEditor(Entity entity, SecurityLevel security, boolean transparent) {
 		this.entity = entity;
 		this.security = security;
 		state = State.fromEntity(entity);
@@ -237,10 +239,10 @@ public final class JEntityEditor extends JTabbedPane {
 	// ==================================================
 	// ====== JEntityEditor dialog STUFF ================
 	// ==================================================
-
-	/**Returns null if security will not allow any editing of this entity.*/
-	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
-			SecurityLevel securityLevel, WorldView view) {
+	
+	public static JEntityEditor crateEntityEditorPane(Entity entity, SecurityLevel securityLevel,
+			Container addTo, WorldView view, boolean transparent) {
+		
 
 		// If there's already an open editor for this entity, don't allow
 		// another dialog.
@@ -254,40 +256,20 @@ public final class JEntityEditor extends JTabbedPane {
 		}
 
 		// Create the editor.
-		JEntityEditor jee = new JEntityEditor(entity, securityLevel);
+		JEntityEditor jee = new JEntityEditor(entity, securityLevel, transparent);
 
 		if (jee.getTabCount() == 0) // Security allow any editing?
 			return null;
 
-		// Create the dialog that contains the editor.
-		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
-		openEditors.put(entity, jee);
-		jee.dialog = dialog;
-		dialog.setLayout(new BorderLayout());
-		dialog.add(jee, BorderLayout.CENTER);
-
-
-		// If a dialog is disposed, it should remove the entity from the
-		// already-open dialog list, and dispose of any help frames so they're
-		// not orphans.
-		dialog.addWindowListener(new WindowListenerAdapter() {
-
-			@Override
-			protected void event(WindowEvent e) {
-				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-					return;
-				openEditors.remove(entity);
-				if (jee._OpenHelpFrame != null)
-					jee._OpenHelpFrame.dispose();
-
-			}
-		});
+		
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
 		// own Undoable.
-		ActionListener dialogController = new DialogController(dialog, jee, entity, view);
+		ActionListener dialogController = new DialogController(addTo, jee, entity, view);
 
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
+		if(transparent)
+			pnlButtons.setOpaque(false);
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/close.png").toolTip("Cancel changes and close the dialog.")
@@ -296,8 +278,45 @@ public final class JEntityEditor extends JTabbedPane {
 				.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
-		dialog.add(pnlButtons, BorderLayout.PAGE_END);
 		
+
+		addTo.setLayout(new BorderLayout());
+		addTo.add(jee, BorderLayout.CENTER);
+		addTo.add(pnlButtons, BorderLayout.SOUTH);
+		
+		
+		return jee;
+	}
+
+	/**Returns null if security will not allow any editing of this entity.*/
+	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
+			SecurityLevel securityLevel, WorldView view) {
+
+		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
+		
+		JEntityEditor jee = crateEntityEditorPane(entity, securityLevel, dialog, view, false);
+		
+		// Create the dialog that contains the editor.
+		openEditors.put(entity, jee);
+		jee.dialog = dialog;
+		
+		
+		// If a dialog is disposed, it should remove the entity from the
+		// already-open dialog list, and dispose of any help frames so they're
+		// not orphans.
+		dialog.addWindowListener(new WindowListenerAdapter() {
+			
+			@Override
+			protected void event(WindowEvent e) {
+				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+					return;
+				openEditors.remove(entity);
+				if (jee._OpenHelpFrame != null)
+					jee._OpenHelpFrame.dispose();
+				
+			}
+		});
+
 		dialog.setSize(600, 500);
 		
 		return jee;
@@ -307,12 +326,12 @@ public final class JEntityEditor extends JTabbedPane {
 	private static class DialogController implements ActionListener {
 
 		private final JEntityEditor jee;
-		private final JDialog dialog;
+		private final Component dialog;
 		private final Entity entity;
 		private final WorldView view;
 
 
-		public DialogController(JDialog dialog, JEntityEditor jee, Entity entity, WorldView view) {
+		public DialogController(Component dialog, JEntityEditor jee, Entity entity, WorldView view) {
 			this.dialog = dialog;
 			this.jee = jee;
 			this.entity = entity;
@@ -347,7 +366,8 @@ public final class JEntityEditor extends JTabbedPane {
 				jee.state.writeToEntity(jee.entity);
 				UIBuilder.playSound("sounds/dland_approve.wav");
 				Tool.pushUndo(entity.getWorld(), u);
-				dialog.dispose();
+				if(dialog instanceof JDialog)
+					((JDialog)dialog).dispose();
 				jee.dialog = null;
 				SwingUtilities.invokeLater(new Runnable(){
 
@@ -366,6 +386,8 @@ public final class JEntityEditor extends JTabbedPane {
 						break;
 				}
 				jee.dialog = null;
+				if(dialog instanceof JDialog)
+					((JDialog)dialog).dispose();
 				UIBuilder.playSound("sounds/deathscyp_error.wav");
 				dialog.dispose();
 				break;

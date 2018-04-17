@@ -133,6 +133,19 @@ public class JScriptCollectionControl extends JPanel {
 		this.setLayout(new BorderLayout());
 		this.add(leftBox, BorderLayout.LINE_START);
 		this.add(editor, BorderLayout.CENTER);
+		
+		if(transparent)
+			this.setOpaque(false);
+	}
+
+
+	/**
+	 * @param sandbox
+	 * @param scripts
+	 * @param security
+	 */
+	public JScriptCollectionEditor(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security) {
+		this(sandbox, scripts, security, false);
 	}
 
 
