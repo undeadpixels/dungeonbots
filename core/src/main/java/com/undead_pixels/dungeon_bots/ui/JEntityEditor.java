@@ -28,10 +28,8 @@ import javax.swing.text.Document;
 
 import org.jdesktop.swingx.HorizontalLayout;
 
-import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Sign;
-import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -73,7 +71,7 @@ public final class JEntityEditor extends JTabbedPane {
 
 		// Set up the REPL.
 		if (entity.getPermission(Entity.PERMISSION_COMMAND_LINE).level <= security.level) {
-			JCodeREPL repl = new JCodeREPL(entity, security);
+			JCodeREPL repl = new JCodeREPL(entity, transparent);
 			addTab("Command Line", null, repl, "Instantaneous script runner.");
 		}
 
@@ -240,7 +238,7 @@ public final class JEntityEditor extends JTabbedPane {
 	// ====== JEntityEditor dialog STUFF ================
 	// ==================================================
 	
-	public static JEntityEditor crateEntityEditorPane(Entity entity, SecurityLevel securityLevel,
+	public static JEntityEditor createEntityEditorPane(Entity entity, SecurityLevel securityLevel,
 			Container addTo, WorldView view, boolean transparent) {
 		
 
@@ -292,9 +290,16 @@ public final class JEntityEditor extends JTabbedPane {
 	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
 			SecurityLevel securityLevel, WorldView view) {
 
-		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
+		// Check if there's already an open editor for this entity.  If so, just return that editor.
+				if (openEditors.containsKey(entity)){
+					JEntityEditor existing = openEditors.get(entity);
+					existing.requestFocus();
+					return existing;			
+				}
 		
-		JEntityEditor jee = crateEntityEditorPane(entity, securityLevel, dialog, view, false);
+		// Build the dialog.
+		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);		
+		JEntityEditor jee = createEntityEditorPane(entity, securityLevel, dialog, view, false);
 		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
@@ -389,7 +394,6 @@ public final class JEntityEditor extends JTabbedPane {
 				if(dialog instanceof JDialog)
 					((JDialog)dialog).dispose();
 				UIBuilder.playSound("sounds/deathscyp_error.wav");
-				dialog.dispose();
 				break;
 			case "CENTER_VIEW":
 				Point2D.Float pt = entity.getPosition();

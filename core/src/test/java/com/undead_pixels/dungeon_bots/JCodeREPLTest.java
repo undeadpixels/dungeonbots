@@ -16,7 +16,7 @@ public class JCodeREPLTest {
 	@Test
 	public void testExecution() {
 		LuaSandbox luaSandbox = new LuaSandbox();
-		JCodeREPL editor = new JCodeREPL(luaSandbox,  SecurityLevel.DEBUG);
+		JCodeREPL editor = new JCodeREPL(luaSandbox,  false);
 		editor.setCode("x = 2 + 1;\nreturn x;");
 		assertFalse("Before execution, editor messages should not contain 3", editor.getMessages().contains("3"));
 

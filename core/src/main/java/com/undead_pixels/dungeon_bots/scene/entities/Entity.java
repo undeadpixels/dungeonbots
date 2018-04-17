@@ -145,7 +145,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue.act(dt);
 
 		// Enqueue an idle call, if enough time has elapsed.
-		boolean isIdle = actionQueue.isEmpty(); 
+		boolean isIdle = actionQueue.isEmpty();
 		if (!isIdle) {
 			idle = 0f;
 		} else {
@@ -288,33 +288,38 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		actionQueue = new ActionQueue(this);
 		standardizeResources();
 	}
-	
+
+
 	/**This method will ensure that this Entity contains all the necessary scripts, etc., for a new 
 	 * instantiated Entity or for an Entity that is deserialized from an earlier source that lacked 
 	 * those resources.*/
-	protected void standardizeResources(){
-		if (scripts != null){
+	protected void standardizeResources() {
+		if (scripts != null) {
 			if (!scripts.contains("onIdle")) {
 				UserScript s = new UserScript("onIdle",
 						"-- This script will execute when the entity has \n-- been idle for a while (usually about 60 seconds).",
 						SecurityLevel.NONE);
 				this.scripts.add(s);
 			}
-			if (!scripts.contains("onClicked")){
-				UserScript s = new UserScript("onClicked", "-- This script executes whenever \n--the entity has been clicked.\n", SecurityLevel.NONE);
-				this.scripts.add(s);
-			}	
-			if (!scripts.contains("onExamined")){
-				UserScript s = new UserScript("onExamined", "-- This script executes whenever \n--an editor is opened for this \n--entity. A global variable called \n--'message' is set that you can \n--use to determine what part of \n--the editor examined the entity.", SecurityLevel.NONE);
+			if (!scripts.contains("onClicked")) {
+				UserScript s = new UserScript("onClicked",
+						"-- This script executes whenever \n--the entity has been clicked.\n", SecurityLevel.NONE);
 				this.scripts.add(s);
 			}
-			if (!scripts.contains("onEdited")){
-				UserScript s = new UserScript("onEdited", "-- This script executes whenever \n--the entity has been edited.\n", SecurityLevel.NONE);
+			if (!scripts.contains("onExamined")) {
+				UserScript s = new UserScript("onExamined",
+						"-- This script executes whenever \n--an editor is opened for this \n--entity. A global variable called \n--'message' is set that you can \n--use to determine what part of \n--the editor examined the entity.",
+						SecurityLevel.NONE);
+				this.scripts.add(s);
+			}
+			if (!scripts.contains("onEdited")) {
+				UserScript s = new UserScript("onEdited",
+						"-- This script executes whenever \n--the entity has been edited.\n", SecurityLevel.NONE);
 				this.scripts.add(s);
 			}
 		}
-		
-		
+
+
 		if (idleThreshold < MIN_IDLE_THRESHOLD)
 			idleThreshold = 60f;
 	}
@@ -340,7 +345,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	/**Fires a script into the action queue.  This does not guarantee execution.  If the script does not exist, 
 	 * no action is taken.*/
-	public boolean enqueueScript(String scriptName, String...prepends) {
+	public boolean enqueueScript(String scriptName, String... prepends) {
 		synchronized (this) {
 			UserScript s = scripts.get(scriptName);
 			if (s == null) {
@@ -352,8 +357,9 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			else if (prepends.length == 1)
 				this.getSandbox().enqueueCodeBlock(s.code, prepends[0]);
 			else {
-				String[] newPrepends = new String[prepends.length-1];
-				for (int i = 1; i < prepends.length; i++) newPrepends[i-1] = prepends[i];
+				String[] newPrepends = new String[prepends.length - 1];
+				for (int i = 1; i < prepends.length; i++)
+					newPrepends[i - 1] = prepends[i];
 				this.getSandbox().enqueueCodeBlock(s.code, prepends[0], newPrepends);
 
 			}
@@ -453,8 +459,32 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		HashMap<String, SecurityLevel> ret = new HashMap<String, SecurityLevel>();
 		if (permissions == null)
 			return ret;
-		for (Entry<String, SecurityLevel> entry : permissions.entrySet())
-			ret.put(entry.getKey(), entry.getValue());
+		
+		for (Entry<String, SecurityLevel> entry : permissions.entrySet()) {
+			
+			// This switch block is used to adapt the old names of the permissions to the new.
+			switch (entry.getKey().toUpperCase()) {
+			case "ENTITY_EDITOR":
+				ret.put(PERMISSION_ENTITY_EDITOR, entry.getValue());
+				break;
+			case "SCRIPT_EDITOR":
+				ret.put(PERMISSION_SCRIPT_EDITOR, entry.getValue());
+				break;
+			case "PROPERTIES":
+				ret.put(PERMISSION_PROPERTIES_EDITOR, entry.getValue());
+				break;
+			case "REPL":
+				ret.put(PERMISSION_COMMAND_LINE, entry.getValue());
+				break;
+			case "SELECTION":
+				ret.put(PERMISSION_SELECTION, entry.getValue());
+				break;
+			default:
+				ret.put(entry.getKey(), entry.getValue());
+			}
+
+		}
+
 		return ret;
 	}
 
@@ -475,7 +505,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			permissions.put(entry.getKey(), entry.getValue());
 
 	}
-
 
 
 	public Iterable<String> listPermissionNames() {

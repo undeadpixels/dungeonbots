@@ -59,8 +59,9 @@ public final class JScriptEditor extends JPanel {
 	/** The script being edited. */
 	private UserScript _Script = null;
 	private final JEditorPane editor;
-	
-	public JEditorPane getEditor () {
+
+
+	public JEditorPane getEditor() {
 		return editor;
 	}
 
@@ -82,8 +83,7 @@ public final class JScriptEditor extends JPanel {
 
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 		setLayout(new BorderLayout());
-		
-		
+
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
@@ -93,7 +93,7 @@ public final class JScriptEditor extends JPanel {
 				.action("COPY", _Controller).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
 				.action("PASTE", _Controller).create();
-		
+
 
 		editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(editor);
@@ -127,7 +127,7 @@ public final class JScriptEditor extends JPanel {
 			_Controller.setLockColor(Color.blue);
 		}
 
-		add(toolBar, BorderLayout.PAGE_START);	
+		add(toolBar, BorderLayout.PAGE_START);
 
 	}
 
@@ -196,7 +196,7 @@ public final class JScriptEditor extends JPanel {
 	 */
 	public boolean saveScript() {
 		boolean changed = false;
-		
+
 		if (_Script == null)
 			return false;
 		try {
@@ -205,7 +205,7 @@ public final class JScriptEditor extends JPanel {
 		} catch (BadLocationException blex) {
 			System.err.println("Could not save locks to code. " + blex.getMessage());
 		}
-		
+
 		return changed;
 	}
 
@@ -268,10 +268,21 @@ public final class JScriptEditor extends JPanel {
 			if (_locked)
 				return;
 
-			// Parentheses problem fix - this is somewhat hackish but it works
-			if (text.equals(")") && offset < _Doc.getLength() && _Doc.getText(offset, 1).equals(")")) {
-				replace(fb, offset, 1, ")", attr);
-				return;
+
+			// Parentheses, quote, bracket problem fix - this is somewhat
+			// hackish but it works
+			if (offset < _Doc.getLength()) {
+				String nextStr = _Doc.getText(offset, 1);
+				if (text.equals(nextStr)) {
+					if (text.equals(")"))
+						replace(fb, offset, 1, nextStr, attr);
+					if (text.equals("\""))
+						replace(fb, offset, 1, nextStr, attr);
+					if (text.equals("]"))
+						replace(fb, offset, 1, nextStr, attr);
+					if (text.equals("}"))
+						replace(fb, offset, 1, nextStr, attr);
+				}
 
 			}
 
