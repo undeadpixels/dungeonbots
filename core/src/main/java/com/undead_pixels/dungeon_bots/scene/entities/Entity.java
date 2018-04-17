@@ -95,6 +95,7 @@ public abstract class Entity
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
 		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
+		sandbox.registerEventType("ON_TURN", "Called when it is this entity's turn to move");
 		return this.sandbox;
 	}
 

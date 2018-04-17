@@ -37,6 +37,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -490,8 +491,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update entities
 			for (Entity e : entities) {
 				ActionQueue aq = e.getActionQueue();
-				playstyle.dequeueIfAllowed(aq);
+				boolean isTurn = playstyle.dequeueIfAllowed(aq);
 				e.update(dt);
+				if(isTurn)
+					e.getSandbox().fireEvent("ON_TURN", new StringBasedLuaInvocationCoalescer("ON_TURN"));
 			}
 			playstyle.update();
 
