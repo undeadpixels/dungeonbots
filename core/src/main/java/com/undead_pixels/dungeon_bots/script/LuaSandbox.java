@@ -18,6 +18,8 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.utils.exceptions.MethodNotOnWhitelistException;
+
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -435,6 +437,13 @@ public final class LuaSandbox implements Serializable {
 
 		@Override
 		public LuaValue call(LuaValue arg) {
+			SecurityLevel lvl = getWhitelist().getLevel("events:"+eventName);
+			if(lvl == null) lvl = SecurityLevel.DEFAULT;
+
+			if(lvl.level > getSecurityLevel().level) {
+				throw new MethodNotOnWhitelistException(funcName);
+			}
+			
 			if(!arg.isfunction()) {
 				throw new LuaError("Expected a function");
 			}
@@ -551,6 +560,10 @@ public final class LuaSandbox implements Serializable {
 				+ einfo.generateTemplateListener();
 		
 		RegisterListenerFunction registerEventListenerFunction = new RegisterListenerFunction(eventName, registerEventListenerFunctionName, docs);
+		
+		if(this.getWhitelist().getLevel("events:"+eventName) == null) {
+			this.getWhitelist().setLevel("events:"+eventName, SecurityLevel.DEFAULT);
+		}
 		
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
