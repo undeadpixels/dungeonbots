@@ -1363,10 +1363,17 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	@Bind(SecurityLevel.DEFAULT)
+	/**
+	 * Shows a popup box'
+	 * 
+	 * @param alert
+	 * @param title
+	 */
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
 	@Doc("Creates and displays an Alert window.")
-	public void alert(@Doc("The Alert message") LuaValue alert, @Doc("The Title of the Alert Window") LuaValue title) {
-		showAlert(alert.checkjstring(),
+	public void alert(@Doc("The Title of the Alert popup") LuaValue title,
+			@Doc("The message to show to the player") LuaValue message) { // TODO - may add a LuaValue for source?
+		showAlert(message.checkjstring(),
 				title.isnil() ? "" : title.optjstring(""));
 	}
 
@@ -1421,19 +1428,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			e1.printStackTrace();
 			throw new LuaError("Invalid URL!");
 		}
-	}
-
-
-	/**
-	 * Shows a popup box'
-	 * 
-	 * @param alert
-	 * @param title
-	 */
-	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
-	public void showAlert(@Doc("The Content of the Alert Message") LuaValue alert,
-			@Doc("The Title of the Alert window") LuaValue title) {
-		showAlert(alert.tojstring(), title.tojstring());
 	}
 
 	private Stream<Entity> entitiesAtPos(final Point2D.Float pos) {
