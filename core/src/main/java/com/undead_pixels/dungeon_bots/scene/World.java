@@ -500,6 +500,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 			// update level script
+			getSandbox().update(dt);
 			if (this.didInit) {
 				getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 
