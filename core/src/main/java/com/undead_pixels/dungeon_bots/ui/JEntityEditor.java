@@ -92,7 +92,6 @@ public final class JEntityEditor extends JTabbedPane {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
-				entity.getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle));
 				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
 			}
 		});
@@ -113,7 +112,6 @@ public final class JEntityEditor extends JTabbedPane {
 		if (value){
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
 			String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
-			entity.getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle));
 			entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
 		}
 	}
@@ -346,7 +344,6 @@ public final class JEntityEditor extends JTabbedPane {
 				Tool.pushUndo(entity.getWorld(), u);
 				dialog.dispose();
 				jee.dialog = null;
-				entity.getSandbox().fireEvent("EDITOR_SAVED");
 				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_SAVED", entity.getLuaValue());
 				break;
 			case "CANCEL":

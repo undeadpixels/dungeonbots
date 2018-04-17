@@ -101,10 +101,8 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		sandbox.addBindable("world", world);
 		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
 		sandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
-		sandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when this entity's editor window is opened", "tabName");
 		sandbox.registerEventType("IDLE", "Called when this entity has been idle for a while (usually about 60 seconds).");
 		sandbox.registerEventType("CLICKED", "Called whenever this entity has been clicked.");
-		sandbox.registerEventType("EDITOR_SAVED", "Called when the \"confirm\" button is clicked in this entity's editor.");
 		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key");
 		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
 		
