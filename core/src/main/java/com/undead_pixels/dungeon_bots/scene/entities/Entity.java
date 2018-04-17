@@ -71,7 +71,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	/**The instructions associated with an entity.  These are what is shown in 
 	 * the Entity Editor in the instruction pane.  The value can be null or any 
 	 * string.*/
-	private String help = "This is some example text instructions associated with an entity.";
+	private String help = "Try the 'help(this)' command to learn about this entity.";
 
 
 	/**

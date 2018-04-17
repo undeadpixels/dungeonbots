@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -108,17 +110,18 @@ public final class JEntityEditor extends JTabbedPane {
 
 		else
 			super.setVisible(value);
-		if (value){
+		if (value) {
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
 			Entity e = this.entity;
-			SwingUtilities.invokeLater(new Runnable(){
+			SwingUtilities.invokeLater(new Runnable() {
 
 				@Override
 				public void run() {
-					e.enqueueScript("onExamined","message=Entity Editor");
-				}});
-			
-			}
+					e.enqueueScript("onExamined", "message=Entity Editor");
+				}
+			});
+
+		}
 	}
 
 
@@ -169,7 +172,7 @@ public final class JEntityEditor extends JTabbedPane {
 			if (this.scripts != null)
 				entity.getScripts().setTo(scripts);
 
-			entity.setHelp((this.help == null || this.help.equals("")) ? "" : this.help);
+			entity.setHelp((this.help == null) ? "" : this.help);
 
 			if (this.permissions != null)
 				entity.setPermissions(this.permissions);
@@ -191,26 +194,28 @@ public final class JEntityEditor extends JTabbedPane {
 	// ===================================================
 
 
+	/**Only one help frame can be open at the same time.*/
 	private JFrame _OpenHelpFrame = null;
-	private Document _CurrentHelpDocument = null;
 
 
 	/**Shows the help frame, if there is not one showing already.*/
 	private void showHelp() {
-		if (_OpenHelpFrame != null)
+		if (_OpenHelpFrame != null) {
+			_OpenHelpFrame.requestFocus();
 			return;
-		_OpenHelpFrame = new JFrame();
-		_OpenHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
-		JEditorPane textPane = new JEditorPane();
+		}
+
+		final JTextArea textPane = new JTextArea();
 		textPane.setEditable(JEntityEditor.this.security.level >= JEntityEditor.this.entity
 				.getPermission(Entity.PERMISSION_EDIT_HELP).level);
-		String help = (state.help == null || state.help.equals("")) ? "No help for this entity." : state.help;
-		_CurrentHelpDocument = textPane.getDocument();
-		JScrollPane scroller = new JScrollPane(textPane);
-		// scroller.setPreferredSize(new Dimension(400, this.getHeight()));
-		_OpenHelpFrame.add(scroller);
+		textPane.setLineWrap(true);
+		textPane.setWrapStyleWord(true);
+		textPane.setText(state.help == null ? "" : state.help);
+
+		_OpenHelpFrame = new JFrame();
+		_OpenHelpFrame.setMinimumSize(new Dimension(300, 400));
+		_OpenHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
 		_OpenHelpFrame.setAlwaysOnTop(true);
-		_OpenHelpFrame.pack();
 		_OpenHelpFrame.setLocationRelativeTo(this);
 		_OpenHelpFrame.setLocation(this.getWidth(), 0);
 		_OpenHelpFrame.setTitle("Help");
@@ -220,16 +225,12 @@ public final class JEntityEditor extends JTabbedPane {
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
-				try {
-					if (security.level >= SecurityLevel.AUTHOR.level)
-						state.help = _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength());
-				} catch (BadLocationException e1) {
-					e1.printStackTrace();
-				}
+				if (security.level >= JEntityEditor.this.entity.getPermission(Entity.PERMISSION_EDIT_HELP).level)
+					state.help = textPane.getText();
 				_OpenHelpFrame = null;
-				_CurrentHelpDocument = null;
 			}
 		});
+		_OpenHelpFrame.add(new JScrollPane(textPane));
 		_OpenHelpFrame.setVisible(true);
 	}
 
@@ -237,10 +238,10 @@ public final class JEntityEditor extends JTabbedPane {
 	// ==================================================
 	// ====== JEntityEditor dialog STUFF ================
 	// ==================================================
-	
-	public static JEntityEditor createEntityEditorPane(Entity entity, SecurityLevel securityLevel,
-			Container addTo, WorldView view, boolean transparent) {
-		
+
+	public static JEntityEditor createEntityEditorPane(Entity entity, SecurityLevel securityLevel, Container addTo,
+			WorldView view, boolean transparent) {
+
 
 		// If there's already an open editor for this entity, don't allow
 		// another dialog.
@@ -259,14 +260,13 @@ public final class JEntityEditor extends JTabbedPane {
 		if (jee.getTabCount() == 0) // Security allow any editing?
 			return null;
 
-		
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
 		// own Undoable.
 		ActionListener dialogController = new DialogController(addTo, jee, entity, view);
 
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
-		if(transparent)
+		if (transparent)
 			pnlButtons.setOpaque(false);
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
@@ -276,41 +276,43 @@ public final class JEntityEditor extends JTabbedPane {
 				.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
-		
+
 
 		addTo.setLayout(new BorderLayout());
 		addTo.add(jee, BorderLayout.CENTER);
 		addTo.add(pnlButtons, BorderLayout.SOUTH);
-		
-		
+
+
 		return jee;
 	}
+
 
 	/**Returns null if security will not allow any editing of this entity.*/
 	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
 			SecurityLevel securityLevel, WorldView view) {
 
-		// Check if there's already an open editor for this entity.  If so, just return that editor.
-				if (openEditors.containsKey(entity)){
-					JEntityEditor existing = openEditors.get(entity);
-					existing.requestFocus();
-					return existing;			
-				}
-		
+		// Check if there's already an open editor for this entity. If so, just
+		// return that editor.
+		if (openEditors.containsKey(entity)) {
+			JEntityEditor existing = openEditors.get(entity);
+			existing.requestFocus();
+			return existing;
+		}
+
 		// Build the dialog.
-		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);		
+		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
 		JEntityEditor jee = createEntityEditorPane(entity, securityLevel, dialog, view, false);
-		
+
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
 		jee.dialog = dialog;
-		
-		
+
+
 		// If a dialog is disposed, it should remove the entity from the
 		// already-open dialog list, and dispose of any help frames so they're
 		// not orphans.
 		dialog.addWindowListener(new WindowListenerAdapter() {
-			
+
 			@Override
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
@@ -318,12 +320,12 @@ public final class JEntityEditor extends JTabbedPane {
 				openEditors.remove(entity);
 				if (jee._OpenHelpFrame != null)
 					jee._OpenHelpFrame.dispose();
-				
+
 			}
 		});
 
 		dialog.setSize(600, 500);
-		
+
 		return jee;
 	}
 
@@ -371,16 +373,16 @@ public final class JEntityEditor extends JTabbedPane {
 				jee.state.writeToEntity(jee.entity);
 				UIBuilder.playSound("sounds/dland_approve.wav");
 				Tool.pushUndo(entity.getWorld(), u);
-				if(dialog instanceof JDialog)
-					((JDialog)dialog).dispose();
+				if (dialog instanceof JDialog)
+					((JDialog) dialog).dispose();
 				jee.dialog = null;
-				SwingUtilities.invokeLater(new Runnable(){
+				SwingUtilities.invokeLater(new Runnable() {
 
 					@Override
 					public void run() {
 						entity.enqueueScript("onEdited");
 					}
-					
+
 				});
 				break;
 			case "CANCEL":
@@ -391,8 +393,8 @@ public final class JEntityEditor extends JTabbedPane {
 						break;
 				}
 				jee.dialog = null;
-				if(dialog instanceof JDialog)
-					((JDialog)dialog).dispose();
+				if (dialog instanceof JDialog)
+					((JDialog) dialog).dispose();
 				UIBuilder.playSound("sounds/deathscyp_error.wav");
 				break;
 			case "CENTER_VIEW":
