@@ -489,6 +489,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 			// update level script
+			getSandbox().update(dt);
 			if (this.didInit) {
 				getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 
@@ -1238,7 +1239,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return this.mapSandbox;
 		} else {
 			mapSandbox = new LuaSandbox(this);
-			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
+			
 			mapSandbox.addBindable("this", this);
 			mapSandbox.addBindable("world", this);
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
@@ -1246,6 +1247,13 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.addBindableClass(Player.class);
 			mapSandbox.addBindableClasses(LuaReflection.getEntityClasses())
 					.addBindableClasses(LuaReflection.getItemClasses());
+
+			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
+			
+			mapSandbox.registerEventType("ENTITY_IDLE", "Called when an entity has been idle for a while (usually about 60 seconds).", "entity");
+			mapSandbox.registerEventType("ENTITY_CLICKED", "Called whenever an entity has been clicked.", "entity");
+			mapSandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when an entity's editor window is opened", "tabName", "entity");
+			mapSandbox.registerEventType("ENTITY_EDITOR_SAVED", "Called when the \"confirm\" button is clicked in an entity's editor.", "entity");
 
 			return mapSandbox;
 		}

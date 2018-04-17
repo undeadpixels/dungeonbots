@@ -165,17 +165,6 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
-	 * @param scriptFile
-	 * @return
-	 */
-	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
-		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
-		scriptQueue.update(0.f);
-		
-		return ret;
-	}
-
-	/**
 	 * @return
 	 */
 	public LuaInvocation init() {
@@ -225,34 +214,6 @@ public final class LuaSandbox implements Serializable {
 		return enqueueCodeBlock(codeBlock, null, listeners);
 	}
 	
-
-	/**This is a HACK way of getting a message into the Sandbox.  Every input argument in the form 
-	 * of "variable=message" will be prepended as a variable declaration to the code block.*/
-	public LuaInvocation enqueueCodeBlock(String codeBlock, String keyValuePair, String... keyValuePairs) {
-		//TODO:  gotta be a more elegant way to accomplish this that is understandable for users.
-		StringBuilder sb = new StringBuilder();
-		String split[] = keyValuePair.split("=");
-		if (split.length == 2)
-			sb.append("local " + split[0] + " = \"" + split[1] + "\"\n");
-		for (String kvp : keyValuePairs) {
-			split = kvp.split("=");
-			if (split.length != 2)
-				continue;
-			sb.append("local " + split[0] + " = \"" + split[1] + "\"\n");
-		}
-		sb.append(codeBlock);
-		return enqueueCodeBlock(sb.toString(), new ScriptEventStatusListener[0]);
-	}
-
-	/**
-	 * @param codeBlock			A block of lua code to execute
-	 * @param listeners			Things that might want to listen to the status of this event (if any)
-	 * @return					The event that was enqueued
-	 */
-	public LuaInvocation enqueueCodeBlock(File codeBlock, ScriptEventStatusListener... listeners) {
-		return enqueueCodeBlock(codeBlock, null, listeners);
-	}
-	
 	/**
 	 * @param codeBlock			A block of lua code to execute
 	 * @param coalescingGroup	A group to coalesce events into
@@ -266,27 +227,13 @@ public final class LuaSandbox implements Serializable {
 		
 		return event;
 	}
-		
-
-		
-		/**
-		 * @param file				A file containing lua code to execute
-		 * @param coalescingGroup	A group to coalesce events into
-		 * @param listeners			Things that might want to listen to the status of this event (if any)
-		 * @return					The event that was enqueued
-		 */
-		public LuaInvocation enqueueCodeBlock(File file, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
-			UserScript codeBlock = new UserScript("init", file);
-			LuaInvocation script = new LuaInvocation(this, codeBlock);
-			scriptQueue.enqueue(script, coalescingGroup, listeners);
-			
-			return script;
-	}
-
+	
+	
+	
 	@Override
-		public String toString () {
-			return securityContext.getOwnerName() + " Sandbox";
-		}
+	public String toString () {
+		return securityContext.getOwnerName() + " Sandbox";
+	}
 
 	public void addOutputEventListener(Consumer<String> fn) {
 			outputEventListeners.add(fn);

@@ -98,6 +98,14 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
 		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
+		sandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when this entity's editor window is opened", "tabName");
+		sandbox.registerEventType("IDLE", "Called when this entity has been idle for a while (usually about 60 seconds).");
+		sandbox.registerEventType("CLICKED", "Called whenever this entity has been clicked.");
+		sandbox.registerEventType("EDITOR_SAVED", "Called when the \"confirm\" button is clicked in this entity's editor.");
+		
+		if (idleThreshold < MIN_IDLE_THRESHOLD)
+			idleThreshold = 60f;
+		
 		return this.sandbox;
 	}
 
@@ -152,7 +160,8 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			idle += dt;
 			if (idle > idleThreshold) {
 				idle = 0;
-				enqueueScript("onIdle");
+				getSandbox().fireEvent("IDLE");
+				getWorld().getSandbox().fireEvent("ENTITY_IDLE", this.getLuaValue());
 			}
 		}
 
@@ -293,30 +302,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 * instantiated Entity or for an Entity that is deserialized from an earlier source that lacked 
 	 * those resources.*/
 	protected void standardizeResources(){
-		if (scripts != null){
-			if (!scripts.contains("onIdle")) {
-				UserScript s = new UserScript("onIdle",
-						"-- This script will execute when the entity has \n-- been idle for a while (usually about 60 seconds).",
-						SecurityLevel.NONE);
-				this.scripts.add(s);
-			}
-			if (!scripts.contains("onClicked")){
-				UserScript s = new UserScript("onClicked", "-- This script executes whenever \n--the entity has been clicked.\n", SecurityLevel.NONE);
-				this.scripts.add(s);
-			}	
-			if (!scripts.contains("onExamined")){
-				UserScript s = new UserScript("onExamined", "-- This script executes whenever \n--an editor is opened for this \n--entity. A global variable called \n--'message' is set that you can \n--use to determine what part of \n--the editor examined the entity.", SecurityLevel.NONE);
-				this.scripts.add(s);
-			}
-			if (!scripts.contains("onEdited")){
-				UserScript s = new UserScript("onEdited", "-- This script executes whenever \n--the entity has been edited.\n", SecurityLevel.NONE);
-				this.scripts.add(s);
-			}
-		}
-		
-		
-		if (idleThreshold < MIN_IDLE_THRESHOLD)
-			idleThreshold = 60f;
+		// TODO - this might be a good place to add the init script
 	}
 
 
@@ -335,31 +321,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 			for (UserScript is : newScripts)
 				this.scripts.add(is);
 		}
-	}
-
-
-	/**Fires a script into the action queue.  This does not guarantee execution.  If the script does not exist, 
-	 * no action is taken.*/
-	public boolean enqueueScript(String scriptName, String...prepends) {
-		synchronized (this) {
-			UserScript s = scripts.get(scriptName);
-			if (s == null) {
-				System.err.println("Unrecognized script:" + scriptName);
-				return false;
-			}
-			if (prepends.length == 0)
-				this.getSandbox().enqueueCodeBlock(s.code);
-			else if (prepends.length == 1)
-				this.getSandbox().enqueueCodeBlock(s.code, prepends[0]);
-			else {
-				String[] newPrepends = new String[prepends.length-1];
-				for (int i = 1; i < prepends.length; i++) newPrepends[i-1] = prepends[i];
-				this.getSandbox().enqueueCodeBlock(s.code, prepends[0], newPrepends);
-
-			}
-		}
-		return true;
-
 	}
 
 

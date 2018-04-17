@@ -25,6 +25,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import org.jdesktop.swingx.HorizontalLayout;
+import org.luaj.vm2.LuaValue;
 
 import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
@@ -86,15 +87,16 @@ public final class JEntityEditor extends JTabbedPane {
 			propertyControl = new JEntityPropertyControl(state);
 			addTab("Properties", null, propertyControl.create(), "Properties of this entity.");
 		}
-
+		
 		this.addChangeListener(new ChangeListener() {
-
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
-				entity.enqueueScript("onExamined", "message=" + selectedTitle);
+				entity.getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle));
+				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
 			}
 		});
+
 	}
 
 
@@ -110,15 +112,10 @@ public final class JEntityEditor extends JTabbedPane {
 			super.setVisible(value);
 		if (value){
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
-			Entity e = this.entity;
-			SwingUtilities.invokeLater(new Runnable(){
-
-				@Override
-				public void run() {
-					e.enqueueScript("onExamined","message=Entity Editor");
-				}});
-			
-			}
+			String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
+			entity.getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle));
+			entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
+		}
 	}
 
 
@@ -349,14 +346,8 @@ public final class JEntityEditor extends JTabbedPane {
 				Tool.pushUndo(entity.getWorld(), u);
 				dialog.dispose();
 				jee.dialog = null;
-				SwingUtilities.invokeLater(new Runnable(){
-
-					@Override
-					public void run() {
-						entity.enqueueScript("onEdited");
-					}
-					
-				});
+				entity.getSandbox().fireEvent("EDITOR_SAVED");
+				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_SAVED", entity.getLuaValue());
 				break;
 			case "CANCEL":
 				if (jee.changed) {
