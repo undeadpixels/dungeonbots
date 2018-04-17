@@ -30,6 +30,8 @@ import javax.swing.text.StyledDocument;
 import org.jdesktop.swingx.VerticalLayout;
 
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
+import com.undead_pixels.dungeon_bots.scene.World;
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 
 /**A simple control whose purpose is to receive and display messages.*/
@@ -40,13 +42,19 @@ public final class JMessagePane extends JPanel {
 		String text;
 		Color color;
 		LoggingLevel type;
-		public MessageInfo(Image img, String text, Color color, LoggingLevel type) {
+		public MessageInfo(Image img, String senderName, String text, Color color, LoggingLevel type) {
 			super();
+			String senderString = "";
+			if(senderName != null) {
+				senderString = " | "+senderName;
+			}
 			this.img = img.getScaledInstance(40, 40, Image.SCALE_FAST);;
-			this.text = LocalDateTime.now().toLocalTime() + "\n" + (text == null ? "" : text);
+			this.text = LocalDateTime.now().toLocalTime() + senderString + "\n" + (text == null ? "" : text);
 			this.color = color;
 			this.type = type;
 		}
+		
+		@Deprecated
 		public MessageInfo(Image img, int width, int height, LoggingLevel type) {
 			super();
 			this.img = img.getScaledInstance(width, height, Image.SCALE_FAST);;
@@ -194,7 +202,14 @@ public final class JMessagePane extends JPanel {
 
 	/**Adds the sender's image, followed by a plain text message.*/
 	public synchronized void message(HasImage sender, String text, Color color, LoggingLevel type) {
-		MessageInfo msg = new MessageInfo(sender == null ? null : sender.getImage(), text, color, type);
+		String senderName = null;
+		if(sender instanceof World) {
+			senderName = "World";
+		} else if(sender instanceof Entity) {
+			senderName = ((Entity)sender).getName();
+		}
+		MessageInfo msg = new MessageInfo(sender == null ? null : sender.getImage(),
+				senderName, text, color, type);
 		allMessages.add(msg);
 		insert(msg);
 	}
