@@ -148,6 +148,9 @@ public final class JEntityEditor extends JTabbedPane {
 			this.image = entity.getImage();
 			this.position = entity.getPosition();
 
+			if(entity instanceof Sign) {
+				signText = ((Sign)entity).getMessage();
+			}
 		}
 
 
@@ -170,6 +173,10 @@ public final class JEntityEditor extends JTabbedPane {
 
 			if (this.permissions != null)
 				entity.setPermissions(this.permissions);
+			
+			if(entity instanceof Sign) {
+				((Sign)entity).setMessage(signText);
+			}
 
 
 			// TODO: write image to Entity?
