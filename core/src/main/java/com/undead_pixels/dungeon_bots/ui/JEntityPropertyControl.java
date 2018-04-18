@@ -4,34 +4,29 @@
 package com.undead_pixels.dungeon_bots.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map.Entry;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 import org.jdesktop.swingx.HorizontalLayout;
 import org.jdesktop.swingx.VerticalLayout;
 
-import com.undead_pixels.dungeon_bots.file.FileControl;
+import com.undead_pixels.dungeon_bots.scene.World.EntityEventType;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.ui.JEntityEditor.State;
 
 /**
  *
@@ -40,145 +35,123 @@ public class JEntityPropertyControl {
 
 	private boolean changed = false;
 	private final JEntityEditor.State state;
-	private JPermissionTree permissions = null;
-	private JTextArea infoPanel = null;
+	private final Entity entity;
+	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
+	
+	private JComponent lazyCreated;
 
 
-	public JEntityPropertyControl(JEntityEditor.State state) {
+	public JEntityPropertyControl(State state) {
+		this.entity = state.entity;
 		this.state = state;
+		
+		entity.getWorld().listenTo(EntityEventType.ENTITY_MOVED, this, (e) -> updateBorderName());
+	}
+	
+	private void updateBorderName() {
+		if(lazyCreated != null) {
+			lazyCreated.setBorder(BorderFactory.createTitledBorder(entity.getName()+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
+		}
 	}
 
 
 	public JComponent create() {
-
-		JPanel propertiesPanel = new JPanel();
-
-		propertiesPanel.setLayout(new BorderLayout());
-
-		/* ActionListener controller = new ActionListener() {
-		 * 
-		 * @Override public void actionPerformed(ActionEvent e) { switch
-		 * (e.getActionCommand()) { case "CHANGE_IMAGE": File f =
-		 * FileControl.openImageDialog(propertiesPanel); if (f == null ||
-		 * !f.exists()) return; Image img =
-		 * UIBuilder.getImage(f.getAbsolutePath()); // TODO: implement image
-		 * changing? default:
-		 * 
-		 * System.err.println("HAVE NOT IMPLEMENTED."); }
-		 * 
-		 * }
-		 * 
-		 * }; */
-
-		JLabel lblImage = UIBuilder.buildLabel().image(state.image.getScaledInstance(150, 150, Image.SCALE_SMOOTH))
-				.border(BorderFactory.createTitledBorder("Image")).create();
-		lblImage.setOpaque(false);
-		lblImage.setHorizontalAlignment(SwingConstants.CENTER);
-		lblImage.setVerticalAlignment(SwingConstants.CENTER);
-		// JButton bttnImage = UIBuilder.buildButton().image(entity.getImage(),
-		// true).prefSize(new Dimension(300, 200)).action("CHANGE_IMAGE",
-		// controller).create();
-		JPanel pnlHeaderText = new JPanel(new VerticalLayout());
-		JTextField fldName = new JTextField(20);
-		fldName.setText(state.name);
-		fldName.getDocument().addDocumentListener(new DocumentListener() {
-
-			@Override
-			public void changedUpdate(DocumentEvent arg0) {
-				state.name = fldName.getText();
-			}
-
-
-			@Override
-			public void insertUpdate(DocumentEvent arg0) {
-				state.name = fldName.getText();
-			}
-
-
-			@Override
-			public void removeUpdate(DocumentEvent arg0) {
-				state.name = fldName.getText();
-			}
-		});
-		pnlHeaderText.add(fldName);
-		pnlHeaderText.add(new JLabel("Position: " + state.position.x + ", " + state.position.y));
-		pnlHeaderText.setBorder(BorderFactory.createTitledBorder("Info"));
-
-
-		JPanel pnlHeader = new JPanel(new BorderLayout());
-		// pnlHeader.add(bttnImage);
-		pnlHeader.add(lblImage, BorderLayout.CENTER);
-		pnlHeader.add(pnlHeaderText, BorderLayout.LINE_END);
-
-		System.out.println("PERMISSIONS:");
-		for (String p : state.permissions.keySet()){
-			System.out.println(p);
+		if(lazyCreated != null) {
+			return lazyCreated;
 		}
-		permissions = new JPermissionTree();
-		permissions.addPermission(Entity.PERMISSION_SELECTION, state.permissions.get("Selection"),
-				"Access level for whether the entity can be selected.  Note that if a user cannot select the entity, the entity editor cannot be opened either.");
-		permissions.addPermission(Entity.PERMISSION_ENTITY_EDITOR,
-				state.permissions.get(Entity.PERMISSION_ENTITY_EDITOR),
-				"Access level for the entity editing dialog (the dialog you're looking at right now).");
-		permissions.addPermission(Entity.PERMISSION_COMMAND_LINE, state.permissions.get(Entity.PERMISSION_COMMAND_LINE),
-				"Access level for the command line in the entity editing dialog.");
-		permissions.addPermission(Entity.PERMISSION_SCRIPT_EDITOR,
-				state.permissions.get(Entity.PERMISSION_SCRIPT_EDITOR),
-				"Access level for the script editor in the entity editing dialog.");
-		permissions.addPermission(Entity.PERMISSION_ADD_REMOVE_SCRIPTS,
-				state.permissions.get(Entity.PERMISSION_ADD_REMOVE_SCRIPTS),
-				"Access level for the property editor in the entity editing dialog (you're looking at the property editor right now).");
-		permissions.addPermission(Entity.PERMISSION_PROPERTIES_EDITOR,
-				state.permissions.get(Entity.PERMISSION_PROPERTIES_EDITOR),
-				"Access level for the property editor in the entity editing dialog (you're looking at the property editor right now).");
-		permissions.addPermission(Entity.PERMISSION_EDIT_HELP, state.permissions.get(Entity.PERMISSION_EDIT_HELP),
-				"Access level for editing the help info for an entity.");
-		permissions.setSecurityLevels(new SecurityLevel[] { SecurityLevel.AUTHOR, SecurityLevel.NONE });
-		permissions.setColors(new Color[] { Color.red, Color.green });
+		Box propertiesPanel = new Box(BoxLayout.Y_AXIS);
+		propertiesPanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
+		
+		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(128, 128, BufferedImage.SCALE_FAST)));
+		imgLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+		imgLabel.setHorizontalAlignment(JLabel.LEFT);
+		
+		propertiesPanel.add(imgLabel);
+		
+		JSeparator separator = new JSeparator();
+		separator.setMaximumSize(new Dimension(99999, 15));
+		propertiesPanel.add(separator);
+		
+		
+//		Entity.PERMISSION_SELECTION
+//		Entity.PERMISSION_ENTITY_EDITOR
+//		Entity.PERMISSION_COMMAND_LINE
+//		PERMISSION_SCRIPT_EDITOR
+//		PERMISSION_ADD_REMOVE_SCRIPTS
+//		PERMISSION_PROPERTIES_EDITOR
+//		PERMISSION_EDIT_HELP "Access level for editing the help info for an entity."
+		
+		checkboxes.add(new CheckboxController("Selection", "SELECTION",
+				"Access to whether the entity can be selected. Note that if a user cannot select the entity, the entity editor cannot be opened either."));
+		checkboxes.add(new CheckboxController("Entity editor", "ENTITY_EDITOR",
+				"Access to the entity editing dialog (the dialog you're looking at right now)."));
+		checkboxes.add(new CheckboxController("Command line", "REPL",
+				"Access level for the command line in the entity editing dialog."));
+		checkboxes.add(new CheckboxController("Script editor", "SCRIPT_EDITOR",
+				"Access level for the script editor in the entity editing dialog."));
+		checkboxes.add(new CheckboxController("Properties editor", "PROPERTIES",
+				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now)."));
 
-		// Create the permission info panel.
-		infoPanel = new JTextArea();
-		infoPanel.setLineWrap(true);
-		infoPanel.setWrapStyleWord(true);
-		infoPanel.setEditable(false);
-		infoPanel.setText("");
-		infoPanel.setEditable(false);
-		infoPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		infoPanel.setOpaque(false);
+		
+		for(CheckboxController c : checkboxes) {
+			propertiesPanel.add(c.makeCheckbox());
+		}
+		
+		propertiesPanel.add(new JPanel()); // spacing
+		
+		JScrollPane scroller = new JScrollPane(propertiesPanel);
 
+		lazyCreated = scroller;
+		updateBorderName();
 
-		// A listener will change the contents and visibility of the info panel.
-		permissions.addTreeSelectionListener(new TreeSelectionListener() {
+		return scroller;
+	}
+	
+	private class CheckboxController {
+		private String title, flagName, description;
+		private JCheckBox checkBox;
 
-			@Override
-			public void valueChanged(TreeSelectionEvent e) {
-				JPermissionTree.Permission p = permissions.getSelection();
-				String info = (p == null) ? "" : p.info + "\n\n" + SecurityLevel.interpret(p.level);
-				infoPanel.setText(info);
-			}
-		});
+		public CheckboxController(String title, String flagName, String description) {
+			super();
+			this.title = title;
+			this.flagName = flagName;
+			this.description = description;
+		}
+		
+		public JComponent makeCheckbox() {
+			checkBox = new JCheckBox(title, entity.getPermission(flagName).level < SecurityLevel.AUTHOR.level);
+			checkBox.setToolTipText(description);
+			checkBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+			
+			Box ret = new Box(BoxLayout.X_AXIS);
+			ret.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+			ret.add(checkBox);
+			ret.add(Box.createGlue());
+			
+			//ret.setBorder(BorderFactory.createEmptyBorder());
+			
+			//ret.setPreferredSize(checkBox.getPreferredSize());
+			
+			return ret;
+			
+		}
 
-		JPanel pnlPermissions = new JPanel(new BorderLayout());
-		pnlPermissions.add(permissions, BorderLayout.LINE_START);
-		pnlPermissions.add(infoPanel, BorderLayout.CENTER);
-
-
-		pnlPermissions.setBorder(BorderFactory.createTitledBorder("Permissions"));
-		propertiesPanel.add(pnlHeader, BorderLayout.PAGE_START);
-		propertiesPanel.add(pnlPermissions, BorderLayout.CENTER);
-
-
-		return propertiesPanel;
+		/**
+		 * @param state 
+		 */
+		public void save (State state) {
+			state.permissions.put(flagName, checkBox.isSelected() ? SecurityLevel.NONE : SecurityLevel.AUTHOR);
+		}
 	}
 
-
-	/**Saves the permissions to the given State.  All other aspects of state should be 
-	 * up-to-date.*/
-	public void save() {
-		HashMap<String, SecurityLevel> p = permissions.getPermissionMap();
-		state.permissions.clear();
-		for (Entry<String, SecurityLevel> entry : p.entrySet())
-			state.permissions.put(entry.getKey(), entry.getValue());
+	/**
+	 * @param state 
+	 * 
+	 */
+	public void save () {
+		for(CheckboxController c: checkboxes) {
+			c.save(state);
+		}
 	}
 }
