@@ -87,6 +87,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.name = name;
 		this.scripts = scripts;
 		standardizeResources();
+		freshenPermissions();
 		if (world != null) {
 			this.id = world.makeID();
 		} else {
@@ -309,6 +310,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		inputStream.defaultReadObject();
 		actionQueue = new ActionQueue(this);
 		standardizeResources();
+		freshenPermissions();
 	}
 
 
@@ -409,6 +411,40 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public static final transient String PERMISSION_EDIT_HELP = "Edit help";
 
 	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
+	
+	private void freshenPermission(String oldName, String newName, SecurityLevel defaultValue) {
+		SecurityLevel oldUntransitionedValue = permissions.get(oldName);
+		if(oldName == null || oldUntransitionedValue == null) {
+			SecurityLevel currentValue = permissions.get(newName);
+			if(currentValue == null) {
+				permissions.put(newName, defaultValue);
+			} else {
+				// already ok
+			}
+		} else {
+			permissions.put(newName, oldUntransitionedValue);
+			permissions.remove(oldName);
+		}
+	}
+	private void freshenPermissions() {
+		if(permissions == null)
+			permissions = new HashMap<>();
+		
+		SecurityLevel editLevel = SecurityLevel.NONE;
+		if(getTeam() == TeamFlavor.AUTHOR) {
+			editLevel = SecurityLevel.AUTHOR;
+		} else if(getTeam() == TeamFlavor.NONE) {
+			// ?
+		}
+
+		// set defaults and copy old permissions over
+		freshenPermission("ENTITY_EDITOR", PERMISSION_ENTITY_EDITOR, SecurityLevel.NONE);
+		freshenPermission("SCRIPT_EDITOR", PERMISSION_SCRIPT_EDITOR, editLevel);
+		freshenPermission("PROPERTIES", PERMISSION_PROPERTIES_EDITOR, SecurityLevel.AUTHOR);
+		freshenPermission("REPL", PERMISSION_COMMAND_LINE, editLevel);
+		freshenPermission("SELECTION", PERMISSION_SELECTION, SecurityLevel.NONE);
+
+	}
 
 
 	/**Returns the permissions associated with this Entity.  Does not reference the whitelist, but
@@ -425,36 +461,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	/**Returns a COPY hash map containing all the permissions that have been set for this Entity.*/
 	public HashMap<String, SecurityLevel> getPermissions() {
-		HashMap<String, SecurityLevel> ret = new HashMap<String, SecurityLevel>();
-		if (permissions == null)
-			return ret;
-		
-		for (Entry<String, SecurityLevel> entry : permissions.entrySet()) {
-			
-			// This switch block is used to adapt the old names of the permissions to the new.
-			switch (entry.getKey().toUpperCase()) {
-			case "ENTITY_EDITOR":
-				ret.put(PERMISSION_ENTITY_EDITOR, entry.getValue());
-				break;
-			case "SCRIPT_EDITOR":
-				ret.put(PERMISSION_SCRIPT_EDITOR, entry.getValue());
-				break;
-			case "PROPERTIES":
-				ret.put(PERMISSION_PROPERTIES_EDITOR, entry.getValue());
-				break;
-			case "REPL":
-				ret.put(PERMISSION_COMMAND_LINE, entry.getValue());
-				break;
-			case "SELECTION":
-				ret.put(PERMISSION_SELECTION, entry.getValue());
-				break;
-			default:
-				ret.put(entry.getKey(), entry.getValue());
-			}
-
-		}
-
-		return ret;
+		return new HashMap<String, SecurityLevel>(permissions);
 	}
 
 
