@@ -1374,7 +1374,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Shows a popup box'
 	 *
-	 * @param alert
 	 * @param title
 	 */
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
@@ -1791,7 +1790,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * references things like:  can the REPL be accessed through this entity?  Etc*/
 	public SecurityLevel getPermission(String name) {
 		if (permissions == null)
-			permissions = new HashMap<String, SecurityLevel>();
+			permissions = new HashMap<>();
 		SecurityLevel s = permissions.get(name);
 		if (s == null)
 			return SecurityLevel.NONE;
@@ -1803,7 +1802,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * references things like:  can the REPL be accessed through this entity?  Etc*/
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
-			permissions = new HashMap<String, SecurityLevel>();
+			permissions = new HashMap<>();
 		this.message(this, "Changing security level of  "+name+" to "+level.name(), LoggingLevel.DEBUG);
 		permissions.put(name, level);
 	}

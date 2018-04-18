@@ -44,7 +44,9 @@ public class Demon extends Actor implements HasImage , Pushable {
 	@Override
 	public LuaSandbox getSandbox() {
 		final LuaSandbox sandbox = super.getSandbox();
-		sandbox.registerEventType("BUMPED", "Called when the demon is bumped into", "entity", "direction");
+		sandbox.registerEventType("BUMPED",
+				"Called when the demon is bumped into",
+				"entity", "direction");
 		return sandbox;
 	}
 

@@ -574,7 +574,7 @@ public final class LuaSandbox implements Serializable {
 	 * 						which would create a function in the lua environment named registerFooBarBlahListener
 	 */
 	public synchronized void registerEventType(String eventName, String description, String... argNames) {
-		eventListeners.put(eventName, new HashSet<LuaValue>());
+		eventListeners.put(eventName, new HashSet<>());
 		EventInfo einfo = new EventInfo(eventName, description, argNames);
 		eventInfos.put(eventName, einfo);
 		
