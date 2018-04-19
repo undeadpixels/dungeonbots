@@ -4,7 +4,6 @@ import java.awt.AWTEvent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Event;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -22,7 +21,7 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.event.ChangeListener;
+import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
 
 import com.undead_pixels.dungeon_bots.math.Cartesian;
@@ -31,7 +30,6 @@ import com.undead_pixels.dungeon_bots.scene.EntityType;
 import com.undead_pixels.dungeon_bots.scene.LoggingLevel;
 import com.undead_pixels.dungeon_bots.scene.TileType;
 import com.undead_pixels.dungeon_bots.scene.World;
-import com.undead_pixels.dungeon_bots.scene.entities.Actor;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.HasImage;
 import com.undead_pixels.dungeon_bots.scene.entities.Tile;
@@ -127,6 +125,18 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			ex.printStackTrace();
 		}
 		return false;
+	}
+
+
+	/**This method is called when the tool is first activated as the selected tool.*/
+	public void onActivated() {
+
+	}
+
+
+	/**This method is called when the tool is no longer the activated, selected tool.*/
+	public void onDeactivated() {
+
 	}
 
 
@@ -237,10 +247,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		/**Returns the minimum zoom value for this control, based on the world's size.*/
 		public float getMinZoom() {
 			Point2D.Float size = view.getWorld().getSize();
-			float min = Math.min(size.x, size.y);
-			float max = Math.max(size.x, size.y);
-			float aspect = Math.min(min, max);
-			return MIN_ZOOM_SCALAR / aspect;
+			float maxMeasure = Math.max(size.x, size.y);
+			return MIN_ZOOM_SCALAR / maxMeasure;
 		}
 
 
@@ -385,9 +393,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.fireViewChanged(priorZoom, priorCenter, zoom, center);
 		}
 
-		public void setMapView(){
+
+		public void setMapView() {
 			view.getCamera().zoomFor(view.getWorld().getSize());
 		}
+
 
 		/**Embodies view state for a quick return to that view.*/
 		public static final class ViewPreset {
@@ -453,6 +463,125 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	}
 
 
+	public static class Eraser extends Tool {
+
+		private World world;
+		private final WorldView view;
+
+
+		public void setWorld(World world) {
+			this.world = world;
+		}
+
+
+		public Eraser(WorldView view, World world) {
+			super("Eraser", UIBuilder.getImage("icons/cross_48x48.png"));
+			this.view = view;
+			this.world = world;
+		}
+
+
+		public void onDeactivated() {
+			view.setSelectedEntities(null);
+			view.setSelectedTiles(null);
+		}
+
+
+		public Undoable<Entity> removeEntity(Entity e) {
+			if (world.removeEntity(e)) {
+				return new Undoable<Entity>(e, null) {
+
+					@Override
+					protected void undoValidated() {
+						if (world.containsEntity(e))
+							error();
+						world.addEntity(e);
+					}
+
+
+					@Override
+					protected void redoValidated() {
+						if (!world.containsEntity(e))
+							error();
+						world.removeEntity(e);
+					}
+				};
+			} else
+				return null;
+		}
+
+
+		public Undoable<Tile> removeTile(Integer x, Integer y) {
+			Tile oldTile = world.getTile(x, y);
+			world.setTile(x, y, (Tile) null);
+			return new Undoable<Tile>(oldTile, null) {
+
+				@Override
+				protected void undoValidated() {
+					if (world.getTile(x, y) != null)
+						error();
+					world.setTile(x, y, oldTile);
+				}
+
+
+				@Override
+				protected void redoValidated() {
+					if (world.getTile(x, y) != oldTile)
+						error();
+					world.setTile(x, y, (Tile) null);
+				}
+
+			};
+		}
+
+
+		public void mouseMoved(MouseEvent e) {
+			if (e.getButton() != MouseEvent.NOBUTTON)
+				return;
+			Point2D.Float pt = view.getScreenToGameCoords(e.getX(), e.getY());
+			Entity en = world.getEntityUnderLocation(pt.x, pt.y);
+			if (en != null) {
+				view.setSelectedEntities(new Entity[] { en });
+				e.consume();
+				return;
+			}
+			Tile t = world.getTile((int) pt.x, (int) pt.y);
+			if (t != null) {
+				view.setSelectedTiles(new Tile[] { t });
+				e.consume();
+				return;
+			}
+		}
+
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				Point2D.Float pt = view.getScreenToGameCoords(e.getX(), e.getY());
+				Entity en = world.getEntityUnderLocation(pt.x, pt.y);
+				if (en != null) {
+					Undoable<?> u = removeEntity(en);
+					if (u != null)
+						pushUndo(world, u);
+					view.setSelectedEntities(null);
+					e.consume();
+					return;
+				}
+				Tile t = world.getTile(pt.x, pt.y);
+				if (t != null) {
+					Undoable<?> u = removeTile((int) pt.x, (int) pt.y);
+					if (u != null)
+						pushUndo(world, u);
+					view.setSelectedTiles(null);
+					e.consume();
+					return;
+				}
+
+			}
+		}
+	}
+
+
 	public static class Selector extends Tool {
 
 		private final WorldView view;
@@ -471,6 +600,13 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.owner = owner;
 			this.world = view.getWorld();
 			this.securityLevel = securityLevel;
+		}
+
+
+		public void setWorld(World world) {
+			this.world = world;
+			cornerA = null;
+			cornerB = null;
 		}
 
 
@@ -569,6 +705,12 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// selection, just update the tile selection. Otherwise, nothing
 			// is selected.
 			List<Entity> se = world.getEntitiesUnderLocation(rect);
+			if (se.size() == 1) {
+				// Fire the entity's onClicked event
+				se.get(0).getSandbox().fireEvent("CLICKED");
+				se.get(0).getWorld().getSandbox().fireEvent("ENTITY_CLICKED", se.get(0).getLuaValue());
+			}
+			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
 			List<Tile> st = world.getTilesUnderLocation(rect);
 
 			System.out.println(se);
@@ -579,15 +721,20 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// entity.
 			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
 				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
+				JEntityEditor jee = null;
+				if (se.get(0).getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
+					jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
+
+				}
 				if (jee == null) {
 					world.message((se.get(0) instanceof HasImage) ? (HasImage) se.get(0) : null,
 							"This entity cannot be edited.", LoggingLevel.GENERAL);
 					return;
+				} else {
+					jee.setVisible(true);
+					view.setSelectedTiles(null);
 				}
 
-				jee.setVisible(true);
-				view.setSelectedTiles(null);
 			}
 			// If some number of entities are lassoed, select them (if
 			// allowed).
@@ -637,25 +784,18 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
-		/**
-		 * @param world
-		 */
-		public void setWorld(World world) {
-			this.world = world;
-		}
-
 	}
 
 
 	public static class TilePen extends Tool {
 
 		private final WorldView view;
-		private final World world;
+		private World world;
 		private HashMap<Point, Tile> oldTiles = null;
 		private HashMap<Point, Tile> newTiles = null;
 
 		public final SelectionModel selection;
-		private TileType drawingTileType;
+		private TileType drawingTileType = null;
 
 
 		public TilePen(WorldView view, SelectionModel selection) {
@@ -663,6 +803,14 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			this.view = view;
 			this.world = view.getWorld();
 			this.selection = selection;
+		}
+
+
+		public void setWorld(World world) {
+			this.world = world;
+			oldTiles = null;
+			newTiles = null;
+			drawingTileType = null;
 		}
 
 
@@ -794,7 +942,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 	public static class EntityPlacer extends Tool {
 
 		private final WorldView view;
-		private final World world;
+		private World world;
 		private final SelectionModel selection;
 		private final Window owner;
 		private final SecurityLevel securityLevel;
@@ -810,6 +958,11 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		}
 
 
+		public void setWorld(World world) {
+			this.world = world;
+		}
+
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 
@@ -819,16 +972,25 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// What if an entity already exists at this spot?
 			Entity alreadyThere = world.getEntityUnderLocation(gamePos.x, gamePos.y);
 			if (alreadyThere != null) {
-				view.setSelectedEntities(new Entity[] { alreadyThere });
-				JEntityEditor jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(),
-						securityLevel, view);
-				if (jee == null) {
-					world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
-							"This entity cannot be edited.", LoggingLevel.GENERAL);
-					return;
+				if (alreadyThere.getPermission(Entity.PERMISSION_SELECTION).level <= securityLevel.level) {
+					view.setSelectedEntities(new Entity[] { alreadyThere });
+
+					JEntityEditor jee = null;
+					if (alreadyThere.getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
+						jee = JEntityEditor.createDialog(owner, alreadyThere, alreadyThere.getName(), securityLevel,
+								view);
+
+					}
+					if (jee == null) {
+						world.message((alreadyThere instanceof HasImage) ? (HasImage) alreadyThere : null,
+								"This entity cannot be edited.", LoggingLevel.GENERAL);
+						return;
+					} else {
+						jee.setVisible(true);
+						view.setSelectedTiles(null);
+					}
+
 				}
-				jee.setVisible(true);
-				view.setSelectedTiles(null);
 				return;
 			} else {
 				int x = (int) gamePos.x, y = (int) gamePos.y;
@@ -866,7 +1028,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 				pushUndo(world, placeUndoable);
 
 
-				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel, view);
+				JEntityEditor jee = JEntityEditor.createDialog(owner, newEntity, newEntity.getName(), securityLevel,
+						view);
 				jee.setVisible(true);
 				view.setSelectedEntities(new Entity[] { newEntity });
 			}

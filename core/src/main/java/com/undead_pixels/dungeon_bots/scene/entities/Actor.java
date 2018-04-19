@@ -275,7 +275,33 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			this.queueMoveSlowly(direction, blocking);
 		return this;
 	}
-	
+
+	@Bind(value = SecurityLevel.NONE, doc = "Ask the bot to wait the specified number of turns")
+	@BindTo("wait")
+	public Actor waitFor(@Doc("The number of turns to wait") Varargs args) {
+		int SIZE = args.narg();
+		int n;
+		if (SIZE < 2)
+			n = args.arg1().isint() ? args.arg1().checkint() : 1;
+		else
+			n = args.arg(2).checkint();
+		this.queueWait(n);
+		return this;
+	}
+
+	private void queueWait(int n) {
+		final SpriteAnimatedAction waitAnimation = new SpriteAnimatedAction(sprite, getMoveDuration()) {
+
+			public boolean preAct() {
+				world.message(Actor.this, String.format("%s waits...", getName()), LoggingLevel.DEBUG);
+				return true;
+			}
+		};
+		for(int i = 0; i < n; i ++) {
+			actionQueue.enqueue(waitAnimation);
+		}
+	}
+
 	/**
 	 * Moves the player a given direction and distance
 	 * @author Stewart Charles

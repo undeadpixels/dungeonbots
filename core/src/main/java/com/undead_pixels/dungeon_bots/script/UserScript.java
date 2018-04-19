@@ -2,7 +2,6 @@ package com.undead_pixels.dungeon_bots.script;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
@@ -12,7 +11,6 @@ import java.util.Arrays;
 import javax.swing.text.BadLocationException;
 
 import com.undead_pixels.dungeon_bots.math.IntegerSet;
-import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 
 /**

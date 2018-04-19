@@ -126,7 +126,8 @@ public class Door extends Actor implements Lockable, Useable, HasInventory {
 	public void unlock() {
 		getSandbox().fireEvent("UNLOCK");
 		this.locked = false;
-		this.sprite.setTexture(defaultTexture);
+		if(!this.open)
+			this.sprite.setTexture(defaultTexture);
 	}
 
 	@Override

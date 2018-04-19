@@ -55,14 +55,15 @@ public class JPackDownloadDialog extends JDialog {
 
 	private static final String CARD_LIST = "LIST";
 	private static final String CARD_ERROR = "ERROR";
-	private static final String WEBSITE = " https://dungeonbots.herokuapp.com";
+	//private static final String WEBSITE = " https://dungeonbots.herokuapp.com";
 	private static final String BAD_DOWNLOAD_IMAGE = "images/sprite.jpg";
 	private static final Dimension ICON_SIZE = new Dimension(40, 40);
 	private JList<Page.Pack> list;
 	private JButton bttnDownload, bttnCancel, bttnPrevPage, bttnNextPage, bttnFirstPage, bttnLastPage;
 
 
-	private LevelPack result;
+	private LevelPack resultPack;
+	private String resultJson;
 	private Page currentPage;
 	private JTextPane errorPane;
 	private JPanel contentPnl;
@@ -146,25 +147,30 @@ public class JPackDownloadDialog extends JDialog {
 
 
 	/**Returns the result of the download.  If nothing was downloaded, this value is null.*/
-	public LevelPack getResult() {
-		return this.result;
+	public LevelPack getResultPack() {
+		return this.resultPack;
+	}
+	
+	public String getResultJson(){
+		return this.resultJson;
 	}
 
 
 	private static final Gson gson = new Gson();
 
 
-	private static final LevelPack downloadPack(Page.Pack stub) {
+	private final void downloadPack(Page.Pack stub) {
 
-		String url = WEBSITE + stub.file_link;
-		String json = downloadResource(url);
 		try {
-			LevelPack p = LevelPack.fromJson(json);
-			return p;
+
+			String url = stub.file_link;
+			String json = downloadResource(url);
+			LevelPack p = LevelPack.fromJsonPartial(json);
+			resultJson = json;	
+			resultPack = p;			
+			return;
 		} catch (Exception e) {
-			System.err.println("Could not parse JSON LevelPack.");
-			// e.printStackTrace();
-			return null;
+			System.err.println("Could not parse JSON LevelPack. " + e.getMessage());
 		}
 	}
 
@@ -313,8 +319,8 @@ public class JPackDownloadDialog extends JDialog {
 		for (Page.Pack pack : currentPage.packs) {
 			model.addElement(pack);
 			try {
-				String resource = downloadResource(WEBSITE + pack.picture_link);
-				URL url = new URL(WEBSITE + pack.picture_link);
+				String resource = downloadResource(pack.picture_link);
+				URL url = new URL(pack.picture_link);
 				pack.image = UIBuilder.getImage(url);
 			} catch (Exception ex) {
 			}
@@ -396,7 +402,7 @@ public class JPackDownloadDialog extends JDialog {
 				setPage(currentPage.page - 1);
 				return;
 			case "CANCEL":
-				result = null;
+				resultPack = null;
 				JPackDownloadDialog.this.dispose();
 				return;
 			case "NEXT_PAGE":
@@ -429,7 +435,7 @@ public class JPackDownloadDialog extends JDialog {
 				if (idx >= currentPage.packs.length)
 					return;
 				Page.Pack stub = currentPage.packs[idx];
-				result = downloadPack(stub);
+				downloadPack(stub);
 				JPackDownloadDialog.this.dispose();
 				return;
 			default:
