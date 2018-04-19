@@ -3,6 +3,7 @@
  */
 package com.undead_pixels.dungeon_bots.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
@@ -40,7 +41,8 @@ public class JEntityPropertyControl {
 	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
 	private final State state;
 	
-	private JComponent lazyCreated;
+	private JComponent lazyCreatedRenamedPanel;
+	private JComponent lazyCreatedTotalPanel;
 
 
 	public JEntityPropertyControl(State state) {
@@ -51,41 +53,49 @@ public class JEntityPropertyControl {
 	}
 	
 	private void updateBorderName() {
-		if(lazyCreated != null) {
-			lazyCreated.setBorder(BorderFactory.createTitledBorder(state.name+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
+		if(lazyCreatedRenamedPanel != null) {
+			lazyCreatedRenamedPanel.setBorder(BorderFactory.createTitledBorder(state.name+" @ "+"("+entity.getPosition().x+", "+entity.getPosition().y+")"));
 		}
 	}
 
 
 	public JComponent create() {
-		if(lazyCreated != null) {
-			return lazyCreated;
+		if(lazyCreatedTotalPanel != null) {
+			return lazyCreatedTotalPanel;
 		}
 		Box propertiesPanel = new Box(BoxLayout.Y_AXIS);
-		propertiesPanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 
 		Box topBox = new Box(BoxLayout.X_AXIS);
 		
-		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(64, 64, BufferedImage.SCALE_FAST)));
+		JLabel imgLabel = new JLabel(new ImageIcon(entity.getImage().getScaledInstance(150, 150, BufferedImage.SCALE_FAST)));
 		imgLabel.setAlignmentX(0.0f);
 		imgLabel.setHorizontalAlignment(JLabel.LEFT);
 		topBox.add(imgLabel);
-		topBox.add(new JPanel()); // spacing
 		
 		
 		JTextField fldName = new JTextField(10);
+		JLabel nameFieldLabel = new JLabel("Name:");
+		Color originalColor = nameFieldLabel.getForeground();
 		fldName.setText(entity.getName());
 		fldName.getDocument().addDocumentListener(new DocumentListener() {
 			
 			@Override
 			public void changedUpdate(DocumentEvent arg0) {
-				state.name = fldName.getText();
+				String name = fldName.getText();
+				if(name.isEmpty()) {
+					name = entity.getName(); // old name
+					nameFieldLabel.setForeground(Color.red);
+				} else {
+					nameFieldLabel.setForeground(originalColor);
+				}
+				
+				state.name = name;
 				updateBorderName();
 				
-				Window root = SwingUtilities.getWindowAncestor(lazyCreated);
+				Window root = SwingUtilities.getWindowAncestor(lazyCreatedRenamedPanel);
 				
 				if(root instanceof JDialog) {
-					((JDialog) root).setTitle(fldName.getText());
+					((JDialog) root).setTitle(name);
 				}
 			}
 			
@@ -106,32 +116,26 @@ public class JEntityPropertyControl {
 		Box nameBox = new Box(BoxLayout.X_AXIS);
 		nameBox.setAlignmentX(1.0f);
 		nameBox.setAlignmentY(JComponent.CENTER_ALIGNMENT);
-		nameBox.add(new JPanel());
-		nameBox.add(new JLabel("Name:"));
+		nameBox.add(nameFieldLabel);
 		nameBox.add(fldName);
+		nameBox.add(Box.createGlue());
 		
 		Box nameBoxWrapper = new Box(BoxLayout.Y_AXIS);
 		nameBoxWrapper.add(Box.createGlue());
 		nameBoxWrapper.add(nameBox);
 		nameBoxWrapper.add(Box.createGlue());
 		topBox.add(nameBoxWrapper);
-		topBox.setMaximumSize(new Dimension(99999, 120));
+		topBox.add(Box.createGlue());
+		topBox.setMaximumSize(new Dimension(99999, 170));
 		
 		
 		
 		propertiesPanel.add(topBox);
 		
-		JSeparator separator = new JSeparator();
-		separator.setMaximumSize(new Dimension(99999, 15));
-		propertiesPanel.add(separator);
+		Box bottomPanel = new Box(BoxLayout.Y_AXIS);
+		bottomPanel.setBorder(BorderFactory.createTitledBorder("Settings"));
 		
-		
-//		Entity.PERMISSION_SELECTION
-//		Entity.PERMISSION_ENTITY_EDITOR
-//		Entity.PERMISSION_COMMAND_LINE
-//		Entity.PERMISSION_SCRIPT_EDITOR
 //		Entity.PERMISSION_ADD_REMOVE_SCRIPTS
-//		Entity.PERMISSION_PROPERTIES_EDITOR
 //		Entity.PERMISSION_EDIT_HELP "Access level for editing the help info for an entity."
 		
 		checkboxes.add(new CheckboxController("Selection", Entity.PERMISSION_SELECTION,
@@ -147,18 +151,19 @@ public class JEntityPropertyControl {
 
 		
 		for(CheckboxController c : checkboxes) {
-			propertiesPanel.add(c.makeCheckbox());
+			bottomPanel.add(c.makeCheckbox());
 		}
 		
 		//propertiesPanel.add(new JPanel()); // spacing
 		
-		JScrollPane scroller = new JScrollPane(propertiesPanel);
-		scroller.setAlignmentX(0.0f);
+		JScrollPane scroller = new JScrollPane(bottomPanel);
+		propertiesPanel.add(scroller);
 
-		lazyCreated = scroller;
+		lazyCreatedRenamedPanel = topBox;
+		lazyCreatedTotalPanel = propertiesPanel;
 		updateBorderName();
 
-		return lazyCreated;
+		return lazyCreatedTotalPanel;
 	}
 	
 	private class CheckboxController {
