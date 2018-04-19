@@ -153,7 +153,6 @@ public final class JEntityEditor extends JTabbedPane {
 			}
 		}
 
-
 		public static State fromEntity(Entity entity) {
 			State s = new State(entity);
 			return s;
@@ -185,7 +184,6 @@ public final class JEntityEditor extends JTabbedPane {
 
 			return true;
 		}
-
 
 	}
 

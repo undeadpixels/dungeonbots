@@ -260,7 +260,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		this.name = name.checkjstring();
 	}
 
-
 	public final void setName(String name) {
 		this.name = name;
 	}
@@ -295,7 +294,6 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	public final String getHelp() {
 		return this.help;
 	}
-
 
 	public abstract float getScale();
 
