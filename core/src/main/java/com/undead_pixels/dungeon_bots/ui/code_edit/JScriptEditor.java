@@ -276,9 +276,9 @@ public final class JScriptEditor extends JPanel {
 			if (offset <= _Doc.getLength() - 1 && text.endsWith(existingText)) {
 
 				switch (text) {
-				case "\"\"":
-					text = "\"";
-					System.out.println("quotes");
+				//case "\"\"":
+					//text = "\"";
+					//System.out.println("quotes");
 				case ")":
 
 				case "]":
