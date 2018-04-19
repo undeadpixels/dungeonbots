@@ -407,7 +407,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 			this.didInit = true;
 			
-			this.message(this, "World Initialization finished", LoggingLevel.DEBUG);
+			this.message(this, "World initialization finished", LoggingLevel.GENERAL);
 		}
 	}
 
