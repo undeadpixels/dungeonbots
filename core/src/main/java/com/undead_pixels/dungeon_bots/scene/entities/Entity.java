@@ -292,7 +292,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 
 	@Bind(value = SecurityLevel.NONE, doc = "Gets the help associated with this Entity.")
 	public final String getHelp() {
-		return this.help;
+		return this.help();
 	}
 
 	public abstract float getScale();
