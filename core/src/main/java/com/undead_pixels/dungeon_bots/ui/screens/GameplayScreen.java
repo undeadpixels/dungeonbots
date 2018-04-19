@@ -178,16 +178,23 @@ public class GameplayScreen extends Screen {
 
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
-		playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
-				.action(COMMAND_MAIN_MENU, getController()).text("Exit").border(new EmptyBorder(10, 10, 10, 10))
-				.create());
+		if(isSwitched) {
+			JButton switchBttn = UIBuilder.buildButton().image("icons/arrow_switch.png").text("Return to Editor")
+					.action("Switch to Editor", getController())
+					.border(new EmptyBorder(10, 10, 10, 10)).create();
+			playToolBar.add(switchBttn);
+		} else {
+			playToolBar.add(UIBuilder.buildButton().image("icons/turn off.png").toolTip("Go back to start menu.")
+					.action(COMMAND_MAIN_MENU, getController()).text("Exit").border(new EmptyBorder(10, 10, 10, 10))
+					.create());
+		}
 		playToolBar.addSeparator();
-		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
-				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50)
-				.border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.add(UIBuilder.buildButton().image("icons/rewind.png").toolTip("Rewind the game.")
 				.action(COMMAND_REWIND, getController()).preferredSize(50, 50).border(new EmptyBorder(10, 10, 10, 10))
 				.create());
+		playToolBar.add(_PlayStopBttn = UIBuilder.buildButton().image("icons/play.png").toolTip("Start the game.")
+				.action(COMMAND_PLAY_STOP, getController()).preferredSize(50, 50)
+				.border(new EmptyBorder(10, 10, 10, 10)).create());
 		playToolBar.addSeparator();
 		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
 				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10, 10, 10, 10)).create());
@@ -206,10 +213,6 @@ public class GameplayScreen extends Screen {
 			// property hasn't been set when addComponents is called.
 			@Override
 			public void run() {
-				JButton switchBttn = UIBuilder.buildButton().image("icons/arrow_switch.png").text("Switch to Editor")
-						.action("Switch to Editor", getController()).enabled(isSwitched)
-						.border(new EmptyBorder(10, 10, 10, 10)).create();
-				playToolBar.add(switchBttn);
 			}
 
 		});
@@ -432,13 +435,13 @@ public class GameplayScreen extends Screen {
 				_ViewControl.setMapView();
 				break;
 			case COMMAND_MAIN_MENU:
-				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
+				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", "Main Menu",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					DungeonBotsMain.instance.setCurrentScreen(new MainMenuScreen());
 
 				break;
 			case COMMAND_QUIT:
-				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", e.getActionCommand(),
+				if (JOptionPane.showConfirmDialog(GameplayScreen.this, "Are you sure?", "Quit",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 					System.exit(0);
 				break;
