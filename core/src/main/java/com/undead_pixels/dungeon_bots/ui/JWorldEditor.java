@@ -158,7 +158,7 @@ public class JWorldEditor extends JTabbedPane {
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
-		pnlButtons.add(UIBuilder.buildButton().image("icons/cancel.png").toolTip("Cancel changes and close the dialog.")
+		pnlButtons.add(UIBuilder.buildButton().image("icons/Close.png").toolTip("Cancel changes and close the dialog.")
 				.action("CANCEL", dialogController).create());
 		dialog.add(pnlButtons, BorderLayout.PAGE_END);
 		dialog.pack();

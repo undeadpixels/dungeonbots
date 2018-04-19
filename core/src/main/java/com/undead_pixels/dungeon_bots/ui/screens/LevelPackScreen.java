@@ -266,7 +266,7 @@ public class LevelPackScreen extends Screen {
 				_BttnWorldDown = UIBuilder.buildButton().image("icons/down.png").action("WORLD_DOWN", getController())
 						.text("Move down").textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).focusable(false)
 						.toolTip("Move this world down one slot.").create());
-		treeBttns.add(_BttnPlayLevel = UIBuilder.buildButton().image("icons/play.png").text("PLAY")
+		treeBttns.add(_BttnPlayLevel = UIBuilder.buildButton().image("icons/play.png").text("Play")
 				.textPosition(SwingConstants.CENTER, SwingConstants.BOTTOM).toolTip("Play this world.")
 				.action("PLAY_LEVEL", getController()).focusable(true).create());
 
