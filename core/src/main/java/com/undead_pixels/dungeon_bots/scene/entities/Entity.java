@@ -442,6 +442,7 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 		freshenPermission("PROPERTIES", PERMISSION_PROPERTIES_EDITOR, SecurityLevel.AUTHOR);
 		freshenPermission("REPL", PERMISSION_COMMAND_LINE, editLevel);
 		freshenPermission("SELECTION", PERMISSION_SELECTION, SecurityLevel.NONE);
+		freshenPermission(null, PERMISSION_ADD_REMOVE_SCRIPTS, editLevel);
 
 	}
 

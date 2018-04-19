@@ -257,7 +257,7 @@ public final class JEntityEditor extends JTabbedPane {
 		JEntityEditor jee = new JEntityEditor(entity, securityLevel, transparent);
 
 		if (jee.getTabCount() == 0) // Security allow any editing?
-			return null;
+			return jee;
 
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
@@ -304,26 +304,30 @@ public final class JEntityEditor extends JTabbedPane {
 		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
-		jee.dialog = dialog;
-
-
-		// If a dialog is disposed, it should remove the entity from the
-		// already-open dialog list, and dispose of any help frames so they're
-		// not orphans.
-		dialog.addWindowListener(new WindowListenerAdapter() {
-
-			@Override
-			protected void event(WindowEvent e) {
-				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-					return;
-				openEditors.remove(entity);
-				if (jee._OpenHelpFrame != null)
-					jee._OpenHelpFrame.dispose();
-
-			}
-		});
-
-		dialog.setSize(600, 500);
+		if(jee.getTabCount() > 0) {
+			jee.dialog = dialog;
+			
+			
+			// If a dialog is disposed, it should remove the entity from the
+			// already-open dialog list, and dispose of any help frames so they're
+			// not orphans.
+			dialog.addWindowListener(new WindowListenerAdapter() {
+				
+				@Override
+				protected void event(WindowEvent e) {
+					if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+						return;
+					openEditors.remove(entity);
+					if (jee._OpenHelpFrame != null)
+						jee._OpenHelpFrame.dispose();
+					
+				}
+			});
+			
+			dialog.setSize(600, 500);
+		} else {
+			dialog.dispose();
+		}
 
 		return jee;
 	}

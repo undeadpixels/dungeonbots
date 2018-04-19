@@ -139,14 +139,15 @@ public class JEntityPropertyControl {
 		
 		checkboxes.add(new CheckboxController("Selection", Entity.PERMISSION_SELECTION,
 				"Access to whether the entity can be selected. Note that if a user cannot select the entity, the entity editor cannot be opened either."));
-		checkboxes.add(new CheckboxController("Entity editor", Entity.PERMISSION_ENTITY_EDITOR,
-				"Access to the entity editing dialog (the dialog you're looking at right now)."));
 		checkboxes.add(new CheckboxController("Command line", Entity.PERMISSION_COMMAND_LINE,
 				"Access level for the command line in the entity editing dialog."));
 		checkboxes.add(new CheckboxController("Script editor", Entity.PERMISSION_SCRIPT_EDITOR,
 				"Access level for the script editor in the entity editing dialog."));
+		checkboxes.add(new CheckboxController("Add/Remove Scripts", Entity.PERMISSION_ADD_REMOVE_SCRIPTS,
+				"Whether or not the \"add\" and \"remove\" buttons should be enabled in the script editor\n(Only meaningful if the script editor is enabled)."));
 		checkboxes.add(new CheckboxController("Properties editor", Entity.PERMISSION_PROPERTIES_EDITOR,
 				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now)."));
+		
 
 		
 		for(CheckboxController c : checkboxes) {
