@@ -114,8 +114,6 @@ public class JEntityPropertyControl {
 		fldName.setMaximumSize(fldName.getPreferredSize());
 		
 		Box nameBox = new Box(BoxLayout.X_AXIS);
-		nameBox.setAlignmentX(1.0f);
-		nameBox.setAlignmentY(JComponent.CENTER_ALIGNMENT);
 		nameBox.add(nameFieldLabel);
 		nameBox.add(fldName);
 		nameBox.add(Box.createGlue());
@@ -124,6 +122,7 @@ public class JEntityPropertyControl {
 		nameBoxWrapper.add(Box.createGlue());
 		nameBoxWrapper.add(nameBox);
 		nameBoxWrapper.add(Box.createGlue());
+		topBox.add(Box.createHorizontalStrut(20));
 		topBox.add(nameBoxWrapper);
 		topBox.add(Box.createGlue());
 		topBox.setMaximumSize(new Dimension(99999, 170));
