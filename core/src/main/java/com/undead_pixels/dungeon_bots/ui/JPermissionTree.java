@@ -30,6 +30,8 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.TreeUI;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
@@ -161,6 +163,15 @@ public class JPermissionTree extends JTree {
 			}
 		}
 		this.setModel(model);
+		
+
+		TreeUI uncastUI = getUI();
+		
+		if(uncastUI instanceof BasicTreeUI) {
+			BasicTreeUI ui = (BasicTreeUI)uncastUI;
+			ui.setCollapsedIcon(TreeIcons.collapsedIcon);
+			ui.setExpandedIcon(TreeIcons.expandedIcon);
+		}
 	}
 
 

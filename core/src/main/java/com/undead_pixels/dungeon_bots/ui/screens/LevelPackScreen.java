@@ -44,6 +44,8 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.TreeUI;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
@@ -63,6 +65,7 @@ import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.ui.JPackDownloadDialog;
+import com.undead_pixels.dungeon_bots.ui.TreeIcons;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 import com.undead_pixels.dungeon_bots.ui.undo.UndoStack;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -237,6 +240,14 @@ public class LevelPackScreen extends Screen {
 		_Tree.setExpandsSelectedPaths(true);
 		_Tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		_Tree.addTreeSelectionListener((TreeSelectionListener) getController());
+
+		TreeUI uncastUI = _Tree.getUI();
+		
+		if(uncastUI instanceof BasicTreeUI) {
+			BasicTreeUI ui = (BasicTreeUI)uncastUI;
+			ui.setCollapsedIcon(TreeIcons.collapsedIcon);
+			ui.setExpandedIcon(TreeIcons.expandedIcon);
+		}
 
 
 		JPanel treeBttns = new JPanel();
