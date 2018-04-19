@@ -55,7 +55,7 @@ public class JPackDownloadDialog extends JDialog {
 
 	private static final String CARD_LIST = "LIST";
 	private static final String CARD_ERROR = "ERROR";
-	private static final String WEBSITE = " https://dungeonbots.herokuapp.com";
+	//private static final String WEBSITE = " https://dungeonbots.herokuapp.com";
 	private static final String BAD_DOWNLOAD_IMAGE = "images/sprite.jpg";
 	private static final Dimension ICON_SIZE = new Dimension(40, 40);
 	private JList<Page.Pack> list;
@@ -156,7 +156,8 @@ public class JPackDownloadDialog extends JDialog {
 
 	private static final LevelPack downloadPack(Page.Pack stub) {
 
-		String url = WEBSITE + stub.file_link;
+		//String url = WEBSITE + stub.file_link;
+		String url = stub.file_link;
 		String json = downloadResource(url);
 		try {
 			LevelPack p = LevelPack.fromJson(json);
@@ -313,8 +314,10 @@ public class JPackDownloadDialog extends JDialog {
 		for (Page.Pack pack : currentPage.packs) {
 			model.addElement(pack);
 			try {
-				String resource = downloadResource(WEBSITE + pack.picture_link);
-				URL url = new URL(WEBSITE + pack.picture_link);
+				//String resource = downloadResource(WEBSITE + pack.picture_link);
+				String resource = downloadResource(pack.picture_link);
+				//URL url = new URL(WEBSITE + pack.picture_link);
+				URL url = new URL(pack.picture_link);
 				pack.image = UIBuilder.getImage(url);
 			} catch (Exception ex) {
 			}

@@ -98,7 +98,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		_MessagePane.setText("");
 		_EditorPane.setText("");
 		AbstractDocument doc = (AbstractDocument) _EditorPane.getDocument();
-		doc.setDocumentFilter(new JScriptEditor.LockFilter(doc));
+		doc.setDocumentFilter(new JScriptEditor.LockFilter(_EditorPane));
 
 		addKeyBindings();
 	}
