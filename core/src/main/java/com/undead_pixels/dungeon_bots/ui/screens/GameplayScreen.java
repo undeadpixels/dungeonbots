@@ -125,7 +125,7 @@ public class GameplayScreen extends Screen {
 			view.setWorld(world);
 		}
 		
-		world.onBecomingVisibleInGameplay();
+		world.onBecomingVisibleInGameplayButNotFromTheLevelEditor();
 		
 		Controller controller = (Controller) getController();
 		if(controller != null) {
