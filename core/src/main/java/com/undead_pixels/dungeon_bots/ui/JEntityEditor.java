@@ -104,14 +104,19 @@ public final class JEntityEditor extends JTabbedPane {
 	/**Sets editor visibility.  If the editor is associated with a dialog, sets the dialog visibility.*/
 	@Override
 	public void setVisible(boolean value) {
+		if(this.getTabCount() <= 0) {
+			return; // no editor actually exists
+		}
+		
 		if (dialog != null) {
 			dialog.setVisible(value);
 			super.setVisible(value);
-		}
-
-		else
+		} else {
 			super.setVisible(value);
+		}
+		
 		if (value) {
+			
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
 			String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
 			entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
