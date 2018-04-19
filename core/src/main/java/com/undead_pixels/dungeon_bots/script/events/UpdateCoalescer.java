@@ -5,7 +5,7 @@ import com.undead_pixels.dungeon_bots.script.LuaInvocation;
 
 /**Used to coalesce all the "UPDATE" events that are in an event queue.*/
 public class UpdateCoalescer implements CoalescingGroup<LuaInvocation> {
-
+	
 	public static final UpdateCoalescer instance = new UpdateCoalescer();
 	
 	@Override

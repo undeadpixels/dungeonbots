@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
+import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaFacade;
@@ -25,9 +28,10 @@ import org.luaj.vm2.LuaValue;
  * @version 1.0 Pretty much everything visible/usable within a regular game.
  *          Does not include UI elements.
  */
-public abstract class Entity
-		implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem, HasEntity, HasTeam, HasImage, Inspectable {
+public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFacade, Serializable, CanUseItem,
+		HasEntity, HasTeam, HasImage, Inspectable {
 
+	public static float MIN_IDLE_THRESHOLD = 5.0f;
 
 	/**
 	 * 
@@ -69,7 +73,7 @@ public abstract class Entity
 	/**The instructions associated with an entity.  These are what is shown in 
 	 * the Entity Editor in the instruction pane.  The value can be null or any 
 	 * string.*/
-	public String help = "This is some example text instructions associated with an entity.";
+	private String help = "Try the 'help(this)' command to learn about this entity.";
 
 
 	/**
@@ -82,7 +86,8 @@ public abstract class Entity
 		this.world = world;
 		this.name = name;
 		this.scripts = scripts;
-
+		standardizeResources();
+		freshenPermissions();
 		if (world != null) {
 			this.id = world.makeID();
 		} else {
@@ -90,14 +95,34 @@ public abstract class Entity
 		}
 	}
 
+
 	public LuaSandbox createSandbox() {
 		sandbox = new LuaSandbox(this);
 		sandbox.addBindable("this", this);
 		sandbox.addBindable("world", world);
 		sandbox.addBindableClasses(LuaReflection.getAllBindableClasses());
+		sandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
+		sandbox.registerEventType("IDLE", "Called when this entity has been idle for a while (usually about 60 seconds).");
+		sandbox.registerEventType("CLICKED", "Called whenever this entity has been clicked.");
+		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key");
+		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
 		sandbox.registerEventType("ON_TURN", "Called when it is this entity's turn to move");
+		final int[] releasedCounter = {0};
+		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+			sandbox.fireEvent("KEY_PRESSED", new StringBasedLuaInvocationCoalescer(s, releasedCounter[0]), LuaValue.valueOf(s));
+		});
+		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
+			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+			releasedCounter[0]++;
+		});
+
+		if (idleThreshold < MIN_IDLE_THRESHOLD)
+			idleThreshold = 60f;
+
+
 		return this.sandbox;
 	}
+
 
 	/**
 	 * Returns the Lua sandbox wherein this entity's scripts will execute.
@@ -116,7 +141,7 @@ public abstract class Entity
 			getSandbox().init();
 			System.out.println("Running entity init for " + this);
 		} else {
-			System.out.println("Skipping entity init (script does not exist for "+this+")");
+			System.out.println("Skipping entity init (script does not exist for " + this + ")");
 		}
 	}
 
@@ -129,12 +154,35 @@ public abstract class Entity
 	}
 
 
+	/**Accumulated idle time.*/
+	private transient float idle = 0f;
+	private float idleThreshold = 60f;
+
+
 	/** Called during the game loop to update the entity's status. */
 	@Override
 	public void update(float dt) {
+
+		// Next item on the queue acts.
 		actionQueue.act(dt);
+
+		// Enqueue an idle call, if enough time has elapsed.
+		boolean isIdle = actionQueue.isEmpty();
+		if (!isIdle) {
+			idle = 0f;
+		} else {
+			idle += dt;
+			if (idle > idleThreshold) {
+				idle = 0;
+				getSandbox().fireEvent("IDLE");
+				getWorld().getSandbox().fireEvent("ENTITY_IDLE", this.getLuaValue());
+			}
+		}
+
+		// Update the sandbox
 		if (sandbox != null) {
 			sandbox.update(dt);
+			getSandbox().fireEvent("UPDATE", UpdateCoalescer.instance, LuaValue.valueOf(dt));
 		}
 	}
 
@@ -194,24 +242,60 @@ public abstract class Entity
 	 * Returns an ID number associated with this entity. The ID number should
 	 * not be user-facing.
 	 */
-	@Bind(value=SecurityLevel.AUTHOR,doc = "The Unique ID of the Entity")
+	@Bind(value = SecurityLevel.AUTHOR, doc = "The Unique ID of the Entity")
 	public final int getId() {
 		return this.id;
 	}
 
 
 	/** Returns the name of this entity. */
-	@Bind(value = SecurityLevel.NONE,
-			doc = "Get the Name of the Entity in it's world")
+	@Bind(value = SecurityLevel.NONE, doc = "Get the Name of the Entity in it's world")
 	public final String getName() {
 		return this.name;
 	}
 
-	@Bind(value = SecurityLevel.AUTHOR,
-			doc = "Set the Name of the Entity")
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set the Name of the Entity")
 	public final void setName(LuaValue name) {
 		this.name = name.checkjstring();
 	}
+
+
+	public final void setName(String name) {
+		this.name = name;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Gets the threshold determining when an entity is deemed to be idle (in seconds).")
+	public final float getIdleThreshold() {
+		return this.idleThreshold;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Sets the threshold determining when an entity is deemed to be idle (in seconds).")
+	public final void setIdleThreshold(LuaValue threshold) {
+		float f = (float) threshold.checkdouble();
+		f = Math.max(MIN_IDLE_THRESHOLD, f);
+		this.idleThreshold = f;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Set the Help associated with this entity.")
+	public final void setHelp(LuaValue help) {
+		this.help = help.checkjstring();
+	}
+
+
+	public final void setHelp(String help) {
+		this.help = help;
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Gets the help associated with this Entity.")
+	public final String getHelp() {
+		return this.help;
+	}
+
 
 	public abstract float getScale();
 
@@ -226,6 +310,16 @@ public abstract class Entity
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
 		actionQueue = new ActionQueue(this);
+		standardizeResources();
+		freshenPermissions();
+	}
+
+
+	/**This method will ensure that this Entity contains all the necessary scripts, etc., for a new
+	 * instantiated Entity or for an Entity that is deserialized from an earlier source that lacked
+	 * those resources.*/
+	protected void standardizeResources(){
+		// TODO - this might be a good place to add the init script
 	}
 
 
@@ -239,9 +333,11 @@ public abstract class Entity
 
 	/**Sets the entity's collection of scripts as indicated.*/
 	public void setScripts(UserScript[] newScripts) {
-		this.scripts.clear();
-		for (UserScript is : newScripts)
-			this.scripts.add(is);
+		synchronized (this) {
+			this.scripts.clear();
+			for (UserScript is : newScripts)
+				this.scripts.add(is);
+		}
 	}
 
 
@@ -299,7 +395,57 @@ public abstract class Entity
 	}
 
 
+	// =======================================================
+	// ====== Entity PERMISSION STUFF ========================
+	// =======================================================
+
+
+	// These permissions can be used to call, i.e.,
+	// getPermission(PERMISSION_SELECTION), to find out the level of security
+	// for the given function.
+	public static final transient String PERMISSION_SCRIPT_EDITOR = "Script editor";
+	public static final transient String PERMISSION_ENTITY_EDITOR = "Entity editor";
+	public static final transient String PERMISSION_COMMAND_LINE = "Command line";
+	public static final transient String PERMISSION_SELECTION = "Selection";
+	public static final transient String PERMISSION_PROPERTIES_EDITOR = "Properties editor";
+	public static final transient String PERMISSION_ADD_REMOVE_SCRIPTS = "Add/remove scripts";
+	public static final transient String PERMISSION_EDIT_HELP = "Edit help";
+
 	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
+
+	private void freshenPermission(String oldName, String newName, SecurityLevel defaultValue) {
+		SecurityLevel oldUntransitionedValue = permissions.get(oldName);
+		if(oldName == null || oldUntransitionedValue == null) {
+			SecurityLevel currentValue = permissions.get(newName);
+			if(currentValue == null) {
+				permissions.put(newName, defaultValue);
+			} else {
+				// already ok
+			}
+		} else {
+			permissions.put(newName, oldUntransitionedValue);
+			permissions.remove(oldName);
+		}
+	}
+	private void freshenPermissions() {
+		if(permissions == null)
+			permissions = new HashMap<>();
+
+		SecurityLevel editLevel = SecurityLevel.NONE;
+		if(getTeam() == TeamFlavor.AUTHOR) {
+			editLevel = SecurityLevel.AUTHOR;
+		} else if(getTeam() == TeamFlavor.NONE) {
+			// ?
+		}
+
+		// set defaults and copy old permissions over
+		freshenPermission("ENTITY_EDITOR", PERMISSION_ENTITY_EDITOR, SecurityLevel.NONE);
+		freshenPermission("SCRIPT_EDITOR", PERMISSION_SCRIPT_EDITOR, editLevel);
+		freshenPermission("PROPERTIES", PERMISSION_PROPERTIES_EDITOR, SecurityLevel.AUTHOR);
+		freshenPermission("REPL", PERMISSION_COMMAND_LINE, editLevel);
+		freshenPermission("SELECTION", PERMISSION_SELECTION, SecurityLevel.NONE);
+
+	}
 
 
 	/**Returns the permissions associated with this Entity.  Does not reference the whitelist, but
@@ -314,14 +460,30 @@ public abstract class Entity
 	}
 
 
-	/**Sets the permissions associated with this Entity.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
-	public void setSecurityLevel(String name, SecurityLevel level) {
+	/**Returns a COPY hash map containing all the permissions that have been set for this Entity.*/
+	public HashMap<String, SecurityLevel> getPermissions() {
+		return new HashMap<String, SecurityLevel>(permissions);
+	}
+
+
+	public void setPermission(String permission, SecurityLevel level) {
 		if (permissions == null)
 			permissions = new HashMap<String, SecurityLevel>();
-		permissions.put(name, level);
+		permissions.put(permission, level);
 	}
-	
+
+
+	public void setPermissions(HashMap<String, SecurityLevel> newPermissions) {
+		if (permissions == null)
+			permissions = new HashMap<String, SecurityLevel>();
+		else
+			permissions.clear();
+		for (Entry<String, SecurityLevel> entry : newPermissions.entrySet())
+			permissions.put(entry.getKey(), entry.getValue());
+
+	}
+
+
 	public Iterable<String> listPermissionNames() {
 		return permissions.keySet();
 	}

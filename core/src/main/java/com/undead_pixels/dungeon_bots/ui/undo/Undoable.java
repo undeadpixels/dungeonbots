@@ -2,8 +2,6 @@ package com.undead_pixels.dungeon_bots.ui.undo;
 
 import java.util.EventListener;
 
-import javax.swing.SwingUtilities;
-
 
 public abstract class Undoable<T> {
 

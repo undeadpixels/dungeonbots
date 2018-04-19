@@ -9,31 +9,34 @@ import java.io.Serializable;
  * A texture along with transform information
  */
 public class Sprite implements Serializable {
-	
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
 	 * Location of the bottom-left corner
 	 */
 	private float x, y;
-	
+
 	/**
 	 * Scale of this sprite, applied from the center
 	 */
 	private float scaleX = 1f, scaleY = 1f;
-	
+
 	/**
 	 * Rotation, applied from the center
 	 */
 	private float rotation;
-	
+
 	/**
 	 * This sprite's texture
 	 */
 	private TextureRegion tex;
+
+	public transient Animation animation = null;
+
 
 	/**
 	 * Constructor
@@ -46,6 +49,7 @@ public class Sprite implements Serializable {
 		this.tex = tex;
 	}
 
+
 	/**
 	 * Constructor
 	 * 
@@ -56,12 +60,14 @@ public class Sprite implements Serializable {
 	public Sprite() {
 	}
 
+
 	/**
 	 * @param x	This sprite's new X coordinate
 	 */
 	public void setX(float x) {
 		this.x = x;
 	}
+
 
 	/**
 	 * @param y	This sprite's new Y coordinate
@@ -70,12 +76,14 @@ public class Sprite implements Serializable {
 		this.y = y;
 	}
 
+
 	/**
 	 * @return	This sprite's X coordinate
 	 */
 	public float getX() {
 		return x;
 	}
+
 
 	/**
 	 * @return	This sprite's Y coordinate
@@ -84,16 +92,18 @@ public class Sprite implements Serializable {
 		return y;
 	}
 
+
 	/**
 	 * Sets the position of this sprite
 	 * 
 	 * @param x	This sprite's new X coordinate
 	 * @param y	This sprite's new Y coordinate
 	 */
-	public void setPosition(float x, float y) {		
+	public void setPosition(float x, float y) {
 		this.x = x;
-		this.y = y;		
+		this.y = y;
 	}
+
 
 	/**
 	 * @return	This sprite's current TextureRegion
@@ -102,6 +112,7 @@ public class Sprite implements Serializable {
 		return tex;
 	}
 
+
 	/**
 	 * @param texture	The new texture
 	 */
@@ -109,26 +120,35 @@ public class Sprite implements Serializable {
 		this.tex = texture;
 	}
 
+
 	/**
 	 * Draws this sprite into a given SpriteBatch
 	 * 
 	 * @param batch	A SpriteBatch object to draw into
 	 */
 	public void draw(RenderingContext batch) {
-		if(tex != null) {
+
+		// Animation gets first crack at drawing the sprite.
+		if (animation != null && animation.draw(batch, tex, x, y, rotation, scaleX, scaleY))
+			return;
+		animation = null;
+
+		// Since there's no active animation, just draw the texture.
+		if (tex != null) {
 			AffineTransform xform;
-			if(rotation == 0) {
-				xform = AffineTransform.getTranslateInstance((.5f-.5f*scaleX) + x, .5f + .5f*scaleY+y);
+			if (rotation == 0) {
+				xform = AffineTransform.getTranslateInstance((.5f - .5f * scaleX) + x, .5f + .5f * scaleY + y);
 				xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 			} else {
-				xform = AffineTransform.getTranslateInstance(.5 + x, .5*scaleY + y);
+				xform = AffineTransform.getTranslateInstance(.5 + x, .5 * scaleY + y);
 				xform.rotate(rotation);
 				xform.scale(scaleX / tex.getW(), -scaleY / tex.getH());
 				xform.translate(-.5, .5);
 			}
-			batch.draw(tex, xform);			
+			batch.draw(tex, xform);
 		}
 	}
+
 
 	/**
 	 * Sets the scale of this sprite
@@ -139,22 +159,25 @@ public class Sprite implements Serializable {
 	public void setScale(float sx, float sy) {
 		this.scaleX = sx;
 		this.scaleY = sy;
-		
+
 	}
-	
+
+
 	/**
 	 * @param s	The new scale of this sprite (both X and Y)
 	 */
 	public void setScale(float s) {
 		setScale(s, s);
 	}
-	
+
+
 	/**
 	 * @return	The current scale of this sprite in X
 	 */
 	public float getScaleX() {
 		return scaleX;
 	}
+
 
 	/**
 	 * @return The current scale of this sprite in Y
@@ -163,6 +186,7 @@ public class Sprite implements Serializable {
 		return scaleY;
 	}
 
+
 	/**
 	 * @param r	The new rotation in radians
 	 */
@@ -170,12 +194,14 @@ public class Sprite implements Serializable {
 		this.rotation = r;
 	}
 
+
 	/**
 	 * @return	The current rotation in radians
 	 */
 	public float getRotation() {
 		return rotation;
 	}
+
 
 	/**
 	 * @return	The current position of this sprite

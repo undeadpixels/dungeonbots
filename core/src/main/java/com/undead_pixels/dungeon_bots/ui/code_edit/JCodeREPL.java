@@ -52,7 +52,7 @@ import com.undead_pixels.dungeon_bots.ui.UIBuilder;
 public class JCodeREPL extends JPanel implements ActionListener {
 
 
-	private LuaSandbox _Sandbox;
+	final private LuaSandbox _Sandbox;
 	private JScrollPane _MessageScroller;
 	public final long MAX_EXECUTION_TIME = 3000;
 	final private int _MessageMax = 10000;
@@ -85,6 +85,7 @@ public class JCodeREPL extends JPanel implements ActionListener {
 		if (sandbox == null)
 			sandbox = new LuaSandbox(SecurityLevel.DEBUG);
 
+		
 		_Sandbox = sandbox;
 
 		_Sandbox.addOutputEventListener((str) -> this.message(str));

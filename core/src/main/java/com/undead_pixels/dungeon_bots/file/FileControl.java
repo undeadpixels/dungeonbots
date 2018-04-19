@@ -10,7 +10,8 @@ import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 
 public class FileControl {
 
-	// private static final JFileChooser _fc = new JFileChooser();
+
+	private static final String[] IMAGE_EXTENSIONS = new String[] { "jpg", "png", "jpeg", "gif" };
 
 
 	public static boolean isLua(File file) {
@@ -56,7 +57,7 @@ public class FileControl {
 	 * Open and run a file opening dialog. If the user cancels the process,
 	 * returns null. Otherwise, returns the file selected.
 	 */
-	public static File openDialog(Component parent) {
+	public static File openPackDialog(Component parent) {
 
 		File workingDirectory = new File(System.getProperty("user.dir"));
 		JFileChooser fc = new JFileChooser();
@@ -74,8 +75,49 @@ public class FileControl {
 		return null;
 	}
 
+	/**
+	 * Open and run a file opening dialog. If the user cancels the process,
+	 * returns null. Otherwise, returns the file selected.
+	 */
+	public static File openImageDialog(Component parent) {
+		File workingDirectory = new File(System.getProperty("user.dir"));
+		JFileChooser fc = new JFileChooser();
+		fc.setCurrentDirectory(workingDirectory);
+		fc.setFileFilter(new ImageFileFilter());
+		fc.setDialogTitle("Open an image...");
+		fc.setApproveButtonText("Open");
+		
+		int result = fc.showOpenDialog(parent);
+		if (result==JFileChooser.APPROVE_OPTION){
+			File file = fc.getSelectedFile();
+			System.out.println("Opening: " + file.getName());
+			return file;
+		}
+		return null;
+	}
 
-	public static class DBKFileFilter extends FileFilter {
+
+	static class ImageFileFilter extends FileFilter {
+
+		@Override
+		public boolean accept(File arg0) {
+			for (String extension : IMAGE_EXTENSIONS) {
+				if (arg0.getName().toLowerCase().endsWith(extension))
+					return true;
+			}
+			return false;
+		}
+
+
+		@Override
+		public String getDescription() {
+			return "Image files";
+		}
+
+	}
+
+
+	static class DBKFileFilter extends FileFilter {
 
 
 		@Override

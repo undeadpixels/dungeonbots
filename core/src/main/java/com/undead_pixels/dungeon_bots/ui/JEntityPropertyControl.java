@@ -34,16 +34,16 @@ import com.undead_pixels.dungeon_bots.ui.JEntityEditor.State;
 public class JEntityPropertyControl {
 
 	private boolean changed = false;
+	private final JEntityEditor.State state;
 	private final Entity entity;
-	private final SecurityLevel security;
 	private final ArrayList<CheckboxController> checkboxes = new ArrayList<>();
 	
 	private JComponent lazyCreated;
 
 
-	public JEntityPropertyControl(Entity entity, SecurityLevel level) {
-		this.entity = entity;
-		this.security = level;
+	public JEntityPropertyControl(State state) {
+		this.entity = state.entity;
+		this.state = state;
 		
 		entity.getWorld().listenTo(EntityEventType.ENTITY_MOVED, this, (e) -> updateBorderName());
 	}
@@ -74,15 +74,23 @@ public class JEntityPropertyControl {
 		propertiesPanel.add(separator);
 		
 		
-		checkboxes.add(new CheckboxController("Selection", "SELECTION",
-				"Access to whether the entity can be selected."));
-		checkboxes.add(new CheckboxController("Entity editor", "ENTITY_EDITOR",
+//		Entity.PERMISSION_SELECTION
+//		Entity.PERMISSION_ENTITY_EDITOR
+//		Entity.PERMISSION_COMMAND_LINE
+//		Entity.PERMISSION_SCRIPT_EDITOR
+//		Entity.PERMISSION_ADD_REMOVE_SCRIPTS
+//		Entity.PERMISSION_PROPERTIES_EDITOR
+//		Entity.PERMISSION_EDIT_HELP "Access level for editing the help info for an entity."
+		
+		checkboxes.add(new CheckboxController("Selection", Entity.PERMISSION_SELECTION,
+				"Access to whether the entity can be selected. Note that if a user cannot select the entity, the entity editor cannot be opened either."));
+		checkboxes.add(new CheckboxController("Entity editor", Entity.PERMISSION_ENTITY_EDITOR,
 				"Access to the entity editing dialog (the dialog you're looking at right now)."));
-		checkboxes.add(new CheckboxController("Command line", "REPL",
+		checkboxes.add(new CheckboxController("Command line", Entity.PERMISSION_COMMAND_LINE,
 				"Access level for the command line in the entity editing dialog."));
-		checkboxes.add(new CheckboxController("Script editor", "SCRIPT_EDITOR",
+		checkboxes.add(new CheckboxController("Script editor", Entity.PERMISSION_SCRIPT_EDITOR,
 				"Access level for the script editor in the entity editing dialog."));
-		checkboxes.add(new CheckboxController("Properties editor", "PROPERTIES",
+		checkboxes.add(new CheckboxController("Properties editor", Entity.PERMISSION_PROPERTIES_EDITOR,
 				"Access to the property editor in the entity editing dialog (you're looking at the property editor right now)."));
 
 		
@@ -116,16 +124,16 @@ public class JEntityPropertyControl {
 			checkBox.setToolTipText(description);
 			checkBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			
-			//Box ret = new Box(BoxLayout.X_AXIS);
-			//ret.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-			//ret.add(checkBox);
-			//ret.add(new JPanel());
+			Box ret = new Box(BoxLayout.X_AXIS);
+			ret.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+			ret.add(checkBox);
+			ret.add(Box.createGlue());
 			
 			//ret.setBorder(BorderFactory.createEmptyBorder());
 			
 			//ret.setPreferredSize(checkBox.getPreferredSize());
 			
-			return checkBox;
+			return ret;
 			
 		}
 
@@ -133,7 +141,7 @@ public class JEntityPropertyControl {
 		 * @param state 
 		 */
 		public void save (State state) {
-			state.setPermission(flagName, checkBox.isSelected() ? SecurityLevel.NONE : SecurityLevel.AUTHOR);
+			state.permissions.put(flagName, checkBox.isSelected() ? SecurityLevel.NONE : SecurityLevel.AUTHOR);
 		}
 	}
 
@@ -141,7 +149,7 @@ public class JEntityPropertyControl {
 	 * @param state 
 	 * 
 	 */
-	public void save (State state) {
+	public void save () {
 		for(CheckboxController c: checkboxes) {
 			c.save(state);
 		}

@@ -18,6 +18,8 @@ import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
 import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
+import com.undead_pixels.dungeon_bots.utils.exceptions.MethodNotOnWhitelistException;
+
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.VarArgFunction;
@@ -165,17 +167,6 @@ public final class LuaSandbox implements Serializable {
 	}
 
 	/**
-	 * @param scriptFile
-	 * @return
-	 */
-	public LuaInvocation init(File scriptFile, ScriptEventStatusListener... listeners) {
-		LuaInvocation ret = this.enqueueCodeBlock(scriptFile, listeners);
-		scriptQueue.update(0.f);
-		
-		return ret;
-	}
-
-	/**
 	 * @return
 	 */
 	public LuaInvocation init() {
@@ -224,15 +215,6 @@ public final class LuaSandbox implements Serializable {
 	public LuaInvocation enqueueCodeBlock(String codeBlock, ScriptEventStatusListener... listeners) {
 		return enqueueCodeBlock(codeBlock, null, listeners);
 	}
-
-	/**
-	 * @param codeBlock			A block of lua code to execute
-	 * @param listeners			Things that might want to listen to the status of this event (if any)
-	 * @return					The event that was enqueued
-	 */
-	public LuaInvocation enqueueCodeBlock(File codeBlock, ScriptEventStatusListener... listeners) {
-		return enqueueCodeBlock(codeBlock, null, listeners);
-	}
 	
 	/**
 	 * @param codeBlock			A block of lua code to execute
@@ -247,27 +229,13 @@ public final class LuaSandbox implements Serializable {
 		
 		return event;
 	}
-		
-
-		
-		/**
-		 * @param file				A file containing lua code to execute
-		 * @param coalescingGroup	A group to coalesce events into
-		 * @param listeners			Things that might want to listen to the status of this event (if any)
-		 * @return					The event that was enqueued
-		 */
-		public LuaInvocation enqueueCodeBlock(File file, CoalescingGroup<LuaInvocation> coalescingGroup, ScriptEventStatusListener... listeners) {
-			UserScript codeBlock = new UserScript("init", file);
-			LuaInvocation script = new LuaInvocation(this, codeBlock);
-			scriptQueue.enqueue(script, coalescingGroup, listeners);
-			
-			return script;
-	}
-
+	
+	
+	
 	@Override
-		public String toString () {
-			return securityContext.getOwnerName() + " Sandbox";
-		}
+	public String toString () {
+		return securityContext.getOwnerName() + " Sandbox";
+	}
 
 	public void addOutputEventListener(Consumer<String> fn) {
 			outputEventListeners.add(fn);
@@ -469,6 +437,13 @@ public final class LuaSandbox implements Serializable {
 
 		@Override
 		public LuaValue call(LuaValue arg) {
+			SecurityLevel lvl = getWhitelist().getLevel("events:"+eventName);
+			if(lvl == null) lvl = SecurityLevel.DEFAULT;
+
+			if(lvl.level > getSecurityLevel().level) {
+				throw new MethodNotOnWhitelistException(funcName);
+			}
+			
 			if(!arg.isfunction()) {
 				throw new LuaError("Expected a function");
 			}
@@ -517,6 +492,7 @@ public final class LuaSandbox implements Serializable {
 	 */
 	public class EventInfo {
 
+		public final String eventName;
 		public final String registerEventListenerFunctionName;
 		public final String niceName;
 		public final String description;
@@ -553,6 +529,7 @@ public final class LuaSandbox implements Serializable {
 			
 			registerEventListenerFunctionName = "register" + functionName + "Listener";
 			
+			this.eventName = eventName;
 			this.niceName = niceName+" Listener";
 			this.description = description;
 			this.argNames = argNames;
@@ -586,6 +563,10 @@ public final class LuaSandbox implements Serializable {
 		
 		RegisterListenerFunction registerEventListenerFunction = new RegisterListenerFunction(eventName, registerEventListenerFunctionName, docs);
 		
+		if(this.getWhitelist().getLevel("events:"+eventName) == null) {
+			this.getWhitelist().setLevel("events:"+eventName, SecurityLevel.DEFAULT);
+		}
+		
 		globals.set(registerEventListenerFunctionName, registerEventListenerFunction);
 	}
 
@@ -593,6 +574,15 @@ public final class LuaSandbox implements Serializable {
 		return fireEvent(eventName, null, args);
 	}
 	public synchronized LuaInvocation fireEvent(String eventName, CoalescingGroup<LuaInvocation> coalescingGroup, LuaValue... args) {
+		if(eventListeners.get(eventName) == null) {
+			System.err.println("Tried to fire event that isn't registered: "+eventName+"(in sandbox of "+securityContext.getOwnerName()+")");
+			return null;
+		}
+		if(eventListeners.get(eventName).isEmpty()) {
+			// nobody cares; ignore
+			return null;
+		}
+		
 		LuaInvocation invocation = new LuaInvocation(this, eventListeners.get(eventName), args);
 		scriptQueue.enqueue(invocation, coalescingGroup);
 		
@@ -603,7 +593,16 @@ public final class LuaSandbox implements Serializable {
 	 * 
 	 */
 	public Collection<EventInfo> getEvents () {
-		return eventInfos.values();
+		ArrayList<EventInfo> ret = new ArrayList<>();
+		for(EventInfo e : eventInfos.values()) {
+			SecurityLevel lvl = getWhitelist().getLevel("events:"+e.eventName);
+			if(lvl == null) lvl = SecurityLevel.DEFAULT;
+
+			if(lvl.level <= getSecurityLevel().level) {
+				ret.add(e);
+			}
+		}
+		return ret;
 	}
 
 	/**

@@ -310,7 +310,8 @@ public class WorldView extends JComponent {
 	}
 
 
-	/** Sets the selected tiles to an array copy of the indicated collection. */
+	/** Sets the selected tiles to an array copy of the indicated collection. Set to null to 
+	 * indicate no selection. */
 	public void setSelectedTiles(Tile[] newTiles) {
 		selectedTiles = newTiles;
 	}
@@ -341,7 +342,8 @@ public class WorldView extends JComponent {
 
 
 	/**
-	 * Sets the selected entities to an array copy of the indicated collection.
+	 * Sets the selected entities to an array copy of the indicated collection.  Set to null 
+	 * to indicate no selection.
 	 */
 	public void setSelectedEntities(Entity[] newEntities) {
 		selectedEntities = newEntities;

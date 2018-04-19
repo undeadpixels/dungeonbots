@@ -3,6 +3,12 @@ package com.undead_pixels.dungeon_bots.scene.level;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +31,7 @@ public class LevelPack {
 	public static final String DEFAULT_MAIN_EMBLEM_FILE = "images/shoes_hat.jpg";
 	public static final String DEFAULT_LEVEL_EMBLEM_FILE = "images/ice_cave.jpg";
 	public static final String UNKNOWN_AUTHOR_NAME = "Unknown author";
+	public static final String UPLOAD_URL = "dungeonbots.herokuapp.com/api/v1/packs";
 
 	public static final int EMBLEM_WIDTH = 300;
 	public static final int EMBLEM_HEIGHT = 200;
@@ -420,12 +427,7 @@ public class LevelPack {
 	// ========= LevelPack WORLD/LEVEL STUFF ======================
 	// ============================================================
 
-	/**Returns whether this pack is only a partial pack.  A pack may be partial if it was serialized for 
-	 * purposes of making a list, where deserializing the worlds themselves may be wasteful.*/
-	public boolean isPartial() {
-		return levelCount != levels.size();
-	}
-
+	
 
 	public int getLevelIndex() {
 		return levelIndex;
@@ -599,6 +601,25 @@ public class LevelPack {
 	/** Returns a String which is the json serialization of this LevelPack. */
 	public String toJson() {
 		return Serializer.serializeLevelPack(this);
+	}
+
+
+	public void upload(String token) {
+		// TODO Auto-generated method stub
+		String json = this.toJson();
+		
+		HttpURLConnection conn;
+		try {
+			conn = (HttpURLConnection ) new URL(UPLOAD_URL).openConnection();
+			OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
+			writer.write(json);	
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	finally{
+			
+		}
+			
 	}
 
 

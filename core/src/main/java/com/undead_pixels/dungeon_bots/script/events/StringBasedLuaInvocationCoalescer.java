@@ -75,5 +75,5 @@ public class StringBasedLuaInvocationCoalescer implements CoalescingGroup<LuaInv
 	public void coalesce (LuaInvocation otherT, LuaInvocation t) {
 		// nothing needs to be done
 	}
-	
+
 }

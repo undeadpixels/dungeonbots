@@ -169,7 +169,7 @@ public class Serializer {
 			setupGson();
 		return (T) _Gson.fromJson(json, classOfT);
 	}
-
+	
 
 	// ============================================================
 	// ========= Serializer FILE CONVENIENCE METHODS ==============

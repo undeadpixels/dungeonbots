@@ -4,6 +4,9 @@ import java.awt.Image;
 import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationJump;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationSparkle;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationVibrate;
 import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.nogdx.TextureRegion;
 import com.undead_pixels.dungeon_bots.scene.World;
@@ -111,4 +114,21 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite;
 	}
 
+
+	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
+	public void vibrate() {
+		sprite.animation = new AnimationVibrate();
+	}
+
+
+	@Bind(value = SecurityLevel.NONE, doc = "Sparkling clean.")
+	public void sparkle() {
+		sprite.animation = new AnimationSparkle();
+	}
+	
+	@Bind(value = SecurityLevel.NONE, doc = "For joy.")
+	public void jump() {
+		System.out.println("Starting a jump");
+		sprite.animation = new AnimationJump();
+	}
 }

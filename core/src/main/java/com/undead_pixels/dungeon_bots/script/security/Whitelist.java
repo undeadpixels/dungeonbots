@@ -158,6 +158,11 @@ public class Whitelist implements GetLuaFacade, Serializable, Iterable<Entry<Str
 		}
 		return level;
 	}
+	
+
+	public SecurityLevel getLevel(final String bindId) {
+		return whitelist.get(bindId);
+	}
 
 
 	/**

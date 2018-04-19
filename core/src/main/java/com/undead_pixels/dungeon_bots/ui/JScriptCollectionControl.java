@@ -25,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.script.LuaSandbox;
 import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
@@ -32,18 +33,32 @@ import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.code_edit.JScriptEditor;
 
 @SuppressWarnings("serial")
-public class JScriptCollectionEditor extends JPanel {
+public class JScriptCollectionControl extends JPanel {
 
 
+	// private final JEntityEditor.State state;
 	private final JScriptEditor editor;
 	private JList<UserScript> scriptList;
 	private final SecurityLevel security;
-	private final UserScriptCollection scripts;
+	private UserScriptCollection scripts;
 
 
-	public JScriptCollectionEditor(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security, boolean transparent) {
+	JScriptCollectionControl(LuaSandbox sandbox, JEntityEditor.State state, SecurityLevel security) {
+		this(sandbox, state.scripts, security, true, !state.permissions.containsKey(Entity.PERMISSION_ADD_REMOVE_SCRIPTS)
+				|| state.permissions.get(Entity.PERMISSION_ADD_REMOVE_SCRIPTS).level <= security.level);
+	}
+
+
+	JScriptCollectionControl(LuaSandbox sandbox, JWorldEditor.State state, SecurityLevel security) {
+		this(sandbox, state.scripts, security, true, true);
+	}
+
+
+	private JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security, boolean transparent, boolean addRemoveBttns) {
 		editor = new JScriptEditor(security);
+		this.scripts = scripts;
 		this.security = security;
+		
 		// Create the editor.
 		editor.setBorder(BorderFactory.createTitledBorder("Choose a script to edit."));
 		editor.setEnabled(false);
@@ -129,8 +144,9 @@ public class JScriptCollectionEditor extends JPanel {
 	 * @param scripts
 	 * @param security
 	 */
-	public JScriptCollectionEditor(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security) {
-		this(sandbox, scripts, security, false);
+	@Deprecated
+	public JScriptCollectionControl(LuaSandbox sandbox, UserScriptCollection scripts, SecurityLevel security) {
+		this(sandbox, scripts, security, true, false);
 	}
 
 
@@ -157,15 +173,15 @@ public class JScriptCollectionEditor extends JPanel {
 			DefaultListModel<UserScript> model = (DefaultListModel<UserScript>) scriptList.getModel();
 			switch (arg0.getActionCommand()) {
 			case "ADD_SCRIPT":
-				String scriptName = JOptionPane.showInputDialog(JScriptCollectionEditor.this, "Enter script name:", "",
+				String scriptName = JOptionPane.showInputDialog(JScriptCollectionControl.this, "Enter script name:", "",
 						JOptionPane.QUESTION_MESSAGE);
 				if (scriptName == null || scriptName.equals("")) {
-					JOptionPane.showMessageDialog(JScriptCollectionEditor.this, "Invalid script name.");
+					JOptionPane.showMessageDialog(JScriptCollectionControl.this, "Invalid script name.");
 					return;
 				}
 				for (int i = 0; i < model.getSize(); i++) {
 					if (model.getElementAt(i).name.equals(scriptName)) {
-						JOptionPane.showMessageDialog(JScriptCollectionEditor.this,
+						JOptionPane.showMessageDialog(JScriptCollectionControl.this,
 								"Duplicate script names not allowed.");
 						return;
 					}
