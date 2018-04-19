@@ -412,7 +412,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	public void onBecomingVisibleInGameplay() {
+	public void onBecomingVisibleInGameplayButNotFromTheLevelEditor() {
 		if (!didInit && autoPlay) {
 			runInitScripts();
 		}

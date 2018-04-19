@@ -347,7 +347,6 @@ public final class LevelEditorScreen extends Screen {
 				World oldWorld = world;
 				world = Serializer.deepCopy(world);
 				world.resetFrom(oldWorld);
-				world.onBecomingVisibleInGameplay();
 				_View.setWorld(world);
 				_Selector.setWorld(world);
 				_TilePen.setWorld(world);

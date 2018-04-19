@@ -115,9 +115,9 @@ public class JScriptCollectionControl extends JPanel {
 		Box bttnPanel = new Box(BoxLayout.X_AXIS);
 		bttnPanel.add(Box.createGlue());
 		bttnPanel.add(UIBuilder.buildButton().image("icons/add.png").toolTip("Add a script to the list")
-				.action("ADD_SCRIPT", controller).create());
+				.action("ADD_SCRIPT", controller).enabled(addRemoveBttns).create());
 		bttnPanel.add(UIBuilder.buildButton().image("icons/erase.png").toolTip("Remove a script from the list")
-				.action("REMOVE_SCRIPT", controller).create());
+				.action("REMOVE_SCRIPT", controller).enabled(addRemoveBttns).create());
 		Box leftBox = new Box(BoxLayout.Y_AXIS);
 		bttnPanel.add(Box.createGlue());
 		bttnPanel.setMaximumSize(bttnPanel.getPreferredSize());
