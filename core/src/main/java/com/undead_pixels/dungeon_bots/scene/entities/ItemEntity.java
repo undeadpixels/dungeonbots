@@ -138,7 +138,7 @@ public class ItemEntity extends Actor implements HasInventory {
 		return ItemEntity.diamond(userDataOf(World.class, world), x.tofloat() - 1f, y.tofloat() - 1f);
 	}
 
-	public static final TextureRegion GEM_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 6, 2);
+	public static final TextureRegion GEM_TEXTURE = AssetManager.getTextureRegion("DawnLike/Items/Money.png", 3, 2);
 	public static ItemEntity gem(World world, float x, float y) {
 		return new ItemEntity(world, "gem", GEM_TEXTURE, new Gem(world), x, y);
 	}

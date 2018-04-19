@@ -36,7 +36,10 @@ public class JSignEditor extends Box {
 	public JSignEditor(State state, Sign entity, SecurityLevel security) {
 		super(BoxLayout.Y_AXIS);
 		
-		textEdit = new JTextArea(entity.getMessage());
+		String startingText;
+		startingText = state.signText;
+		//startingText = entity.getMessage();
+		textEdit = new JTextArea(startingText);
 		
 		String prompt;
 		if(security == SecurityLevel.AUTHOR) {
@@ -59,7 +62,7 @@ public class JSignEditor extends Box {
 	 * 
 	 */
 	public void save () {
-		state.setSignText(textEdit.getText());
+		state.signText = textEdit.getText();
 	}
 	
 }

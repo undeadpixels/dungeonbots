@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,6 +36,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.inventory.Inventory;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.ItemReference;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
 import com.undead_pixels.dungeon_bots.script.interfaces.GetLuaSandbox;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
@@ -86,11 +86,6 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	private transient ConcurrentLinkedDeque<Entity> toRemove = new ConcurrentLinkedDeque<>();
 
-	/**
-	 * The level pack of which this World is a part.  NOTE:  this element might never be set.  We'll see.
-	 */
-	@Deprecated
-	private transient LevelPack levelPack = null;
 
 	/**
 	 * The of this world (may be user-readable)
@@ -151,11 +146,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private int timesReset = 0;
 
 	/**
-	 * An id counter, used to hand out id's to entities
-	 * 
-	 * TODO - see if this conflicts with anything Stewart is doing.
-	 *
-	 * Also TODO - is this even useful anymore?
+	 * An id counter, used to hand out id's to entities.  The id is needed when a game is rewinded, so entities with
+	 * a particular ID in the old world can have their scripts copied to entities with a matching ID in the newly
+	 * deserialized world.
 	 */
 	private int idCounter = 0;
 
@@ -414,12 +407,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			}
 			this.didInit = true;
 			
-			this.message(this, "World Initialization finished", LoggingLevel.DEBUG);
+			this.message(this, "World initialization finished", LoggingLevel.GENERAL);
 		}
 	}
 
 
-	public void onBecomingVisibleInGameplay() {
+	public void onBecomingVisibleInGameplayButNotFromTheLevelEditor() {
 		if (!didInit && autoPlay) {
 			runInitScripts();
 		}
@@ -486,6 +479,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update tiles
 			for (Tile[] ts : tiles) {
 				for (Tile t : ts) {
+					if (t==null) continue;
 					t.update(dt);
 				}
 			}
@@ -493,8 +487,10 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			// update entities
 			for (Entity e : entities) {
 				ActionQueue aq = e.getActionQueue();
-				playstyle.dequeueIfAllowed(aq);
+				boolean isTurn = playstyle.dequeueIfAllowed(aq);
 				e.update(dt);
+				if(isTurn)
+					e.getSandbox().fireEvent("ON_TURN", new StringBasedLuaInvocationCoalescer("ON_TURN"));
 			}
 			playstyle.update();
 
@@ -534,6 +530,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		// draw tiles
 		for (Tile[] ts : tiles) {
 			for (Tile t : ts) {
+				if (t==null) continue;
 				t.render(batch);
 			}
 		}
@@ -631,17 +628,28 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 	}
 
+
+	/**This is necessary because a game that is rewinded will have to copy all the entity's scripts
+	 * into the newly deserialized versions of those entities.  If they are removed from the entities
+	 * list, then that copy couldn't happen.*/
+	private transient ArrayList<Entity> removedEntities = new ArrayList<Entity>();
+
+
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Removes the entity from the world")
 	public Boolean removeEntity(LuaValue entity) {
-		return removeEntity((Entity)entity.checktable().get("this").checkuserdata(Entity.class));
+		Entity e = (Entity) entity.checktable().get("this").checkuserdata(Entity.class);
+		return removeEntity(e);
 	}
 
+
 	/**Removes the entity from the world.  Returns 'true' if the items was removed, or 'false' if
-	 * it was never in the world to begin with.*/
+	 * it was never in the world to begin with.  Stashes removed entities into a private list so
+	 * any changes to their scripts will not be lost in the event of a game reset.*/
 	public boolean removeEntity(Entity e) {
 		if (!entities.remove(e))
 			return false;
-		this.message(this, "Removing entity "+e.getName()+" from the world", LoggingLevel.DEBUG);
+		if (removedEntities==null) removedEntities = new ArrayList<Entity>();
+		removedEntities.add(e);
 		if (e.isSolid()) {
 			Tile tile = this.getTile(e.getPosition());
 			if (tile != null && tile.getOccupiedBy() == e)
@@ -832,6 +840,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < h; j++) {
 					Tile current = tiles[i][j];
+					if (current==null) continue;
 					current.setPosition(i, j);
 
 					Tile l = i >= 1 ? tiles[i - 1][j] : null;
@@ -1110,13 +1119,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return true;
 		}
 
-		if (tiles[x][y].isSolid()) {
+		final Tile t = tiles[x][y];
+		if (t == null || e.isSolid() && t.isSolid()) {
 			// System.out.println("Unable to move: tile solid");
 			return false;
 		}
-		if (tiles[x][y].isOccupied()) {
-			Entity o = tiles[x][y].getOccupiedBy();
-			if (o != null && o instanceof Pushable) {
+		if (e.isSolid() && t.isOccupied()) {
+			final Entity o = tiles[x][y].getOccupiedBy();
+			if (o instanceof Pushable) {
 				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
 			}
 			// System.out.println("Unable to move: tile occupied");
@@ -1125,7 +1135,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 		// System.out.println("Ok to move");
 		if (e.isSolid()) {
-			tiles[x][y].setOccupiedBy(e);
+			t.setOccupiedBy(e);
 		}
 
 		return true;
@@ -1234,7 +1244,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return this.mapSandbox;
 		} else {
 			mapSandbox = new LuaSandbox(this);
-			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
+
 			mapSandbox.addBindable("this", this);
 			mapSandbox.addBindable("world", this);
 			mapSandbox.addBindable("tileTypes", tileTypesCollection);
@@ -1242,6 +1252,42 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			mapSandbox.addBindableClass(Player.class);
 			mapSandbox.addBindableClasses(LuaReflection.getEntityClasses())
 					.addBindableClasses(LuaReflection.getItemClasses());
+
+			mapSandbox.registerEventType("UPDATE", "Called on every frame", "deltaTime");
+
+			mapSandbox.registerEventType("ENTITY_IDLE", "Called when an entity has been idle for a while (usually about 60 seconds).", "entity");
+			mapSandbox.registerEventType("ENTITY_CLICKED", "Called whenever an entity has been clicked.", "entity");
+			mapSandbox.registerEventType("ENTITY_EDITOR_OPENED", "Called when an entity's editor window is opened", "tabName", "entity");
+			mapSandbox.registerEventType("ENTITY_EDITOR_SAVED", "Called when the \"confirm\" button is clicked in an entity's editor.", "entity");
+
+			mapSandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key");
+			mapSandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
+
+			final int[] releasedCounter = {0};
+			listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
+				mapSandbox.fireEvent("KEY_PRESSED", new StringBasedLuaInvocationCoalescer(s, releasedCounter[0]), LuaValue.valueOf(s));
+			});
+			listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
+				mapSandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
+				releasedCounter[0]++;
+			});
+
+			mapSandbox.registerEventType("ENTITY_ADDED", "Called when an entity is added to the world.", "entity");
+			mapSandbox.registerEventType("ENTITY_MOVED", "Called an entity moves.", "entity");
+			mapSandbox.registerEventType("ENTITY_REMOVED", "Called when an entity is removed from the world.", "entity");
+
+			listenTo(World.EntityEventType.ENTITY_ADDED, this, (e) -> {
+				mapSandbox.fireEvent("KEY_RELEASED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
+			listenTo(World.EntityEventType.ENTITY_MOVED, this, (e) -> {
+				mapSandbox.fireEvent("ENTITY_MOVED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
+			listenTo(World.EntityEventType.ENTITY_REMOVED, this, (e) -> {
+				mapSandbox.fireEvent("ENTITY_REMOVED", e.getLuaValue());
+				releasedCounter[0]++;
+			});
 
 			return mapSandbox;
 		}
@@ -1260,15 +1306,60 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * Resets this world
+	 * Copies the scripts associated with bots from a prior world into the bots with the same
+	 * ID numbers in this world.  This method is necessary after a rewind because the world
+	 * is re-serialized from bytes, and any changes a player has made to scripts would be
+	 * lost in this process.
 	 */
-	public synchronized void persistScriptsFrom(World other) {
+	public synchronized void persistScriptsFrom(World dirty) {
 		synchronized (this) {
-			// TODO - this only persists the changes to the level script and bot
-			// scripts
-			this.levelScripts.setTo(other.levelScripts);
-			this.botScripts.setTo(other.botScripts);
+			HashMap<Integer, Entity> dirtyEntities = new HashMap<Integer, Entity>(),
+					cleanEntities = new HashMap<Integer, Entity>();
 
+			// The "dirty" entities include those entities in the old World,
+			// plus those entities removed from the old World.
+			for (Entity e : dirty.entities)
+				dirtyEntities.put(e.getId(), e);
+			if (dirty.removedEntities != null)
+			for (Entity e : dirty.removedEntities)
+				dirtyEntities.put(e.getId(), e);
+
+			// The "clean" entities are those entities that are in the
+			// newly-deserialized World (ie, this World).
+			for (Entity e : this.entities)
+				cleanEntities.put(e.getId(), e);
+
+			// Every dirty entity should copy its scripts into the matching clean entities.
+			for (Entity dirty_e : dirty.entities) {
+				Entity clean_e = cleanEntities.remove(dirty_e.getId());
+				// This can happen if an Entity was added during the game.
+				if (clean_e == null)
+					this.message(dirty_e,
+							"An entity from before the rewind does not exist.  Its scripts cannot be copied.",
+							LoggingLevel.STDOUT);
+				// Sanity check
+				else if (clean_e.getScripts() == null && dirty_e.getScripts() != null)
+					this.message(clean_e,
+							"New version of entity has no scripts while old versions of entity does have scripts.",
+							LoggingLevel.ERROR);
+				//Sanity check
+				else if (clean_e.getScripts() != null && dirty_e.getScripts() == null)
+					this.message(clean_e,
+							"Old version of entity has no scripts while new versions of entity does have scripts.",
+							LoggingLevel.ERROR);
+				//This can happen for non-scriptable entities like FloatingText
+				else if (clean_e.getScripts() == null && dirty_e.getScripts() == null)
+					continue;
+				else
+					clean_e.getScripts().setTo(dirty_e.getScripts());
+			}
+
+			// This is a sanity check.  There should be no clean entities left (all were removed when scripts were copied into them.  That was the point of maintaining World.removedEntities.
+			for (Entity new_e : cleanEntities.values()) {
+				this.message(new_e,
+						"An entity from after the rewind did not exist before the rewind.  Its scripts will be restarting.",
+						LoggingLevel.ERROR);
+			}
 		}
 	}
 
@@ -1367,15 +1458,14 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 	/**
 	 * Shows a popup box'
-	 * 
-	 * @param alert
+	 *
 	 * @param title
 	 */
 	@Bind(value = SecurityLevel.AUTHOR, doc = "Creates an alert message")
 	@Doc("Creates and displays an Alert window.")
 	public void alert(@Doc("The title of the alert popup (optional)") LuaValue title,
 			@Doc("The message to show to the player") LuaValue message) { // TODO - may add a LuaValue for source?
-		
+
 		// if we're only being passsed a message with no title...
 		try {
 			title.checktable().get("this").checkuserdata(World.class);
@@ -1725,11 +1815,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * @param object
+	 * @param p
 	 */
 	public void registerPoptartListener (Consumer<GameplayScreen.Poptart> p) {
 		this.poptartListener = p;
-		
+
 	}
 
 	public void message(HasImage src, String message, LoggingLevel level) {
@@ -1781,11 +1871,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
 
 
-	/**Returns the permissions associated with this World.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	/**
+	 * Returns the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc
+	 * @param name
+	 * @return
+	 */
 	public SecurityLevel getPermission(String name) {
 		if (permissions == null)
-			permissions = new HashMap<String, SecurityLevel>();
+			permissions = new HashMap<>();
 		SecurityLevel s = permissions.get(name);
 		if (s == null)
 			return SecurityLevel.NONE;
@@ -1793,11 +1887,15 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	/**Sets the permissions associated with this World.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	/**
+	 * Sets the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc
+	 * @param name
+	 * @param level
+	 */
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
-			permissions = new HashMap<String, SecurityLevel>();
+			permissions = new HashMap<>();
 		this.message(this, "Changing security level of  "+name+" to "+level.name(), LoggingLevel.DEBUG);
 		permissions.put(name, level);
 	}

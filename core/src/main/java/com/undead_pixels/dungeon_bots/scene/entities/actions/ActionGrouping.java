@@ -34,10 +34,12 @@ public abstract interface ActionGrouping extends Serializable {
 	 * 
 	 * @param aq		The queue to try updating
 	 */
-	public default void dequeueIfAllowed(ActionQueue aq) {
+	public default boolean dequeueIfAllowed(ActionQueue aq) {
 		if(allowsDequeueAction(aq)) {
 			aq.dequeueIfIdle();
+			return true;
 		}
+		return false;
 	}
 	
 	

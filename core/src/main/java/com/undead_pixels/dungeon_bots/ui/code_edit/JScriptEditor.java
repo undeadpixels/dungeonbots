@@ -59,8 +59,9 @@ public final class JScriptEditor extends JPanel {
 	/** The script being edited. */
 	private UserScript _Script = null;
 	private final JEditorPane editor;
-	
-	public JEditorPane getEditor () {
+
+
+	public JEditorPane getEditor() {
 		return editor;
 	}
 
@@ -82,8 +83,7 @@ public final class JScriptEditor extends JPanel {
 
 		setComponentOrientation(java.awt.ComponentOrientation.LEFT_TO_RIGHT);
 		setLayout(new BorderLayout());
-		
-		
+
 
 		JToolBar toolBar = new JToolBar();
 		toolBar.setPreferredSize(new Dimension(200, 30));
@@ -93,7 +93,7 @@ public final class JScriptEditor extends JPanel {
 				.action("COPY", _Controller).create();
 		JButton bttnPaste = UIBuilder.buildButton().image("icons/paste.png").toolTip("Paste at the cursor.")
 				.action("PASTE", _Controller).create();
-		
+
 
 		editor = new JEditorPane();
 		JScrollPane editorScroller = new JScrollPane(editor);
@@ -127,7 +127,7 @@ public final class JScriptEditor extends JPanel {
 			_Controller.setLockColor(Color.blue);
 		}
 
-		add(toolBar, BorderLayout.PAGE_START);	
+		add(toolBar, BorderLayout.PAGE_START);
 
 	}
 
@@ -170,7 +170,7 @@ public final class JScriptEditor extends JPanel {
 
 		// Ensure that the text's lock filter cannot interfere with printing the
 		// text for the first time.
-		_Controller.setFiltering(false);
+		// _Controller.setFiltering(false);
 
 		_Script = script;
 		setLiveEditing(true);
@@ -196,7 +196,7 @@ public final class JScriptEditor extends JPanel {
 	 */
 	public boolean saveScript() {
 		boolean changed = false;
-		
+
 		if (_Script == null)
 			return false;
 		try {
@@ -205,7 +205,7 @@ public final class JScriptEditor extends JPanel {
 		} catch (BadLocationException blex) {
 			System.err.println("Could not save locks to code. " + blex.getMessage());
 		}
-		
+
 		return changed;
 	}
 
@@ -231,19 +231,21 @@ public final class JScriptEditor extends JPanel {
 	 * being typed in a locked section. */
 	static class LockFilter extends DocumentFilter {
 
+		private final JTextComponent _TextComponent;
 		private boolean _locked = true;
 		private final AbstractDocument _Doc;
 
 
-		public LockFilter(AbstractDocument document, boolean isLocked) {
-			this._Doc = document;
+		public LockFilter(JTextComponent textComponent, boolean isLocked) {
+			this._TextComponent = textComponent;
+			this._Doc = (AbstractDocument) textComponent.getDocument();
 			this._locked = isLocked;
 		}
 
 
 		/**Creates a new, unlocked LockFilter.*/
-		public LockFilter(AbstractDocument document) {
-			this(document, false);
+		public LockFilter(JTextComponent textComponent) {
+			this(textComponent, false);
 		}
 
 
@@ -268,15 +270,31 @@ public final class JScriptEditor extends JPanel {
 			if (_locked)
 				return;
 
-			// Parentheses problem fix - this is somewhat hackish but it works
-			if (text.equals(")") && offset < _Doc.getLength() && _Doc.getText(offset, 1).equals(")")) {
-				replace(fb, offset, 1, ")", attr);
-				return;
 
+			// Parentheses problem fix - this is somewhat hackish but it works
+			String existingText = _Doc.getText(offset, 1);
+			if (offset <= _Doc.getLength() - 1 && text.endsWith(existingText)) {
+
+				switch (text) {
+				case "\"\"":
+					text = "\"";
+					System.out.println("quotes");
+				case ")":
+
+				case "]":
+				case "'":
+				case "}":
+					//replace(fb,offset, text.length(), text, attr );
+					int currentPos = _TextComponent.getCaretPosition();
+					int newPos = currentPos + 1;
+					_TextComponent.setCaretPosition(newPos);
+					newPos = _TextComponent.getCaretPosition();
+					return;
+				}
 			}
 
-			else
-				super.insertString(fb, offset, text, attr);
+
+			super.insertString(fb, offset, text, attr);
 		}
 
 
@@ -379,14 +397,53 @@ public final class JScriptEditor extends JPanel {
 		 * JScriptEditor.Controller CODE LOCK MEMBERS
 		 * ================================================================ */
 
-		/** Determine whether the controller should be lock-filtering or not. */
-		public void setFiltering(boolean value) {
-			AbstractDocument doc = (AbstractDocument) editor.getDocument();
-			if (doc.getDocumentFilter() == null)
-				doc.setDocumentFilter(_LockFilter = new LockFilter(doc));
-			_LockFilter.setLocked(value);
-		}
 
+		/** Determine whether the controller should be lock-filtering or not. *//* public
+																				 * void
+																				 * setFiltering
+																				 * (
+																				 * boolean
+																				 * value)
+																				 * {
+																				 * AbstractDocument
+																				 * doc
+																				 * =
+																				 * (AbstractDocument)
+																				 * editor
+																				 * .
+																				 * getDocument
+																				 * (
+																				 * )
+																				 * ;
+																				 * if
+																				 * (doc
+																				 * .
+																				 * getDocumentFilter
+																				 * (
+																				 * )
+																				 * ==
+																				 * null)
+																				 * doc
+																				 * .
+																				 * setDocumentFilter
+																				 * (
+																				 * _LockFilter
+																				 * =
+																				 * new
+																				 * LockFilter
+																				 * (
+																				 * doc
+																				 * )
+																				 * )
+																				 * ;
+																				 * _LockFilter
+																				 * .
+																				 * setLocked
+																				 * (
+																				 * value
+																				 * )
+																				 * ;
+																				 * } */
 
 		/** Sets the button that will control locking for this controller. */
 		public void setLockButton(JToggleButton button) {

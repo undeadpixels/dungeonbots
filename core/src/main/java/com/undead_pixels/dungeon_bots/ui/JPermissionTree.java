@@ -7,6 +7,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.TreeUI;
@@ -49,7 +51,7 @@ import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 @SuppressWarnings("serial")
 public class JPermissionTree extends JTree {
 
-	private static final Dimension LABEL_DIMENSION = new Dimension(150, 20);
+	private static final Dimension LABEL_DIMENSION = new Dimension(100, 20);
 	private static final Dimension DOT_DIMENSION = new Dimension(18, 18);
 	private DotIcon[] icons;
 
@@ -57,6 +59,7 @@ public class JPermissionTree extends JTree {
 	private Dialog dialog = null;
 	private SecurityLevel[] availableLevels = SecurityLevel.values();
 	private boolean changed = false;
+	JTextPane infoPanel = null;
 
 
 	JPermissionTree() {
@@ -68,8 +71,13 @@ public class JPermissionTree extends JTree {
 		this.setRootVisible(false);
 		this.availableLevels = new SecurityLevel[] { SecurityLevel.AUTHOR, SecurityLevel.ENTITY, SecurityLevel.TEAM,
 				SecurityLevel.NONE };
-		setColors(new Color[] { Color.red, Color.CYAN, Color.YELLOW, Color.GREEN, Color.BLUE, Color.magenta });
+		setColors(new Color[] { Color.red, Color.YELLOW, Color.BLUE, Color.GREEN, Color.magenta });
 		updateGUI();
+	}
+
+
+	public boolean hasChanged() {
+		return changed;
 	}
 
 
@@ -102,7 +110,8 @@ public class JPermissionTree extends JTree {
 		permissions.clear();
 		for (Entry<String, SecurityLevel> entry : whitelist) {
 			String id = entry.getKey();
-			Permission p = new Permission(id, entry.getValue(), whitelist.getInfo(entry.getKey()));
+			SecurityLevel level = (entry.getValue() == null) ? SecurityLevel.NONE : entry.getValue();
+			Permission p = new Permission(id, level, whitelist.getInfo(entry.getKey()));
 			permissions.add(p);
 		}
 		this.updateGUI();
@@ -111,6 +120,8 @@ public class JPermissionTree extends JTree {
 
 	/**Adds a line for the specific permission.*/
 	public void addPermission(String name, SecurityLevel startingLevel, String helpInfo) {
+		if (startingLevel == null)
+			startingLevel = SecurityLevel.NONE;
 		Permission p = new Permission(name, startingLevel, helpInfo);
 		permissions.add(p);
 		this.updateGUI();
@@ -192,7 +203,8 @@ public class JPermissionTree extends JTree {
 		@Override
 		public Component getTreeCellEditorComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
 				boolean leaf, int row) {
-			return renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row, true);
+			Component ret = renderer.getTreeCellRendererComponent(tree, value, true, expanded, leaf, row, true);
+			return ret;
 		}
 
 
@@ -222,11 +234,17 @@ public class JPermissionTree extends JTree {
 				lbl.setPreferredSize(LABEL_DIMENSION);
 				pnl.add(lbl);
 
+				String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() + "   " : "";
+				JLabel lblSecurity = new JLabel(lvl);
+				lblSecurity.setPreferredSize(new Dimension(70,20));
 
 				ButtonGroup group = new ButtonGroup();
 				JRadioButton[] bttns = new JRadioButton[availableLevels.length];
 				ActionListener listener = new ActionListener() {
 
+					// The purpose of this listener is to propogate a clicked
+					// parent's choice through the children, or to null a
+					// parent's choice when a child's is changed.
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						int idx = 0;
@@ -237,8 +255,6 @@ public class JPermissionTree extends JTree {
 							return;
 						p.level = availableLevels[idx];
 						changed = true;
-
-
 						if (!p.isLeaf()) {
 							if (p.level != null) {
 								for (idx = 0; idx < p.getChildCount(); idx++) {
@@ -250,6 +266,9 @@ public class JPermissionTree extends JTree {
 							parent.level = null;
 						}
 						JPermissionTree.this.repaint();
+						String lvl = (p.level != null) ? "  " + p.level.toString().toLowerCase() + "   " : "";
+						lblSecurity.setText(lvl);
+
 					}
 
 				};
@@ -267,6 +286,10 @@ public class JPermissionTree extends JTree {
 					bttns[i] = bttn;
 					pnl.add(bttn);
 				}
+
+
+				pnl.add(lblSecurity);
+
 
 				return pnl;
 
@@ -302,7 +325,7 @@ public class JPermissionTree extends JTree {
 		oneDialogAllowed = jpe;
 		jpe.dialog = dialog;
 		JScrollPane scroller = new JScrollPane(jpe);
-		scroller.setPreferredSize(new Dimension(400, 400));
+		scroller.setPreferredSize(new Dimension(300, 400));
 		scroller.setBorder(new EmptyBorder(5, 5, 5, 5));
 		dialog.add(scroller, BorderLayout.CENTER);
 
@@ -324,7 +347,7 @@ public class JPermissionTree extends JTree {
 				if (info == null || info.equals(""))
 					infoPanel.setVisible(false);
 				else {
-					infoPanel.setText(info);
+					infoPanel.setText(info + "\n\n" + SecurityLevel.interpret(selection.level));
 					infoPanel.setVisible(true);
 				}
 				dialog.pack();
@@ -402,7 +425,7 @@ public class JPermissionTree extends JTree {
 
 
 	/**Returns the permission currently selected.*/
-	private Permission getSelection() {
+	Permission getSelection() {
 		TreePath path = getSelectionPath();
 		if (path == null)
 			return null;
@@ -410,7 +433,7 @@ public class JPermissionTree extends JTree {
 	}
 
 
-	private static class Permission extends DefaultMutableTreeNode {
+	static class Permission extends DefaultMutableTreeNode {
 
 		public final String id;
 		public final String type;
