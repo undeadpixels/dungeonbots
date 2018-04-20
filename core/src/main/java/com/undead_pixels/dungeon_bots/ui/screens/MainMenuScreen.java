@@ -55,9 +55,6 @@ public class MainMenuScreen extends Screen {
 					// lps.setSelection(lps.getLevelPackAt(0), 0);
 
 					break;
-				case "CREATE":
-					DungeonBotsMain.instance.setCurrentScreen(new LevelEditorScreen());
-					break;
 				case "COMMUNITY":
 					// DungeonBotsMain.instance.setCurrentScreen(new
 					// CommunityScreen());
@@ -88,15 +85,11 @@ public class MainMenuScreen extends Screen {
 
 		}
 
-		JButton bttnPlay = UIBuilder.buildButton().toolTip("Start a game as a player.").text("Play")
+		JButton bttnPlay = UIBuilder.buildButton().toolTip("Look at available level packs, or create your own.").text("Begin")
 				.action("PLAY", getController()).hotkey(KeyEvent.VK_P).margin(10, 10, 10, 10)
 				.alignmentX(CENTER_ALIGNMENT).create();
 
 		bttnPlay.requestFocus();
-
-		JButton bttnCreate = UIBuilder.buildButton().toolTip("Edit a game as an author.").text("Create")
-				.action("CREATE", getController()).hotkey(KeyEvent.VK_C).margin(10, 10, 10, 10)
-				.alignmentX(CENTER_ALIGNMENT).create();
 
 		JButton bttnCommunity = UIBuilder.buildButton().toolTip("Go to the online community.").text("Community")
 				.action("COMMUNITY", getController()).hotkey(KeyEvent.VK_U).margin(10, 10, 10, 10)
@@ -110,13 +103,11 @@ public class MainMenuScreen extends Screen {
 
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 		buttonPanel.add(lblTitle);
-		buttonPanel.add(Box.createVerticalStrut(50));
-		buttonPanel.add(bttnPlay);
-		buttonPanel.add(Box.createVerticalStrut(10));
-		buttonPanel.add(bttnCreate);
-		buttonPanel.add(Box.createVerticalStrut(10));
-		buttonPanel.add(bttnCommunity);
 		buttonPanel.add(Box.createVerticalStrut(30));
+		buttonPanel.add(bttnPlay);
+		buttonPanel.add(Box.createVerticalStrut(20));
+		buttonPanel.add(bttnCommunity);
+		buttonPanel.add(Box.createVerticalStrut(20));
 		buttonPanel.add(bttnQuit);
 		buttonPanel.setOpaque(false);
 

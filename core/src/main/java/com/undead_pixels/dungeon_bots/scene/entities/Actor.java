@@ -429,10 +429,22 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 * }</pre>
 	 * @return A Varargs of the players position
 	 */
-	@Bind(value=SecurityLevel.DEFAULT, doc="Get the position of the player as an x,y varargs pair")
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the position of this Actor as an x,y varargs pair")
 	final public Varargs position() {
 		final Point2D.Float pos = this.getPosition();
 		return varargsOf(new LuaValue[] { valueOf(pos.x + 1), valueOf(pos.y + 1)});
+	}
+
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the X position of this Actor")
+	final public LuaValue x() {
+		final Point2D.Float pos = this.getPosition();
+		return LuaValue.valueOf(pos.x + 1);
+	}
+
+	@Bind(value=SecurityLevel.DEFAULT, doc="Get the Y position of this Actor")
+	final public LuaValue y() {
+		final Point2D.Float pos = this.getPosition();
+		return LuaValue.valueOf(pos.x + 1);
 	}
 
 	/**

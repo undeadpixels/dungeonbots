@@ -77,13 +77,15 @@ public class SecurityContext {
 		
 		TeamFlavor oTeam = TeamFlavor.NONE;
 		
-		if(o instanceof HasEntity) {
+		if(o != null && o instanceof HasEntity) {
 			Entity e = ((HasEntity)o).getEntity();
 			if(e != null) {
 				oTeam = e.getTeam();
 			}
 		}
-		if(o instanceof HasTeam) {
+		if(o == null) {
+			oTeam = TeamFlavor.PLAYER;
+		} else if(o instanceof HasTeam) {
 			oTeam = ((HasTeam)o).getTeam();
 		}
 		
@@ -96,6 +98,7 @@ public class SecurityContext {
 		case ENTITY:
 			return securityLevel.level >= SecurityLevel.AUTHOR.level
 				|| team == TeamFlavor.AUTHOR
+				|| o == null
 				|| entity == o;
 		case TEAM:
 			return securityLevel.level >= SecurityLevel.AUTHOR.level
