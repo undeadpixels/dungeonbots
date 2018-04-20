@@ -13,6 +13,7 @@ import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.*;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
+import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.annotations.Bind;
 import com.undead_pixels.dungeon_bots.script.annotations.BindTo;
 import com.undead_pixels.dungeon_bots.utils.managers.AssetManager;
@@ -94,14 +95,6 @@ public class Player extends Actor implements Pushable {
 	@Override
 	public LuaSandbox createSandbox() {
 		LuaSandbox sandbox = super.createSandbox();
-		sandbox.registerEventType("KEY_PRESSED", "Called when a key is pressed on the keyboard", "key"); // TODO - make repeating/coalescing
-		sandbox.registerEventType("KEY_RELEASED", "Called when a key is released on the keyboard", "key");
-		world.listenTo(World.StringEventType.KEY_PRESSED, this, (s) -> {
-			sandbox.fireEvent("KEY_PRESSED", LuaValue.valueOf(s));
-		});
-		world.listenTo(World.StringEventType.KEY_RELEASED, this, (s) -> {
-			sandbox.fireEvent("KEY_RELEASED", LuaValue.valueOf(s));
-		});
 		sandbox.registerEventType("BUMPED", "Called when this player is bumped into", "Entity that bumps", "direction");
 		return sandbox;
 	}

@@ -126,7 +126,6 @@ public class MainMenuScreen extends Screen {
 		pane.add(buttonPanel);
 		pane.add(Box.createVerticalGlue());
 		pane.add(Box.createHorizontalGlue());
-
 	}
 
 

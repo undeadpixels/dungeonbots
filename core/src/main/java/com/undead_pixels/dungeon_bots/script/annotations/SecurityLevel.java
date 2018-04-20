@@ -11,7 +11,7 @@ import org.luaj.vm2.lib.jse.JsePlatform;
  * Enumerate different security levels for a DungeonBots user in a Script Environment
  */
 public enum SecurityLevel {
-	
+
 	/**
 	 * Only the most privileged things can use these functions
 	 */
@@ -43,15 +43,37 @@ public enum SecurityLevel {
 	 * TODO - should this have playerGlobals instead of standardGlobals?
 	 */
 	NONE(0, () -> GameGlobals.playerGlobals());
+
 	public final int level;
 	public final Supplier<Globals> globalsSupplier;
+
 
 	SecurityLevel(int level, Supplier<Globals> globals) {
 		this.level = level;
 		this.globalsSupplier = globals;
 	}
-	
+
+
 	public Globals getGlobals() {
 		return globalsSupplier.get();
+	}
+
+
+	public static final String interpret(SecurityLevel level) {
+		if (level==null) level = SecurityLevel.NONE;
+		switch (level) {
+		case DEBUG:
+			return "Security level 'debug' means that nobody an access this function, except the game developers.";
+		case AUTHOR:
+			return "Security level 'author' means that the only person who can access this function is the level author, working through the level editor.";
+		case TEAM:
+			return "Security level 'team' means that only members of the same team can access this function.";
+		case ENTITY:
+			return "Security level 'entity' means that only this entity can access this particular function.";
+		default:
+			return "Security level '" + level.toString().toLowerCase()
+					+ "' means that any player, entity, or team can access this function.";
+
+		}
 	}
 }

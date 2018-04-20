@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -18,16 +20,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import org.jdesktop.swingx.HorizontalLayout;
+import org.luaj.vm2.LuaValue;
 
-import com.undead_pixels.dungeon_bots.file.Serializer;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.Sign;
-import com.undead_pixels.dungeon_bots.script.UserScript;
 import com.undead_pixels.dungeon_bots.script.UserScriptCollection;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.undo.Undoable;
@@ -49,12 +54,11 @@ public final class JEntityEditor extends JTabbedPane {
 	private JDialog dialog = null;
 	private boolean changed = false;
 
-	private JScriptCollectionEditor scriptEditor = null;
+	private JScriptCollectionControl scriptEditor = null;
 	private JSignEditor signEditor;
 	private JEntityPropertyControl propertyControl = null;
 
-	
-	
+
 	/**@param security The level at which the editor will be created.  For example, if the security level 
 	 * of the REPL requires "AUTHOR", but this is set up with "DEFAULT", a REPL will not appear in this editor.*/
 	private JEntityEditor(Entity entity, SecurityLevel security, boolean transparent) {
@@ -69,22 +73,30 @@ public final class JEntityEditor extends JTabbedPane {
 		}
 
 		// Set up the REPL.
-		if (entity.getPermission("REPL").level <= security.level) {
+		if (entity.getPermission(Entity.PERMISSION_COMMAND_LINE).level <= security.level) {
 			JCodeREPL repl = new JCodeREPL(entity, transparent);
 			addTab("Command Line", null, repl, "Instantaneous script runner.");
 		}
 
 		// Set up the script editor.
-		if (entity.getPermission("SCRIPT_EDITOR").level <= security.level) {
-			scriptEditor = new JScriptCollectionEditor(entity.getSandbox(), state.getScripts(), security, transparent);
+		if (entity.getPermission(Entity.PERMISSION_SCRIPT_EDITOR).level <= security.level) {
+			scriptEditor = new JScriptCollectionControl(entity.getSandbox(), state, security);
 			addTab("Scripts", null, scriptEditor, "Scripts relating to this entity.");
 		}
-		
-		if (entity.getPermission("PROPERTIES").level <= security.level){
-			propertyControl = new JEntityPropertyControl(entity, security);
-			JComponent properties = propertyControl.create();
-			addTab("Properties", null, properties, "Properties of this entity.");
+
+		// Set up the properties tab.
+		if (entity.getPermission(Entity.PERMISSION_PROPERTIES_EDITOR).level <= security.level) {
+			propertyControl = new JEntityPropertyControl(state);
+			addTab("Properties", null, propertyControl.create(), "Properties of this entity.");
 		}
+		
+		this.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
+				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
+			}
+		});
 
 	}
 
@@ -92,13 +104,23 @@ public final class JEntityEditor extends JTabbedPane {
 	/**Sets editor visibility.  If the editor is associated with a dialog, sets the dialog visibility.*/
 	@Override
 	public void setVisible(boolean value) {
+		if(this.getTabCount() <= 0) {
+			return; // no editor actually exists
+		}
+		
 		if (dialog != null) {
 			dialog.setVisible(value);
 			super.setVisible(value);
-		}
-
-		else
+		} else {
 			super.setVisible(value);
+		}
+		
+		if (value) {
+			
+			UIBuilder.playSound("sounds/fordps3_boop.wav");
+			String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
+			entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
+		}
 	}
 
 
@@ -109,75 +131,65 @@ public final class JEntityEditor extends JTabbedPane {
 
 	/**A handy data collection embodying the edited state of an editor.  To write the state 
 	 * to an entity, call writeToEntity(entity).*/
-	public static final class State {
+	static final class State {
 
-		private HashMap<String, Object> map = new HashMap<String, Object>();
-		private HashMap<String, SecurityLevel> perms = new HashMap<>();
+		final Entity entity;
+		// private HashMap<String, Object> map = new HashMap<String, Object>();
+		String name;
+		final UserScriptCollection scripts;
+		String help;
+		final HashMap<String, SecurityLevel> permissions;
+		Image image;
+		Point2D.Float position;
+		String signText;
 
 
-		private State() {
+		private State(Entity entity) {
+			this.entity = entity;
+			this.scripts = entity.getScripts().copy();
+			this.permissions = entity.getPermissions();
+			this.name = entity.getName();
+			this.help = entity.getHelp();
+			this.image = entity.getImage();
+			this.position = entity.getPosition();
+
+			if(entity instanceof Sign) {
+				signText = ((Sign)entity).getMessage();
+			}
 		}
 
-
 		public static State fromEntity(Entity entity) {
-			State s = new State();
-			s.map.put("SCRIPTS", entity.getScripts().copy());
-			s.map.put("HELP", entity.help);
-			
-			if(entity instanceof Sign) {
-				s.map.put("SIGN_TEXT", ((Sign)entity).getMessage());
-			}
-
-			
-			for(String perm : entity.listPermissionNames()) {
-				entity.setSecurityLevel(perm, entity.getPermission(perm));
-			}
-			
+			State s = new State(entity);
 			return s;
 		}
 
 
-		public UserScriptCollection getScripts() {
-			return ((UserScriptCollection) map.get("SCRIPTS"));
-		}
+		/**Writes the given state to the entity.  Returns true if the write is successful, otherwise 
+		 * returns false.*/
+		public boolean writeToEntity(Entity entity) {
 
+			entity.setName(name);
 
-		/**Writes the given state to the entity.*/
-		public void writeToEntity(Entity entity) {
-			UserScriptCollection scripts = (UserScriptCollection) map.get("SCRIPTS");
-			entity.getScripts().setTo(scripts);
+			if (this.scripts != null)
+				entity.getScripts().setTo(scripts);
 
-			String help = (String) map.get("HELP");
-			if (help != null)
-				entity.help = help;
+			entity.setHelp((this.help == null) ? "" : this.help);
+
+			if (this.permissions != null)
+				entity.setPermissions(this.permissions);
 			
-
 			if(entity instanceof Sign) {
-				String text = map.get("SIGN_TEXT").toString();
-				((Sign)entity).setMessage(text);
+				((Sign)entity).setMessage(signText);
 			}
-			
-			for(String perm : perms.keySet()) {
-				entity.setSecurityLevel(perm, perms.get(perm));
-			}
+
+
+			// TODO: write image to Entity?
+
+			// TODO: write position to Entity?
+
+			return true;
 		}
 
-
-		/**
-		 * @param text
-		 */
-		public void setSignText (String text) {
-			map.put("SIGN_TEXT", text);
-		}
-
-
-		/**
-		 * @param flagName
-		 * @param level
-		 */
-		public void setPermission (String flagName, SecurityLevel level) {
-			perms.put(flagName, level);
-		}
 	}
 
 
@@ -186,28 +198,28 @@ public final class JEntityEditor extends JTabbedPane {
 	// ===================================================
 
 
+	/**Only one help frame can be open at the same time.*/
 	private JFrame _OpenHelpFrame = null;
-	private Document _CurrentHelpDocument = null;
 
 
 	/**Shows the help frame, if there is not one showing already.*/
 	private void showHelp() {
-		if (_OpenHelpFrame != null)
+		if (_OpenHelpFrame != null) {
+			_OpenHelpFrame.requestFocus();
 			return;
+		}
+
+		final JTextArea textPane = new JTextArea();
+		textPane.setEditable(JEntityEditor.this.security.level >= JEntityEditor.this.entity
+				.getPermission(Entity.PERMISSION_EDIT_HELP).level);
+		textPane.setLineWrap(true);
+		textPane.setWrapStyleWord(true);
+		textPane.setText(state.help == null ? "" : state.help);
+
 		_OpenHelpFrame = new JFrame();
+		_OpenHelpFrame.setMinimumSize(new Dimension(300, 400));
 		_OpenHelpFrame.setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
-		JEditorPane textPane = new JEditorPane();
-		textPane.setEditable(
-				JEntityEditor.this.security.level >= JEntityEditor.this.entity.getPermission("EDIT_HELP").level);
-		String help = (String) state.map.get("HELP");
-		if (help == null)
-			help = "No help for this entity.";
-		_CurrentHelpDocument = textPane.getDocument();
-		JScrollPane scroller = new JScrollPane(textPane);
-		// scroller.setPreferredSize(new Dimension(400, this.getHeight()));
-		_OpenHelpFrame.add(scroller);
 		_OpenHelpFrame.setAlwaysOnTop(true);
-		_OpenHelpFrame.pack();
 		_OpenHelpFrame.setLocationRelativeTo(this);
 		_OpenHelpFrame.setLocation(this.getWidth(), 0);
 		_OpenHelpFrame.setTitle("Help");
@@ -217,16 +229,12 @@ public final class JEntityEditor extends JTabbedPane {
 			protected void event(WindowEvent e) {
 				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
 					return;
-				try {
-					if (security.level >= SecurityLevel.AUTHOR.level)
-						state.map.put("HELP", _CurrentHelpDocument.getText(0, _CurrentHelpDocument.getLength()));
-				} catch (BadLocationException e1) {
-					e1.printStackTrace();
-				}
+				if (security.level >= JEntityEditor.this.entity.getPermission(Entity.PERMISSION_EDIT_HELP).level)
+					state.help = textPane.getText();
 				_OpenHelpFrame = null;
-				_CurrentHelpDocument = null;
 			}
 		});
+		_OpenHelpFrame.add(new JScrollPane(textPane));
 		_OpenHelpFrame.setVisible(true);
 	}
 
@@ -234,10 +242,10 @@ public final class JEntityEditor extends JTabbedPane {
 	// ==================================================
 	// ====== JEntityEditor dialog STUFF ================
 	// ==================================================
-	
-	public static JEntityEditor crateEntityEditorPane(Entity entity, SecurityLevel securityLevel,
-			Container addTo, WorldView view, boolean transparent) {
-		
+
+	public static JEntityEditor createEntityEditorPane(Entity entity, SecurityLevel securityLevel, Container addTo,
+			WorldView view, boolean transparent) {
+
 
 		// If there's already an open editor for this entity, don't allow
 		// another dialog.
@@ -254,16 +262,15 @@ public final class JEntityEditor extends JTabbedPane {
 		JEntityEditor jee = new JEntityEditor(entity, securityLevel, transparent);
 
 		if (jee.getTabCount() == 0) // Security allow any editing?
-			return null;
+			return jee;
 
-		
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
 		// own Undoable.
 		ActionListener dialogController = new DialogController(addTo, jee, entity, view);
 
 		JPanel pnlButtons = new JPanel(new HorizontalLayout());
-		if(transparent)
+		if (transparent)
 			pnlButtons.setOpaque(false);
 		pnlButtons.add(UIBuilder.buildButton().image("icons/ok.png").toolTip("Approve changes and close the dialog.")
 				.action("COMMIT", dialogController).create());
@@ -273,52 +280,60 @@ public final class JEntityEditor extends JTabbedPane {
 				.action("CENTER_VIEW", dialogController).border(new EmptyBorder(10, 10, 10, 10)).create());
 		pnlButtons.add(UIBuilder.buildButton().image("icons/question.png").toolTip("Open help regarding this entity.")
 				.action("HELP", dialogController).create());
-		
+
 
 		addTo.setLayout(new BorderLayout());
 		addTo.add(jee, BorderLayout.CENTER);
 		addTo.add(pnlButtons, BorderLayout.SOUTH);
-		
-		
+
+
 		return jee;
 	}
+
 
 	/**Returns null if security will not allow any editing of this entity.*/
 	public static JEntityEditor createDialog(java.awt.Window owner, Entity entity, String title,
 			SecurityLevel securityLevel, WorldView view) {
 
-		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
-		
-		JEntityEditor jee = crateEntityEditorPane(entity, securityLevel, dialog, view, false);
-		
-		if(jee.dialog != null) {
-			dialog.dispose();
-			return jee;
+		// Check if there's already an open editor for this entity. If so, just
+		// return that editor.
+		if (openEditors.containsKey(entity)) {
+			JEntityEditor existing = openEditors.get(entity);
+			existing.requestFocus();
+			return existing;
 		}
+
+		// Build the dialog.
+		JDialog dialog = new JDialog(owner, title, Dialog.ModalityType.MODELESS);
+		JEntityEditor jee = createEntityEditorPane(entity, securityLevel, dialog, view, false);
 		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
-		jee.dialog = dialog;
-		
-		
-		// If a dialog is disposed, it should remove the entity from the
-		// already-open dialog list, and dispose of any help frames so they're
-		// not orphans.
-		dialog.addWindowListener(new WindowListenerAdapter() {
+		if(jee.getTabCount() > 0) {
+			jee.dialog = dialog;
 			
-			@Override
-			protected void event(WindowEvent e) {
-				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-					return;
-				openEditors.remove(entity);
-				if (jee._OpenHelpFrame != null)
-					jee._OpenHelpFrame.dispose();
+			
+			// If a dialog is disposed, it should remove the entity from the
+			// already-open dialog list, and dispose of any help frames so they're
+			// not orphans.
+			dialog.addWindowListener(new WindowListenerAdapter() {
 				
-			}
-		});
+				@Override
+				protected void event(WindowEvent e) {
+					if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+						return;
+					openEditors.remove(entity);
+					if (jee._OpenHelpFrame != null)
+						jee._OpenHelpFrame.dispose();
+					
+				}
+			});
+			
+			dialog.setSize(600, 500);
+		} else {
+			dialog.dispose();
+		}
 
-		dialog.setSize(600, 500);
-		
 		return jee;
 	}
 
@@ -343,9 +358,12 @@ public final class JEntityEditor extends JTabbedPane {
 		public void actionPerformed(ActionEvent e) {
 			switch (e.getActionCommand()) {
 			case "COMMIT":
-				if(jee.scriptEditor!=null) jee.scriptEditor.save();
-				if(jee.signEditor!=null) jee.signEditor.save();
-				if(jee.propertyControl!=null) jee.propertyControl.save(jee.state);
+				if (jee.scriptEditor != null)
+					jee.scriptEditor.save();
+				if (jee.signEditor != null)
+					jee.signEditor.save();
+				if (jee.propertyControl != null)
+					jee.propertyControl.save();
 				Undoable<State> u = new Undoable<State>(State.fromEntity(entity), jee.state) {
 
 					@Override
@@ -361,10 +379,12 @@ public final class JEntityEditor extends JTabbedPane {
 
 				};
 				jee.state.writeToEntity(jee.entity);
+				UIBuilder.playSound("sounds/dland_approve.wav");
 				Tool.pushUndo(entity.getWorld(), u);
-				if(dialog instanceof JDialog)
-					((JDialog)dialog).dispose();
+				if (dialog instanceof JDialog)
+					((JDialog) dialog).dispose();
 				jee.dialog = null;
+				entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_SAVED", entity.getLuaValue());
 				break;
 			case "CANCEL":
 				if (jee.changed) {
@@ -374,8 +394,9 @@ public final class JEntityEditor extends JTabbedPane {
 						break;
 				}
 				jee.dialog = null;
-				if(dialog instanceof JDialog)
-					((JDialog)dialog).dispose();
+				if (dialog instanceof JDialog)
+					((JDialog) dialog).dispose();
+				UIBuilder.playSound("sounds/deathscyp_error.wav");
 				break;
 			case "CENTER_VIEW":
 				Point2D.Float pt = entity.getPosition();
