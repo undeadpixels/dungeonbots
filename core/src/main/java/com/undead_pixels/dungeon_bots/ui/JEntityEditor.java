@@ -104,14 +104,19 @@ public final class JEntityEditor extends JTabbedPane {
 	/**Sets editor visibility.  If the editor is associated with a dialog, sets the dialog visibility.*/
 	@Override
 	public void setVisible(boolean value) {
+		if(this.getTabCount() <= 0) {
+			return; // no editor actually exists
+		}
+		
 		if (dialog != null) {
 			dialog.setVisible(value);
 			super.setVisible(value);
-		}
-
-		else
+		} else {
 			super.setVisible(value);
+		}
+		
 		if (value) {
+			
 			UIBuilder.playSound("sounds/fordps3_boop.wav");
 			String selectedTitle = JEntityEditor.this.getTitleAt(JEntityEditor.this.getSelectedIndex());
 			entity.getWorld().getSandbox().fireEvent("ENTITY_EDITOR_OPENED", LuaValue.valueOf(selectedTitle), entity.getLuaValue());
@@ -153,7 +158,6 @@ public final class JEntityEditor extends JTabbedPane {
 			}
 		}
 
-
 		public static State fromEntity(Entity entity) {
 			State s = new State(entity);
 			return s;
@@ -185,7 +189,6 @@ public final class JEntityEditor extends JTabbedPane {
 
 			return true;
 		}
-
 
 	}
 
@@ -259,7 +262,7 @@ public final class JEntityEditor extends JTabbedPane {
 		JEntityEditor jee = new JEntityEditor(entity, securityLevel, transparent);
 
 		if (jee.getTabCount() == 0) // Security allow any editing?
-			return null;
+			return jee;
 
 
 		// The dialog will handle commit/cancel. It packages up and pushes its
@@ -306,26 +309,30 @@ public final class JEntityEditor extends JTabbedPane {
 		
 		// Create the dialog that contains the editor.
 		openEditors.put(entity, jee);
-		jee.dialog = dialog;
-
-
-		// If a dialog is disposed, it should remove the entity from the
-		// already-open dialog list, and dispose of any help frames so they're
-		// not orphans.
-		dialog.addWindowListener(new WindowListenerAdapter() {
-
-			@Override
-			protected void event(WindowEvent e) {
-				if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
-					return;
-				openEditors.remove(entity);
-				if (jee._OpenHelpFrame != null)
-					jee._OpenHelpFrame.dispose();
-
-			}
-		});
-
-		dialog.setSize(600, 500);
+		if(jee.getTabCount() > 0) {
+			jee.dialog = dialog;
+			
+			
+			// If a dialog is disposed, it should remove the entity from the
+			// already-open dialog list, and dispose of any help frames so they're
+			// not orphans.
+			dialog.addWindowListener(new WindowListenerAdapter() {
+				
+				@Override
+				protected void event(WindowEvent e) {
+					if (e.getID() != WindowEvent.WINDOW_CLOSING && e.getID() != WindowEvent.WINDOW_CLOSED)
+						return;
+					openEditors.remove(entity);
+					if (jee._OpenHelpFrame != null)
+						jee._OpenHelpFrame.dispose();
+					
+				}
+			});
+			
+			dialog.setSize(600, 500);
+		} else {
+			dialog.dispose();
+		}
 
 		return jee;
 	}

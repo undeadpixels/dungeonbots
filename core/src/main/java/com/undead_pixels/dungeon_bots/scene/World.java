@@ -412,7 +412,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	public void onBecomingVisibleInGameplay() {
+	public void onBecomingVisibleInGameplayButNotFromTheLevelEditor() {
 		if (!didInit && autoPlay) {
 			runInitScripts();
 		}
@@ -1125,12 +1125,9 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 			return false;
 		}
 		if (e.isSolid() && t.isOccupied()) {
-			Entity o = tiles[x][y].getOccupiedBy();
-			if (o != null && o instanceof Pushable) {
+			final Entity o = tiles[x][y].getOccupiedBy();
+			if (o instanceof Pushable) {
 				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
-			}
-			if(o != null && e instanceof Pushable) {
-				((Pushable) e).bumpedInto(o, Actor.Direction.byDelta(x + e.getPosition().x, y + e.getPosition().y));
 			}
 			// System.out.println("Unable to move: tile occupied");
 			return false;
@@ -1818,7 +1815,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 
 
 	/**
-	 * @param object
+	 * @param p
 	 */
 	public void registerPoptartListener (Consumer<GameplayScreen.Poptart> p) {
 		this.poptartListener = p;
@@ -1874,8 +1871,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	private HashMap<String, SecurityLevel> permissions = new HashMap<String, SecurityLevel>();
 
 
-	/**Returns the permissions associated with this World.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	/**
+	 * Returns the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc
+	 * @param name
+	 * @return
+	 */
 	public SecurityLevel getPermission(String name) {
 		if (permissions == null)
 			permissions = new HashMap<>();
@@ -1886,8 +1887,12 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	}
 
 
-	/**Sets the permissions associated with this World.  Does not reference the whitelist, but
-	 * references things like:  can the REPL be accessed through this entity?  Etc*/
+	/**
+	 * Sets the permissions associated with this World.  Does not reference the whitelist, but
+	 * references things like:  can the REPL be accessed through this entity?  Etc
+	 * @param name
+	 * @param level
+	 */
 	public void setSecurityLevel(String name, SecurityLevel level) {
 		if (permissions == null)
 			permissions = new HashMap<>();
