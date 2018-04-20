@@ -11,6 +11,7 @@ import com.undead_pixels.dungeon_bots.scene.*;
 import com.undead_pixels.dungeon_bots.scene.entities.actions.ActionQueue;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.CanUseItem;
 import com.undead_pixels.dungeon_bots.script.*;
+import com.undead_pixels.dungeon_bots.script.annotations.Doc;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.events.StringBasedLuaInvocationCoalescer;
 import com.undead_pixels.dungeon_bots.script.events.UpdateCoalescer;
@@ -390,6 +391,14 @@ public abstract class Entity implements BatchRenderable, GetLuaSandbox, GetLuaFa
 	 */
 	public static <T> T userDataOf(Class<T> clz, LuaValue lv) {
 		return clz.cast(lv.checktable().get("this").checkuserdata(clz));
+	}
+
+	@Bind(value = SecurityLevel.AUTHOR, doc = "Set's the specified value as a global in the target entities sandbox")
+	public Entity setGlobal(
+			@Doc("The name the value is bound to") LuaValue name,
+			@Doc("The Lua Value to bind in the entities sandbox") LuaValue val) {
+		getSandbox().getGlobals().set(name.checkjstring(), val);
+		return this;
 	}
 
 
