@@ -371,7 +371,7 @@ public final class LuaSandbox implements Serializable {
 							(Class<?>)lv.get("class").checkuserdata(Class.class) :
 								lv.get("this").checkuserdata().getClass();
 							
-					return comment+LuaDoc.docClassToString(clazz);
+					return comment+LuaDoc.docClassToString(clazz, m -> securityContext.canExecute(null, m));
 				} else { // table but not class
 					ArrayList<String> ret = new ArrayList<>();
 					
