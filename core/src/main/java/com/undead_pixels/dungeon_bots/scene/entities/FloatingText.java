@@ -29,7 +29,7 @@ public class FloatingText extends ChildEntity {
 	/**
 	 * The font size of this text
 	 */
-	private static final float fontSize = 12.0f;
+	private static final float invFontSize = 20.0f;
 	
 	/**
 	 * Amount of time that the text will continue to float before disappearing
@@ -174,7 +174,7 @@ public class FloatingText extends ChildEntity {
 			}
 			if(font != null) {
 				
-				float scale = .75f / fontSize;
+				float scale = .75f / invFontSize;
 				
 				Color c = new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255*fadeRatio));
 				
