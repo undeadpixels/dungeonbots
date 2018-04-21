@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -133,6 +134,7 @@ public class LevelPackScreen extends Screen {
 				filenames.add(absPath);
 			}
 		}
+		Collections.sort(jsons);
 		LevelPackScreen lps = fromJSONs(jsons.toArray(new String[jsons.size()]),
 				filenames.toArray(new String[filenames.size()]));
 		return lps;
