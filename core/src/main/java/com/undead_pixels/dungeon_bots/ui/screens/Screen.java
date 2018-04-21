@@ -173,33 +173,7 @@ public abstract class Screen extends JFrame {
 			}
 
 
-			// Action, ActionListener, AdjustmentListener, AncestorListener,
-			// AWTEventListener, BeanContextMembershipListener,
-			// BeanContextServiceRevokedListener, BeanContextServices,
-			// BeanContextServicesListener, CaretListener, CellEditorListener,
-			// ChangeListener, ComponentListener, ConnectionEventListener,
-			// ContainerListener, ControllerEventListener, DocumentListener,
-			// DragGestureListener, DragSourceListener,
-			// DragSourceMotionListener, DropTargetListener, FlavorListener,
-			// FocusListener, HandshakeCompletedListener,
-			// HierarchyBoundsListener, HierarchyListener, HyperlinkListener,
-			// IIOReadProgressListener, IIOReadUpdateListener,
-			// IIOReadWarningListener, IIOWriteProgressListener,
-			// IIOWriteWarningListener, InputMethodListener,
-			// InternalFrameListener, ItemListener, KeyListener, LineListener,
-			// ListDataListener, ListSelectionListener, MenuDragMouseListener,
-			// MenuKeyListener, MenuListener, MetaEventListener,
-			// MouseInputListener, MouseListener, MouseMotionListener,
-			// MouseWheelListener, NamespaceChangeListener, NamingListener,
-			// NodeChangeListener, NotificationListener, ObjectChangeListener,
-			// PopupMenuListener, PreferenceChangeListener,
-			// PropertyChangeListener, RowSetListener, RowSorterListener,
-			// SSLSessionBindingListener, StatementEventListener,
-			// TableColumnModelListener, TableModelListener, TextListener,
-			// TreeExpansionListener, TreeModelListener, TreeSelectionListener,
-			// TreeWillExpandListener, UndoableEditListener,
-			// UnsolicitedNotificationListener, VetoableChangeListener,
-			// WindowFocusListener, WindowListener, WindowStateListener
+			
 		}
 
 
