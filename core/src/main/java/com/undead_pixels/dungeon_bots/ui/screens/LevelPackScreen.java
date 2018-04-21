@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -133,6 +134,7 @@ public class LevelPackScreen extends Screen {
 				filenames.add(absPath);
 			}
 		}
+		Collections.sort(jsons);
 		LevelPackScreen lps = fromJSONs(jsons.toArray(new String[jsons.size()]),
 				filenames.toArray(new String[filenames.size()]));
 		return lps;
@@ -424,18 +426,18 @@ public class LevelPackScreen extends Screen {
 			list.add(Box.createVerticalStrut(10));
 			list.add(createDisplayLine(FIELD_PACK_TITLE, info.name, asAuthor));
 			// Original author can't change.
-			list.add(createDisplayLine("Author",
-					(info.originalAuthor == null) ? LevelPack.UNKNOWN_AUTHOR_NAME : info.originalAuthor.getUserName(),
-					false));
+			//list.add(createDisplayLine("Author",
+			//		(info.originalAuthor == null) ? LevelPack.UNKNOWN_AUTHOR_NAME : info.originalAuthor.getUserName(),
+			//		false));
 			list.add(createDisplayLine(FIELD_PACK_DESCRIPTION, info.description, asAuthor));
 			list.add(Box.createVerticalStrut(10));
 			// Original creation date cannot change.
 			list.add(createDisplayLine("Created", info.creationDate, false));
-			list.add(createDisplayLine(FIELD_PUBLISH_START, info.publishDate, asAuthor));
-			list.add(createDisplayLine(FIELD_PUBLISH_END, info.expireDate, asAuthor));
+			//list.add(createDisplayLine(FIELD_PUBLISH_START, info.publishDate, asAuthor));
+			//list.add(createDisplayLine(FIELD_PUBLISH_END, info.expireDate, asAuthor));
 			list.add(Box.createVerticalStrut(10));
-			list.add(createDisplayLine("Feedback", info.feedbackModel, asAuthor));
-			list.add(Box.createVerticalStrut(10));
+			//list.add(createDisplayLine("Feedback", info.feedbackModel, asAuthor));
+			//list.add(Box.createVerticalStrut(10));
 			list.add(UIBuilder.buildButton().text("Scripts").action("EDIT_PACK_SCRIPTS", getController()).prefWidth(80)
 					.focusable(false).create());
 		}
@@ -1778,7 +1780,7 @@ public class LevelPackScreen extends Screen {
 			pnl.setLayout(new HorizontalLayout());
 			pnl.setBorder(new EmptyBorder(2, 2, 2, 2));
 			pnl.add(UIBuilder.buildLabel().image(info.getThumbnail()).border(new EmptyBorder(2, 2, 2, 2)).create());
-			pnl.add(UIBuilder.buildLabel().text(info.title).border(new EmptyBorder(2, 2, 2, 2)).create());
+			pnl.add(UIBuilder.buildLabel().text(info.title + " - ").border(new EmptyBorder(2, 2, 2, 2)).create());
 			pnl.add(UIBuilder.buildLabel().text(info.description).border(new EmptyBorder(2, 2, 2, 2)).create());
 			return pnl;
 		}
