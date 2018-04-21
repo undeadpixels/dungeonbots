@@ -4,6 +4,13 @@ The DungeonBots game
 #### Build status:
 [![BuildStatus](https://travis-ci.com/cyanpelican/DungeonBots.svg?token=e8xGyuEnZZSykp8ymA16&branch=master)](https://travis-ci.com/cyanpelican/DungeonBots/builds)
 
+#### Easiest way to build/run:
+
+```
+./gradlew run
+```
+
+
 #### Import/run in Eclipse:
 
 1. File > Import … “gradle project”
@@ -13,6 +20,3 @@ The DungeonBots game
 5. Try running again.
 
 
-#### Alternately, run via gradle (if installed):
-
-gradlew run
