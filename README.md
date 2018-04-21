@@ -11,3 +11,8 @@ The DungeonBots game
 3. “Run as” > Java Application. It will fail.
 4. Run Configurations > DesktopLauncher > Arguments > Working directory. Change to `${workspace\_loc:DungeonBots-core}/assets`
 5. Try running again.
+
+
+#### Alternately, run via gradle (if installed):
+
+gradlew run
