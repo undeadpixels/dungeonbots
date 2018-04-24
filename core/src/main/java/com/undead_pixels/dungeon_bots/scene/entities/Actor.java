@@ -189,13 +189,13 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 			
 		};
 
-		Action fail1 = new SpriteAnimatedAction(sprite, .2f) {
+		Action fail1 = new SpriteAnimatedAction(sprite, .4f*getMoveDuration()) {
 			public boolean preAct() {
 				this.setFinalPosition(_dx*.2f + initialPos[0], _dy*.2f + initialPos[1]);
 				return true;
 			}
 		};
-		Action fail2 = new SpriteAnimatedAction(sprite, .1f) {
+		Action fail2 = new SpriteAnimatedAction(sprite, .2f*getMoveDuration()) {
 			public boolean preAct() {
 				this.setFinalPosition(initialPos[0], initialPos[1]);
 				return true;
@@ -227,12 +227,32 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 		this.floatingText.addLine(text);
 	}
 
-	
+
+	private float moveDuration = 0; // default value
 	/**
 	 * @return	How quickly this Actor moves, in seconds
 	 */
+	@Bind(SecurityLevel.DEFAULT)
 	public float getMoveDuration() {
-		return 0.5f;
+		if(moveDuration == 0 ||
+				moveDuration != moveDuration) { // NaN
+			moveDuration = 0.2f;
+		}
+		if(moveDuration < 0.1f) {
+			moveDuration = 0.1f;
+		}
+		if(moveDuration > 1.0f) {
+			moveDuration = 1.0f;
+		}
+		return moveDuration;
+	}
+
+	/**
+	 * @return	How quickly this Actor moves, in seconds
+	 */
+	@Bind(SecurityLevel.AUTHOR)
+	public void setMoveDuration(LuaValue duration) {
+		moveDuration = duration.tofloat();
 	}
 
 	@Override
