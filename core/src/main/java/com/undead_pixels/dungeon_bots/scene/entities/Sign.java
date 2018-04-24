@@ -125,21 +125,4 @@ public class Sign extends Actor implements Inspectable, HasImage {
 	public Image getImage() {
 		return DEFAULT_TEXTURE.toImage();
 	}
-
-	/**
-	 * @param args
-	 */
-	@Override
-	@Bind(value = SecurityLevel.DEFAULT,
-			doc = "Prints the argument text above the player")
-	public void say(@Doc("The text for the player to say") Varargs args) {
-		final StringBuilder text = new StringBuilder();
-		for(int i = 2; i <= args.narg(); i++) {
-			if(i > 2)
-				text.append(" ");
-			text.append(args.tojstring(i));
-		}
-
-		this.floatingText.addLine(text.toString());
-	}
 }
