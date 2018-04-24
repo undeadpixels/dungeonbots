@@ -163,9 +163,18 @@ public class GameplayScreen extends Screen {
 									.orElse(""),
 							"You Win",
 							JOptionPane.PLAIN_MESSAGE);
-					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+
+					final int index = levelPack.getCurrentWorldIndex();
+					final int count = levelPack.getAllWorlds().length;
+					if(index < count - 1) {
+						levelPack.setCurrentWorld(index + 1);
+						DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+					}
+					else {
+						DungeonBotsMain.instance.setCurrentScreen(LevelPackScreen.fromDirectory(System.getProperty("user.dir")));
+					}
 					//DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(levelPack, w));
-				});
+				}).start();
 			}, true);
 		}
 		getController().registerSignalsFrom(view);
