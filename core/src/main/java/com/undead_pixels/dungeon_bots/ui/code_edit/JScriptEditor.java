@@ -105,6 +105,14 @@ public final class JScriptEditor extends JPanel {
 		editor.setHighlighter(_Controller._Highlighter);
 
 		_FontChooser = new JComboBox<Font>(GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts());
+		Font startFont = null;
+		for (int i = 0; i < _FontChooser.getItemCount(); i++) {
+			startFont = (Font) _FontChooser.getItemAt(i);
+			if (startFont.getFontName().equals("Monospaced.plain"))
+				break;
+		}
+		if (startFont != null)
+			_FontChooser.setSelectedItem(startFont);
 		_FontChooser.setRenderer(_FontNameRenderer);
 		_FontChooser.setSelectedItem(editor.getFont());
 		_FontChooser.addActionListener(_Controller);
@@ -276,15 +284,15 @@ public final class JScriptEditor extends JPanel {
 			if (offset <= _Doc.getLength() - 1 && text.endsWith(existingText)) {
 
 				switch (text) {
-				//case "\"\"":
-					//text = "\"";
-					//System.out.println("quotes");
+				// case "\"\"":
+				// text = "\"";
+				// System.out.println("quotes");
 				case ")":
 
 				case "]":
 				case "'":
 				case "}":
-					//replace(fb,offset, text.length(), text, attr );
+					// replace(fb,offset, text.length(), text, attr );
 					int currentPos = _TextComponent.getCaretPosition();
 					int newPos = currentPos + 1;
 					_TextComponent.setCaretPosition(newPos);

@@ -818,6 +818,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mousePressed(MouseEvent e) {
 			if (e.isConsumed() || oldTiles != null || selection.tileType == null)
 				return;
+			if (e.getButton() != MouseEvent.BUTTON1) return;
 			drawingTileType = selection.tileType;
 			oldTiles = new HashMap<Point, Tile>();
 			newTiles = new HashMap<Point, Tile>();
@@ -838,6 +839,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.isConsumed() || oldTiles == null)
 				return;
 			if (newTiles.size() == 0)
@@ -887,6 +889,7 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
+			if (e.getButton() != MouseEvent.BUTTON1) return;
 			if (e.isConsumed() || oldTiles == null || selection.tileType == null)
 				return;
 			assert drawingTileType != null;
