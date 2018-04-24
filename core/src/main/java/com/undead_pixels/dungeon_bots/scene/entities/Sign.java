@@ -22,7 +22,7 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
 @Doc("An Entity type that can be inspected ")
-public class Sign extends SpriteEntity implements Inspectable, HasImage {
+public class Sign extends Actor implements Inspectable, HasImage {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -129,9 +129,10 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 	/**
 	 * @param args
 	 */
+	@Override
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Prints the argument text above the player")
-	final public void say(@Doc("The text for the player to say") Varargs args) {
+	public void say(@Doc("The text for the player to say") Varargs args) {
 		final StringBuilder text = new StringBuilder();
 		for(int i = 2; i <= args.narg(); i++) {
 			if(i > 2)

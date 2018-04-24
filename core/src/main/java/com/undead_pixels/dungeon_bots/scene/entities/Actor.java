@@ -452,7 +452,7 @@ public abstract class Actor extends SpriteEntity implements HasInventory {
 	 */
 	@Bind(value = SecurityLevel.DEFAULT,
 			doc = "Prints the argument text above the player")
-	final public void say(@Doc("The text for the player to say") Varargs args) {
+	public void say(@Doc("The text for the player to say") Varargs args) {
 		final StringBuilder text = new StringBuilder();
 		for(int i = 2; i <= args.narg(); i++) {
 			if(i > 2)
