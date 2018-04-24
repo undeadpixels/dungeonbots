@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationHaunt;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationJump;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationSparkle;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationVibrate;
@@ -114,8 +115,10 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite;
 	}
 
-
-	
+	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
+	public void haunt(){
+		sprite.animation = new AnimationHaunt();
+	}
 	
 	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
 	public void vibrate(@Doc("The number of seconds to vibrate.") LuaValue seconds) {
