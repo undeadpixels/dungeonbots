@@ -42,6 +42,9 @@ public class WorldView extends JComponent {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public static final float MAX_SPEED = 8.0f;
+	public static final float MIN_SPEED  = 0.5f;
+	
 	private OrthographicCamera cam;
 	private boolean didInitCam = false;
 	private boolean showGrid = true;
@@ -57,6 +60,7 @@ public class WorldView extends JComponent {
 	private final Consumer<World> winAction;
 	private final boolean allowsPlay;
 	private final ArrayList<Runnable> updateListeners = new ArrayList<>();
+	public float speed = 1.0f;
 
 	public WorldView(World world, Consumer<World> winAction, boolean allowsPlay) {
 		this.world = world;
@@ -79,10 +83,13 @@ public class WorldView extends JComponent {
 					long nowTime = System.nanoTime();
 					float dt = (nowTime - lastTime) / 1_000_000_000.0f;
 
+					dt *= speed;
+					
 					if (dt > 1_000_000_000.0f) {
 						dt = 1_000_000_000; // cap dt at 1 second
 					}
-
+					
+					
 					lastTime = nowTime;
 					WorldView.this.world.update(dt);
 

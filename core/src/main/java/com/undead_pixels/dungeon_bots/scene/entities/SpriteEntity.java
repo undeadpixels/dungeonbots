@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.awt.geom.Point2D;
 
 import com.undead_pixels.dungeon_bots.nogdx.Sprite;
+import com.undead_pixels.dungeon_bots.nogdx.AnimationHaunt;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationJump;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationSparkle;
 import com.undead_pixels.dungeon_bots.nogdx.AnimationVibrate;
@@ -114,21 +115,29 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite;
 	}
 
-
-	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
-	public void vibrate() {
-		sprite.animation = new AnimationVibrate();
+	@Bind(value = SecurityLevel.NONE, doc = "Like a ghost")
+	public void haunt(){
+		sprite.animation = new AnimationHaunt();
+	}
+	
+	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy")
+	public void vibrate(@Doc("The number of seconds to vibrate") LuaValue seconds) {
+		if (seconds.isnumber()){
+			double d = (double)seconds.checkdouble();
+		sprite.animation = new AnimationVibrate((float)d);}
+		else {
+			sprite.animation = new AnimationVibrate();
+		}
 	}
 
 
-	@Bind(value = SecurityLevel.NONE, doc = "Sparkling clean.")
+	@Bind(value = SecurityLevel.NONE, doc = "Sparkling clean")
 	public void sparkle() {
 		sprite.animation = new AnimationSparkle();
 	}
 	
-	@Bind(value = SecurityLevel.NONE, doc = "For joy.")
+	@Bind(value = SecurityLevel.NONE, doc = "For joy")
 	public void jump() {
-		System.out.println("Starting a jump");
 		sprite.animation = new AnimationJump();
 	}
 }

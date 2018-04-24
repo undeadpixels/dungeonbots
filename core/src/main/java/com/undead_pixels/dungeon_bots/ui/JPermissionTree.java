@@ -274,8 +274,9 @@ public class JPermissionTree extends JTree {
 				};
 				for (int i = 0; i < availableLevels.length; i++) {
 					JRadioButton bttn = new JRadioButton();
-					Icon icon = icons[i];
-					bttn.setSelectedIcon(icon);
+					//Icon icon = icons[i];
+					bttn.setText(availableLevels[i].toString().toLowerCase());
+					//bttn.setSelectedIcon(icon);
 					bttn.addActionListener(listener);
 					bttn.setToolTipText(availableLevels[i].toString().toLowerCase());
 					if (availableLevels[i].equals(p.level))
