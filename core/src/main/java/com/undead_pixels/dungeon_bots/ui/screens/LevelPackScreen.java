@@ -1120,10 +1120,16 @@ public class LevelPackScreen extends Screen {
 		
 		Box msg = new Box(BoxLayout.Y_AXIS);
 		msg.add(new JLabel(new ImageIcon(img)));
+		msg.add(Box.createVerticalStrut(15));
+		msg.add(new JLabel("Use this screenshot of the world for the thumbnail?"));
 		
 		int choice = JOptionPane.showOptionDialog(this, msg, "Use this image?", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.PLAIN_MESSAGE, null, new String[] {"Accept", "Choose another"}, "Accept");
 		boolean useAutogen = choice==0;
+		
+		if(choice == JOptionPane.CLOSED_OPTION) {
+			return null;
+		}
 		
 		Image newImg;
 		if(useAutogen) {
