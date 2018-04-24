@@ -115,9 +115,16 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	}
 
 
+	
+	
 	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
-	public void vibrate() {
-		sprite.animation = new AnimationVibrate();
+	public void vibrate(@Doc("The number of seconds to vibrate.") LuaValue seconds) {
+		if (seconds.isnumber()){
+			double d = (double)seconds.checkdouble();
+		sprite.animation = new AnimationVibrate((float)d);}
+		else {
+			sprite.animation = new AnimationVibrate();
+		}
 	}
 
 

@@ -10,7 +10,11 @@ public final class AnimationVibrate extends Animation {
 
 
 	public AnimationVibrate() {
-		this(20f, 0.25f, 3.0f);
+		this(20f, 0.25f, 1.0f);
+	}
+	
+	public AnimationVibrate(float seconds){
+		this(20f, 0.25f, seconds);
 	}
 
 
