@@ -155,7 +155,17 @@ public class GameplayScreen extends Screen {
 			}, true);
 		} else {
 			view = new WorldView(world, (w) -> {
-				DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(levelPack, w));
+				new Thread(() -> {
+					JOptionPane.showMessageDialog(this,
+							w.getState().entrySet().stream()
+									.map(item -> item.getKey() + " : " + item.getValue().toString())
+									.reduce((a,b) -> a + "\n" + b)
+									.orElse(""),
+							"You Win",
+							JOptionPane.PLAIN_MESSAGE);
+					DungeonBotsMain.instance.setCurrentScreen(new GameplayScreen(levelPack, false));
+					//DungeonBotsMain.instance.setCurrentScreen(new ResultsScreen(levelPack, w));
+				});
 			}, true);
 		}
 		getController().registerSignalsFrom(view);
