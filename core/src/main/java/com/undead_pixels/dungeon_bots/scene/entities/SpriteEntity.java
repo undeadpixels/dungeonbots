@@ -115,13 +115,13 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 		return sprite;
 	}
 
-	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
+	@Bind(value = SecurityLevel.NONE, doc = "Like a ghost")
 	public void haunt(){
 		sprite.animation = new AnimationHaunt();
 	}
 	
-	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy.")
-	public void vibrate(@Doc("The number of seconds to vibrate.") LuaValue seconds) {
+	@Bind(value = SecurityLevel.NONE, doc = "Shake and shimmy")
+	public void vibrate(@Doc("The number of seconds to vibrate") LuaValue seconds) {
 		if (seconds.isnumber()){
 			double d = (double)seconds.checkdouble();
 		sprite.animation = new AnimationVibrate((float)d);}
@@ -131,14 +131,13 @@ public abstract class SpriteEntity extends Entity implements HasImage {
 	}
 
 
-	@Bind(value = SecurityLevel.NONE, doc = "Sparkling clean.")
+	@Bind(value = SecurityLevel.NONE, doc = "Sparkling clean")
 	public void sparkle() {
 		sprite.animation = new AnimationSparkle();
 	}
 	
-	@Bind(value = SecurityLevel.NONE, doc = "For joy.")
+	@Bind(value = SecurityLevel.NONE, doc = "For joy")
 	public void jump() {
-		System.out.println("Starting a jump");
 		sprite.animation = new AnimationJump();
 	}
 }

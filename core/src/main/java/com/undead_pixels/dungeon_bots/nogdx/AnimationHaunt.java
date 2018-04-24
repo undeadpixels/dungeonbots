@@ -26,7 +26,7 @@ public class AnimationHaunt extends Animation {
 	public void drawFrame(RenderingContext batch, TextureRegion tex, float x, float y, float rotation, float scaleX,
 			float scaleY, float dt) {
 
-		double gamma = amplitude * Math.cos(3 * time + (Math.PI/3));
+		double gamma = amplitude * Math.sin(3 * time);
 		float off_x = (float) (gamma * Math.sin(time));
 		float off_y = (float) (gamma * Math.cos(time));
 

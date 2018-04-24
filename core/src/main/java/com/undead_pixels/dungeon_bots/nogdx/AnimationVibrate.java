@@ -14,7 +14,7 @@ public final class AnimationVibrate extends Animation {
 	}
 	
 	public AnimationVibrate(float seconds){
-		this(20f, 0.25f, seconds);
+		this((float)Math.ceil(10*seconds), 0.25f, seconds);
 	}
 
 
