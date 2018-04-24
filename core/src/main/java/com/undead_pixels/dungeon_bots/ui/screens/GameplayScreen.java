@@ -50,6 +50,7 @@ import com.undead_pixels.dungeon_bots.scene.entities.Player;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.ui.JEntityEditor;
+import com.undead_pixels.dungeon_bots.ui.JExponentialSlider;
 import com.undead_pixels.dungeon_bots.ui.JSemitransparentPanel;
 import com.undead_pixels.dungeon_bots.ui.JMessagePane;
 import com.undead_pixels.dungeon_bots.ui.UIBuilder;
@@ -171,10 +172,16 @@ public class GameplayScreen extends Screen {
 		JToolBar playToolBar = new JToolBar();
 		playToolBar.setOpaque(false);
 
+		/*
 		JSlider zoomSlider = new JSlider();
 		zoomSlider.setName("zoomSlider");
 		zoomSlider.addChangeListener((ChangeListener) getController());
 		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		*/
+		JExponentialSlider speedSlider = new JExponentialSlider(WorldView.MIN_SPEED, WorldView.MAX_SPEED, view.speed);
+		speedSlider.setName("speedSlider");
+		speedSlider.addChangeListener((ChangeListener) getController());
+		speedSlider.setBorder(BorderFactory.createTitledBorder("Speed"));
 
 		// Layout the toolbar at the bottom of the screen for game stop/start
 		// and for view control.
@@ -198,7 +205,8 @@ public class GameplayScreen extends Screen {
 		playToolBar.addSeparator();
 		playToolBar.add(UIBuilder.buildButton().image("icons/save.png").toolTip("Save the game state.")
 				.action(COMMAND_SAVE, getController()).text("Save").border(new EmptyBorder(10, 10, 10, 10)).create());
-		playToolBar.add(zoomSlider);
+		//playToolBar.add(zoomSlider);
+		playToolBar.add(speedSlider);
 		playToolBar
 				.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
 						.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
@@ -417,6 +425,9 @@ public class GameplayScreen extends Screen {
 					if (cam != null) {
 						_ViewControl.setZoomAsPercentage((float) sldr.getValue() / sldr.getMaximum());
 					}
+				} else if (sldr.getName().equals("speedSlider")){
+					JExponentialSlider jes = (JExponentialSlider)sldr;
+					view.speed = (float)jes.getExpValue();
 				}
 			}
 		}
