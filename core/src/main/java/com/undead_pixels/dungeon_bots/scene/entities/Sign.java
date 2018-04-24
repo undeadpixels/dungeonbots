@@ -33,7 +33,6 @@ public class Sign extends Actor implements Inspectable, HasImage {
 	public Sign(World world, String message, float x, float y) {
 		super(world, "sign", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 		this.message = message;
-		floatingText = new FloatingText(this, name+"-text");
 		registerListener();
 		
 		this.getScripts().add(new UserScript("init",
@@ -47,10 +46,12 @@ public class Sign extends Actor implements Inspectable, HasImage {
 	 * Should only ever be called by the world, in its addEntity
 	 * @param world
 	 */
+	/*
 	@Override
 	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
 	}
+	*/
 	
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
