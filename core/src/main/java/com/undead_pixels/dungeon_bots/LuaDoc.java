@@ -12,6 +12,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.*;
 
 public final class LuaDoc {
@@ -141,7 +142,7 @@ public final class LuaDoc {
 		return ans.values();
 	}
 
-	public static String docClassToString(final Class<?> clz) {
+	public static String docClassToString(final Class<?> clz, Predicate<Method> methodFilter) {
 		return String.format(
 				"---- %s (%s) ----\n__ %s __\n\n%s",
 				clz.getSimpleName(),
@@ -151,6 +152,7 @@ public final class LuaDoc {
 						.orElse("?"),
 				LuaReflection.getBindableInstanceMethods(clz)
 						.sorted(Comparator.comparing(GetLuaFacade::bindTo))
+						.filter(methodFilter)
 						.map(m -> docMethodToString(m))
 						.reduce("", (a,b) -> a + b));
 	}

@@ -119,6 +119,7 @@ public class Door extends Actor implements Lockable, Useable, HasInventory {
 		this.locked = true;
 		this.open = false;
 		this.sprite.setTexture(lockedTexture);
+		world.updateEntity(this);
 	}
 
 	@Override

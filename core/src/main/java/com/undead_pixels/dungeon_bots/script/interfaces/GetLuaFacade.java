@@ -2,9 +2,12 @@ package com.undead_pixels.dungeon_bots.script.interfaces;
 import com.undead_pixels.dungeon_bots.LuaDoc;
 import com.undead_pixels.dungeon_bots.scene.entities.Entity;
 import com.undead_pixels.dungeon_bots.scene.entities.inventory.items.Item;
+import com.undead_pixels.dungeon_bots.script.LuaSandbox;
+import com.undead_pixels.dungeon_bots.script.SandboxManager;
 import com.undead_pixels.dungeon_bots.script.annotations.*;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaProxyFactory;
 import com.undead_pixels.dungeon_bots.script.proxy.LuaReflection;
+import com.undead_pixels.dungeon_bots.script.security.SecurityContext;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import org.luaj.vm2.LuaValue;
@@ -31,7 +34,17 @@ public interface GetLuaFacade {
 
 	@Bind(value = SecurityLevel.NONE, doc = "Return a String documenting the functionality of the invoked type")
 	default String help() {
-		return LuaDoc.docClassToString(this.getClass());
+		SecurityLevel level = SecurityLevel.DEBUG;
+		LuaSandbox sb = SandboxManager.getCurrentSandbox();
+		if(sb != null) {
+			SecurityContext context = sb.getSecurityContext();
+			if(context != null) {
+				level = context.getSecurityLevel();
+				return LuaDoc.docClassToString(this.getClass(), m -> context.canExecute(null, m));
+			}
+		}
+		
+		return LuaDoc.docClassToString(this.getClass(), m -> true);
 	}
 
 	/**
