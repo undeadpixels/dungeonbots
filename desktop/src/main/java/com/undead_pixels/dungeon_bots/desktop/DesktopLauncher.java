@@ -4,6 +4,8 @@ import java.awt.Color;
 import javax.swing.UIManager;
 import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import jsyntaxpane.DefaultSyntaxKit;
+import jsyntaxpane.SyntaxStyles;
+import jsyntaxpane.TokenType;
 import jsyntaxpane.syntaxkits.LuaSyntaxKit;
 import jsyntaxpane.util.Configuration;
 
@@ -132,6 +134,9 @@ public class DesktopLauncher {
 			syntaxConfig.put("Style.ERROR", "0xffffff, 0");
 
 			// _SyntaxCfg.put("Style.NOT_EDITABLE", "0xffffff, 1");
+			// Some stupid hack to get black text not to be black anymore
+			SyntaxStyles.getInstance().getStyle(TokenType.DEFAULT).setColorString("0xff0000");
+			SyntaxStyles.getInstance().getStyle(TokenType.DEFAULT).setBold(true);
 
 		} catch (Exception e) {
 			e.printStackTrace();
