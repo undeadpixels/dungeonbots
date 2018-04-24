@@ -71,6 +71,7 @@ import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
 import com.undead_pixels.dungeon_bots.script.annotations.SecurityLevel;
 import com.undead_pixels.dungeon_bots.script.security.Whitelist;
 import com.undead_pixels.dungeon_bots.ui.JAboutDialog;
+import com.undead_pixels.dungeon_bots.ui.JExponentialSlider;
 import com.undead_pixels.dungeon_bots.ui.JPermissionTree;
 import com.undead_pixels.dungeon_bots.ui.JWorldEditor;
 import com.undead_pixels.dungeon_bots.ui.JWorldSizer;
@@ -294,10 +295,12 @@ public final class LevelEditorScreen extends Screen {
 		/** Handle changes in the state of the zoom slider. */
 		@Override
 		public void stateChanged(ChangeEvent e) {
-			if (e.getSource() instanceof JSlider) {
-				JSlider sldr = (JSlider) e.getSource();
-				if (sldr.getName().equals("zoomSlider")) {
-					_ViewControl.setZoomAsPercentage((float) (sldr.getValue()) / sldr.getMaximum());
+			if (e.getSource() instanceof JExponentialSlider) {
+				
+				JExponentialSlider sldr = (JExponentialSlider) e.getSource();
+				if (sldr.getName().equals("speedSlider")) {
+					LevelEditorScreen.this._View.speed = (float)sldr.getExpValue();
+					//_ViewControl.setZoomAsPercentage((float) (sldr.getValue()) / sldr.getMaximum());
 				}
 			}
 		}
@@ -746,10 +749,11 @@ public final class LevelEditorScreen extends Screen {
 
 
 		// Create the zoom slider.
-		JSlider zoomSlider = new JSlider();
-		zoomSlider.setName("zoomSlider");
-		zoomSlider.addChangeListener((ChangeListener) getController());
-		zoomSlider.setBorder(BorderFactory.createTitledBorder("Zoom"));
+		//JSlider speedSlider = new JSlider();
+		JExponentialSlider speedSlider = new JExponentialSlider(WorldView.MIN_SPEED, WorldView.MAX_SPEED, _View.speed);
+		speedSlider.setName("speedSlider");
+		speedSlider.addChangeListener((ChangeListener) getController());
+		speedSlider.setBorder(BorderFactory.createTitledBorder("Speed"));
 
 		// Build the control panel.
 		_ToolBar = new JToolBar("Editor tools");
@@ -762,7 +766,7 @@ public final class LevelEditorScreen extends Screen {
 		_ToolBar.addSeparator();
 		_ToolBar.add(UIBuilder.buildButton().image("icons/zoom.png").text("Center view").toolTip("Set view to center.")
 				.action(COMMAND_CENTER_VIEW, getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
-		_ToolBar.add(zoomSlider);
+		_ToolBar.add(speedSlider);
 		_ToolBar.add(UIBuilder.buildButton().image("icons/arrow_switch.png").text("Switch to Play")
 				.action("Switch to Play", getController()).border(new EmptyBorder(10, 10, 10, 10)).create());
 		_ToolBar.addSeparator();
