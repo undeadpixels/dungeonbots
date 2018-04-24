@@ -58,7 +58,6 @@ public class DungeonBotsMain {
 
 	/** Sets the current screen to the given screen. */
 	public void setCurrentScreen(Screen newScreen) {
-
 		// Remove the old screen.
 		if (screen != null) {
 			screen.dispose();
