@@ -704,55 +704,58 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 			// tiles. If selecting tiles that are already part of the
 			// selection, just update the tile selection. Otherwise, nothing
 			// is selected.
-			List<Entity> se = world.getEntitiesUnderLocation(rect);
-			if (se.size() == 1) {
+			List<Entity> entitiesLassoed = world.getEntitiesUnderLocation(rect);
+			List<Tile> tilesLassoed = world.getTilesUnderLocation(rect);
+			entitiesLassoed
+					.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
+
+			if (entitiesLassoed.size() > 0) {
+
+				// Only the Z-top-most entity should be treated as if it's been
+				// clicked.
+				Entity topEntity = entitiesLassoed.get(0);
+				for (int i = 1; i < entitiesLassoed.size(); i++)
+					if (entitiesLassoed.get(i).getZ() > topEntity.getZ())
+						topEntity = entitiesLassoed.get(i);
+
 				// Fire the entity's onClicked event
-				se.get(0).getSandbox().fireEvent("CLICKED");
-				se.get(0).getWorld().getSandbox().fireEvent("ENTITY_CLICKED", se.get(0).getLuaValue());
-			}
-			se.removeIf((ent) -> ent.getPermission(Entity.PERMISSION_SELECTION).level > securityLevel.level);
-			List<Tile> st = world.getTilesUnderLocation(rect);
+				topEntity.getSandbox().fireEvent("CLICKED");
+				topEntity.getWorld().getSandbox().fireEvent("ENTITY_CLICKED", topEntity.getLuaValue());
 
-			System.out.println(se);
-
-			// If only one tile is selected, and one entity is selected, and
-			// it is the entity that would be selected by this lasso, then
-			// this is a double-click. Bring up the editor for the selected
-			// entity.
-			if (st.size() == 1 && se.size() == 1 && view.isSelectedEntity(se.get(0))) {
-				view.setSelectedEntities(new Entity[] { se.get(0) });
-				JEntityEditor jee = null;
-				if (se.get(0).getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
-					jee = JEntityEditor.createDialog(owner, se.get(0), se.get(0).getName(), securityLevel, view);
-
+//Start up the JEE?
+				if (tilesLassoed.size() == 1 && view.isSelectedEntity(topEntity)) {
+					view.setSelectedEntities(new Entity[] { topEntity });
+					JEntityEditor jee = null;
+					if (topEntity.getPermission(Entity.PERMISSION_ENTITY_EDITOR).level <= securityLevel.level) {
+						jee = JEntityEditor.createDialog(owner, topEntity, topEntity.getName(), securityLevel, view);
+					}
+					if (jee == null) {
+						world.message((topEntity instanceof HasImage) ? (HasImage) topEntity : null,
+								"This entity cannot be edited.", LoggingLevel.GENERAL);
+						return;
+					} else {
+						jee.setVisible(true);
+						view.setSelectedTiles(null);
+					}
 				}
-				if (jee == null) {
-					world.message((se.get(0) instanceof HasImage) ? (HasImage) se.get(0) : null,
-							"This entity cannot be edited.", LoggingLevel.GENERAL);
-					return;
-				} else {
-					jee.setVisible(true);
+				// If not the JEE, select entities?
+				else if (selectsEntities){
+					view.setSelectedEntities(entitiesLassoed.toArray(new Entity[entitiesLassoed.size()]));
 					view.setSelectedTiles(null);
 				}
-
 			}
-			// If some number of entities are lassoed, select them (if
-			// allowed).
-			else if (se.size() > 0 && selectsEntities) {
-				view.setSelectedEntities(se.toArray(new Entity[se.size()]));
-				view.setSelectedTiles(null);
-			}
+			
 			// If an unselected tile is lassoed, but a selection exists,
 			// this counts to clear the selections.
-			else if (st.size() == 1 && !view.isSelectedTile(st.get(0))) {
+			else if (tilesLassoed.size() == 1 && !view.isSelectedTile(tilesLassoed.get(0))) {
 				view.setSelectedTiles(null);
 				view.setSelectedEntities(null);
 			}
 			// If one or more tiles is lassoed, and tile select is allowed,
 			// select them.
-			else if (st.size() > 0 && selectsTiles) {
+			else if (tilesLassoed.size() > 0 && selectsTiles) {
 
-				view.setSelectedTiles(st.toArray(new Tile[st.size()]));
+				view.setSelectedTiles(tilesLassoed.toArray(new Tile[tilesLassoed.size()]));
 				view.setSelectedEntities(null);
 			}
 			// In all other cases, neither tile nor entity may be selected.
@@ -818,7 +821,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 		public void mousePressed(MouseEvent e) {
 			if (e.isConsumed() || oldTiles != null || selection.tileType == null)
 				return;
-			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getButton() != MouseEvent.BUTTON1)
+				return;
 			drawingTileType = selection.tileType;
 			oldTiles = new HashMap<Point, Tile>();
 			newTiles = new HashMap<Point, Tile>();
@@ -839,7 +843,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getButton() != MouseEvent.BUTTON1)
+				return;
 			if (e.isConsumed() || oldTiles == null)
 				return;
 			if (newTiles.size() == 0)
@@ -889,7 +894,8 @@ public abstract class Tool implements MouseInputListener, KeyListener, MouseWhee
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (e.getButton() != MouseEvent.BUTTON1) return;
+			if (e.getButton() != MouseEvent.BUTTON1)
+				return;
 			if (e.isConsumed() || oldTiles == null || selection.tileType == null)
 				return;
 			assert drawingTileType != null;
