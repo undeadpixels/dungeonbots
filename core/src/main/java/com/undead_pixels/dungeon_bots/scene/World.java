@@ -1120,11 +1120,11 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 		}
 
 		final Tile t = tiles[x][y];
-		if (t == null || e.isSolid() && t.isSolid()) {
+		if (t == null || t.isSolid()) {
 			// System.out.println("Unable to move: tile solid");
 			return false;
 		}
-		if (e.isSolid() && t.isOccupied()) {
+		if (t.isOccupied()) {
 			final Entity o = tiles[x][y].getOccupiedBy();
 			if (o instanceof Pushable) {
 				((Pushable) o).bumpedInto(e, Actor.Direction.byDelta(x - e.getPosition().x, y - e.getPosition().y));
