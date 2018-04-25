@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -66,6 +67,8 @@ import com.undead_pixels.dungeon_bots.DungeonBotsMain;
 import com.undead_pixels.dungeon_bots.User;
 import com.undead_pixels.dungeon_bots.file.FileControl;
 import com.undead_pixels.dungeon_bots.file.Serializer;
+import com.undead_pixels.dungeon_bots.nogdx.OrthographicCamera;
+import com.undead_pixels.dungeon_bots.nogdx.RenderingContext;
 import com.undead_pixels.dungeon_bots.file.Community;
 import com.undead_pixels.dungeon_bots.scene.World;
 import com.undead_pixels.dungeon_bots.scene.level.LevelPack;
@@ -1097,13 +1100,49 @@ public class LevelPackScreen extends Screen {
 
 
 	private Undoable<Image> changeLevelImage() {
-		File file = FileControl.openImageDialog(LevelPackScreen.this);
-		if (file == null)
+		// generate a lame image
+		int w = 300, h = 200;
+		WorldInfo selWorld = (WorldInfo) getCurrentSelection();
+		int index = selWorld.packInfo.worlds.indexOf(selWorld);
+		LevelPack newPack = selWorld.packInfo.writeComplete();
+		newPack.setCurrentWorld(index);
+		World world = newPack.getCurrentWorld();
+		
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		RenderingContext batch = new RenderingContext(img.createGraphics(), w, h);
+		OrthographicCamera cam = new OrthographicCamera(w, h);
+		
+		cam.zoomFor(world.getSize());
+		cam.setViewportSize(w, h);
+		batch.setProjectionMatrix(cam);
+		
+		world.render(batch);
+		
+		Box msg = new Box(BoxLayout.Y_AXIS);
+		msg.add(new JLabel(new ImageIcon(img)));
+		msg.add(Box.createVerticalStrut(15));
+		msg.add(new JLabel("Use this screenshot of the world for the thumbnail?"));
+		
+		int choice = JOptionPane.showOptionDialog(this, msg, "Use this image?", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.PLAIN_MESSAGE, null, new String[] {"Accept", "Choose another"}, "Accept");
+		boolean useAutogen = choice==0;
+		
+		if(choice == JOptionPane.CLOSED_OPTION) {
 			return null;
-		Image newImg = UIBuilder.getImage(file.getPath(), true);
-		if (newImg == null) {
-			JOptionPane.showMessageDialog(LevelPackScreen.this, "Cannot load the given image:" + file.getPath());
-			return null;
+		}
+		
+		Image newImg;
+		if(useAutogen) {
+			newImg = img;
+		} else {
+			File file = FileControl.openImageDialog(LevelPackScreen.this);
+			if (file == null)
+				return null;
+			newImg = UIBuilder.getImage(file.getPath(), true);
+			if (newImg == null) {
+				JOptionPane.showMessageDialog(LevelPackScreen.this, "Cannot load the given image:" + file.getPath());
+				return null;
+			}
 		}
 		WorldInfo wInfo = (WorldInfo) getCurrentSelection();
 		wInfo.packInfo.hasChanged = true;
