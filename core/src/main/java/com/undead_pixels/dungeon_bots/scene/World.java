@@ -394,7 +394,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	/**
 	 * Perform some initializations that need to be done upon deserialization
 	 */
-	public void runInitScripts() {
+	public synchronized void runInitScripts() {
 		if (!didInit) {
 			System.out.println("Init'ing world");
 			LuaInvocation initScript = getSandbox().init().join(2000);
@@ -590,7 +590,7 @@ public class World implements GetLuaFacade, GetLuaSandbox, GetState, Serializabl
 	 * @param e
 	 *            The entity to add
 	 */
-	public void addEntity(Entity e) {
+	public synchronized void addEntity(Entity e) {
 
 		if (entitiesAtPos(e.getPosition()).anyMatch(entity -> e.isSolid() && e.getClass().equals(entity.getClass()))) {
 			return;
