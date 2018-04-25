@@ -22,7 +22,7 @@ import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
 
 @Doc("An Entity type that can be inspected ")
-public class Sign extends SpriteEntity implements Inspectable, HasImage {
+public class Sign extends Actor implements Inspectable, HasImage {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -33,7 +33,6 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 	public Sign(World world, String message, float x, float y) {
 		super(world, "sign", DEFAULT_TEXTURE, new UserScriptCollection(), x, y);
 		this.message = message;
-		floatingText = new FloatingText(this, name+"-text");
 		registerListener();
 		
 		this.getScripts().add(new UserScript("init",
@@ -47,10 +46,12 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 	 * Should only ever be called by the world, in its addEntity
 	 * @param world
 	 */
+	/*
 	@Override
 	public void onAddedToWorld(World world) {
 		world.addEntity(floatingText);
 	}
+	*/
 	
 	private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
 		inputStream.defaultReadObject();
@@ -124,21 +125,5 @@ public class Sign extends SpriteEntity implements Inspectable, HasImage {
 	@Override
 	public Image getImage() {
 		return DEFAULT_TEXTURE.toImage();
-	}
-
-	/**
-	 * @param args
-	 */
-	@Bind(value = SecurityLevel.DEFAULT,
-			doc = "Prints the argument text above the player")
-	final public void say(@Doc("The text for the player to say") Varargs args) {
-		final StringBuilder text = new StringBuilder();
-		for(int i = 2; i <= args.narg(); i++) {
-			if(i > 2)
-				text.append(" ");
-			text.append(args.tojstring(i));
-		}
-
-		this.floatingText.addLine(text.toString());
 	}
 }
