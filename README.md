@@ -2,7 +2,7 @@
 The DungeonBots game
 
 #### Build status:
-[![BuildStatus](https://travis-ci.org/undeadpixels/dungeonbots.svg?branch=master)
+[![BuildStatus](https://travis-ci.org/undeadpixels/dungeonbots.svg?branch=master)](https://travis-ci.org/undeadpixels/dungeonbots/builds)
 
 #### Easiest way to build/run:
 
