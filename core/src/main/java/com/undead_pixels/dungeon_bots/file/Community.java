@@ -48,11 +48,6 @@ public class Community {
 			// 4/17/18
 
 			public boolean authenticate(String name, char[] password, String server) {
-				String testName = "admin@dungeonbots.herokuapp.com";
-				char[] testPswd = "undeadpixelspassword".toCharArray();
-				name = testName;
-				password = testPswd;
-
 				URL obj;
 				HttpsURLConnection conn = null;
 				DataOutputStream writer = null;
